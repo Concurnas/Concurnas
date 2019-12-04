@@ -4,7 +4,7 @@
 # Adapted from scripts included with Scala (https://www.scala-lang.org)
 ##############################################################################
 
-findConcHome () {
+findConcHome () { 
   local source="${BASH_SOURCE[0]}"
   while [ -h "$source" ] ; do
     local linked="$(readlink "$source")"
