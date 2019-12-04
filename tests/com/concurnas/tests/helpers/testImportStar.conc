@@ -1,0 +1,11 @@
+typedef myset<X> = java.util.HashSet<X>
+
+class CanMake
+
+def myFunction() => 23
+
+trait MyTrait()
+
+public magicNumber = 987
+
+enum MyEnum{ONE, TWO, TRHEE, FOUR, FIVE}

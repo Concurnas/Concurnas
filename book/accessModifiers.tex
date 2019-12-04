@@ -1,0 +1,71 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Accessibility Modifiers]{Accessibility Modifiers}
+
+Concurnas supports four key accessibility modifiers (in order of restrictability): \lstinline{private, package, protected and public}. These are essential for supporting encapsulation from an object oriented programming perspective. Making diligent use of accessibility modifiers improves code readability (by clearly marking the accessibility of code), reduces maintenance costs of software (e.g. one can change the argument structure of a private function knowing that the only callers of said function are local to the definition), and generally leads to more structured, thought out code being written.
+
+Modifiers can be applied at either the top level module level or more commonly to class elements (fields and methods). In total the following 8 types of referable/importable item can have accessibility modifiers: variables, class fields, functions, class methods, classes, enumerations, typedefs, annotations. The accessibility modifier keyword is placed first in the definition of said element. e.g.
+\begin{lstlisting}
+//at the module level...
+private raiser= 99
+public mypow(a int) = a ** raiser
+
+//at the class level...
+class MyClass{
+	private age int = 20
+	public isOldEnough(test int) = test >== age
+}
+\end{lstlisting}
+
+In the above example, the private variables and fields are not accessible outside of their defined module and class respectfully. However the publicly accessible function and methods are. \lstinline{private}, \lstinline{public} and \lstinline{protected} are the most commonly used accessibility modifiers. A full table showing which items are assessable from what other parts of the code is as follows:
+
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{lllll}
+		\hline
+		Accessible from&\lstinline!public!&\lstinline!protected!&\lstinline!package!&\lstinline!private!\\
+		\hline
+		Same Class/Module&Y&Y&Y&Y\\
+		Subclass&Y&Y&N&N\\
+		Package&Y&Y&Y&N\\
+		Global&Y&N&N&N\\
+		\hline
+	\end{tabular}%\resizebox{\columnwidth}{!}{}
+\end{table}
+
+
+\section{Default Accessibility}
+All of the aforementioned accessibility modifiable elements have a default accessibility applied where no accessibility modifier is specified. For example in the below case:
+\begin{lstlisting}
+class MyClass{
+	age int = 20
+	isOldEnough(test int) = test >== age
+}
+\end{lstlisting}
+
+The \lstinline{age} field has a default accessibility applied of private and the \lstinline{isOldEnough} method has a default accessibility applied of public. A table showing the default accessibility for each of the items, contingent on their defined context is as follows:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\hline
+		Item&Default\\
+		\hline
+		variable&\lstinline!private!\\
+		field&\lstinline!private!\\
+		function&\lstinline!public!\\
+		method&\lstinline!public!\\
+		class&\lstinline!public!\\
+		nested class&\lstinline!protected!\\
+		enumeration&\lstinline!public!\\
+		annotation&\lstinline!public!\\
+		typedef&\lstinline!public!\\
+		\hline
+	\end{tabular}%\resizebox{\columnwidth}{!}{}
+\end{table}
+
+
+\end{document}

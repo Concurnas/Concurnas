@@ -1,0 +1,288 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Arrays Matrices and Lists]{Arrays Matrices and Lists}
+	\label{ch:arrays}
+There are said to be two schools of thought with regards to linear or serial collections of data. 1). Arrays, in which data is stored in memory in a linear (and often continuous) manner where post creation the size of the structure cannot be changed and 2). lists, where though often not as performant as arrays, permit more flexibility in changing their size and are generally easier to work with. For historical as well as practical reasons, arrays tend to be more popular in the scientific and numerical computing communities and lists more popular with enterprise engineering.
+
+With Concurnas, we provide native support for both structures as well as a simple syntax which makes them equally quick and easy to work with.
+
+\section{Array and Matrix Types}
+In Concurnas, one can define a one dimensional of any type. For example an array of integers is defined as \lstinline{int[]}. A \lstinline{n > 1} dimensional array can be defined by specifying the dimensionality between the brackets, e.g. a two dimensional String array: \lstinline{String[2]}. Alternatively a multidimensional array may be represented by using empty brackets, e.g. a two dimensional String array: \lstinline{String[][]} - but of course, for declarations involving many dimensions, it can be more convenient to use the numerical representation instead of the brackets.  Example:
+
+\begin{lstlisting}
+res1 int[][][]
+res2 int[3]
+\end{lstlisting}
+
+res1 and res2 above are of the same equivalent type a 3 dimensional int array.
+
+A two dimensional array is special in that it’s also known as a matrix (structurally, in memory it is an array of arrays). Higher orders of n than 2 are possible and as with single dimensional arrays, these are multidimensional arrays and they are definable for any type.
+
+\section{Array and Matrix Creation with default Initialization}
+In Concurnas n-dimensional arrays are objects. As such they can be created using the new keyword as follows:
+\begin{lstlisting}
+myArray int[] = new int[10] //single dimensional array with 10 elements
+\end{lstlisting}
+
+And, like all other objects, the new keyword may be omitted:
+\begin{lstlisting}
+myArray int[] = int[10] //single dimensional array with 10 elements
+\end{lstlisting}
+
+If we wish to define a multidimensional array we must specify the length of the dimensions. These are delimited using a comma:
+\begin{lstlisting}
+myMatrix1 int[2] = new int[2, 10]//2d matrix 2 rows of 10 columns each
+myMatrix2 int[2] = new int[2][10]//2d matrix 2 rows of 10 columns each
+\end{lstlisting}
+
+The default value for each of the elements in the array, when instantiated in this manner, are is as follows:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\hline
+		Type&Default Array Value\\
+		\hline
+		Primitive numerical: \lstinline!short, int, long, float, double!&0\\
+		Primitive \lstinline!char!&0\\
+		Primitive \lstinline!boolean!&false\\
+		Primitive \lstinline!byte!&0\\
+		Boxed Primitive Type&null\\
+		Non primitive types (e.g. Objects)&null\\
+		\hline
+	\end{tabular}%\resizebox{\columnwidth}{!}{}
+\end{table}
+
+Note that the final dimension does not need to be qualified, in this case the final dimension(s) of array omitted will resolve to null:
+\begin{lstlisting}
+myMatrix1 int[2] = new int[3][]
+myMatrix2 int[2] = new int[3,]
+
+//both myMatrix1 and myMatrix2 == null null null
+\end{lstlisting}
+
+\section{List creation with default Initialization}
+In order to maintain compatibility with other JVM languages, lists in Concurnas are provided via use of the \lstinline{java.lang.List implementations}. For example, if one wishes to create an empty array list one can do so as par a normal object:
+\begin{lstlisting}
+mylist = new ArrayList<int>();//create and empty arraylist holding Integers
+\end{lstlisting}
+
+\section{Array and List creation with initialization}
+Arrays and lists can be initialized with non default values using very similar convenient syntax. The elements of a list must be delimited using a comma, whereas we use a space for arrays.
+\begin{lstlisting}
+myArray = [1 2 3]
+myList = [1, 2, 3]
+\end{lstlisting}
+
+Arrays can be created using comma delimiters, this is enabled by prefixing the initial bracket with an \lstinline{a}. This is useful when the contents of the array contain many expression lists or invocations to extension functions and otherwise using brackets to bind these would appear inelegant:
+\begin{lstlisting}
+mySimpleArray = a[1, 2, 3]
+
+def int powAndPlus(pow int, plus int) => (this ** pow) + plus
+
+anotherArray = a[10 powAndPlus 2 4, 2 powAndPlus 3 6]
+\end{lstlisting}
+
+If possible, Concurnas will automatically cast all of the subelements of an array or list to be the same component type when stored as appropriate. In order to do so it will find the most generic type which is equal to or is the supertype of all the elements. In the degenerate case this of course would be Object. For example, here all of the elements are converted to double:
+
+\begin{lstlisting}
+mydoubleArray = [1. 2 3]//mydoubleArray  resolves to [1.0 2.0 3.0]
+\end{lstlisting}
+
+In the case where one or more elements is a boxed variant of a primitive type, all elements will be boxed to the relevant Object type:
+\begin{lstlisting}
+res = [1 2 Integer(3)] //this array is of type Integer[]
+\end{lstlisting}
+
+\section{Array creation with element wise initialization}
+Often it can be useful to create array or lists with each element initialized to the same logical value. In Concurnas this is supported for both primitive and object type n dimensional arrays as follows:
+\begin{lstlisting}
+Class MyClass(a int, b int){ override toString() => 'mc {a:b}' }
+
+myArrayPrim = new int[2,3](99)
+myArrayObj  = new MyClass[2,3](new MyClass(99, 1))
+
+
+//myArrayPrim => [[99, 99, 99], [99, 99, 99]]
+//myArrayObj  => [[mc 99:1, mc 99:1, mc 99:1], [mc 99:1, mc 99:1, mc 99:1]]
+\end{lstlisting}
+
+In the above case, for the object type array, \lstinline{myArrayObj}, the value resulting from the call of the \lstinline{MyClass} constructor call is copied for each element. Each element of the matrix is its own object, copies are not shared between array elements.
+
+\section{Matrix creation with initialization}
+Given the importance of matrix operations in numerical computing, Concurnas has special support for matrices. One can create a matrix with initial value as follows:
+\begin{lstlisting}
+A = [ 1 2 ; 3 4]
+
+//A resolves to:
+//1  2
+//3  4
+\end{lstlisting}
+
+If one prefers to use commas as an array delimiter then the above may be achieved as follows:
+\begin{lstlisting}
+A = a[ a[1, 2] , a[3, 4]]
+
+//A resolves to:
+//1  2
+//3  4
+\end{lstlisting}
+
+\section{Array concatenation and appending}
+In Concurnas, the semicolon operator \lstinline{;} within the context of a n dimensional array element definition inside a pair of square brackets \lstinline{[ ]} has special significance as a concatenation operator. To add a row to a matrix we do the following
+\begin{lstlisting}
+m = [ 1 2; 3 4 ]
+added = [m ; 5 6]
+
+//added resolves to:
+//1	 2
+//3	 4
+//5  6
+\end{lstlisting}
+
+This is known as vertical concatenation. Note that in conrunas for matrixes or other n> 1 dimensional arrays, same number of columns per row is not required in order to be able to perform a concatenation.
+
+It is possible to concatenate arrays of higher dimensionality than 2. Note however that the the elements being concatenated cannot vary by more than one dimension degree, it’s not possible to concatenate a matrix with a 4 dimensional array.
+
+Concurnas also supports appending elements to arrays, also known as horizontal concatenation. The number of rows needs to match in order to do this however the number of columns per row does not..
+
+\begin{lstlisting}
+m = [ 1 2 ; 3 4]
+res = [m m]
+
+
+//res ==
+//1	 2  1  2
+//3	 4  3  4
+\end{lstlisting}
+
+This also works for when one needs to add a single item to an array:
+\begin{lstlisting}
+a = [ 1 2 3 ]
+appended = [ a 34 ]
+
+//appended resolves to:
+//1  2  3  34
+\end{lstlisting}
+
+In cases where it is not possible to perform a horizontal concatenation, say due to array dimensionality, at attempt to mix primitive type arrays with object arrays or differing primitive type arrays, then a generalized append will take place:
+\begin{lstlisting}
+a = [1 2 ; 3 4]
+b = [5 6]
+
+myAr = [ a b]//myAr is now of type Object[] as it's not possible to perform a horizontal concatenation
+\end{lstlisting}
+
+Compiler note: Concurnas automatically resolves the potential for ambiguity in cases where one wishes to concatenate a variable and an array, which would normally be interpreted as a array/list indexing operation:
+\begin{lstlisting}
+a = 9
+res = [a [1 7] ]
+\end{lstlisting}
+Nevertheless a array indexing operation will take precedence if it is semantically valid (i.e. a resolves to a list map or array and the expression contained within the bracket is suitable as an index).
+
+Developer note: Using arrays as a data structure where a lot of adding/removing of elements is taking place is discouraged for performance reasons (a new array must be created for every \lstinline{[ ... ;. ...]} call). Using an appropriate implementation of a list would be more sensible solution for these types of problem.
+
+\section{Array and List Lengths}
+The length of an array is obtainable be referencing the \lstinline{length} synthetic field. Note that it is not possible to change the length of an array by attempting to assign a value:
+\begin{lstlisting}
+myAr = [1 2 3]
+size = mylist.length
+
+//size == 3
+\end{lstlisting}
+
+The JDK Java List interface API specifies the length of a list is obtainable by calling the size method on the object:
+\begin{lstlisting}
+mMylist = [1, 2, 3]
+size = mylist.size()
+
+//size resolves to: 3
+\end{lstlisting}
+
+\section{Array and List indexing}
+Concurnas supports the same array indexing operations for both lists and arrays. These operators are useful for performing array assignment and extracting values from arrays. As par conventional programming languages array indexes start from zero:
+
+\begin{lstlisting}
+mylist = [1,2,3]
+myarray = [ 1 2 3]
+
+mylist[1] = 99
+myarray[1] = 99
+
+fromlist = mylist[0] //obtain the first element of the list
+fromarray = myarray[0] //obtain the first element of the array
+
+//mylist == [1, 99, 3]
+//myarray  == [1 99 3]
+//fromlist == 1
+//fromarray == 1
+\end{lstlisting}
+
+Ranges of arrays and lists can be extracted as follows:
+\begin{lstlisting}
+myarray  = [1 2 3 4 5 6 7 8 9 10]//this applies to lists as well
+
+range = myarray[ 3 ...  6]
+prear = myarray[ ... 6]
+postar = myarray[ 6 ...]
+
+
+//range == [4 5 6 7]
+//prear  == [1 2 3 4 5 6 7]
+//postar == [7 8 9 10]
+\end{lstlisting}
+
+More than one dimension must be specified if the array is of more than one dimension:
+\begin{lstlisting}
+myar = [1 2 3; 3 4 5]
+v = myar[1,1]
+
+//v == 4
+\end{lstlisting}
+
+The expression selecting elements in the selector may also specify a complete subsection of a matrix using \lstinline{;}:
+\begin{lstlisting}
+myar = [1 2 3; 3 4 5; 6 7 8]
+v = myar[;,1]
+
+//v == [2 4 7]
+\end{lstlisting}
+
+Ranges can be specified in this form:
+\begin{lstlisting}
+myar = [1 2 3; 3 4 5; 6 7 8]
+v = myar[1 ... ,1]
+
+//v == [4 7]
+\end{lstlisting}
+
+\section{The del statement}
+The del statement can be applied to a list in order to remove an item.
+\begin{lstlisting}
+mylist = [1, 2, 3, 4]
+del mylist[2]
+//mylist == [1, 2, 4]
+\end{lstlisting}
+
+This is semantically equivalent to calling \lstinline{mylist.remove(2)}.
+
+\section{Operations on arrays and lists}
+In addition to assignment and obtination of values in an array. All the Concurnas operators are provided for array and list elements.
+
+\subsection{Assignment operators}
+The assignment operators as well a pre/post dec/incrementors can be used on array and list elements, for example:
+\begin{lstlisting}
+myarray = [1 2 3 4 5 6]
+myarray[0]  += 1
+myarray[1] **=2
+myarray[3]++
+++myarray[4]
+res = myarray[5]--
+
+//myarray == [2 4 3 5 6 5]
+//res == 6
+\end{lstlisting}
+
+\end{document}

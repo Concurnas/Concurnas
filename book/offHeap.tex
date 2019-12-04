@@ -1,0 +1,450 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Off Heap Memory]{Off Heap Memory}
+
+Concurnas provides support for managing data off heap. Since Concurnas is an Object oriented garbage collected language, data, in the form of Objects, is managed in a subsection of the RAM of the machine upon which it's operating called the heap. This is generally only a portion of the RAM available to and a fraction of the persistable storage available (SSD's, disk drives etc) to the machine.
+
+\section{Overview}
+The off heap memory management functionality provided by Concurnas affords us three key advantages: 
+
+\begin{itemize}
+	\item We are able to work with datasets which are significantly larger than what is possible to store on heap. For instance, we may be running our program with a with a 8GB heap, 128GB of RAM and many terabytes of physical disk based storage - with off heap memory management we can reside and work with our data in this RAM and physical disk seamlessly.
+	\item We can perform our own memory management. This is often preferable in cases where we are working with large datasets which are resident in memory for large durations of time and/or have access patterns which we are aware of and in control of ahead of runtime. This frees up our garbage collector to focus on other areas of our program's operation.
+\end{itemize}
+
+This functionality is provided in the form of off heap stores and key value pair maps which can be backed in either RAM or disk. These are intuitive and easy to use data structures and are already a very popular industry approved means of working with large datasets.
+
+\section{Serialization of objects}
+All objects in Concurnas are sterilizable to and from binary format - this extends naturally to object graphs (i.e. the total data structure referenced by an object and all its fields, and it's fields fields etc). Concurnas is even able to cater for cycles in serialized object graphs by default. It is through this mechanism of serialization that objects are able to be managed off heap, being marshalled back into an object form when they are required in heap memory, and marshalled into binary form for storage/persistence off heap.
+
+This default serialization scheme is added to all classes executed by Concurnas at runtime.
+
+\subsection{sizeof}
+We can make use of the \lstinline{sizeof} keyword in order to determine the amount of bytes a serialized object graph will consume off heap:
+
+\begin{lstlisting}
+anArray = [1 2 3 4]
+
+sz = sizeof anArray //sz == 37
+\end{lstlisting}
+
+This can be useful for when when working with large objects in an environment where we have a limited amount of off heap memory.
+
+\subsection{Custom Serialization}
+Sometimes the default serialization mechanism is not adequate. In these instances a custom user defined serialization mechanism may be defined. This may take the form of either implementing the \lstinline{Serializable} interface or \lstinline{Externalizable} interface.
+
+
+\subsubsection{Implementing the \lstinline{Serializable} interface}
+A class may implement the \lstinline{java.io.Serializable} interface, in doing so it will use the default serialization strategy employed by Java in order to serialize its graph. For example:
+
+\begin{lstlisting}
+class MyClass(firstName String, secondName String) ~ java.io.Serializable
+\end{lstlisting}
+
+Optionally, as par \href{https://docs.oracle.com/javase/9/docs/api/java/io/Serializable.html}{Serializable} one may define a pair of \lstinline{writeObject} and \lstinline{readObject} methods in order to perform the serialization. For example, on a custom ArrayList:
+
+\begin{lstlisting}
+class MyArrayList ~ java.io.Serializable{
+	items String[]
+	highwatermark = 0
+	
+	this(){
+		items = new String[10]
+	}
+	
+	this(startsize int){
+		items = new String[startsize]
+	}
+	
+	def add(what String){
+		if(highwatermark >== items.length){
+			newitems = new String[Math.ceil(items.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, items.length)
+			items = newitems
+		}
+		items[highwatermark++] = what
+	}
+	
+	private def substr(){
+		items[0 ... highwatermark] if items  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr()
+	
+	private def writeObject(s java.io.ObjectOutputStream) void{
+		s.defaultWriteObject()
+		s.writeInt(highwatermark)
+		for (i=0; i<highwatermark; i++) {
+			s.writeObject(items[i])
+		}
+	}
+	
+	private def readObject(s java.io.ObjectInputStream) void {
+		s.defaultReadObject()
+		highwatermark = s.readInt()
+		items = new String[highwatermark] 
+		
+		for (i=0; i<highwatermark; i++) {
+			items[i] = s.readObject() as String
+		}
+	}	
+}
+\end{lstlisting}
+
+\subsubsection{Implementing the \lstinline{Externalizable} interface}
+A class may implement the \lstinline{java.io.Externalizable} interface, in doing so we are obliged to define a pair of \lstinline{writeExternal(outx java.io.ObjectOutput)} and \lstinline{readExternal(inx java.io.ObjectInput)} methods which perform our serialization and deserialization. For example, on a custom ArrayList:
+
+\begin{lstlisting}
+class MyArrayList ~ java.io.Externalizable{
+	items String[]
+	highwatermark = 0
+	
+	this(){
+		items = new String[10]
+	}
+	
+	this(startsize int){
+		items = new String[startsize]
+	}
+	
+	def add(what String){
+		if(highwatermark >== items.length){
+			newitems = new String[Math.ceil(items.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, items.length)
+			items = newitems
+		}
+		items[highwatermark++] = what
+	}
+	
+	private def substr(){
+		items[0 ... highwatermark] if items  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr()
+	
+	public def writeExternal(outx java.io.ObjectOutput){
+		outx.writeInt(highwatermark)
+		for(n=0; n < highwatermark; n++){
+			outx.writeUTF(items[n])
+		}
+	}
+	
+	
+	public def readExternal(inx java.io.ObjectInput){
+		highwatermark = inx.readInt()
+		items = new String[highwatermark]
+		
+		for(n=0; n < highwatermark; n++){
+			items[n] = inx.readUTF()
+		}
+	}
+}
+\end{lstlisting}
+
+
+\subsection{Unserializable Objects}
+All objects in Concurnas are serializable with exception of:
+\begin{itemize}
+	\item Actors.
+	\item Any class marked as transient. See \hyperref[sec:transientClasses]{here} for more details.
+\end{itemize} 
+
+\section{Transient fields}
+Classes may have transient fields declared within them. These behave like regular fields except that when serialized via the default strategy provided by Concurnas, or the default \lstinline{java.io.Serializable} strategy, they are not converted to/from binary format. A field may be declared transient by using the \lstinline{transient} keyword as follows:
+
+\begin{lstlisting}
+class MyClass(transient firstName String, secondName String){
+	transient yearOfBirth int
+}
+\end{lstlisting}
+
+Upon serialization and deserialization transient fields will not be populated, thus in a deserialized object any non primitive, non array type transient fields will have a default value of \lstinline{null} attributed to them, and primitive types the equivalent of \lstinline{0}. It is because of this behaviour that non primitive, non array type transient fields are always nullable.
+
+This can be useful in instances where a local resource is tied up to a Object which needs to be persisted or otherwise managed off heap, for instance a database connection. Note that excessive use of transient fields can be a \textit{code smell} indicating unorthodox design.
+
+\subsection{Default Transient fields}
+When it comes to the Serialization of transient fields with default values the behaviour differs contingent upon the variant of serialization used. For example: 
+
+\begin{lstlisting}
+class MyClass(transient firstName String = "dave", secondName String){
+	transient yearOfBirth int = 1970 //transient field with default value
+}
+\end{lstlisting}
+
+The fields \lstinline{firstName} and \lstinline{yearOfBirth} will be deserialized to their respective default values if either:
+
+\begin{itemize}
+	\item The default serialization strategy offered by Concurnas is used.
+	\item Explicit defaulting of the fields is within the appropriate methods of a class extending either \lstinline{java.io.Externalizable} or \lstinline{java.io.Serializable}
+\end{itemize}
+
+\section{Off Heap Stores}
+Concurnas offers Off Heap Stores, these may reside either in memory via the \lstinline{com.concurnas.lang.offheap.storage.OffHeapRAM} class or on disk via the \lstinline{com.concurnas.lang.offheap.storage.OffHeapDisk} class - these are subtypes of the \lstinline{com.concurnas.lang.offheap.storage.OffHeapPutGettable} class. They allow us to store object graphs off heap and provide us with objects we can use in order to interact with those off heap objects.
+
+\subsection{Creating Off Heap RAM Stores}
+In order to create an off heap RAM store we must specify the size of our off heap stores in bytes, for instance, 10MB is:
+
+\begin{lstlisting}
+10meg = 10 * (1024**2)
+\end{lstlisting}
+
+This can then be used within our \lstinline{OffHeapRAM} store, with generic qualification to store an array of Strings as follows:
+
+\begin{lstlisting}
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from com.concurnas.lang.offheap import OffHeapObject
+
+msg1 = ["hello" "world"]
+msg2 = ["nice" "day"]
+
+10meg = 10 * (1024**2)
+
+offHeapRamStore = new OffHeapRAM<String[]>(10meg)
+offHeapRamStore.start()
+
+offHeapObj1 OffHeapObject<String[]> = offHeapRamStore.put(msg1)
+offHeapObj2 OffHeapObject<String[]> = offHeapRamStore.put(msg2)
+
+gotMsg1 = offHeapRamStore.get(offHeapObj1)
+gotMsg2 = offHeapRamStore.get(offHeapObj2)
+
+offHeapRamStore.close()
+
+assert gotMsg1 == msg1
+assert gotMsg2 == msg2//equal by value
+
+assert gotMsg1 &<> msg1
+assert gotMsg2 &<> msg2//different by reference
+\end{lstlisting}
+
+There are a few things going on with the \lstinline{OffHeapRAM} store above:
+
+\begin{enumerate}
+	\item The \lstinline{OffHeapRAM} store is explicitly started via a call to the \lstinline{start} method.
+	\item Then we store objects within them via the \lstinline{put} method, this returns to us an object reference of type \lstinline{OffHeapObject} which we can use in order to obtain a copy of the object from the store.
+	\item We then obtain a copy of the stored objects from the store using the \lstinline{get} method. Note that these objects are copies, so they are (by default) equal by value, but different by reference.
+	\item We then shut down the \lstinline{OffHeapRAM} store using the \lstinline{close} method. It is important that this is done so as to avoid a memory/resource leak.
+\end{enumerate}
+
+\subsubsection{Using OffHeapObject's}
+The returned \lstinline{OffHeapObject} object references from our object store can be passed around our program as par normal objects. They may be deleted by using the \lstinline{del} keyword or calling the \lstinline{delete} method - this will remove their referenced object from the object store. Similarly, when \lstinline{OffHeapObject} object references go out of scope and become garbage collected, the object to which they refer is removed from their host object store - however, it is still best practice to explicitly delete the object when it is known to not be of use. Here is an example:
+
+\begin{lstlisting}
+del offHeapObj1
+offHeapObj2.delete()
+\end{lstlisting}
+
+When working with \lstinline{OffHeapObject} objects it is not necessary to have immediate knowledge of the object store to which they reference, since they have a \lstinline{getManager} method which can provide this information, additionally, the \lstinline{get} method may be called in order to obtain a copy of the object to which the \lstinline{OffHeapObject} object refers, for example:
+
+\begin{lstlisting}
+gotMsg1a = offHeapObj1.getManager().get(offHeapObj1)
+gotMsg1b = offHeapObj1.get()
+
+assert gotMsg1a == gotMsg1b //equal by value
+assert gotMsg1a &<> gotMsg1b//different by reference
+\end{lstlisting}
+
+\subsection{Creating Off Heap Disk Stores}
+The Off Heap Disk Store is a good mechanism for storing large amounts of temporary data off heap outside of RAM. The Off Heap Disk Store is backed by a memory mapped file which greatly enhances performance as spatially localized data is cached in memory.
+
+As with the \lstinline{OffHeapRAM} store, the \lstinline{OffHeapDisk} store must be provided with a store size. Additionally however, a file path may be provided. This file will be used to store the data held in the \lstinline{OffHeapDisk} store. If a file path is not provided, a temporary file will be created. If the file path exists already it will be erased, additionally, the file will be removed upon the \lstinline{close} method of the store being called.
+
+The \lstinline{OffHeapDisk} store exposes an additional method \lstinline{setPreallocate} which if called with \lstinline{true} before the store is started, will result in the temporary file used to back the data of the store being fully allocated on disk. If this is not set then the file will grow as required.
+
+Here is an example of the \lstinline{OffHeapDisk} store in action, it is very similar to the \lstinline{OffHeapRAM} store:
+
+\begin{lstlisting}
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from com.concurnas.lang.offheap import OffHeapObject
+
+msg1 = ["hello" "world"]
+
+10meg = 10 * (1024**2)
+
+offHeapRamStore = new OffHeapDisk<String[]>(10meg)
+offHeapRamStore.start()
+
+offHeapObj1 OffHeapObject<String[]> = offHeapRamStore.put(msg1)
+
+gotMsg1 = offHeapRamStore.get(offHeapObj1)
+
+offHeapRamStore.close()
+
+assert gotMsg1 == msg1//equal by value
+
+assert gotMsg1 &<> msg1//different by reference
+\end{lstlisting}
+
+The Off Heap Disk Store is not designed for permanent Object persistence since at the point of shutdown of a process with a \lstinline{OffHeapDisk} store the necessary handles (such as \lstinline{OffHeapObject} objects) are lost. For true persistence, an off Off Heap Disk Map is recommended, since they provide a key reference that can be used in order to refer to objects post process shutdown and resumption.
+
+\subsection{Managing Off Heap Stores}
+We can examine the amount of space we have allocated and have remaining in the store via the \lstinline{getCapacity} and \lstinline{getFreeSpace} methods respectfully.
+
+Over time an object store may become fragmented (see: \href{https://en.wikipedia.org/wiki/Defragmentation}{Defragmentation}). As such although there may appear to be plenty of space available for an object allocation, there in fact may not be due to fragmentation. In this situation Concurnas will automatically compact and defragment the store in order to free up space. This is a slow operation, for this reason it is recommended that stores be monitored for becoming close to capacity, a good rule of thumb is to over allocate space by 50\% more than what is expected to be required.
+
+We can adjust the amount of space allocated to the store by calling the \lstinline{setCapacity(size long)} method. This method may be called on the store before or after it has been started via a call to the \lstinline{start} method. If it is called after the \lstinline{start} method, and the amount of space reduced, the store will be compacted and defragmented so as to ensure that it can fit into the newly allocated reduced space. If it cannot an exception will be thrown.
+
+If a \lstinline{OffHeapRAM} or \lstinline{OffHeapDisk} store is closed (by calling of the \lstinline{close} method) all outstanding \lstinline{OffHeapObject} objects are invalidated. Attempting to extract an object referenced by a \lstinline{OffHeapObject} will result in an exception. Additionally, Objects may not be persisted after the store has been closed.
+
+Off heap stores and \lstinline{OffHeapObject}'s cannot be shared between isolates. In cases where shared access to an off heap map is required, it is recommended that an actor be used in order to achieve this. 
+
+
+\section{Off Heap Map}
+Now let us examine the core of the off heap memory support in Concurnas, off heap key value pair maps. These may reside either in memory via the \lstinline{com.concurnas.lang.offheap.storage.OffHeapMapRAM} class or on disk via the \lstinline{com.concurnas.lang.offheap.storage.OffHeapMapDisk} class. Both of these implementations implement the \lstinline{java.util.Map} interface. They both behave in a very similar manner to the Off Heap stores we have previously explored.
+
+The \lstinline{OffHeapMapDisk} class offers all the same functionality as the \lstinline{OffHeapMapRAM} class but with the added benefit of being disk backed, enabling permanent persistence of off heap objects. Although the \lstinline{OffHeapMapDisk} implementation it is not as fast as the RAM based backing since it is disk backed, it does make use of memory mapped files in order to improve access times to data.
+
+\subsection{Creating Off Heap RAM Maps}
+In order to create an off heap map we must specify the size of our off heap structure in bytes, for instance, 100 MB is:
+
+\begin{lstlisting}
+100meg = 100 * (1024**2)
+\end{lstlisting}
+
+This can then be used within our \lstinline{OffHeapMapRAM} store, with generic qualification to map from a String as key to String[] as value as follows:
+
+\begin{lstlisting}
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+
+msg1 = ["hello" "world"]
+100meg = 100 * (1024**2)
+
+offHeapRamStore = new OffHeapMapRAM<String, String[]>(100meg)
+offHeapRamStore.start()
+
+offHeapRamStore.put('msg1', msg1)
+
+gotMsg1 = offHeapRamStore.get('msg1')
+
+offHeapRamStore.close()
+
+assert gotMsg1 == msg1//equal by value
+assert gotMsg1 &<> msg1//different by reference
+\end{lstlisting}
+
+As with the Off heap stores there are a few things above going on:
+
+\begin{enumerate}
+	\item The \lstinline{OffHeapMapRAM} map is explicitly started via a call to the \lstinline{start} method.
+	\item Then we store objects within the map via the \lstinline{put} method, this returns a copy of the previous object persisted if any.
+	\item We then obtain a copy of the stored objects from the store using the \lstinline{get} method. Note that these objects are copies, so they are (by default) equal by value, but different by reference.
+	\item We then shut down the \lstinline{OffHeapMapRAM} map using the \lstinline{close} method. It is important that this is done so as to avoid a memory/resource leak.
+\end{enumerate}
+
+Notice that, unlike off heap stores, \lstinline{OffHeapObject} objects are not returned from the \lstinline{put} method calls. We do not need \lstinline{OffHeapObject} objects because we can use the keys we have referenced.
+
+\subsection{Using Off Heap Disk Maps}
+The Off Heap Disk Map is a good mechanism for storing large amounts of temporary data off heap outside of RAM. The Off Heap Disk Map is backed by a memory mapped file which greatly enhances performance as spatially localized data is cached in memory.
+
+As with the \lstinline{OffHeapMapRAM} store, the \lstinline{OffHeapMapDisk} store must normally be provided with a map size. Additionally however, a file path may be provided. This file will be used to store the data held in the \lstinline{OffHeapMapDisk} store. If a file path is not provided, a temporary file will be created. If the file path is populated and points to a file which already exists, this file will be used as the backing store, any previously persisted mappings within the file will be accessible. It is through this means that persistence of data may be achieved.
+
+The \lstinline{OffHeapMapDisk} store exposes a number of additional methods:
+
+\begin{itemize}
+	\item \lstinline{setPreallocate} - if called with \lstinline{true} before the store is started, will result in the temporary file used to back the data of the store being fully allocated on disk. If this is not set then the file will grow as required.
+	\item \lstinline{setRemoveOnClose} - if called with \lstinline{true}, will result in the backing file used for the map being removed upon the \lstinline{close} method being called on the map.
+	\item \lstinline{setCleanOnStart} - if called with \lstinline{true} before the store is started, will result in the file used to back the data of the store being erased when the map is started.
+\end{itemize}
+
+Here is an example of the \lstinline{OffHeapMapDisk} store in action, it is very similar to the \lstinline{OffHeapMapRAM} store:
+
+\begin{lstlisting}
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+msg1 = ["hello" "world"]
+100meg = 100 * (1024**2)
+
+offHeapRamStore = new OffHeapMapDisk<String, String[]>(100meg)
+offHeapRamStore.start()
+
+offHeapRamStore.put('msg1', msg1)
+
+gotMsg1 = offHeapRamStore.get('msg1')
+
+offHeapRamStore.close()
+
+assert gotMsg1 == msg1//equal by value
+assert gotMsg1 &<> msg1//different by reference
+\end{lstlisting}
+
+\subsection{Off heap map management}
+As with off heap stores, the same points regarding management apply to  off heap maps...
+
+We can examine the amount of space we have allocated and have remaining in the map via the \lstinline{getCapacity} and \lstinline{getFreeSpace} methods respectfully.
+
+Over time an object map may become fragmented (see: \href{https://en.wikipedia.org/wiki/Defragmentation}{Defragmentation}). As such although there may appear to be plenty of space available for an object allocation, there in fact may not be due to fragmentation. In this situation Concurnas will automatically compact and defragment the map in order to free up space. This is a slow operation, for this reason it is recommended that maps be monitored for becoming close to capacity, a good rule of thumb is to over allocate space by 50\% more than what is expected to be required.
+
+We can adjust the amount of space allocated to the map by calling the \lstinline{setCapacity(size long)} method. This method may be called on the map before or after it has been started via a call to the \lstinline{start} method. If it is called after the \lstinline{start} method, and the amount of space reduced, the map will be compacted and defragmented so as to ensure that it can fit into the newly allocated reduced space. If it cannot an exception will be thrown.
+
+Objects may not be persisted to a Off heap map after it has been closed.
+
+Off heap maps cannot be shared between isolates. In cases where shared access to an off heap map is required, it is recommended that an actor be used in order to achieve this. 
+
+
+\section{Schema evolution}
+One of the strongest points of the Concurnas off heap map implementation is its support for schema evolution. We term schema evolution as being changes to a class after it has been persisted. For instance, adding a new data field, changing a type etc. This turns out to be a surprisingly normal operation performed in enterprise computing and unfortunately the subsequent required data migration is something which consumes a lot of time and effort. Traditionally this would cause a problem for us upon deserialization since the persisted version of the class code would not match that of the current 'live' version, but Concurnas is largely able to account for these sorts of evolutionary changes.
+
+Additionally, Concurnas is able to store multiple evolved versions of the same class within an off heap data structure (either the map or store objects above). In this way Objects which have been serialized in a previous format usually do not require explicit migration to a new format.
+
+\subsection{Supported evolutions}
+Concurnas is able to support the following evolutions to Objects in isolation and in combination:
+
+\subsubsection{Removing a field}
+\begin{lstlisting}
+class MyClass(firstName String, sirName String)
+//Later version:
+class MyClass(firstName String)
+\end{lstlisting}
+
+When we deserialize a class having an evolved definition with a removed field, this removed field will simply be ommitted from the deserialized object.
+
+\subsubsection{Adding a field}
+\begin{lstlisting}
+class MyClass(firstName String)
+//Later version:
+class MyClass(firstName String, sirName String)
+\end{lstlisting}
+
+When we deserialize a class having an evolved definition with an additional field, this additional field will be set to its default/initial value, the equivalent of \lstinline{0} for a non array primitive type, and \lstinline{null} otherwise.
+
+If a default value/initial value for the new field is specified then this value will be populated for the new field in deserialized objects.
+
+\subsubsection{Changing the type of a field}
+\begin{lstlisting}
+class MyClass(firstName String, sirName String, userid byte)
+//Later version:
+class MyClass(firstName String, sirName String, userid long)
+\end{lstlisting}
+
+When we deserialize a class having an evolved definition with a field with a different type from that of its persisted version the behaviour we encounter is contingent upon the variant of type evolution employed. This is summarized below:
+
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{lll}
+		\hline
+		Variant&Example&Behaviour\\
+		\hline\hline
+		\makecell[l]{Boxed? primitive to\\Boxed? primitive}&\lstinline!int! -> \lstinline!double!&Equivalent to a cast operation\\ \hline
+		
+		\makecell[l]{Boxed? primitive array\\to Boxed? primitive array}&\lstinline!int[]! -> \lstinline!Double[]!&Equivalent to a cast operation\\ \hline
+		
+		Any array to scalar&\lstinline!Integer[]! -> \lstinline!Integer!&Cannot be converted\\ \hline
+		Any scalar to array&\lstinline!Integer! -> \lstinline!Double!&Cannot be converted\\ \hline
+		
+		Any type to String&\lstinline!MyClass! -> \lstinline!String!&Equivalent to \lstinline!toString!\\ \hline
+		Any array to String array&\lstinline!MyClass[]! -> \lstinline!String[]!&Equivalent to \lstinline!array^toString!\\ \hline
+		
+		Class to trait&\lstinline!Child! -> \lstinline!MyTrait!&Equivalent to a cast operation\\ \hline
+		Subclass to superclass&\lstinline!Child! -> \lstinline!Parent!&Equivalent to a cast operation\\ \hline
+		Superclass to subclass&\lstinline!Parent! -> \lstinline!Child!&Cannot be converted\\ \hline
+		
+		Unrelated classes&\lstinline!Myclass! -> \lstinline!MyOtherClass!&Cannot be converted\\
+		\hline
+	\end{tabular}
+\end{table}
+
+In situations in which a value cannot be converted, the default value for the type (\lstinline{0} for a non array primitive type, and \lstinline{null} otherwise) will be used unless a default value/initial value for the field is specified.
+\end{document}

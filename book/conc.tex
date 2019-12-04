@@ -1,0 +1,189 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Running Concurnas Programs]{Running Concurnas Programs}
+	\label{ch:conc}
+
+Compiled programs written in Concurnas may be executed via the \lstinline{conc} tool. For example, in conjunction with the \lstinline{concc} tool for compilation:
+
+
+Using example code, \lstinline{hello.conc}:
+\begin{lstlisting}
+System.out.println("Hello World!")
+\end{lstlisting}
+
+We can compile and execute this as follows:
+\begin{lstlisting}[language=C]
+D:\work\bin>concc hello.conc
+D:\work\bin>conc hello
+Hello World!
+D:\work\bin>
+\end{lstlisting}
+
+The syntax for the \lstinline{conc} tool is as follows:
+
+\begin{center}
+	\lstinline{conc options* entryPoint? cmdLineArguments*}
+\end{center}
+
+Let us now look in detail at what is taking place above:
+
+\section{Running code with Concurnas}
+Compiled Concurnas code can be run with Concurnas via the \lstinline{conc} command which comes as standard as part of the Concurnas distribution. We can also run \lstinline{conc} in interactive Read-Evaluate-Print Loop (REPL) mode, this is explored \hyperref[ch:repl]{in the REPL chapter}. Here we focus upon non-interactive execution of pre compiled code. \lstinline{conc} can be found under: \lstinline{conc-home}. If this tool has not been added to the path, the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
+
+We use the \lstinline{conc} command with an entry-point class or jar file reference in order to start \lstinline{conc} in non-interactive execution mode:
+
+\begin{lstlisting}[language=C]
+D:\work>conc myClass
+D:\work>conc myClass.class
+D:\work>conc myJar
+D:\work>conc myJar.jar
+\end{lstlisting}
+
+
+A full list of optional options for \lstinline{conc} is found under the \hyperref[sec:cmdlineparams]{Command line options} section.
+
+\section{Bootstrapping Code}
+In order to run a program with Concurnas via the \lstinline{conc} tool we must pass an entry-point class or jar file reference. For a jar file to be used in this manner it requires a class within it to be nominated as its entry point. This entry point reference is then examined and one of the following is executed in order of precedence:
+
+\begin{enumerate}
+	\item \lstinline!def main(args String[]) void!
+	\item \lstinline!def main() void!
+	\item Top level code
+\end{enumerate}
+
+We see above that specifying a \lstinline{main} method within our entry-point class is not a requirement, and if one is not defined then this will result in any top level code of the class file being invoked upon execution instead. However, using a \lstinline{main} method is recommended in cases where we wish to use a referenced piece of code as both a library and program. This is because, where the code within the .class file is used like a library, upon first execution of something imported from that library class, all the top level code will be executed, including our code we wish to execute as a program - something which is rarely desirable. An explicit \lstinline{main} method on the other hand must be explicitly invoked, thus avoiding this problem.
+
+The \lstinline{main} method declaration will receive any command line parameters passed to the program upon execution if its signature is declared as: \lstinline{def main(args String[]) void}.
+
+\section{Command line options}
+\label{sec:cmdlineparams}
+There can be zero to many options specified on a call to \lstinline{conc}:
+\begin{itemize}
+	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline{;} under Windows, and \lstinline{:} under Linux. Elements may consist of directories, \lstinline{.class} file references or \lstinline{.jar} file references.
+	\item \textbf{-s}: Server mode. When running in non interactive mode (i.e an entry point is provided) Concurnas will not terminate the process upon the entry point main method (or alternative) completing execution.
+	\item \textbf{-werror}: Treat warnings as errors. This option is applicable when running in REPL mode. Normally, warnings do not prevent compilation, setting this tag will treat warnings as errors, thus preventing compilation if warnings are generated for the input provided.
+	\item \textbf{-bc}: Print bytecode. This option is applicable when running in REPL mode. Print the bytecode generated from the provided input.
+	\item \textbf{-J}: JVM argument. Prefix jvm arguments with -J in order to pass them to the underlying JVM. e.g. \lstinline{-J-Xms2G -J-Xmx5G}.
+	\item \textbf{-D}: System property. Prefix system properties with -D in order to pass them to the underlying JVM. e.g. \lstinline{-Dcom.mycompany.mysetting=108}.
+	\item \textbf{--help}: List documentation for options above.
+\end{itemize}
+
+
+
+\section{Examples}
+\subsection{Single file programs}
+We can compile and execute our simple hello world (named littlehello.conc) as follows:
+
+\begin{lstlisting}[language=C]
+D:\work>concc littlehello.conc
+Finished compilation of: D:\work\littlehello.conc -> D:\work\littlehello.class [littlehello]
+
+D:\work>conc littlehello
+hello world
+
+D:\work>
+\end{lstlisting}
+
+In practice it is very rare that we will write single file programs.
+
+\subsection{Multi file programs}
+Lets take a slightly more involved hello world example (named \lstinline{hello.conc}) which compiles into multiple class files thus requiring us to make of the classpath argument:
+
+\begin{lstlisting}
+class SayHello{
+	def do(args String[]){
+		System.err.println("hello world received args: "+ args)
+	}
+}
+
+def main(args String[]){
+	new SayHello().do(args)
+}
+\end{lstlisting}
+
+We can compile and execute this code as follows:
+
+\begin{lstlisting}[language=C]
+D:\work>concc hello.conc
+Finished compilation of: D:\work\hello.conc -> D:\work\hello$SayHello.class [hello$SayHello], D:\work\hello.class [hello]
+
+D:\work>conc -cp ./ hello
+hello world got args: null
+
+D:\work>
+\end{lstlisting}
+
+Notice above that we must make use of the \lstinline{-cp} argument in order to specify the current directory as holding both our entry point class: \lstinline{hello.class} and supporting \lstinline{SayHello} class: \lstinline{hello$SayHello.class}
+
+We can pass command line arguments to our hello world class since its main method takes a String array argument:
+\begin{lstlisting}[language=C]
+D:\work>conc -cp ./ hello there
+hello world got args: [there]
+
+D:\work>
+\end{lstlisting}
+
+
+\subsection{Multi file programs in jar's}
+In practice it is often most convenient for the purposes of software distribution and organization, to package code up within jar's, these can be executed via the use of the \lstinline{-jar} argument as illustrated here. Let's take our \lstinline{hello.conc} we previously implemented:
+
+\begin{lstlisting}[language=C]
+D:\work>concc -jar helloWorld[hello] hello.conc
+Finished compilation of: D:\work\hello.conc -> D:\work\hello$SayHello.class [hello$SayHello], D:\work\hello.class [hello]
+
+D:\work>conc helloWorld.jar
+hello world got args: null
+
+D:\work>conc helloWorld.jar there
+hello world got args: [there]
+
+D:\work>
+\end{lstlisting}
+
+
+\subsection{Running programs in server mode}
+Normally, when running in non-interactive mode (i.e an entry point is provided) Concurnas will terminate the process upon the entry point main method (or alternative) completing execution. To suppress this behaviour, for instance, for a server application, we use the  \lstinline{-s} argument as follows:
+
+\begin{lstlisting}[language=C]
+D:\work>conc -s helloWorld.jar there
+hello world got args: [there]
+
+
+\end{lstlisting}
+
+The above program will not terminate until it receives as a kill signal from the operating system.
+
+\section{Terminating Code}
+If we are running a Concurnas application in server mode (as par above) it can often be useful to register shutdown handlers. These are invoked upon receiving a SIGTERM signal from the operating system (check your operating system documentation for details on how to do this). More details on shutdown handlers can be found in the \hyperref[sec:shutdownHandle]{shutdown handlers} section. 
+
+\section{Starting \lstinline!conc! in interactive REPL mode}
+The \lstinline{conc} tool has the ability to run compiled Concurnas code as we have seen in this chapter. It also has the ability to run in interactive REPL mode. More information about running in interactive REPL mode can be found in the \hyperref[ch:repl]{The Concurnas REPL} section.
+
+\section{JVM arguments}
+Arguments (for example garbage collection and memory allocation tuning) may be applied to the underlying JVM executing \lstinline{conc} by prefixing them with \lstinline{-J}. For example:
+
+\begin{lstlisting}[language=C]
+D:\work>conc -J-Xmx2g helloWorld.jar there
+hello world got args: [there]
+
+D:\work>
+\end{lstlisting}
+
+\section{System properties}
+System properties may be specified on the command line when running \lstinline{conc} by prefixing them with \lstinline{-D}. For example:
+
+\begin{lstlisting}[language=C]
+D:\work>conc -Dcom.mycompany.mysetting=108 helloWorld.jar there
+hello world got args: [there]
+
+D:\work>
+\end{lstlisting}
+
+\section{Adding conc to the path}
+It is recommended that the \lstinline{<installDir>/bin} be added to the system path in order to permit \lstinline{/conc} to be run from any directory. Check your operating system documentation for details of how to do this.
+
+\section{Notes}
+The first time the \lstinline{conc} tool is executed, or when a new JVM environment upon which is its being executed is detected, an 'installation' will take place wherein Concurnas will set itself up to execute efficiently upon said JVM environment by caching a copy of the JDK. This can take up to a few minutes to complete.
+
+\end{document}

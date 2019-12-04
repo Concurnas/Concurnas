@@ -1,0 +1,63 @@
+//##1. simple
+def doings(){
+	a = b = 10
+	v  = z int = 10
+	g String = f Object = "hi"
+	
+	"" + [a v g ; b z f]
+}
+
+~~~~~
+//##2. simple more 
+
+def doings(){
+	val a =  b int = 10
+	
+	"" + [a b]
+}
+
+~~~~~
+//##3. simple call struct
+n =0
+def callcount() => n++; Object()
+
+def doings(){
+	a = b = callcount()//we expect rhs to be invoked only once
+	
+	"" + [a&==b n]
+}
+
+~~~~~
+//##4. more complex
+
+def doings(){
+	a int =  b int = 10
+	val v = var d = 9
+	"" + [a b v d]
+} 
+
+~~~~~
+//##5. using more complex assignment types
+
+def doings(){
+	a=1
+	a += b = 10
+	v  = z int = 10
+	g String = f Object = "hi"
+	
+	"" + [a v g ; b z f]
+}
+
+~~~~~
+//##6. show copy
+
+myArray = [1 2 3]
+
+
+def doings(){
+	b = c = myArray
+	
+	b[0] = 99
+	
+	"" + [b, c]
+}

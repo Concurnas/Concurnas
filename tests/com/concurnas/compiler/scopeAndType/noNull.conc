@@ -1,0 +1,1460 @@
+//##1. basic null types and assignment
+def doings(){
+	a String = "abc"
+	b String = null // compilation error
+	a = null//compilation error
+	
+	ok String? = null
+	alsook String? = "abc"
+	
+	//x (int, int)? = 1,2
+	
+	okInf = ok
+	fail String = ok// compilation error
+	
+	alsofail String
+	alsofail = ok// compilation error
+	
+	"err" 
+}
+
+~~~~~
+//##2. branching logic etc
+def x() => false
+
+def doings(){
+	a String = "ok" if x() else null//no compile
+	b = "ok" if x() else null
+	err String = b//no compile
+	okla String? = b
+	
+	"err" 
+}
+
+~~~~~
+//##3. assign fuctype and tuples
+def doings(){
+	fail ((int, int) int) = null
+	ok ((int, int) int)? = null
+	
+	fail2 (int, int) = null
+	ok2 (int, int)? = null
+	
+	"err" 
+}
+
+~~~~~
+//##4. nullable passed to function
+def funcNoNull(a String){
+	
+}
+def funcNullable(a String?){
+	
+}
+
+
+def doings(){
+	funcNoNull(null)//fail
+	funcNullable(null)//ok
+	
+	"err" 
+}
+
+~~~~~
+//##5. nullable funcref
+
+def funcNoNull(a String){
+	
+}
+def funcNullable(a String?){
+	
+}
+
+def doings(){
+	x=funcNoNull&(null)//fail
+	y=funcNullable&(null)//ok
+	
+	"err" 
+}
+
+~~~~~
+//##6. nullable funcref 2
+def funcNoNull(a String){
+	
+}
+def funcNullable(a String?){
+	
+}
+
+
+def doings(){
+	x=funcNoNull&(String?)//fail
+	y=funcNullable&(String?)//ok
+	
+	"err" 
+}
+
+~~~~~
+//##7. nullable funcref 3
+def funcNoNull(a (int, int)){
+	
+}
+def funcNullable(a (int, int)?){
+	
+}
+
+
+def doings(){
+	x=funcNoNull&((int, int)?)//fail
+	y=funcNullable&((int, int)?)//ok
+	
+	"err" 
+}
+
+~~~~~
+//##8. nullable constructor
+class MyClass{
+	this(a String){
+	
+	}
+	this(a String?, b int){
+		
+	}
+}
+
+def doings(){
+	x=MyClass(null)//fail
+	y=MyClass(null, 12)//ok
+	
+	"err" 
+}
+
+~~~~~
+//##9. nullable constructor ref
+class MyClass{
+	this(a String){
+	
+	}
+	this(a String?, b int){
+		
+	}
+}
+
+def doings(){
+	x=MyClass&(null)//fail
+	y=MyClass&(null, 12)//ok
+	
+	"err" 
+}
+
+~~~~~
+//##10. plus operands cannot be nullable
+def getint() Integer? => 12
+def doings(){
+	a Integer? = getint()
+	b Integer? = getint()
+	
+	c = a \
+		+ \
+		 b //compilation error as a or b null potentially
+	
+	"err" 
+}
+
+~~~~~
+//##11. nullable on operators
+def getint() Integer? => 12
+def getbool() Boolean? => false
+class MyClass{
+	def +(a Integer?) => a
+	def -(a Integer) => a
+	def \in(a Integer?) => false
+	def invoke() => false
+}
+
+def getMyClass() MyClass? => new MyClass()
+def doings(){
+	a Integer? = getint()
+	aa Integer = 12
+	b Integer? = getint()
+	x Boolean? = getbool()
+	y Boolean? = getbool()
+	mc MyClass? = getMyClass()
+	
+	c = a \
+		+\
+		 b //compilation error as a or b null potentially
+	
+	a++//err
+	++a//err
+	
+	z = x \
+		and \
+		y
+		
+	z2 = x \
+		or \
+		y
+	
+	bz = a \
+		band \
+		b
+	
+	m = a 	\
+		*	\
+		b
+		
+	n = a\
+		**\
+		b
+		
+	sh = a\
+		<<\
+		b
+	
+	xx = mc\ //error 
+		+\
+		a //this is ok, as consumes nullable
+		
+	xx = mc\ //error 
+		-\
+		a //error
+	
+	rel = a \
+		  <\
+		  b	
+		  
+	eq = a == b//fine
+	
+	nin = a \
+		in \
+		mc
+	
+	x = not mc//tests for null anyway
+	thing = null//ok
+	asit = thing as String//ok
+	
+	
+	a /= b
+	aa /= b
+	b /= aa
+	
+	f = mc()//maybe null?
+	
+	"err" 
+}
+
+~~~~~
+//##12. expression before dot may be null
+
+class MyClass{
+	def thing() => 12
+	public afield = 99
+}
+def getMyClass() MyClass? => new MyClass()
+def doings(){
+	mc MyClass? = getMyClass()
+	mc2 MyClass = new MyClass()
+	//fail
+	x1 = mc.thing()
+	x2 = mc.afield
+	//ok
+	x12 = mc2.thing()
+	x22 = mc2.afield
+	""
+}
+
+~~~~~
+//##13. lists pt1 
+def doings(){
+	nullableList = [1, null, 3, 4]
+	
+	nonullable = new list<String>()//its a non nullable input!
+	
+	nullableList.add(null)//fine
+	nonullable.add(null)//fine
+	
+	for(thig Integer? in nullableList){
+		thig = null//ok
+	}
+	 
+	for(thig in nonullable){
+		thig = null//not ok
+	}
+	
+	"err"
+} 
+
+~~~~~
+//##14. for loop iterable can be null
+def xx() => true
+
+def doings(){
+	nullableListNullItems = [1, null, 3, 4] if xx() else null
+	
+	nullable = new list<String>() if xx() else null
+	
+	nonullable = new list<String>()
+	
+	
+	for(thig Integer? in nullableListNullItems){//moan
+		thig = null//ok
+	}
+	 
+	for(thig in nullable){//moan
+		thig = null//not ok
+	}
+	
+	for(thig in nonullable){//ok
+		thig = null//not ok
+	}
+	
+	"err"
+} 
+
+~~~~~
+//##15. with expression may be null
+class MyClass{
+	def aThing() => 12
+	def anotherThing() => 12
+}
+def tt() => false
+def doings(){
+	mc MyClass? = new MyClass() if tt() else null
+	
+	with(mc){
+		aThing()
+		anotherThing()
+	}
+		
+	"err"
+} 
+
+~~~~~
+//##16. return from try
+class MyClass{
+	def aThing() => 12
+	def anotherThing() => 12
+	def close() void {}
+}
+
+def doings(){
+	mc MyClass? = new MyClass()
+	
+	got = try{
+		mc
+	}catch(e){
+		null
+	}
+	
+	got.aThing()//fail maybe null
+		
+	"err"
+} 
+
+~~~~~
+//##17.nullable to non null
+def doings(){
+	a String? = null
+	b String = a
+	"uh oh"
+}
+
+~~~~~
+//##18. nullable due to else block for loops etc
+class MyClass{
+	def aThing() => 12
+	def anotherThing() => 12
+	def close() void {}
+}
+
+def doings(){
+	something1 java.util.List<Integer> = for(x in 0 to 10){x}else{null}//wrong
+	something  = for(x in 0 to 10){x}else{null}//nullable
+	
+	ssz = something.size()
+		
+	"err"
+} 
+
+~~~~~
+//##19. return from func
+def something() String?{
+	null
+}
+
+def doings(){
+	a = something()
+	b String = something()
+	c String? = something()
+		
+	"err"
+} 
+
+~~~~~
+//##20. safe dot op
+def doings(){
+	a String = ""
+	b String? = null
+	
+	ok = a.length()
+	errone = a?.length()//excepted to be nullable
+	err = b.length()//must be null - so flags error
+	errok = b?.length()
+	
+	"" + errok
+} 
+
+~~~~~
+//##21. safe dot op chain
+class HolderA{
+	public a String = ""
+}
+
+class HolderB{
+	public b String? = null
+}
+
+
+def doings(){
+	hhA HolderA = new HolderA()
+	hhB HolderB? = new HolderB()
+	ok = hhA.a.length()//normal
+	errone = hhA.a?.length()//should be nullable
+	err = hhB.b.length()//must be null
+	errok = hhB?.b?.length()
+	
+	"" + errok
+} 
+
+~~~~~
+//##22. not null assertion
+def doings(){
+	a String? = ""
+	b String = ""
+	
+	x = a??
+	x = b??//no, not valid here
+	
+	""
+}
+
+~~~~~
+//##23. elvis checks and void not approperiate
+def retvoid() void {}
+
+def doings(){
+	a String = "hey"
+	
+	elv1 = a ?: 'alternative1'//nope not nullabnle
+	what = retvoid()\
+	 ?: \
+	 retvoid()
+	
+	nope = retvoid()??
+	
+	'ok' 
+}
+
+~~~~~
+//##24. HasNoNullItems - test @NoNull annoation
+from com.concurnas.lang.precompiled import HasNoNullItems
+
+def doings(){
+	alist list<String>? = null
+	
+	got = HasNoNullItems.addToList(alist, //complain as marked non null 
+			null//complain as marked non null 
+	)
+	got = null//no
+	
+	got2 = HasNoNullItems.addToListLG(alist, //complain as marked non null 
+			null//complain as marked non null 
+	)
+	got2 = null//no
+	
+	
+	
+	gotNull = HasNoNullItems.addToListNULL(alist, //ok
+			null//ok
+	)
+	gotNull = null//ok
+	
+	gotNull2 = HasNoNullItems.addToListLGNULL(alist, //ok
+			null//ok
+	)
+	gotNull2 = null//ok
+	
+	 
+	
+	gotMaybe = HasNoNullItems.addToListMAYBE(alist, //ok
+			null//ok
+	)
+	gotMaybe = null//error as type infered to be non nullable
+	
+	gotMaybe2 = HasNoNullItems.addToListLGNMAYBE(alist, //ok
+			null//not ok 
+	)
+	
+	gotMaybe2 = null//error as type infered to be non nullable
+	
+	
+	
+	gotDefault = HasNoNullItems.addToListDefault(alist, //ok
+			null//ok
+	)
+	gotDefault = null //error as type infered to be non nullable
+	
+	gotDefault2 = HasNoNullItems.addToListLGNDefault(alist, //ok
+			null//not ok 
+	)
+	gotDefault2 = null //error as type infered to be non nullable
+	
+	
+	testGenQualifcation1 = HasNoNullItems.addToListLGNDefault<String>(alist??, //ok
+			''//this cannot take a null input
+	)
+	
+	testGenQualifcation2 = HasNoNullItems.addToListLGNDefault<String>(alist, //ok
+			null//no! must be defined
+	)
+	
+	""
+} 
+
+~~~~~
+//##25. HasNoNullItems - test @NoNull annoation fields
+from com.concurnas.lang.precompiled import HasNoNullItems
+
+def doings(){
+	inst = HasNoNullItems()
+	with(inst){
+		afieldALWAUS1 = null;//not null
+		afieldALWAUS2 = null;//not null
+		afieldNEVER = null;//can assign null
+		afieldMAYBE = null;//unknown, null is ok
+		afieldDefault = null;//unknown, null is ok
+	}
+	//maybe, can set null!
+	
+	""
+}
+
+~~~~~
+//##26. bytecode fields and methods are annotated with no null annotation
+from com.concurnas.tests.helpers import nullable
+
+def doings(){
+	
+	nullable.nullable = null
+	nullable.cannotbenull = null//fail
+	nullable.conc(null,//complain
+		null//ok
+	)
+	"ok"
+} 
+
+~~~~~
+//##27. 2nd string op ok
+def doings(){
+	a String = '12'
+	b String? = '14'
+	
+	c = a+b
+	
+	"ok"
+} 
+
+~~~~~
+//##28. nullable generics
+class Holder<X>{
+	~x X?
+}
+class HolderNL<X?>{
+	~x X
+}
+
+def doings(){
+	moan = Holder<String>()
+	moan.x = null //nope
+	
+	fine = Holder<String?>()//its going to have a mon about this since its not a nullable type
+	fine.x = null 
+	
+	fine2 = HolderNL<String?>()//ok
+	fine2.x = null 
+		
+	"ok" 
+} 
+
+~~~~~
+//##29. restrictions on nullable types
+ayz int? = 9//nope
+thing String?? = null//also nope
+
+def doings(){
+	""
+} 
+
+~~~~~
+//##30. basic nullable array assingment
+def tt() => false
+def doings(){
+	arNullable = [1 null]
+	arNotNullable = [Integer(1) 2]
+	arNullableExplicit Integer?[] = [1 null]
+	arNullableExplicitDD Integer?[]? = [1 null] if tt() else null
+	
+	arNullable[0] = null//ok
+	arNotNullable[0] = null//error
+	arNullableExplicit[0] = null//ok
+	arNullableExplicitDD[0] = null//arNullableExplicitDD may be null
+	
+	""
+}
+
+~~~~~
+//##31.generic qualifcation of type
+def doings(){
+	mylist2 = new list<String>()//qualify as not nullable
+	
+	maybeNull String? = "its not"
+	
+	mylist2.add(maybeNull)// fine
+	mylist2.add(null)// fine
+	
+	'ok' 
+}
+
+~~~~~
+//##32. no set for you on list
+def doings(){
+	arNotNullable = [Integer(1), 2]
+	
+	arNotNullable[0] = null//error msg could be better
+	
+	""
+}  
+
+~~~~~
+//##33. nullables on lists like arrays
+def tt() { false } def doings(){
+	arNullable = [1, null]
+	arNotNullable = [Integer(1), 2]
+	arNullableExplicit list<Integer?>= [1, null]
+	arNullableExplicitDD list<Integer?>? = [1, null] if tt() else null
+	
+	arNullable[0] = null//ok
+	arNotNullable[0] = null//ok
+	arNullableExplicit[0] = null//ok
+	arNullableExplicitDD[0] = null//arNullableExplicitDD may be null
+	
+	""
+}  
+
+~~~~~
+//##34. nullable arrays and lists
+def x() => false
+
+def doings(){
+	nullable = [Integer(1) 2] if x() else null
+	nullable = null
+	
+	notnullable = [Integer(1) 2]
+	notnullable = null//complain
+	
+	nullable2 = [Integer(1), 2] if x() else null
+	nullable2 = null
+	
+	notnullable2 = [Integer(1), 2]
+	notnullable2 = null//complain
+	
+	"ok"
+}  
+
+~~~~~
+//##35. vectorization
+def doings(){
+	res = [1 null 2]^+2//fail
+	res2 = [1 , 2]^+2//ok
+	
+	"ok" + res
+}
+
+~~~~~
+//##36. applies to nullable only
+def doings(){
+	res42 = [1 4 2]^??//fail
+	"err"
+}
+
+~~~~~
+//##37. nullable generics
+trait HasThing{
+	def thing() String
+}
+
+class MyClass<X>(x X) ~ HasThing{//not nullable
+	def thing(){
+		x.toString()
+	}
+}
+
+class MyClassNullable1<X?>(x X) ~ HasThing{//nullable
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+class MyClassNullable2<X Object?>(x X) ~ HasThing{//nullable
+	def thing(){
+		x.toString() if x else 'null res2'
+	}
+}
+
+def doings(){
+	mc1 = MyClass<String?>('aString')//cannot use this as thing is nullable but gen says not ok
+	mc2 = MyClass<String>(null)//nope as null for string not permitted
+	mc2b = MyClass(null)//also nope infered as Object?
+	mc3 = MyClassNullable1<String?>(null)//this is ok
+	mc3b = MyClassNullable2<String?>(null)//this is ok
+	mc4 = MyClassNullable1<String>('aString')//this is not ok 
+	mc4b = MyClassNullable2<String>('aString')//this is not ok 
+	"" + [mc1,mc3, mc3b,mc4,mc4b]^thing()
+}
+
+~~~~~
+//##38. generic type inference will preserve nullability
+trait HasThing{
+	def thing() String
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+
+class MyClassNullable1<X?>(x X) ~ HasThing{//nullable
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+
+class MyClassNullable2<X?> ~ HasThing{//nullable
+	~x X?
+	
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+
+class MyClassNullable2NoNull<X> ~ HasThing{//nullable
+	~x X//moan
+	
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+
+def doings(){
+	mc4 = MyClassNullable1('nice')//this is ok
+	mc5 = MyClassNullable2()
+	mc5.x = "ok"
+	mc5err = MyClassNullable2NoNull()
+	mc5err.x = null
+	"" + (x.thing() for x in [mc4 mc5])
+}
+
+~~~~~
+//##39. local generics respect nullability
+def MyClass<X ?>(x X) {//not nullable
+	""+x
+}
+
+def doings(){
+	mc1 = MyClass<String>('aString')//no cannot use this as thing is nullable but gen says not ok
+	mc2 = MyClass<String?>('aString')//ok
+	""
+}
+
+~~~~~
+//##40. local generics respect nullability full
+
+def MyClass<X>(x X) {//not nullable
+	x.toString()
+}
+
+def MyClassNullable1<X?>(x X){//nullable
+		x.toString() if x else 'null res1'
+}
+def MyClassNullable2<X Object?>(x X){//nullable
+		x.toString() if x else 'null res2'
+}
+
+def doings(){
+	mc1 = MyClass<String?>('aString')//no cannot use this as thing is nullable but gen says not ok
+	mc2 = MyClass<String>(null)//no nope as null for string not permitted
+	mc2b = MyClass(null)//no
+	mc3 = MyClassNullable1<String?>(null)
+	mc3b = MyClassNullable2<String?>(null)
+	mc4 = MyClassNullable1<String>('aString')//this is not ok 
+	mc4b = MyClassNullable2<String>('aString')//this is not ok 
+	fine1 = MyClassNullable1(null)
+	fine2 = MyClassNullable2(null)
+	fine3 = MyClassNullable1('')
+	"" + [mc1,mc3, mc3b,mc4,mc4b]
+}
+
+~~~~~
+//##41. local generics respect nullability full mrefs
+def MyClass<X>(x X) {//not nullable
+	x.toString()
+}
+
+def MyClassNullable1<X?>(x X){//nullable
+		x.toString() if x else 'null res1'
+}
+def MyClassNullable2<X Object?>(x X){//nullable
+		x.toString() if x else 'null res2'
+}
+
+def doings(){
+	mc1 = MyClass<String?>&('aString')//no cannot use this as thing is nullable but gen says not ok
+	mc2 = MyClass<String>&(null)//no nope as null for string not permitted
+	mc2b = MyClass&(null)//no
+	mc3 = MyClassNullable1<String?>&(null)
+	mc3b = MyClassNullable2<String?>&(null)
+	mc4 = MyClassNullable1<String>&('aString')//this is not ok 
+	mc4b = MyClassNullable2<String>&('aString')//this is not ok 
+	fine1 = MyClassNullable1&(null)
+	fine2 = MyClassNullable2&(null)
+	fine3 = MyClassNullable1&('')
+	"" + [mc1,mc3, mc3b,mc4,mc4b]
+}
+
+
+~~~~~
+//##42. local generics respect nullability lambda
+MyClass = def <X>(x X) {//not nullable
+	x.toString()
+}
+
+MyClassNullable1 = def <X?>(x X){//nullable
+		x.toString() if x else 'null res1'
+}
+
+MyClassNullable2 = def <X Object?>(x X){//nullable
+		x.toString() if x else 'null res2'
+}
+
+def doings(){
+	mc1 = MyClass<String?>('aString')//no cannot use this as thing is nullable but gen says not ok
+	mc2 = MyClass<String>(null)//no nope as null for string not permitted
+	mc2b = MyClass(null)//no
+	mc3 = MyClassNullable1<String?>(null)
+	mc3b = MyClassNullable2<String?>(null)
+	mc4 = MyClassNullable1<String>('aString')//this is not ok 
+	mc4b = MyClassNullable2<String>('aString')//this is not ok 
+	fine1 = MyClassNullable1(null)
+	fine2 = MyClassNullable2(null)
+	fine3 = MyClassNullable1('')
+	"" + [mc1,mc3, mc3b,mc4,mc4b]
+}
+
+~~~~~
+//##43. this was a bug now its ok
+one int[] = [1 2]
+
+def doings(){
+	two Integer[] = [Integer(1) 2]//no!!
+	h String="sdfsdf"
+	one = two
+	
+	
+	"ok "
+}
+
+~~~~~
+//##44. this was a bug now its ok
+one Integer[] = [1 2]
+
+def doings(){
+	two int[] = [(1) 2]
+	h String="sdfsdf"
+	one = two
+	
+	
+	"ok "
+} 
+
+~~~~~
+//##45. nullable generics respected in bytecode
+from com.concurnas.tests.helpers.nullable import HolderNoNull, HodlerNullOk
+
+def doings(){
+	xx = new HolderNoNull<String>('')
+	xx2 = new HolderNoNull<String?>('')//no cannot be null
+	
+	pp = new HodlerNullOk<String>('')//no must be null
+	pp2 = new HodlerNullOk<String?>('')
+	
+	"uh oh"
+}
+
+~~~~~
+//##46. nullable generics respected in bytecode - other way
+from com.concurnas.lang.precompiled.NullableThingRetNull import TakesNull, ItsNoNull
+
+def doings(){
+	xx = new ItsNoNull<String>('')
+	xx2 = new ItsNoNull<String?>('')//no cannot be null
+	
+	pp = new TakesNull<String>('')//no must be null
+	pp2 = new TakesNull<String?>('')
+	
+	"uh oh"
+}
+
+~~~~~
+//##47. nullable generics respected in bytecode - methods
+from com.concurnas.tests.helpers.nullable import HolderNoNullMeth, HodlerNullOkMeth
+
+def doings(){
+	xx =   HolderNoNullMeth<String>('')
+	xx2 =  HolderNoNullMeth<String?>('')//no cannot be null
+	
+	pp =   HodlerNullOkMeth<String>('')//no must be null
+	pp2 =  HodlerNullOkMeth<String?>('')
+	
+	"uh oh"
+}
+
+~~~~~
+//##48. nullable generics respected in bytecode - methods - alt method
+from com.concurnas.lang.precompiled.NullableThingRetNull import TakesNullMeth, ItsNoNullMeth
+
+def doings(){
+	xx = ItsNoNullMeth<String>('')
+	xx2 = ItsNoNullMeth<String?>('')//no cannot be null
+	
+	pp = TakesNullMeth<String>('')//no must be null
+	pp2 = TakesNullMeth<String?>('')
+	
+	"uh oh"
+}
+
+~~~~~
+//##49. class fields declared defualt to null so flag if unset
+
+class MyClassNullable2<X>{//nullable
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	x X //complain as null on default
+	thing Object//as its null
+	another String?
+	fine String
+	this(a String){
+		fine = a
+	}
+}
+  
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##50. no operation on nullable array
+def tt(){ false} def doings(){
+ 	maybeNull1 int[]? = [1 2 3 4] if tt() else null
+ 	maybeNull2 = [[1 2 3 4] maybeNull1]
+ 	
+ 	got1 = maybeNull1[0]//fail
+ 	got2 = maybeNull2[0, 0]//fail
+
+	"" + got1
+}
+
+~~~~~
+//##51. Null safe array operation may only be performed on array having a nullable type
+def doings(){
+ 	maybeNull1 int[] = [1 2 3 4]
+ 	
+ 	got1 = maybeNull1?[0]//error
+ 	
+ 	"" //+ [got1, got2]
+}
+
+~~~~~
+//##52. used to crash now its ok
+enum Color{BLUE, GREEN, RED}
+class Child(-favColour Color)
+class Parent(-children Child...)
+def tt() => false
+parent Parent? = Parent(Child(Color.GREEN), Child(Color.RED)) if tt() else null
+
+def doings(){
+	
+	"" + parent?.children?.length[0]//?.favColour
+}
+
+~~~~~
+//##53. fun ret void still ret void
+class WithSo{
+	def so(){
+		
+	}
+}
+
+
+def doings(){
+	line WithSo? = null
+	d=line?.so()
+	//line?.so()
+	"ok"
+}
+
+~~~~~
+//##54. null check logic 
+xyz=true
+def tt() => false
+thing ((int) int)? = (def (a int) => a + 10) if tt() else null
+
+def f1(){//fail maybe nullable
+	thing(1) //FAIL
+}
+
+def f2(){//normal
+	thing(1) if(thing <> null) else 0
+}
+
+def f2b(){//normal implicit non null
+	thing(1) if(thing) else 0
+}
+
+def f3(){//inverse
+	0 if(thing == null) else thing(1)
+}
+
+def f4(){//fail as uncertain to be non nullable
+	thing(1) if(xyz or thing <> null) else 0//FAIL
+}
+
+def f5(){//ok certain non nullable
+	thing(1) if(xyz and thing <> null) else 0
+}
+
+def f5b(){//normal implicit non null implicit
+	thing(1) if(xyz and thing) else 0
+}
+
+def f6(){//ok certain non nullable inverse
+	thing if(xyz and thing == null) else thing(1)  
+}
+
+def f7(){//complex not ok
+	thing(1) if((xyz ) or thing) else 0
+}
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	thing ((int) int)? = def (a int) => a + 10
+
+	def f3(){//inverse
+		x1=thing(1) if(thing <> null) else 0
+		x2=0 if(thing == null) else thing(1)
+		x3=0 if(thing == null) else this.thing(1)
+		x4=0 if(this.thing == null) else this.thing(1)
+		x5=0 if(this.thing == null) else thing(1)
+		[x1 x2 x3 x4 x5]
+	}
+}
+
+def doings(){
+	
+	"ok" + [f1() f2() f2b() f3() f4() f5() f5b() f6() f7() MyClass().f3()]
+}
+
+~~~~~
+//##55. no match on null if not nullable
+def matcher(a Number) {
+	match(a){
+		case(x Integer){//this does indeed match all as we can convert from any Number to int...
+			"an int: " + [x, a] 
+		}
+		case(null){//not null
+			"a null"
+		}
+		else{"else: " + a}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(2.)] 
+}
+
+~~~~~
+//##56. advanved null inference - ae an
+def certain1(){
+	a String? = "ok"
+	a = "ok"
+	//a is certainly set
+	a.length()//OK
+}
+
+def tt() => false
+
+def certain1a(){
+	a = "ok" if tt() else null
+	//a is uncertainly set
+	a.length()//FAIL
+}
+
+def certain1b(){
+	a String? = null
+	a = "ok"
+	//a is certainly set
+	a.length()//OK
+}
+
+def certain1c(){
+	a String? = 'ok'
+	a = null
+	//a is certainly not set
+	a.length()//FAIL
+}
+
+
+def getA() => "hey"
+
+def certain2(){
+	a String? = "ok"
+	a = getA()
+	//a is certainly set
+	a.length()//OK
+}
+
+def getANullable() String? => "hey"
+
+def uncertain3(){
+	a String? = "ok"
+	a = getANullable()//a is uncertainly set
+	
+	a.length()//FAIL
+}
+
+def uncertainAN(){
+	a String? = "ok"
+	
+	a.length()//OK
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##57. advanved null inference - class vars
+class Myclass1{
+	athing String? = "ok"
+	def thing(){
+		athing.length()
+	}
+}
+
+class Myclass1b{
+	athing String?
+	def thing(){
+		this.athing = "ok"
+		athing.length()
+	}
+}
+
+class Myclass2{
+	athing String? = "ok"
+	def thing(){
+		athing="ok"
+		athing.length()
+	}
+}
+
+def doings() => "ok"
+
+~~~~~
+//##58. advanved null inference - assert
+def tt() => true
+ 
+def asse(){
+	item String? = "ok" if tt() else null	
+	assert item <> null
+	
+	item.length()
+}
+
+def asse2(){
+	item String? = "ok" if tt() else null	
+	assert item == null
+	
+	item.length()
+}
+ 
+def doings(){
+ 	"ok"
+}
+
+~~~~~
+//##59. isolated blocks
+def tt() => true
+ 
+def asse(){
+	item String? = "ok" if tt() else null	
+	{
+		item = 'ok'
+	}
+	
+	item.length()
+}
+
+def asse2(){
+	item String? = "ok" if tt() else null	
+	{
+		item = 'ok'
+	}!
+	
+	item.length()
+}
+
+def asse3(){
+	item String? = "ok" if tt() else null	
+	{
+		item = null
+	}
+	
+	item.length()
+}
+ 
+def doings(){
+ 	"ok"
+}
+
+~~~~~
+//##60. whiles
+def tt() => true
+ 
+def asse(){
+	item String? = "ok" if tt() else null	
+	
+	while(item == null){
+		asd = 9	
+	}
+	
+	item.length()//must be ok
+}
+
+def asse2(){
+	item String? = "ok" if tt() else null	
+	
+	while(item <> null){
+		asd = 9	
+	}
+	
+	item.length()//fail as now null
+}
+
+ 
+def doings(){
+ 	"ok"
+}
+
+~~~~~
+//##61. try catch fin
+def tt() => true
+ 
+def tc1(){
+	item String? = "ok" if tt() else null	
+	
+	try{
+		item='ok'
+	}catch(e){
+		item='ok'
+	}
+	item.length()//ok
+}
+
+def tc1fx(){
+	item String? = "ok"
+	
+	try{
+		item='ok'
+	}catch(e){
+		item=null
+	}
+	
+	item.length()//fail as nullable
+	
+}
+
+def tc1f(){
+	item String? = "ok" if tt() else null	
+	
+	try{
+		item='ok'
+	}catch(e){
+		ad=2
+	}
+	
+	item.length()//fail as nullable
+}
+
+def tc1fst(){
+	item String? = "ok" if tt() else null	
+	
+	try{
+		item='ok'
+	}catch(e){
+		
+	}
+	
+	item.length()//fail as nullable still
+}
+
+def tc2(){
+	item String? = "ok" if tt() else null	
+	
+	try{
+		asd = 9
+	}finally{
+		item='ok'
+	}
+	
+	item.length()//ok
+}
+
+ 
+def doings(){
+ 	"ok"
+}
+
+~~~~~
+//##62. if elif else
+def tt() => true
+ 
+def iffy1(){
+	item String? = "ok" if tt() else null	
+	
+	if(item == null){
+		item = "ok"
+	}	
+
+	item.length()//ok
+}
+
+def iffy2(){
+	item String? = "ok" if tt() else null	
+	
+	if(tt()){
+		item = null
+	}	
+
+	item.length()//fail
+}
+
+def iffy3(){
+	item String? = "ok" if tt() else null	
+	
+	if(tt()){
+		item = 'ok'
+	}else{
+		item = 'ok'
+	}
+
+	item.length()//ok
+}
+
+def iffy4(){
+	item String? = "ok" if tt() else null	
+	
+	if(tt()){
+		item = 'ok'
+	}else{
+		
+	}
+
+	item.length()//fail
+}
+
+def iffy5(){
+	item String? = "ok" if tt() else null	
+	
+	if(tt()){
+		item = 'ok'
+	}else{
+		item = null		
+	}
+
+	item.length()//fail
+}
+ 
+def doings(){
+ 	"ok"
+}
+
+~~~~~
+//##63. another one
+state = true
+def tt() => state = not state; state
+ 
+def doings(){
+ 	client String? = "ok"
+ 	lens = while(client <> null){
+ 		client = null if tt() else 'fine'
+ 		x=client.length()//not permitted
+ 		client=null
+ 		x
+	}
+ 	
+ 	"" + lens
+}
+
+~~~~~
+//##64. class level vars - method call invalidates nullability
+class MyClass{
+	aString String?
+	
+	def nullable(){
+		aString = "ok"
+		foo()
+		aString.length()//aString might be nullable
+	}
+	
+	def inferNonNull(){
+		aString = "ok"
+		aString.length()//aString is not nullable
+	}
+	
+	def foo(){
+		
+	}
+	
+}
+
+def doings(){
+ 	"ok"
+}
+
+~~~~~
+//##65. shared vars inf
+shared aString1 String?
+shared aString2  String? = "ok"
+def tt() => true
+shared aString3 = "ok" if tt() else null
+
+
+def doings(){
+	aString1 = "ok"
+	
+	a1 = aString1.length()//no as varibale is shared
+	a2 = aString2.length()//no as varibale is shared
+	a3 = aString3.length()//no as varibale is shared
+	
+ 	"ok"
+}

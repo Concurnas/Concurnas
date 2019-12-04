@@ -1,0 +1,103 @@
+//##1. module field assignment
+
+a int =6 //varnew - todo: oncreation tag this as static field
+b  = 99 //varexisting is new
+c = a+b; //ref two and create a new one
+
+def doings() String {
+	v = 9
+	return "" + [v, a, b, c]
+}
+
+~~~~~
+//##2. post field creation assingment, useage in module level context
+
+MAGIC = 6
+MAGIC2 double = 9.
+
+LETTER1 = MAGIC + MAGIC2
+
+MAGIC += 2
+MAGIC2+=9
+
+LETTER2 = MAGIC + MAGIC2
+
+def doings() String {
+	return "" + [[MAGIC, MAGIC2][0 ... 2], [MAGIC, MAGIC2], [LETTER1, LETTER2]] 
+}
+
+~~~~~
+//##3. field incremenet and decrement post pre
+MAGIC = 6
+++MAGIC
+MAGIC++
+
+LOGIC = 1
+LOGIC2 = 1
+JJ = LOGIC++
+JJ2 = ++LOGIC2
+
+
+def doings() String {
+	return ""+ [MAGIC, LOGIC, LOGIC2, JJ, JJ2]
+}
+
+~~~~~
+//##4. state of static fields preserved
+
+MAGIC=6
+
+def formatMagic() String
+{
+	return "ORIG" if MAGIC==6 else "CHANGED" + MAGIC;
+}
+
+something = "" + formatMagic()
+
+MAGIC++
+++MAGIC
+MAGIC--
+
+
+something += " "+  formatMagic()
+
+
+def doings() String {
+	return ""+ something
+}
+
+~~~~~
+//##5. use of module level static fields at top leve and also temp vars at non module top level
+MAGIC = 0 as double
+	
+for(a in [1 2 3 4 5 6])
+{
+	b int = a
+	MAGIC+=b
+}
+
+for(a double in [1 2 3 4 5 6])
+{
+	c = a 
+	MAGIC += c 
+}
+
+def doings() String {
+	return ""+ MAGIC
+}
+
+~~~~~
+//##6. do global functionss affect module level statics
+MAGIC=6
+
+def gg() void
+{
+	MAGIC += 2//TODO: in the concurrent isolate model this will not work across isolates
+}
+
+gg()
+gg()
+
+def doings() String {
+	return ""+ MAGIC
+}

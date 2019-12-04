@@ -1,0 +1,588 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+
+\chapter[Types]{Types}
+
+
+In a sense, all programming is about data. As such the way in which we represent data, via types, is a fundamental concept in any programming language. In Concurnas, roughly speaking we have two foundation types: primitive and object types. From which we are able to derive six composite types of: arrays, method references, generics, actors, references and tuples.
+
+Why does Concurnas support both primitive types and Object types (after all, primitive types can all be represented via object types). Two reasons: performance and memory utilization. Generally speaking if we represent data which can be expressed as a primitive type using an object, then we consume more memory than we need to and can make the job of memory management (garbage collection, heap vs stack allocation etc) more difficult than it needs to be. Additionally our CPU processors are designed to perform operations on primitive type data, by using objects we are adding a level of indirection which of course has a (relatively minor) performance penalty. In any case, although behind the scenes via a compiler/runtime optimization this penalty is mostly eliminated, it is still useful to be able to give the programmer control over the use of primitive or object types.
+
+That being said there are some circumstances in which using primitive types may seem to be a good idea, but we are forced instead to implicitly use object types - for instance, with generics. This is generally done to make code and libraries easier to understand, utilize and to eliminate code duplication.
+
+\section{Primitive Types}
+Let us first begin with the numerical primitive types of which there are eight: 
+
+
+\begin{table}[H]
+	\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcc}
+		\hline
+		Type Name& Bit width(bytes)& Min/max values\\
+		\hline
+		\lstinline!bool! or \lstinline!boolean!$^{a}$& 32 (1) &\lstinline!true! or \lstinline!false!\\
+		\lstinline!char!& 16 (2) &${-2^{16}, 2^{16} - 1}$\\
+		\lstinline!byte!& 8 (1) &${-2^7, 2^7 - 1}$\\
+		\lstinline!short!& 16 (2) &${-2^{15}, 2^{15} - 1}$\\
+		\lstinline!int!$^{b}$& 32 (4) &${-2^{31}, 2^{31} - 1}$\\
+		\lstinline!long!& 64 (8) &${-2^{63}, 2^{63} - 1}$\\
+		\lstinline!float!& 32 (4) &\href{https://en.wikipedia.org/wiki/IEEE_754}{see IEEE\_754 docs}\\
+		\lstinline!double!$^{c}$& 64 (8) &\href{https://en.wikipedia.org/wiki/IEEE_754}{see IEEE\_754 docs}\\
+		\hline
+	\end{tabular*}
+	\begin{tablenotes}
+		$^{a}$internally to Concurnas (or to be more precise, the JVM) a 32 bit int is used to represent a boolean.\\
+		$^{b}$int is the default type used when an integer literal is expressed.\\
+		$^{c}$double is the default type used when a decimal number literal is expressed.
+	\end{tablenotes}
+\end{table}
+
+The byte, short, int and long types allows us to store integers (whole number) values accurately. If one wishes to store real numbers (i.e. with a decimal point), then the float and double types are available (with double offering more precision) - though they can only offer a finite degree of precision post the decimal point. For an accurate decimal representation to a fixed degree, using a fixed point decimal representation such as the object type: java.math.BigDecimal is recommended.
+
+\begin{itemize}
+	\item A \textbf{int} literal can be expressed as:
+	\begin{itemize}
+		\item Decimal: \lstinline{123}
+		\item Binary: \lstinline{0b010110}
+		\item Hexadecimal: \lstinline{0x0E}
+	\end{itemize}
+
+	\item A \textbf{long} literal can be expressed as:
+	\begin{itemize}
+		\item Decimal: \lstinline{123l} or \lstinline{123L}
+	\end{itemize}
+
+	\item A \textbf{short} literal can be expressed as:
+	\begin{itemize}
+		\item Decimal: \lstinline{16s} or \lstinline{16S}
+	\end{itemize}
+
+	\item A \textbf{byte} literal must be cast from:
+	\begin{itemize}
+		\item An int of value between ${-2^7, 2^7 - 1}$ using the cast operator \lstinline{as}. e.g.: \lstinline{12 as byte}
+	\end{itemize}
+
+	\item A \textbf{float} literal can be expressed as:
+	\begin{itemize}
+		\item Decimal: \lstinline{12f} or \lstinline{12F}
+		\item Real: \lstinline{12.2f} or \lstinline{12.2F}
+		\item Engineering: \lstinline{12e6f} or \lstinline{12e6F}
+	\end{itemize}
+
+	\item A \textbf{double} literal can be expressed as:
+	\begin{itemize}
+		\item Decimal: \lstinline{12.} or \lstinline{12d} or \lstinline{12D}
+		\item Real: \lstinline{12.2} or \lstinline{12.2d} or \lstinline{12.2D}
+		\item Engineering: \lstinline{12e6} or \lstinline{12e6d} or \lstinline{12e6D}
+	\end{itemize}
+
+\end{itemize}
+
+
+
+\subsection{Char's}
+
+Characters are represented by the primitive type \lstinline{char}, are 32 bits wide and can be expressed as a single character surrounded by either a pair of \lstinline{''} or \lstinline{""}:
+
+\begin{lstlisting}
+achar = 'a'
+achar = "a"
+\end{lstlisting}
+
+Character's are of some use in modern programming, but Unicode Strings (as seen later) are usually more useful.
+
+\subsection{Booleans}
+
+Booleans are represented by the primitive type \lstinline{boolean} or \lstinline{bool} (use of which is a matter of personal preference), and are expressible as: \lstinline{true} or \lstinline{false}:
+\begin{lstlisting}
+abool = true
+another boolean = false
+\end{lstlisting}
+
+\subsection{Bytes}
+Bytes are represented by the primitive type \lstinline{byte}, and are creatable via a cast:
+\begin{lstlisting}
+mybyte = 0x011010 as byte
+\end{lstlisting}
+
+\subsection{Choosing primitives}
+When choosing which primitive type to represent our numerical data with, it is important to consider the range of values that our data can have and choose the smallest bit width type which best aligns to that data (so as to conserve memory). This is especially the case when defining large n dimensional arrays of data. However, these days our systems are generally non memory bound, and as such over allocating and say using an \lstinline{int} where a \lstinline{short} would be more appropriate is not considered a problem. If in doubt over allocate, and don't worry too much.
+
+\section{Strings}
+It turns out that in modern programming Strings are so proliferant that they deserve their own first class citizen support (believe it or not, but there was a time when this was not the case!). In Concurnas there are a few handy special considerations to the language just to aid in working with Strings. Note that string's themselves are objects (covered in the next section).
+
+At the most basic level, Strings can be defined via use of either \lstinline{''} or \lstinline{""}. For example:
+\begin{lstlisting}
+astring = 'Hello World!'
+another = "I'm also a String"
+\end{lstlisting}
+
+Note above that by permitting both \lstinline{""} and \lstinline{''} for string defining, we're able to use \lstinline{'} and \lstinline{"} respectfully in our Strings. However, if one does not wish to switch between one style or another in order to use these characters, or has both a \lstinline{'} and a \lstinline{"} in the string one is defining, then an escape character \lstinline{\\} may be used. For example:
+\begin{lstlisting}
+astring = 'I\'m also a String'
+\end{lstlisting}
+
+So as to disambiguate between the definition of a String and a char, for cases of one character length strings, the \lstinline{''} or \lstinline{""} must be prepended with an \lstinline{s} to make: \lstinline{s""} or \lstinline{s''}. For example:
+\begin{lstlisting}
+notachar = s'c'
+achar = 'c'
+\end{lstlisting}
+
+\subsection{The escape character}
+As we have already seen the escape character \lstinline{\\} can be used to input a \lstinline{'} or \lstinline{"} inside a \lstinline{''} or \lstinline{""} string. It may also be used to input a range of special characters including the newline character: \lstinline{\\n} and Unicode, UTF-16 characters. For example:
+
+\begin{lstlisting}
+anewline = "Hello\nworld!"
+/*=>Hello
+world!*/
+aString = "\u0048\u0065\u006c\u006c\u006f \u0077\u006f\u0072\u006c\u0064\u0021" //"=>Hello world!"
+\end{lstlisting}
+
+\subsection{The String concatenation operator \lstinline!+!}
+\label{subsec:StringConcat}
+We can compose strings by using the concatenation \lstinline{+} operator. This is useful for mixing raw text or pre existing string variables and variables/expression values together. For instance:
+
+\begin{lstlisting}
+avar = 8
+str = " there m"
+aString = "hi" + str + avar
+//aString =="hi there m8"
+\end{lstlisting}
+
+In order for string concatenation via the \lstinline{+} operator to work, at least one of the right hand side or left hand side arguments must be a String, however, even an empty String \lstinline{""} is acceptable.
+
+In the case where an object type is involved in String concatenation the object's \lstinline{toString} method is invoked. This method is included for all objects by virtue of the fact that they all inherit from Class \lstinline{java.lang.Object} where a default implementation returning the objects class name and hexadecimalized hashCode is returned as a string.
+
+In the case where an n dimensional array is on the left or right hand side of the concatenation it will be converted into a formatted String. For example:
+\begin{lstlisting}
+mat = [ 1 2 ; 3 4]
+
+asStr = "" + mat
+//asStr == "[[1 2] [3 4]]"
+\end{lstlisting}
+
+Note that since strings are immutable objects, a new String is created as a result of the \lstinline{+} operator being applied.
+
+\subsection{Assignment plus \lstinline!+=!}
+The assignment plus operator \lstinline{+=} operates in a similar manner. If the item on the left hand side of the plus assignment operator is a String, then the item on the right hand side of the plus assignment operator is appended to the left hand side and a new string is assigned to the left hand side item. 
+
+\subsection{String is an Object}
+The type String is an object - therefore it can be created in the usual way for Objects:
+\begin{lstlisting}
+str = new java.lang.String(23)
+\end{lstlisting}
+
+\subsection{Code in Strings}
+Another handy trick when creating strings is to nest raw code within the string itself. This is great for including variables directly in strings without having to resort to the somewhat cumbersome usage of multiple \lstinline{+} operators as par above.
+
+\begin{lstlisting}
+avar = 8
+str = " there m"
+aString = "hi {str} {avar}"
+//aString == "hi there m8"
+\end{lstlisting}
+
+We can include more complex expressions as follows:
+\begin{lstlisting}
+aString = "addition result: {1+2}"
+//aString == "addition result: 3"
+\end{lstlisting}
+
+Code in Strings can be applied everywhere except for when defining Strings for default annotation parameters - as these are required to be fully defined constants at compilation time. Code within strings nest, that is to say that; code embedded within the string may nest other strings which may optionally have code within them too.
+
+\subsubsection{Escaping code in Strings}
+Code in Strings may be escaped by prefixing said code with a \lstinline{\\}:
+\begin{lstlisting}
+aString = "addition result: \{1+2}"
+//aString == "addition result: {1+2}"
+\end{lstlisting}
+
+\subsection{Format Strings}
+One final mechanism by which we can create Strings is via the format, static method of \lstinline{java.lang.String}
+\begin{lstlisting}
+var1 = 99
+var2 = 234.
+String.format("var1: %s var2: %s", var1, var2)
+\end{lstlisting}
+
+\subsection{More information on Strings}
+Strings in Concurnas are supported by the JVM, for more information on Strings see: \href{https://docs.oracle.com/javase/tutorial/java/data/strings.html}{Oracle Java String documentation}
+
+\section{Regex}
+Regex, or regular expressions, are another area of modern programming so proliferant that Concurnas has special first class citizen support. We can define a regex in much the same way as a String, by prepending the regex String within \lstinline{''} or \lstinline{""} with \lstinline{r}, to make \lstinline{r''} or \lstinline{r""} for example:
+\begin{lstlisting}
+aregex = r"ab*a"
+...
+amatch = aregex.matcher.matches("abbbba")
+\end{lstlisting}
+
+This syntax produces an object of type \lstinline{java.util.regex.Pattern}. More details of this can be found \href{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/util/regex/Pattern.html}{here}. For more details on the variant of regex supported by Concurnas, see \href{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/util/regex/Pattern.html}{here}. Note that it's relatively expensive to construct regex objects since they are compiled at runtime upon definition so its recommended that they be created as top level variables or cached and/or otherwise reused.
+
+\section{Object Types}
+Objects and Classes are covered in more detail \hyperref[ch:classes]{in the classes section}. This is a brief introduction:
+
+\begin{lstlisting}
+open class MyClass(public an int)
+class ChildClass extends MyClass(88){
+	def amethod() => "returns something"
+}
+
+myObject1 = MyClass(12)
+myObject2 Object = MyClass(12)
+myChildObj1 = ChildClass()
+myChildObj2 MyClass = ChildClass()
+\end{lstlisting}
+
+\lstinline{myObject1} and \lstinline{myObject2} are instance objects of type class \lstinline{MyClass}. However, in the case of \lstinline{myObject2} since it has been declared as being of type \lstinline{Object} - it can only be used as an instance of Object, the \lstinline{an} field is not accessible unless the object is cast to an instance of \lstinline{MyClass}.
+
+\lstinline{myObject1} and \lstinline{myObject2} are instance objects of type \lstinline{ChildClass}. However, in the case of \lstinline{myChildObj2} since it has been declared as being of type \lstinline{MyClass} - it can only be used as an instance of \lstinline{MyClass}, the \lstinline{amethod} method is not callable unless the variable is cast to an instance of \lstinline{ChildClass}. For \lstinline{myChildObj1} we can access the field \lstinline{an} from the superclass \lstinline{MyClass}.
+
+Note that \lstinline{java.lang.Object} is an implicit superclass of every class if a super type is not defined. As such it is the superclass of every instance object.
+
+\section{null}
+Null is a special type of Object and is represented simply by the keyword \lstinline{null}. Any object may be assigned a value of \lstinline{null} as it is a subtype of all Object types (including arrays). Attempting to call a method or access a field on a nullable object which is \lstinline{null} will result in a \lstinline{java.lang.NullPointerException} object being thrown. This means that where one suspects an object may be null, it is necessary to check for the null state. As such null should only be used sparingly.
+
+Generally speaking, the conventional wisdom of modern software engineering is that null should be used sparingly. As such if one wishes for a variable to be potentially nullable, it's type must be declared as being nullable, this is denoted by appending a \lstinline{?} to the type. For example:
+
+\begin{lstlisting}
+aString  String  = "hi"
+nullable String? = null
+nullable         = "no longer null"
+\end{lstlisting}
+
+The subject of null safety is covered in detail in the \hyperref[ch:nullsafe]{null safety chapter}. For now let's look at how we can use \lstinline{null}:
+
+\begin{lstlisting}
+assignedNull String = null //an Object of type null assigned a String
+aArray int[]? = null
+aMatrix int[2]? = null
+
+class User(name String, age int)
+
+def extractName(user User?){//function taking an object argument which may resolve to null
+	"unknown" if user == null else user.name //testing for nullability
+}
+
+def extractAge(user User? = null){//function with a default parameter resolving to null
+	0 if user == null else user.age
+}
+
+name = extractName(null)//passing null as an argument to a function
+age = extractAge()//the single argument to the function call will be populated with its default value of null
+\end{lstlisting}
+
+\section{(Un)Boxed primitive types}
+For every primitive type, there exists an Object type. Concurnas allows either to be used on an interchangeable basis via a process known as boxing and unboxing.
+
+The pairs of primitive and object types are as follows:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\hline
+		Primitive Type&Object Type\\
+		\hline
+		\lstinline!byte!&\lstinline!java.lang.Byte!\\
+		\lstinline!short!&\lstinline!java.lang.Short!\\
+		\lstinline!int!&\lstinline!java.lang.Integer!\\
+		\lstinline!long!&\lstinline!java.lang.Long!\\
+		\lstinline!float!&\lstinline!java.lang.Float!\\
+		\lstinline!double!&\lstinline!java.lang.Double!\\
+		\lstinline!char!&\lstinline!java.lang.Character!\\
+		\lstinline!boolean! or \lstinline!bool!&\lstinline!java.lang.Boolean!\\
+		\hline
+	\end{tabular}
+\end{table}
+
+These can be used interchangeability for example:
+
+\subsection{Boxing}
+
+\begin{lstlisting}
+def opOnInteger(an Integer) => an+1
+
+opOnInteger(12)
+\end{lstlisting}
+
+Above, the value passed as an argument in the call to \lstinline{opOnInteger} is 'boxed' to type Integer. Behind the scenes the code is converted into the form: 
+\begin{lstlisting}
+opOnInteger(new Integer(12))
+\end{lstlisting}
+
+\subsection{Unboxing}
+\begin{lstlisting}
+def givesAnInteger(from int) => new Integer(from)
+
+avar int = givesAnInteger(12)
+\end{lstlisting}
+
+Above, the value returned from \lstinline{givesAnInteger}, of type \lstinline{Integer}, is 'unboxed' to type \lstinline{int}. Behind the scenes the code is converted into the form: \lstinline{givesAnInteger(12).intValue()}
+
+Autoboxing and unboxing also conveniently allows us to use primitive types as generic type qualifiers. For example:
+\begin{lstlisting}
+anAr = new java.util.Arraylist<int>()
+\end{lstlisting}
+
+\section{Arrays}
+Arrays are covered in more detail \hyperref[ch:arrays]{in the arrays section}. This is a brief explanation.
+
+When we refer to arrays we are typically referring to a one dimensional array. For example:
+
+\begin{lstlisting}
+arra1 int[]  = [1 2 3 4 5]
+arra2 int[1] = [1 2 3 4 5]
+\end{lstlisting}
+
+The Array type is simply: normal type with \lstinline{[]} postfixed or \lstinline{[1]} - indicating one level of dimensionality.
+
+When it comes to n dimensional arrays, for instance a matrix (n=2), the type syntax is very similar: 
+\begin{lstlisting}
+mat1 int[][] = [1 2 ; 3 4]
+mat2 int[2] = [1 2 ; 3 4]
+\end{lstlisting}
+
+So it's, normal type, with n \lstinline{[]}'s or \lstinline{[n]} - for an n dimensional array.
+
+An array can be composed of any type - in other words, you can have an array of elements of any type in Concurnas. However, all the elements of said array need to be of the same type. For example the type of this array:
+
+\begin{lstlisting}
+["hi", 23]
+\end{lstlisting}
+
+Is \lstinline{java.lang.Object}, since this is the most specific type which is a supertype of all elements of the array (the second \lstinline{int} item will be boxed to an Integer, which is a subtype of \lstinline{java.lang.Object}).
+
+We can extract an array from a matrix and an individual item from a matrix as follows:
+
+\begin{lstlisting}
+mat int[2] = [1 2 ; 3 4]
+ar int[] = mat[1]
+item int = mat[1, 2]
+\end{lstlisting}
+
+When we perform an m level extraction we are returning a type: composed[n-m], and where n-m == 0 the composed type itself is returned.
+
+When we set values of n dimensional matrices, they do not have to match 1:1 with the declared type of the matrix, but they may be subtypes. For example:
+
+\begin{lstlisting}
+objAr Object[] = [ "hi", "there", 123]
+objAr[2] = "friend"//replace last item with a String
+\end{lstlisting}
+
+\section{Method References}
+Method (or function) references can be created via a number of mechanisms; In addition to being the types of method references they are the types of lambda definitions. They take the form of a list of input arguments (which may be empty) and a return type. For example:
+
+\begin{lstlisting}
+def plusTogether(a int, b int) => a+b
+
+ref (int, int) int = plusTogether&//create a function reference to plusTogether
+
+aslambda (int, int) int = def(a int, b int) => a + b//create a lambda
+\end{lstlisting}
+
+They are handy types and can be passed around our program and invoked as follows:
+\begin{lstlisting}
+ans1 int = ref(1, 1)
+ans2 int = aslambda(1, 1)
+\end{lstlisting}
+
+All method references are a subtype of \lstinline{lambda} which is itself a shortcut for \lstinline{com.concurnas.bootstrap.lang.Lambda}:
+
+\begin{lstlisting}
+def doer(a int) => a*2
+
+afuncref lambda = doer&
+afuncref com.concurnas.bootstrap.lang.Lambda = doer&
+\end{lstlisting}
+
+An alternative representation for a method reference is to use their associated object type. For an method reference returning a non void type:
+\begin{lstlisting}
+def doer(a int) => a*2
+
+afuncref (int) int = doer&
+altrep (*\aftergroup\bfseries*)Function1<int, int>(*\aftergroup\mdseries*) = afuncref
+\end{lstlisting}
+
+And for a method reference returning void:
+\begin{lstlisting}
+def doer(a int) void {}
+
+afuncref (int) void = doer&
+altrep (*\aftergroup\bfseries*)Function1v<int>(*\aftergroup\mdseries*) = afuncref
+\end{lstlisting}
+
+
+\subsection{Composite types of Method References}
+A type which is composed of method references can be defined by surrounding the method reference in parentheses. This is handy for defining array or method references with arguments or return types themselves being method references:
+
+\begin{lstlisting}
+def applyMethodRefs(what (*\aftergroup\bfseries*)((int) int)[](*\aftergroup\mdseries*)) //takes an array of (int) int method refernces as input
+	=> w(20) for w in what
+
+duplicator ((int) int) (*\aftergroup\bfseries*)((int) int)[](*\aftergroup\mdseries*) = def ( input (int) int ) => [input input]
+duplicatorDup (*\aftergroup\bfseries*)(((int) int) ((int) int)[])[](*\aftergroup\mdseries*) = [duplicator& duplicator&]
+\end{lstlisting}
+
+\section{Generic Types}
+Generics are covered in more detail in the \hyperref[ch:generics]{Generics} chapter. This is a brief explanation.
+
+Let us create an instance object of a class that supports Generics:
+\begin{lstlisting}
+class MyGenClass<X>
+
+instObj1 MyGenClass<String> = new MyGenClass<String>()
+\end{lstlisting}
+
+Above we create an object \lstinline{instObj1} which is of type \lstinline{MyGenClass} and having generic qualification \lstinline{String} since \lstinline{MyGenClass} requires one generic type qualification which it refers to internally as \lstinline{X}. When creating instance objects of classes requiring generic type qualification - these generic types must be provided. 
+
+Bear in mind that \lstinline{MyGenClass<String>} is not a subtype of \lstinline{MyGenClass<Object>} - the generic type qualifications must match, they cannot be subtypes.
+
+In instances, except creation, where we really do not know the generic type, or don't care for it, then we can use the wildcard \lstinline{?} in place of their declaration. For example:
+
+\begin{lstlisting}
+instObj2 MyGenClass<?> = new MyGenClass<String>()
+\end{lstlisting}
+
+\section{Tuples}
+Tuples are covered in more detail \hyperref[chap:tuples]{in the tuples section}. This is a brief explanation:
+
+\begin{lstlisting}
+atuple = 12, "hi"
+another (int, String) = 12, "hi"
+another2 Tuple2<int, String> = 12, "hi"
+\end{lstlisting}
+
+All three above are equivalent and resolve to a tuple with two elements of Type: \lstinline{(Integer, String)}.
+
+\section{Typedefs}
+Typedefs are covered in more detail \hyperref[chap:typedefs]{in the Typedefs section}. They are most commonly used in order to avoid code duplication in writing long type definitions (particularly those with many complex generic type qualifications) so as to improve code readability. Let's briefly create and use a typedef:
+
+\begin{lstlisting}
+typedef MyMap = java.util.HashMap<String, java.Util.HashSet<int>>
+
+am MyMap = new MyMap()
+am2 java.util.HashMap<String, java.Util.HashSet<int>> = new java.util.HashMap<String, java.Util.HashSet<int>>(); 
+\end{lstlisting}
+
+\lstinline{am} and \lstinline{am2} are essentially equivalent to one another in type. At compilation time the first definition and assignment to \lstinline{am} is expanded into the second form of \lstinline{am2}.
+
+At this point the key thing to note with typedefs is that they are essentially shortcuts ('drop in replacements') for otherwise longer, more verbose type definitions.
+
+\section{Refs}
+Refs are covered in more detail in the \hyperref[sec:refs]{Refs section}. For now let's look at a brief introduction to refs from a typing perspective:
+
+\begin{lstlisting}
+aref1 int: //defined but unassigned local ref of type int
+aref2 int := 21 //defined and assigned local ref of type int
+aref3 := 21 //assigned local ref of inferred type int
+aref4 = 21: //assigned variable of inferred type int: with the right hand side being a ref creation expression
+aref5 = {21}! //assigned variable of inferred type int: - right hand side being a ref returned from an isolate - this is the most computationally expensive variety of ref creation - if you find yourself doing this to create simple refs from expressions that don't require concurrent execution, consider using the preceding form
+\end{lstlisting}
+
+All the ref's above are of type \lstinline{int:}. As can be seen above the key when creating ref's is the use of \lstinline{:} postfixed to a type or prefixed to the assignment operator \lstinline{=} - this tells the compiler that we wish to create a ref type.
+
+Refs enable us to do two very useful things core to the operation of most programs written in Concurnas:
+They provide a mechanism by which differing isolates (pieces of code which are executed at the same time) can communicate between each other. For now, consider that isolates are concurrently executed blocks of code indicated by post pending the block with the isolate creation bang \lstinline{!}. e.g \lstinline!{1+1}!\lstinline{!}
+They enable reactive computing, via use of onchange, every, async and await (this topic is explored later in the Concurrency section).
+
+Refs have posses an very important feature which helps to enable the above. When we wish to perform an operation on a ref variable, or pass a ref to a function which is not expecting a ref - the ref will be unassigned. But, if no value has yet been assigned to the ref further execution will be blocked until a value is available.
+
+It is for this reason that the following code will fail at compilation time with an error:
+\begin{lstlisting}
+a int:
+b = a //fails as a has not been assigned and and we will never be able to unassign from a to b, causing us to wait forever 
+\end{lstlisting}
+
+Type wise, when unassigning a ref with type \lstinline{X:}, the type of the value returned will be \lstinline{X}. For \lstinline{int:} this is \lstinline{int}. For example:
+
+\begin{lstlisting}
+a int:
+
+{a = 99}!//execute our ref assignment in a separate isolate
+
+b int = a//a is unassigned when our isolate spawned above complete's execution
+\end{lstlisting}
+
+If we wish to prevent this unassignment we can use the \lstinline{:} operator when referencing the variable. For example:
+
+\begin{lstlisting}
+a int: = 12
+b = a:
+c := a
+
+//the &== operator tests for equality by object reference and not by object value as the == operator does
+assert b: &== a: //a and b are references to the same ref
+assert c: &== a: //a and c are references to the same ref
+\end{lstlisting}
+
+
+\section{Actors}
+Actors are covered in more detail \hyperref[sec:actors]{in the Actors section}. In summary they are a hyrbid between isolates and objects.
+
+Method calls on actor objects occur within one dedicated isolate for the actor. Only one method is executed per actor at any point in time, as such actors can be shared between isolates. Method calls to actor methods return refs. An example actor:
+
+\begin{lstlisting}
+class NormalClass(counter = 0){
+	def inc() => ++counter
+}
+
+anActor actor NormalClass = new actor NormalClass()
+anotherActor = new actor NormalClass()//the type of anotherActor is infered as: actor NormalClass
+
+aref = anActor.inc() //aref is infered as type int:
+\end{lstlisting}
+
+All actors are a subtype of \lstinline{actor} which is itself a shortcut for \lstinline{com.concurnas.lang.Actor}:
+
+\begin{lstlisting}
+class MyClass()
+
+act1 actor = new actor MyClass()
+act2 com.concurnas.lang.Actor = new actor MyClass()	
+\end{lstlisting}
+
+\section{Pass by value/reference}
+Concurnas applies pass by value or pass by reference contingent on the type being referred to. Primitive types are passed by value, everything else (including primitive type arrays) are passed by reference. Therefore the following conditions hold true:
+
+Concerning primitive types, a copy of the value is made:
+\begin{lstlisting}
+anint1 = 99
+anint2 = anint1//copy value of anint1 to anint2
+
+anint2++ //increment anint2
+
+assert anint2 == 100
+assert anint1 == 99
+\end{lstlisting}
+
+We see above that the original value held by variable \lstinline{anint1} is unchanged by the operation applied to the value of \lstinline{anint2}.
+
+However, the behaviour is different with objects:
+\begin{lstlisting}
+class MyClass(~avar int)
+
+mcvar1 = MyClass(99)
+mcvar2 = mcvar1
+
+mcvar2.avar++
+
+assert mcvar1.avar == mcvar2.avar
+\end{lstlisting}
+
+We see here that the internal state of the object referred to by \lstinline{mcvar1} is the same as that of \lstinline{mcvar2} - this is because a reference has been passed to \lstinline{mcvar2} upon assignment - a copy of the value of \lstinline{mcvar1} is not made.
+
+Sometimes this behaviour is undesirable and we'd want \lstinline{mcvar2} to be a copy of the \lstinline{mcvar1}. This can easily be achieved by tweaking our code above to include the copy operator \lstinline{@}:
+
+\begin{lstlisting}
+class MyClass(~avar int)
+
+mcvar1 = MyClass(99)
+mcvar2 = mcvar1@
+
+mcvar2.avar++
+
+assert mcvar1.avar <> mcvar2.avar
+\end{lstlisting}
+
+Above we see that the state of \lstinline{mcvar1} and \lstinline{mcvar2} is no longer the same, as they refer to different objects.
+
+\end{document}

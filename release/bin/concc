@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+#
+##############################################################################
+# Adapted from scripts included with Scala (https://www.scala-lang.org)
+##############################################################################
+ 
+findconcHome () {
+  local source="${BASH_SOURCE[0]}"
+  while [ -h "$source" ] ; do
+    local linked="$(readlink "$source")"
+    local dir="$( cd -P "$(dirname "$source")" && cd -P "$(dirname "$linked")" && pwd )"
+    source="$dir/$(basename "$linked")"
+  done
+  ( cd -P "$(dirname "$source")/.." && pwd )
+}
+execCommand () {
+  [[ -n $CONC_RUNNER_DEBUG ]] && echo "" && for arg in "$@"; do echo "$arg"; done && echo "";
+  "$@"
+}
+
+conc_exit_status=127
+saved_stty=""
+
+# restore stty settings (echo in particular)
+function restoreSttySettings() {
+  if [[ -n $CONC_RUNNER_DEBUG ]]; then
+    echo "restoring stty:"
+    echo "$saved_stty"
+  fi
+    
+  stty $saved_stty
+  saved_stty=""
+}
+
+function onExit() {
+  [[ "$saved_stty" != "" ]] && restoreSttySettings
+  exit $conc_exit_status
+}
+
+# to reenable echo if we are interrupted before completing.
+trap onExit INT
+
+# save terminal settings
+saved_stty=$(stty -g 2>/dev/null)
+# clear on error so we don't later try to restore them
+if [[ ! $? ]]; then  
+  saved_stty=""
+fi
+if [[ -n $CONC_RUNNER_DEBUG ]]; then
+  echo "saved stty:"
+  echo "$saved_stty"
+fi
+
+unset cygwin
+if uname | grep -q ^CYGWIN; then
+  cygwin="$(uname)"
+fi
+
+unset mingw
+if uname | grep -q ^MINGW; then
+  mingw="$(uname)"
+fi
+
+unset msys
+if uname | grep -q ^MSYS; then
+  msys="$(uname)"
+fi
+
+# Finding the root folder
+CONC_HOME="$(findconcHome)"
+SEP=":"
+
+# Possible additional command line options
+WINDOWS_OPT=""
+
+# Remove spaces from CONC_HOME on windows
+if [[ -n "$cygwin" ]]; then
+  CONC_HOME="$(shome="$(cygpath --windows --short-name "$CONC_HOME")" ; cygpath --unix "$shome")"
+# elif uname |grep -q ^MINGW; then
+#   SEP=";"
+fi
+
+# Constructing the extension classpath
+TOOL_CLASSPATH=""
+if [[ -z "$TOOL_CLASSPATH" ]]; then
+    for ext in "$CONC_HOME"/lib/* ; do
+        file_extension="${ext##*.}"
+        if [[ -d "$ext" || $file_extension == "jar" ]]; then
+          if [[ -z "$TOOL_CLASSPATH" ]]; then
+              TOOL_CLASSPATH="$ext"
+          else
+              TOOL_CLASSPATH="${TOOL_CLASSPATH}${SEP}${ext}"
+          fi
+        fi
+    done
+fi
+
+if [[ -n "$cygwin" ]]; then
+    if [[ "$OS" = "Windows_NT" ]] && cygpath -m .>/dev/null 2>/dev/null ; then
+        format=mixed
+    else
+        format=windows
+    fi
+    CONC_HOME="$(cygpath --$format "$CONC_HOME")"
+    if [[ -n "$JAVA_HOME" ]]; then
+        JAVA_HOME="$(cygpath --$format "$JAVA_HOME")"
+    fi
+    TOOL_CLASSPATH="$(cygpath --path --$format "$TOOL_CLASSPATH")"
+fi
+
+if [[ -n "$cygwin$mingw$msys" ]]; then
+    case "$TERM" in
+        rxvt* | xterm* | cygwin*)
+            stty -icanon min 1 -echo
+            WINDOWS_OPT="-Djline.terminal=unix"
+        ;;
+    esac
+fi
+
+[[ -n "$JAVA_OPTS" ]] || JAVA_OPTS="-Xmx512M -Xms64M"
+
+# break out -D and -J options and add them to JAVA_OPTS as well
+# so they reach the underlying JVM in time to do some good.  The
+# -D options will be available as system properties.
+declare -a java_args
+declare -a conc_args
+
+OVERRIDE_USEJAVACP=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -D*)
+      java_args+=("$1")
+      conc_args+=("$1")
+      # respect user-supplied -Dconc.usejavacp
+      case "$1" in -Dconc.usejavacp*) OVERRIDE_USEJAVACP="";; esac
+      shift
+      ;;
+    -J*)
+      # as with -D, pass to conc even though it will almost
+      # never be used.
+      java_args+=("${1:2}")
+      conc_args+=("$1")
+      shift
+      ;;
+    -toolcp)
+      TOOL_CLASSPATH="${TOOL_CLASSPATH}${SEP}${2}"
+      shift 2
+      ;;
+    -debug)
+      CONC_RUNNER_DEBUG=1
+      shift
+      ;;
+    *)
+      conc_args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# reset "$@" to the remaining args
+set -- "${conc_args[@]}"
+
+if [[ -z "$JAVACMD" && -n "$JAVA_HOME" && -x "$JAVA_HOME/bin/java" ]]; then
+    JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+classpath_args=(-classpath "$TOOL_CLASSPATH")
+
+# Remove newline as delimiter for word splitting the java command.
+# This permits the use case:
+# export JAVA_OPTS=-Dline.separator=$'\r'$'\n'
+# where otherwise the newline char is stripped after expansion.
+# The following works with the default IFS:
+# conc -J-Dline.separator=$'\r'$'\n'
+IFS=" "$'\t'
+
+# note that variables which may intentionally be empty must not
+# be quoted: otherwise an empty string will appear as a command line
+# argument, and java will think that is the program to run.
+execCommand \
+  "${JAVACMD:=java}" \
+  $JAVA_OPTS \
+  "${java_args[@]}" \
+  "${classpath_args[@]}" \
+  -Dcom.concurnas.home="$CONC_HOME" \
+  $WINDOWS_OPT \
+   com.concurnas.conc.ConcWrapper concc "$@"
+
+# record the exit status lest it be overwritten:
+# then restore IFS, reenable echo and propagate the code.
+conc_exit_status=$?
+
+unset IFS
+
+onExit

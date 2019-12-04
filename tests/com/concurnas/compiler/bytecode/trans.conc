@@ -1,0 +1,988 @@
+//##1. basic trans operation
+from java.util import List
+
+class BankAcount(name String, public balance int:) {
+	def printBalance(){
+		name + " Balance: " + balance
+	}
+	
+	override toString() => printBalance()
+	override hashCode() => 1
+	override equals(o Object) => false
+}
+
+AMOUNT = 10
+a = new BankAcount("A", AMOUNT)
+b = new BankAcount("B", AMOUNT)
+
+def range(n int) => {m=0; while(m++ < n){ m-1 } }
+
+def doings() {
+	cnt := 0
+	
+	def do() void{
+		{
+			trans{	
+				a.balance+= 1
+				b.balance-=1
+				
+				cnt+=1 // will have some conflict within this unit | thread contention
+			}
+		}!
+	}
+	
+	for(a in range(AMOUNT)){
+		do()
+	}
+	
+					
+	//never getting sets
+	await(cnt ; cnt==AMOUNT)
+	
+	"" + [a, b]
+}
+~~~~~
+//##1b. bigger example
+
+from java.util import List
+
+class BankAcount(name String, public balance int:) {
+	def printBalance(){
+		name + " Balance: " + balance
+	}
+	
+	override toString() => printBalance()
+}
+
+
+def all(a List<int:>, func (int:) boolean ){
+	for(ab in a){
+		if(not(func(ab))){
+			return false
+		}
+	}
+	true
+}
+
+def range(n int) => {m=0; while(m++ < n){ m-1 } }
+
+def doings() {
+	startingbalance = 1000
+	a = new BankAcount("A", startingbalance)
+	b = new BankAcount("B", startingbalance)
+		
+	def move(){
+		runs = 0
+		
+		trans{		
+			a.balance+= 1
+			b.balance-=1
+			runs++
+		}
+
+		runs
+	}
+	dudes = for(n in range(startingbalance)){
+		move()!
+	}
+	
+	await(dudes ; all(dudes, def (a int:) { a >== 1 } ) )
+	
+	"" + [a, b]
+}
+
+~~~~~
+//##2. check no ret gets popped off
+
+ran :=0
+
+def do(){
+ 		trans{ ran++}
+	}
+
+def doings() {
+n=0
+	while(n++< 999){
+		do()! // doesnt like this very much
+		//ensure that value is not returned to stack
+		//else causes stack pollution
+		//TODO: should be able to check for stack pollution via static analysis somehow...
+	}
+			
+	await(ran ; ran==999)
+					
+	"" + ran
+}
+
+~~~~~
+//##3. ensure parent block navigated correctly
+
+from java.util import List
+
+class BankAcount(name String, public balance int:) {
+	def printBalance(){
+		name + " Balance: " + balance
+	}
+	
+	override toString() => printBalance()
+	override hashCode() => 1
+	override equals(o Object) => false
+}
+
+
+a = new BankAcount("A", 1000)
+b = new BankAcount("B", 1000)
+
+def doings() {
+	
+	compl = {
+		trans{		
+			a.balance+= 10
+			b.balance-=10
+		}
+		//the use of finally nested with the try catch of the async block was not being handled correctly, wrong parent was being navigated back to	
+		88
+	}!
+	
+	await(compl)
+	
+	"" + [a, b]
+}
+
+~~~~~
+//##4. this works lovely
+
+from java.util import List
+
+class BankAcount(name String, public balance int:) {
+	def printBalance(){
+		name + " Balance: " + balance
+	}
+	
+	override toString() => printBalance()
+	override hashCode() => 1
+	override equals(o Object) => false
+}
+
+AMOUNT = 10
+a = new BankAcount("A", AMOUNT)
+b = new BankAcount("B", AMOUNT)
+
+def range(n int) => {m=0; while(m++ < n){ m-1 } }
+
+def doings() {
+	trigla := 0
+	cnt := 0
+	onchange(a.balance){
+		trans{ 	trigla++; } //doesnt like this, unown child?
+	}
+	
+	def do() void{
+		{
+			trans{	
+				a.balance+= 1
+				b.balance-=1
+				
+				cnt+=1
+			}
+		}!
+	}
+	
+	for(a in range(AMOUNT)){
+		do()
+	}
+	
+					
+	//never getting sets
+	await(cnt ; cnt==AMOUNT)
+	
+	"" + [a, b]
+}
+
+~~~~~
+//##5. transactions trigger notification once only and full state preserved
+
+a := 10
+b := 0
+
+def doings() {
+	calls := ""
+	done :=false
+	callc :=0
+	
+	onchange(a, b){
+		//System.err.println("hi")
+		ln = "[" + a + ", " + b + "] => " + (a+b)
+		calls += ln
+		callc++
+		//System.err.println(ln)
+		done = ln == "[0, 10] => 10"
+	}
+	
+	n=0
+	while(n++<10){
+		{
+			trans{
+				a--;
+				b++;
+			}
+		}!
+	}
+	
+	
+	await(done ; done)
+	
+	"" + [callc, "~", calls]
+}
+
+~~~~~
+//##z6 ensure transactions are in order
+
+InitialA = 10000
+a := InitialA
+b := 0
+
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	cnt:=0
+	xx = async{
+		pre{ lastVal Integer? = null }
+		onchange(a,b){ 
+			if(null <> lastVal){
+				if(lastVal <== a)
+				{
+					return false
+				}
+			}
+			
+			lastVal = a
+			
+			cnt++
+			true
+		}
+	}
+	
+	n=0
+	while(n++<InitialA){
+		{
+			trans{
+				a--;
+				b++;
+			}
+		}!
+	}
+	
+	await(cnt, xx ; (not xx) or cnt==InitialA)
+	
+	
+	"" + [a,b, xx]
+}
+
+~~~~~
+//##z7 count returns in order
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	history := ""
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	every(xx) { trans{ history += xx + ", " } }
+	
+	
+	a := 9
+	
+	xx  = async{
+		pre{ 
+			//leave out break and continue
+			return 123 //permitted though a bit pointless
+		}
+		onchange(a){ 
+			return 22
+		}
+		post {
+			 return 101
+		} 
+	}
+	a = 66
+	
+	await( xx ; xx==101)
+	await( history ; history=="123, 22, 101, " )
+	
+	"" + [ninset, xx, a, [history]]
+}
+
+~~~~~
+//##z8 ret null
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	
+	a := 9
+	
+	xx  = async{
+		pre{ 
+			//leave out break and continue
+			return 123 //permitted though a bit pointless
+		}
+		onchange(a){ 
+			return 8
+		}
+		post {
+			 return 101
+		} 
+	}
+	a = 66
+	
+	await( xx ; xx==101)
+	
+	"" + [ninset, xx, a]
+}
+
+~~~~~
+//##z9 ret nothing
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	
+	a := 9
+	
+	xx  = async{
+		pre{ 
+			//leave out break and continue
+			return 123 //permitted though a bit pointless
+		}
+		onchange(a){ 
+			return 8
+		}
+		post {
+			 return 101
+		} 
+	}
+	a = 66
+	
+	await( xx ; xx==101)
+	
+	"" + [ninset, xx, a]
+}
+
+~~~~~
+//##z10 post called on ret
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	
+	hicnt = 10
+	
+	a := 9
+	
+	xx  = async{
+		pre{ 
+			//leave out break and continue
+			return 123 //permitted though a bit pointless
+		}
+		onchange(a){ 
+			hicnt++
+						
+		}
+		post {
+			 return 101
+		} 
+	}
+	a = 66
+	
+	a:close()
+	
+	await(xx ; xx == 101)
+	//return called on close
+	"" + [ninset, xx, a]
+}
+
+~~~~~
+//##z11 supress output of plus plus
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	
+	hicnt = 10
+	
+	a := 9
+	
+	xx  = async{
+		onchange(a){ 
+			hicnt++
+			continue//prevents the ++ from returning anything
+		}
+		post{ 123} 
+	}
+	a = 66
+	
+	a:close()
+	
+	await(xx ; xx == 123)
+	//return called on close
+	"" + [ninset, xx, a]
+}
+
+~~~~~
+//##z11.b supress output of plus plus
+
+def doings() {
+	calls := ""
+	done :=false
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	
+	hicnt = 10
+	
+	a := 9
+	
+	xx  = async{
+		onchange(a){ 
+			hicnt++
+			;;//prevents the ++ from returning anything
+		}
+		post{ 123} 
+	}
+	a = 66
+	
+	a:close()
+	
+	await(xx ; xx == 123)
+	//return called on close
+	"" + [ninset, xx, a]
+}
+
+~~~~~
+//##z11.c supress output of plus plus as above but with pre
+def doings() {
+	calls := ""
+	done :=false
+	
+	xx int:
+	ninset = every(xx) { return xx }
+	
+	hicnt = 10
+	
+	a := 9
+	
+	xx  = async{
+		pre{ 123} 
+		onchange(a){ 
+			hicnt++
+			continue//prevents the ++ from returning anything
+		}
+	}
+	a = 66
+	
+	a:close()
+	
+	await(xx ; xx == 123)
+	//return called on close
+	"" + [ninset, xx, a]
+}
+
+~~~~~
+//##z12 close is tagged in transaction
+
+def doings() {
+	
+	xs = [1:, 1:]
+	
+	output :=""
+	cnt :=0
+	
+	onchange(xs){ 
+		h=999
+		stuff = changed.getChanged()
+		got = stuff[0]: as int:
+		got2 = stuff[1]: as int:
+		output += "" + [stuff.length, got, not(got:isClosed()), got2:isClosed()]
+		cnt++
+	}
+	
+	trans{
+		//System.err.println("109.23")
+		xs[0] = 98
+		xs[1]:close()
+		//System.err.println("1.88")
+	}
+	
+	await(cnt ; cnt == 1)
+	
+	"" + [output]
+}
+
+~~~~~
+//##z13 excep is tagged in transaction
+
+def doings() {
+	
+	xs = [1:, 1:]
+	
+	output :=""
+	cnt :=0
+	
+	onchange(xs){ 
+		h=999
+		stuff = changed.getChanged()
+		//note, transaction order IS guaranteed to match the order in which writes were committed...
+		
+		ee = "la eq: " + [xs[0]: &== stuff[0]:, xs[1]: &== stuff[1]:]
+		
+		got = xs[0]:
+		secExcep="fail"
+		got2 = xs[1]:
+		
+		
+		try{
+			_vali = got2
+		} catch(e){
+			secExcep = "" + e
+		}
+		output += "" + [stuff.length, got, not(got:isClosed()), secExcep, got2:isClosed(), got2:hasException(), ee]
+		cnt++
+	}
+	
+	trans{
+		//System.err.println("109.23")
+		xs[0] = 98
+		xs[1]:setException(new RuntimeException("hi"))
+		//System.err.println("1.88")
+	}
+	
+	await(cnt ; cnt == 1)
+	
+	"" + [output]
+}
+
+~~~~~
+//##z14 trans order from getchange respected
+
+def doings() {
+	
+	xs = [1:, 1:]
+	
+	cnt := 0
+	output := ""
+	onchange(xs){
+		stuff = changed.getChanged()
+		isok = if(cnt==0){
+			[xs[0]: &== stuff[0]:, xs[1]: &== stuff[1]:]
+		}
+		else{
+			[xs[0]: &== stuff[1]:, xs[1]: &== stuff[0]:]
+		}
+		
+		trans{
+			output += isok
+			cnt++
+		}
+	}
+	
+	trans{
+		xs[0] = 98
+		xs[1] = 100
+	}
+	
+	trans{
+		xs[1] = 90
+		xs[0] = 22
+	}
+	
+	//notice above the writes are initiated in reverse order
+	//we epxect the ordering of the transactions returned from getChanged to respect this
+	
+	await(cnt ; cnt == 2)
+	
+	"" + [output]
+}
+
+~~~~~
+//##z15 nested transactions easier than i thought
+
+def doings() {
+	a1 := 1
+	a2 := 1
+	a3 := 1
+	b:= 1
+	
+	got = onchange(a1, a2, a3){
+		"" + [a1, a2:isClosed(), a3:hasException(), b]
+	}
+	
+	canISeeA = 0
+
+	trans{
+		trans{
+			a1=11
+			a2:close()
+			a3:setException(new RuntimeException("fail"))
+		}
+		
+		canISeeA=a1
+		
+		b=12
+	}
+	//well.... that was easy...
+	"" + [canISeeA, got]
+}
+
+~~~~~
+//##z16 trans can return thigngs
+
+calls := 0
+
+def doingsx()  {
+	trans{calls++}//trans can return something
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def suum(items java.util.List<Integer:>){
+	sum = 0;
+	for(i in items){
+		sum += i
+	}
+	sum
+}
+
+def doings(){
+	a=0
+	what = parforsync(b in mtay){
+		doingsx()
+	}
+	
+	
+	"" + [suum(what), calls]
+} 
+
+~~~~~
+//##z17 was a bug with parfor in the past
+
+calls := 0
+
+def doingsx()  {
+	{
+		trans{calls++}
+	}!
+	2
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def suum(items java.util.List<Integer:>){
+	sum = 0;
+	for(i in items){
+		sum += i
+	}
+	sum
+}
+
+def doings(){
+	a=0
+	what = parfor(b in mtay){
+		doingsx()
+	}
+	
+	
+	await(calls; calls==10)
+	
+	"" + [suum(what), calls]
+}
+
+~~~~~
+//##z18 parfor operates on refarrays of refs now
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def suum(items java.util.List<Integer::>){
+	sum = 0;
+	for(i in items){
+		sum += i
+	}
+	sum
+}
+
+def doings(){
+	a=0
+	what = parfor(b in mtay){
+		10:
+	}
+	
+	
+	"" + [suum(what)]
+}
+
+
+~~~~~
+//##z19. trans can return a ref
+
+calls := 0
+
+def doingsx()  {
+	trans{calls++; 10:}//trans can return a ref
+}
+
+def doings(){
+	got = doingsx()
+	"" + got
+}
+
+~~~~~
+//##z20. trans can return a ref more advanced
+
+calls := 0
+
+x = System.err.println&(String)
+
+def doingsx()  {
+	trans{calls++; 10:}//trans can return a ref
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def suum(items java.util.List<Integer:>){
+	sum = 0;
+	for(i in items){
+		sum += i
+	}
+	sum
+}
+
+def doings(){
+	a=0
+	what = parforsync(b in mtay){
+		doingsx()
+	}
+	
+	
+	await(calls; calls==10)
+	
+	"" + [suum(what), calls]
+}
+
+~~~~~
+//##z21. trans can return a ref when called inside bang operator
+
+calls := 0
+
+def doingsx() int: {
+	{
+		trans{calls++}
+		
+	}!
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def suum(items java.util.List<Integer:>){
+	sum = 0;
+	for(i in items){
+		sum += i
+	}
+	sum
+}
+
+def doings(){
+	a=0
+	what = parforsync(b in mtay){
+		doingsx()
+	}
+	
+	
+	await(calls; calls==10)
+	
+	"" + [suum(what), calls]
+}
+
+~~~~~
+//##z22. process trans one at a time in order
+
+import com.concurnas.runtime.ref.RefArray
+import java.util.ArrayList
+xx int: = 1
+
+cnt := 0
+
+def doings() {
+	stuff = actor ArrayList<String>()
+	pauser boolean:
+	every(xx){
+		l='in every'	
+		await(pauser)//force below lines to run after value below has been set
+		stuff.add("rhs: "+[xx, changed.getChanged()])
+		cnt++; 
+	}
+		
+	trans{xx = 2}
+	trans{xx = 3}
+	pauser=true
+	
+	await(cnt; cnt ==3 )
+	
+	"result: " +stuff
+}
+
+~~~~~
+//##z23. ensure values are locked in place inside call
+
+import com.concurnas.runtime.ref.RefArray
+import java.util.ArrayList
+xx int: = 1
+
+cnt := 0
+
+def doings() {
+	stuff = actor ArrayList<String>()
+	pauser boolean:
+	pauser2 boolean:
+	onchange(xx){//we expect xx not to change at all inside this call
+		if(xx == 0){ return; }
+			
+		first = "" + xx
+		pauser = true
+		await(pauser2)
+		second = "" + xx
+		cnt++;
+		stuff.add("rhs: "+[first, second, changed.getChanged()]) 
+	}
+		
+	xx = 1
+	await(pauser)
+	xx = 2
+	pauser2=true
+	
+	await(cnt; cnt == 2 )
+	
+	"result: " + [stuff, stuff.size(),  cnt]
+}
+
+~~~~~
+//##z24. ensure that initial and later values are correctly captured for every
+
+import com.concurnas.runtime.ref.RefArray
+import java.util.ArrayList
+xx int: = 99
+cnt := 0
+
+def doings() {
+	stuff = actor ArrayList<String>()
+	pauser boolean:
+	every(xx){
+		await(pauser)//force below lines to run after value below has been set
+		
+		//System.err.println('===>inside every: ' + changed.getChanged())
+		cnt++;
+		stuff.add("rhs: "+xx) 
+	}
+		
+	xx = 2
+	xx = 3
+	pauser=true
+	
+	await(cnt; cnt ==3 )
+	
+	"result: " +stuff
+}
+
+~~~~~
+//##z25. above but with ref array
+
+import com.concurnas.runtime.ref.RefArray
+import java.util.ArrayList
+xx int:RefArray = [Integer(99)  99]
+//ensure that initial and later values are correctly captured for every
+cnt := 0
+
+def doings() {
+	stuff = actor ArrayList<String>()
+	pauser boolean:
+	every(xx){
+		await(pauser)//force below lines to run after value below has been set
+		
+		//System.err.println('===>inside every: ' + changed.getChanged())
+		cnt++;
+		stuff.add("rhs: "+xx) 
+	}
+		
+	xx[0] = 2
+	xx[0] = 3
+	pauser=true
+	
+	await(cnt; cnt ==3 )
+	
+	"result: " +stuff
+}
+
+~~~~~
+//##z26. ensure that onchange etc can be used as function arguments and that pass through works as expected 
+
+answer := 0
+
+def athing(what int:){
+	onchange(what){
+		answer += what
+	}
+}
+
+def doings(){
+	passthough int:
+	athing(onchange(passthough) { passthough} )//gets accepted twice, meh
+
+	passthough = 1
+	passthough = 10
+	passthough = 100
+
+	await(answer; answer == 111)
+
+	"works" 
+}
+
+~~~~~
+//##z27. this is never going to work
+
+import com.concurnas.runtime.ref.RefArray
+
+xx int:RefArray = [Integer(1)  1]
+
+def dd() => false
+
+cnt := 0
+
+def doings() {
+	res:="turds"
+		
+	res += every(xx){cnt++; ""+xx }//i dont think += makes sense: writes to the res then writes to its hidden ref which is never used anywhere
+	
+	xx[0] = 2
+	xx[0] = 22
+	
+	//await(res; res <> 'turds')
+	await(cnt; cnt >==2)
+	
+	
+	"k" + [ res]
+}

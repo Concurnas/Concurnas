@@ -1,0 +1,384 @@
+//##0 simples
+class Parent{
+	val x = [9];//private -> immutable at this point
+	//but we have a child, so now not immutable
+	//later when we have more clever im analysis, parent can stay immutable
+	public class Nested{
+		public xxx = [99]
+		this(){//gets a parent ref passed to it
+		
+		}
+	}
+}
+
+class Parent2{//not immutable
+	val x = [9];
+	public class Nested2{//also not immutable because its parent is not immutable (and u have a ref to it)
+		val g = [9];//
+	}
+	//probably overly conservative but who cares
+}
+
+//::CopyKids: {copierFunc$Parent=[x], copierFunc$Parent$Nested=[this$1: xxx], copierFunc$Parent2=[x], copierFunc$Parent2$Nested2=[g: this$1]}
+
+
+
+
+~~~~~
+//##1 simples
+class C{//not immutable
+	c int[]=[9]
+	d int[]?
+}
+
+//::Immtuable: 
+//::CopyKids: {copierFunc$C=[c]}
+
+~~~~~
+//##2 maybe inf loop
+
+class A{
+	val b B? =null
+}
+
+class B{
+	val a A? =null
+}
+
+//::Immtuable:
+//::CopyKids: {copierFunc$A=[], copierFunc$B=[]}
+
+//TODO: this is actaully a bug, A and B here are immutable. this should be fixed one day
+
+//this deadly embrace is not createable possible?
+//so they are all immutable
+//cant think of a way to instantiate this anyway
+
+~~~~~
+//##3 maybe inf loop - via 3
+
+class A{
+	val b B? =null
+}
+
+class B{
+	val a C? =null
+}
+
+class C{
+	val a A? =null
+}
+
+//::Immtuable:
+//::CopyKids: {copierFunc$A=[], copierFunc$B=[], copierFunc$C=[]}
+
+~~~~~
+//##3 inf loop plus another ref
+
+class A{
+	val b B =new B(1)
+}
+
+class B{
+	val a A? =null
+	val c C = new C()
+	this(f int){}
+	this(){}
+}
+
+class C{}//immutable, A and B are not
+
+//::Immtuable: copierFunc$C
+//::CopyKids: {copierFunc$A=[b], copierFunc$B=[], copierFunc$C=[]}
+
+~~~~~
+//##4 one fail all
+
+class A{
+	val b B? =null
+	this(f int){}
+	this(){}
+}
+
+class B{
+	val a A =new A(3)
+	val c C = new C()
+}
+
+open class C{}//changable
+
+//::Immtuable: 
+//::CopyKids: {copierFunc$A=[], copierFunc$B=[a:c], copierFunc$C=[]}
+
+~~~~~
+//##5 these are not immutable
+
+class E{//not immutable
+	c int[]=[9]//not val
+}
+
+from java.util import ArrayList
+class F{//not immutable
+	val v = new ArrayList<String>();
+}
+
+//::Immtuable: 
+//::CopyKids: {copierFunc$E=[c], copierFunc$F=[v]}
+
+~~~~~
+//##6. open class vs child
+
+open class Parent{//changeable
+	val c int[]=[9]
+}
+
+class Child extends Parent{//changeable
+	public d = [78]
+	//TODO: sub optimal - bug, this ends up calling Cloner on self and parent since parent is not known to be immutable at execution time... :|
+}
+
+//::Immtuable: 
+//::CopyKids: {copierFunc$Child=[d], copierFunc$Parent=[c]}
+
+
+~~~~~
+//##7. parent child and not immutable
+
+open class NotIm{//not immutable
+	c int[]=[9]
+}
+
+class AlsoNon extends NotIm{
+	val b String? =null
+}
+
+//::CopyKids: {copierFunc$AlsoNon=[], copierFunc$NotIm=[c]}
+
+~~~~~
+//##8. avoid inf loop
+open class A{
+	myA A
+	this(){
+		myA = this
+	}
+}
+//::CopyKids: {copierFunc$A=[]}
+
+~~~~~
+//##9. test correct kids copied
+
+class Im{
+	val x=6;
+	val y=7;
+	val z = "hi"
+}
+
+
+open class NoIm{
+	~a String="wonga"
+}
+
+class A{
+	one = new Im()
+	two = new NoIm()
+}
+
+class B{
+	one = new Im()
+}
+
+def doings() String {
+	return "Hello world"
+}
+
+//::Immtuable: copierFunc$Im
+//::CopyKids: {copierFunc$A=[two], copierFunc$B=[], copierFunc$Im=[], copierFunc$NoIm=[]}
+
+~~~~~
+//##10. correctness of init order of self det immutability
+
+class IsImmutable{
+	val b IsImmutable?//this is immutable
+	
+	this(){
+		b = new IsImmutable(1)
+	}
+	this(x int){
+		b = null
+	}
+}
+
+class NotImmutable{
+	val b NotImmutable?//when initally processing this, im
+	~h=""//breaks immutability, so now not so
+	
+	this(){
+		b = new NotImmutable(1)
+	}
+	this(x int){
+		b = null
+	}
+}
+
+
+def doings() String {
+	return "Hello world"
+}
+
+//::Immtuable: copierFunc$IsImmutable
+//::CopyKids: {copierFunc$IsImmutable=[], copierFunc$NotImmutable=[b]}
+
+~~~~~
+//##11. non quick method invoked ok
+
+from java.util import ArrayList
+
+class NoIm{
+	val myAR ArrayList<String>
+	
+	public this(myAR ArrayList<String>){
+		this.myAR=myAR
+		//expect this to be copied
+	}
+	
+	this(){
+		myAR =new ArrayList<String>()
+		myAR.add("")
+	}
+}
+
+//::Immtuable: 
+//::CopyKids: {copierFunc$NoIm=[myAR]}
+
+~~~~~
+//##12. generics, always have to be copied and use slow method
+class NotIM(~x int[]){ this(){}}
+
+class Dunno<X>
+{
+	jo=""
+	val xa X
+	this(x X){
+		this.xa=x
+	}
+	@SuppressWarnings("generic-cast")
+	this(){
+		this.xa=new NotIM([1]) as X //ugly
+	}
+}
+//::Immtuable: 
+//::CopyKids: {copierFunc$Dunno=[xa], copierFunc$NotIM=[]}
+
+
+
+
+~~~~~
+//##13. gennerate copier for stuff extending standard java classes
+
+class AAA extends Exception("12"){
+	f = "frankie";
+	val c int[]=[9]
+}
+
+class myBigInteger extends java.math.BigInteger("8"){}// immutable and nothing to copy
+
+//::Immtuable: copierFunc$myBigInteger
+//::CopyKids: {copierFunc$AAA=[c], copierFunc$myBigInteger=[]}
+
+
+~~~~~
+//##14. immutable tagging
+
+class Imm(val x int){
+	this(){ 	this(88)}
+}//should be annotated as immutable 
+
+class BasNoIM(~yyy int[]){
+	this(){ 	this([88])}
+
+}
+
+open class NoImm(){
+	a = new Imm(4);
+	b = new Imm(4);
+	c = new BasNoIM([4]);
+	d = new BasNoIM([4]);
+}
+
+
+open class NoImm2 extends Exception("asdasd"){
+	a = new Imm(4);//copier needs to respect annotation and not dupe
+	b = new Imm(4);
+	c = new BasNoIM(4);
+	d = new BasNoIM(4);
+}
+
+
+def doings() String {
+	return "Hello world"
+}
+
+//::Immtuable: copierFunc$Imm
+//::CopyKids: {copierFunc$BasNoIM=[yyy], copierFunc$Imm=[], copierFunc$NoImm=[c:d], copierFunc$NoImm2=[c: d]}
+
+~~~~~
+//##15. Arrays are not immutable
+
+class NotIm(){
+	val xxx = [1,2,3]
+}
+
+
+//::CopyKids: {copierFunc$NotIm=[xxx]}
+
+
+~~~~~
+//##16. ensure inner classes and parents are not immutable
+
+class Parent{
+	val x = [9];//private -> immutable at this point
+	//but we have a child, so now not immutable
+	//later when we have more clever im analysis, parent can stay immutable
+	public class Nested{
+		public xxx = [99]
+		this(){//gets a parent ref passed to it
+		
+		}
+	}
+}
+
+class Parent2{//not immutable
+	val x = [9];
+	public class Nested2{//also not immutable because its parent is not immutable (and u have a ref to it)
+		val g = [9];//
+	}
+	//probably overly conservative but who cares
+}
+
+//::CopyKids: {copierFunc$Parent=[x], copierFunc$Parent$Nested=[this$1: xxx], copierFunc$Parent2=[x], copierFunc$Parent2$Nested2=[g: this$1]}
+
+
+~~~~~
+//##17. double check no inf loops
+
+class A(){
+	~a A?
+	~x int[]=[8]
+}
+
+class Looper{
+	a A
+	this(){
+		a1 = new A()
+		a2 = new A()
+		a1.a = a2
+		a2.a = a1
+		a=a1
+	}
+}
+
+def doings() String{
+	return "Hello world"
+}
+
+//::CopyKids: {copierFunc$A=[x], copierFunc$Looper=[a]}

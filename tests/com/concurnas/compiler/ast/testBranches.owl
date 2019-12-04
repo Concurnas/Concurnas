@@ -1,0 +1,70 @@
+//if elif else
+if(x > 4){print(x);}
+else{ print(4);}
+
+if(x > 4){print(x);}
+elif (x < 5){	print(33);  }
+elif (x < 99){	print(33);  }
+else{ print(4);}
+
+//while
+while(false)
+{
+	print(d);
+	continue;
+	break;
+}
+
+//for
+for(a in [1,2,3])
+{ print(a); }
+
+for(a int in [1,2,3])
+{ print(a); }
+
+//try catch
+try{a = 5;}
+catch(Exception e){print(e);}catch(Exception2 e){print(e);}
+finally{print("done");}
+
+//scope and async block
+{x int = 5;}
+{x int = 5;}!
+
+//throw return
+def a() void
+{
+	if(false) { return;}
+	elif(nice) { return 55;}
+	else{return 55;}
+	throw new Exception("aa");
+}
+
+
+if(a==5 or b ==6)
+{
+	g = 8 
+}
+
+
+
+ar = [1,2,3,4]
+
+def doings() {
+
+	x = parfor(a in ar){
+		a + 10
+	}
+	x2 = parforsync(a in ar){
+		a + 10
+	}
+	
+	x3 = parfor(n=0; n< ar.length; n++){
+		ar[n] + 10
+	}
+	x4 = parforsync(n=0; n< ar.length; n++){
+		ar[n] + 10
+	}
+
+	"hi: " + [x, x2, x3, x4]
+}

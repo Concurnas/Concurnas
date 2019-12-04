@@ -1,0 +1,482 @@
+//##1. simple example of multitype
+def plusTen(a int|double)  => a + 10
+
+def doings(){
+	"" + [""+plusTen(10.), ""+plusTen(10)]
+}
+
+~~~~~
+//##2. multitype constructors
+class MyClass{
+	public thing String
+	this(a int|char|double){
+		 thing = "" + a
+	}
+	
+	override toString() => "MyClass: " + thing
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def doings(){
+	"" + [new MyClass(1), new MyClass(1.)]
+}
+
+~~~~~
+//##3. multitype ext funcs
+
+def int|double|long|String plus10times(a int) => this + (a*10)
+
+def doings(){
+	"" + [ "" + (2.01 plus10times 10), "" + (2 plus10times 10), "" + ("2" plus10times 10)]
+}
+
+~~~~~
+//##4. multitype typedef
+
+typedef numerical = int|long|short|float|double|char|byte
+
+def numerical plus10times(a int) => this + (a*10)
+
+def doings(){
+	"" + [ "" + (2.01 plus10times 10), "" + (2 plus10times 10)]
+}
+
+~~~~~
+//##5. nested multitypes
+
+typedef numerical = int|long|short|float|double|char|byte
+
+def numerical|String plus10times(a int) => this + (a*10)
+
+def doings(){
+	"" + [ "" + (2.01 plus10times 10), "" + (2 plus10times 10), "" + ('aa' plus10times 10)]
+}
+
+~~~~~
+//##6. imported typedef
+
+//##MODULE com.myorg.code
+
+typedef numerical = int|long|short|float|double|char|byte
+typedef aString = String
+
+//##MODULE
+from com.myorg.code import aString, numerical, //allow trailing comma
+
+def thing(ab numerical) => ab
+
+def doings(){
+	a aString? = null
+	"" + thing(2)
+}
+
+~~~~~
+//##7. imported typedef precompiled
+
+from com.concurnas.lang.precompiled.TypeDefHelper import numerical
+
+def thing(ab numerical) => ab + 1
+
+def doings(){
+	"" + thing(2.)
+}
+
+
+~~~~~
+//##8. imported typedef plus string
+
+//##MODULE com.myorg.code
+
+typedef numerical = int|long|short|float|double|char|byte|String
+typedef aString = String
+
+//##MODULE
+from com.myorg.code import aString, numerical, //allow trailing comma
+
+def thing(ab numerical) => ab
+
+def doings(){
+	a aString? = null
+	"" + thing(2)
+}
+
+~~~~~
+//##9. imported typedef precompiled plus string
+
+from com.concurnas.lang.precompiled.TypeDefHelper import numericalPlusString
+
+def thing(ab numericalPlusString) => ab + 1
+
+def doings(){
+	"" + [thing(2.), "" + thing('as')]
+}
+
+~~~~~
+//##10. bug earlier
+
+def matplus1(a int[2]) => a
+
+mmat = [1 2 ; 3 4] 
+
+def doings(){
+	"" + matplus1( mmat )
+}
+
+~~~~~
+//##11. bug earlier 2
+
+def matplus1(ax int|long[2]) => ax[0,0]
+
+mmat = [1 2 ; 3 4] 
+
+def doings(){
+	"" + matplus1( mmat )
+}
+
+~~~~~
+//##12. bug earlier 3
+
+def matplus1(a int[2]) => a^+1
+
+mmat = [1 2 ; 3 4] 
+
+def doings(){
+	"" + matplus1( mmat )
+}
+
+~~~~~
+//##13. simple matrix operation
+
+def matplus1(a int|long[2]) => a^+1
+
+mmat = [1 2 ; 3 4] 
+
+def doings(){
+	"" + matplus1( mmat )
+}
+
+~~~~~
+//##14. simple matrix operation via typedef
+
+typedef numerical = int|long|short|float|double|char|byte
+
+def matplus1(a numerical[2]) => a^+1
+
+mmat = [1 2 ; 3 4] 
+mmat2 = [1. 2. ; 3. 4.] 
+
+def doings(){
+	""+["" + matplus1( mmat ), "" + matplus1( mmat2 )]
+}
+
+~~~~~
+//##15. simple matrix operation via imported typedef
+
+from com.concurnas.lang.precompiled.TypeDefHelper import numericalPlusString
+
+def matplus1(a numericalPlusString[2]) => a^+1
+
+mmat = [1 2 ; 3 4] 
+mmat2 = [1. 2. ; 3. 4.] 
+
+def doings(){
+	""+["" + matplus1( mmat ), "" + matplus1( mmat2 )]
+}
+
+~~~~~
+//##16. multitype new
+
+class MyClass(what String){
+	override toString() => "myclass: " + what
+}
+
+typedef twoThings = String|MyClass
+
+def maker(a twoThings) {
+	 new twoThings('hi')
+}
+
+def doings(){
+	"" + [maker("ok"), maker(MyClass(''))]
+}
+
+~~~~~
+//##17. multitype new bit more complex
+
+class MyClass(what String){
+	override toString() => "myclass: " + what
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+typedef twoThings = String|MyClass
+
+def maker(a twoThings) => return [new twoThings('hi'), new String|MyClass('hi2')]
+
+def doings(){
+	"" + [maker("ok"), maker(MyClass(''))]
+}
+
+~~~~~
+//##18. multitype matrix multiplication
+
+private typedef numerical = short|int|long|float|double|char|byte
+
+def matmult(ax numerical[2], b numerical[2]){
+	m1 = ax.length
+	n1 = ax[0].length
+	m2 = b.length
+	n2 = b[0].length
+	if (n1 <> m2){
+		throw new RuntimeException("Illegal matrix dimensions.") 
+	}
+	
+	c numerical[2] = new numerical[m1,n2]
+	for (i = 0; i < m1; i++){
+	    for (j = 0; j < n2; j++){
+	        for (k = 0; k < n1; k++){
+	            c[i][j] += ax[i][k] * b[k][j]
+	        }
+		}
+	}
+	c
+}
+
+
+A=[1 2 3 ; 4 5 6]
+B=[7 8 ; 9 10 ; 11 12]
+
+def doings(){
+	"" + matmult(A, B)
+}
+
+~~~~~
+//##19. array element wise initializer
+
+def doings(){
+	xxx = new int[2,3](99. as int)
+
+	"" + xxx
+}
+
+~~~~~
+//##20. array element wise initializer object types
+
+class MyClass(a int){
+	override toString() => 'MyClass: {a}'
+}
+
+def doings(){
+	x = new MyClass[2,3]( new MyClass(22) )
+	"" + [x, x[0,0] &<> x[0,1]]
+}
+
+~~~~~
+//##21. array element wise initializer with multitype
+
+def thing(a int|long){
+	new int|long[2,3](4)
+}
+
+def doings(){
+	"" + thing(99)
+}
+
+~~~~~
+//##22. multittype as bugfix
+
+private typedef numerical = int
+
+def matmult(ax int|long[2], b int|long[2]){
+	m1 = ax.length
+	n1 = ax[0].length
+	m2 = b.length
+	n2 = b[0].length
+	if (n1 <> m2){
+		throw new RuntimeException("Illegal matrix dimensions.") 
+	}
+	
+	c int|long[2] = new int|long[m1,n2](0 as int|long)
+	for (i = 0; i < m1; i++){
+	    for (j = 0; j < n2; j++){
+	        for (k = 0; k < n1; k++){
+	            c[i][j] += ax[i][k] * b[k][j]
+	        }
+		}
+	}
+	c
+}
+
+A=[(1) 2 3 ; (4) 5 6]
+B=[(7) 8 ; (9) 10 ; (11) 12]
+
+def doings(){
+	"" + matmult(A, B)
+}
+
+~~~~~
+//##23. multittype as bugfix boxed variant
+
+private typedef numericalBoxed = Integer|Long|Short|Float|Double|Character|Byte
+
+def matmult(ax numericalBoxed[2], b numericalBoxed[2]){
+	m1 = ax.length
+	n1 = ax[0].length
+	m2 = b.length
+	n2 = b[0].length
+	if (n1 <> m2){
+		throw new RuntimeException("Illegal matrix dimensions.") 
+	}
+	
+	c numericalBoxed[2] = new numericalBoxed[m1,n2](0 as numericalBoxed)
+	for (i = 0; i < m1; i++){
+	    for (j = 0; j < n2; j++){
+	        for (k = 0; k < n1; k++){
+	            c[i][j] += ax[i][k] * b[k][j]
+	        }
+		}
+	}
+	c
+}
+
+
+A=[Integer(1) 2 3 ; Integer(4) 5 6]
+B=[Integer(7) 8 ; Integer(9) 10 ; Integer(11) 12]
+
+def doings(){
+	"" + matmult(A, B)
+}
+
+~~~~~
+//##24. ensure is works for multitypes
+
+def checkIs(a Integer|Long, b Object){
+	b is Integer|Long
+}
+
+def doings(){
+	a1 = checkIs(Integer(1), 2L)
+	a2 = checkIs(Long(1), 2L)
+	
+	"" + [a1 a2]
+}
+
+~~~~~
+//##25. typdef used to convert prims to boxed variant
+
+private typedef numericalBoxed = Integer
+private typedef numerical = int
+private typedef numericalAll = numerical|numericalBoxed
+
+def matmult(ax numericalAll[2], b numericalAll[2]){
+	m1 = ax.length
+	n1 = ax[0].length
+	m2 = b.length
+	n2 = b[0].length
+	if (n1 <> m2){
+		throw new RuntimeException("Illegal matrix dimensions.") 
+	}
+	
+	c numericalAll[2] = new numericalAll[m1,n2](0 as numericalAll)
+	for (i = 0; i < m1; i++){
+	    for (j = 0; j < n2; j++){
+	        for (k = 0; k < n1; k++){
+	            c[i][j] += ax[i][k] * b[k][j]
+	        }
+		}
+	}
+	c
+}
+
+
+//A=[Integer(1) 2 3 ; Integer(4) 5 6]
+//B=[Integer(7) 8 ; Integer(9) 10 ; Integer(11) 12]
+
+A=[(1) 2 3 ; (4) 5 6]
+B=[(7) 8 ; (9) 10 ; (11) 12]
+
+def doings(){
+	"" + matmult(A, B)
+}
+
+~~~~~
+//##26. matrix mult on all numerical types
+private typedef numericalBoxed = Integer|Long|Short|Float|Double|Character|Byte
+private typedef numerical = int|long|short|float|double|char|byte
+private typedef numericalAll = numerical|numericalBoxed
+
+def matmult(ax numericalAll[2], b numericalAll[2]){
+	m1 = ax.length
+	n1 = ax[0].length
+	m2 = b.length
+	n2 = b[0].length
+	if (n1 <> m2){
+		throw new RuntimeException("Illegal matrix dimensions.") 
+	}
+	
+	c numericalAll[2] = new numericalAll[m1,n2](0 as numericalAll)
+	for (i = 0; i < m1; i++){
+	    for (j = 0; j < n2; j++){
+	        for (k = 0; k < n1; k++){
+	            c[i][j] += ax[i][k] * b[k][j]
+	        }
+		}
+	}
+	c
+}
+
+
+Ab=[Integer(1) 2 3 ; Integer(4) 5 6]
+Bb=[Integer(7) 8 ; Integer(9) 10 ; Integer(11) 12]
+
+Ap=[(1) 2 3 ; (4) 5 6]
+Bp=[(7) 8 ; (9) 10 ; (11) 12]
+
+def doings(){
+	"" + [matmult(Ab, Bb) matmult(Ap, Bp)]
+}
+
+~~~~~
+//##27. looks cool
+
+def maker() => 	
+	new String('c', 'd')
+
+
+def doings(){
+	"" + maker()
+}
+
+~~~~~
+//##28. was a bug now its ok
+
+private typedef numericalBoxed = Integer|Long|Short|Float|Double|Character|Byte
+
+def matmult(ax numericalBoxed[2], b numericalBoxed[2]){
+	m1 = ax.length
+	n1 = ax[0].length
+	m2 = b.length
+	n2 = b[0].length
+	if (n1 <> m2){
+		throw new RuntimeException("Illegal matrix dimensions.") 
+	}
+	
+	c  = new numericalBoxed[m1,n2](new numericalBoxed(0))
+	for (i = 0; i < m1; i++){
+	    for (j = 0; j < n2; j++){
+	        for (k = 0; k < n1; k++){
+	            c[i][j] += ax[i][k] * b[k][j]
+	        }
+		}
+	}
+	c
+}
+
+
+A=[Integer(1) 2 3 ; Integer(4) 5 6]
+B=[Integer(7) 8 ; Integer(9) 10 ; Integer(11) 12]
+
+def doings(){
+	"" + matmult(A, B)
+}

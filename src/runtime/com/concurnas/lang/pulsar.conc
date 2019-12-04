@@ -1,0 +1,332 @@
+/**
+ * Pulsar library 
+*
+*/
+from java.time import Duration, LocalDateTime
+from java.util.concurrent import TimeUnit
+from java.util import HashMap, List, TreeSet, LinkedList
+from java.lang import Comparable
+from com.concurnas.runtime.cps import ReferenceSet
+
+trait Pulsar{
+	/** Fire off once after the specified Duration, after which the returned ref will be closed*/
+	def after(after Duration) LocalDateTime:
+	/** Fire off once when the LocalDateTime is reached, after which the returned ref will be closed */
+	def schedule(when LocalDateTime) LocalDateTime:
+	/** Fire off after every interval Durations, after which the returned ref will be closed*/
+	def repeat(after Duration) LocalDateTime:
+	/** Fire off after every interval Durations until the specified LocalDateTime after which the returned ref will be closed*/
+	def repeat(after Duration, until LocalDateTime) LocalDateTime:
+	/** Fire off after every interval Durations for x times after which the returned ref will be closed*/
+	def repeat(after Duration, times long) LocalDateTime:
+	/** Get the current time */	
+	def getCurrentTime() LocalDateTime
+	
+	package def addPulseTask(toAdd PulseTask)
+	/** Terminate the pulsar and close all created refs*/	
+	def stop() void
+}
+
+private abstract class PulseProcessor(parent RealtimePulsar){
+	
+	carryOn boolean: = false
+	currentThread Thread:
+	
+	def start(){
+		if(not carryOn){
+			run()!(concurrent.DedicatedThread())//thread blocks so we need a dedicated one
+			await(carryOn; carryOn)
+		}
+	}
+	
+	private def run(){
+		//trans{
+			carryOn=true
+			currentThread = Thread.currentThread()
+		//}
+		
+		while(carryOn){
+			(ctime, tasks) = parent.getNextTasks()
+			
+			for(task in tasks){
+				needsScheduling PulseTask? = task.doTask(ctime)
+				if(needsScheduling){
+					parent.addPulseTask(needsScheduling??)
+				}
+			}
+			
+			waitForNextTask()
+		}
+	}
+	
+	def waitForNextTask() void
+	
+	protected def interrupt(){
+		currentThread.interrupt()
+	}
+	
+	def stop(){
+		carryOn=false
+	}
+}
+
+private class RealtimePulseProcessor(parent RealtimePulsar) < PulseProcessor(parent){
+	def waitForNextTask(){
+		(secs long, nanos int) = parent.getSleepInterval()
+				
+		if(secs <> 0 or nanos <> 0){
+			try{
+				TimeUnit.SECONDS.sleep(secs)
+				TimeUnit.NANOSECONDS.sleep(nanos)
+			}catch(iter InterruptedException){
+				//see if we should carry on
+			}
+		}	
+	}
+}
+
+
+private open class PulseTask(-nextTrigger LocalDateTime, -writeTo LocalDateTime:) ~ Comparable<PulseTask>{
+
+	def compareTo(what PulseTask) int => this.nextTrigger.compareTo(what.nextTrigger)
+
+	def doTask(ctime LocalDateTime) PulseTask{
+		if(not writeTo:isClosed()){
+			writeTo = ctime
+			writeTo:close()
+		}
+
+		null
+	}
+}
+
+private abstract class CoreRepeatingPulseTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:) < PulseTask(nextTrigger, writeTo:){
+	override doTask(ctime LocalDateTime) PulseTask {
+		if(not writeTo:isClosed()){
+			writeTo = ctime
+			nextTrigger = nextTrigger + interval
+			getNext(ctime)
+			if(not writeTo:isClosed()){
+				return this
+			}
+		}
+		null
+	}
+	
+	protected def getNext(ctime LocalDateTime) PulseTask
+	
+}
+
+private class RepeatingPulseTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:) < CoreRepeatingPulseTask(nextTrigger, interval, writeTo){
+	protected def getNext(ctime LocalDateTime) PulseTask => this
+}
+
+private class RepeatingPulseUntilTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:, until LocalDateTime) < CoreRepeatingPulseTask(nextTrigger, interval, writeTo){
+	protected def getNext(ctime LocalDateTime) PulseTask {
+		if(ctime >== until){
+			writeTo:close()
+			null
+		}
+		else{
+			this
+		}
+	}
+}
+
+private class RepeatingPulseUntilLimitTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:, times long) < CoreRepeatingPulseTask(nextTrigger, interval, writeTo){
+	count = 0L
+	protected def getNext(ctime LocalDateTime) PulseTask {
+		if(++count >== times){
+			writeTo:close()
+			null
+		}
+		else{
+			this
+		}
+	}
+}
+
+
+open actor RealtimePulsar ~ Pulsar{
+	protected pulseProcessor PulseProcessor = new RealtimePulseProcessor(this)
+	private pendingTasks TreeSet<PulseTask> = new TreeSet<PulseTask>()
+	private liveSet = new ReferenceSet()
+	private refToTask = new HashMap<LocalDateTime:, PulseTask>()
+	
+	def getCurrentTime() => LocalDateTime.now()	
+	
+	package def getSleepInterval() (long, int) {
+		//find next task, find interval between
+		//set at zero
+		if(pendingTasks.isEmpty()){
+			//stop pulse processor if nothing to do...
+			pulseProcessor.stop()
+			(0L, 0)
+		}else{
+			top = pendingTasks.first()
+			
+			duration = Duration.between(getCurrentTime(), top.nextTrigger)
+			(duration.getSeconds(), duration.getNano()) if not duration.isNegative() else (0L, 0)
+		}
+	} 
+	
+	private def startCloseMonitor(){
+		every(liveSet; onlyclose){
+			for(x in changed.getChanged()){
+				if(x in liveSet){
+					me RealtimePulsar = this
+					me.onXClose(x: as LocalDateTime:)
+				}
+			}
+		}
+	}
+	
+	def onXClose(x LocalDateTime:){
+		onRefClose(x:)
+		liveSet.remove(x:)
+	}
+	
+	
+	def onRefClose(closedx LocalDateTime:){
+		//System.err.println("refToTask: " + (closedx: in refToTask) + " size: " + refToTask.size());
+		//toremove PulseTask? = null if closedx: not in refToTask else refToTask.remove(closedx:)
+		toremove  PulseTask? = refToTask.remove(closedx:)
+		if(null <> toremove){
+			if(refToTask.isEmpty()){
+				pulseProcessor.stop()
+			}
+			removeHead = not pendingTasks.isEmpty() and pendingTasks.first() &== toremove
+			pendingTasks.remove(toremove)
+			if(removeHead){//affected the head to we need to remove it
+				pulseProcessor.interrupt()
+			}
+		}
+	}
+	
+	
+	package def addPulseTask(toAdd PulseTask){
+		noTasks = refToTask.isEmpty()
+		refToTask[toAdd.writeTo] = toAdd
+		
+		liveSet.add(toAdd.writeTo)
+		
+		if(pendingTasks.isEmpty()){
+			pendingTasks.add(toAdd)
+			pulseProcessor.start()
+		}else{
+			firstTask = pendingTasks.first()
+			isNewFirst = toAdd.getNextTrigger() < firstTask.getNextTrigger()
+			pendingTasks.add(toAdd)
+			if(isNewFirst){//see if it's at the head, if it is then interrupt pulseProcessor
+				pulseProcessor.interrupt()
+			}
+		}
+		
+		if(noTasks){
+			startCloseMonitor()
+		}
+	}
+	
+	package def getNextTasks() (LocalDateTime, List<PulseTask>) {
+		cTime = getCurrentTime()
+		
+		ret = new LinkedList<PulseTask>()
+		for(task in pendingTasks){
+			if(cTime >== task.getNextTrigger()){
+				ret.add(task)
+			}
+		}
+		
+		if(not ret.isEmpty()){
+			pendingTasks.removeAll(ret)
+		}
+		cTime, ret
+	}
+	
+	def doStop(){
+		for(key LocalDateTime: in refToTask.keySet()){
+			key:close()
+		}
+		pulseProcessor.stop()
+		pulseProcessor.interrupt()
+	}
+	
+	override stop(){
+		me RealtimePulsar = this
+		me.doStop()
+		super.stop()
+	}
+	
+	////////////////////////////////////////////
+	def after(after Duration) LocalDateTime: {
+		schedule(getCurrentTime() + after)
+	}
+	
+	
+	def schedule(when LocalDateTime) LocalDateTime: {
+		ret LocalDateTime:
+		task = new PulseTask(when, ret)
+		addPulseTask(task)
+		ret
+	}
+	
+	
+	def repeat(interval Duration) LocalDateTime: {//every
+		assert not interval.isNegative() "Specified interval may not be negative"
+	
+		ret LocalDateTime:
+		
+		task = new RepeatingPulseTask(getCurrentTime() + interval, interval, ret)
+		addPulseTask(task)
+		
+		ret
+	}
+	
+	
+	def repeat(interval Duration, until LocalDateTime) LocalDateTime:{
+		assert not interval.isNegative() "Specified interval may not be negative"
+		ret LocalDateTime:
+		
+		task = new RepeatingPulseUntilTask(getCurrentTime() + interval, interval, ret, until)
+		addPulseTask(task)
+		
+		ret
+	}
+ 
+	def repeat(interval Duration, times long) LocalDateTime:{
+		assert not interval.isNegative() "Specified interval may not be negative"
+		ret LocalDateTime:
+		task = new RepeatingPulseUntilLimitTask(getCurrentTime() + interval, interval, ret, times)
+		addPulseTask(task)
+		
+		ret		
+	}	
+}
+
+private shared class FrozenPulseProcessor(parent RealtimePulsar) < PulseProcessor(parent){
+	interupt Object:
+	
+	def waitForNextTask(){
+		await(interupt)
+	}
+	
+	protected override interrupt(){
+		interupt = "" 
+	}
+}
+
+/**
+ * PulsarFrozen is frozen in time until time is explicity set
+ */
+actor FrozenPulsar(~currentTime LocalDateTime) < RealtimePulsar{
+	private override pulseProcessor PulseProcessor = new FrozenPulseProcessor(this)
+	
+	this(){
+		this(LocalDateTime.now())
+	}
+
+	public def setCurrentTime(currentTime LocalDateTime){
+		this.currentTime = currentTime
+		(pulseProcessor as FrozenPulseProcessor).interrupt()
+	}
+}

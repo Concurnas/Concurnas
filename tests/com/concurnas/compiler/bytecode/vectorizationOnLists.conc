@@ -1,0 +1,1473 @@
+//##1. simple vectorization returns
+
+from java.lang.Math import sin, round
+from com.concurnas.lang.precompiled.ListMaker import doubleList, doubleMatrix
+mymatrix = doubleMatrix(doubleList( 60., 120. ), doubleList( 90., 360. ))
+
+def mysin(arg double, toRand boolean) => round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	res = mysin(mymatrix^, getF())
+	
+	"" + [res, calledD]
+}
+
+~~~~~
+//##2. simple vectorization no return
+from java.lang.Math import sin, round
+from com.concurnas.lang.precompiled.ListMaker import doubleList, doubleMatrix
+mymatrix = doubleMatrix(doubleList( 60., 120. ), doubleList( 90., 360. ))
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	mysin(mymatrix^, getF())
+	
+	"" + [calledD, callmyseincnt]
+}
+
+~~~~~
+//##3. in place vectorization with return
+from java.lang.Math import sin, round
+from com.concurnas.lang.precompiled.ListMaker import doubleList, doubleMatrix
+mymatrix = doubleMatrix(doubleList( 60., 120. ), doubleList( 90., 360. ))
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	f=mysin(mymatrix^^, getF())
+	
+	"" + [f, mymatrix, calledD, callmyseincnt]
+}
+
+~~~~~
+//##4. in place vectorization with no return
+
+from java.lang.Math import sin, round
+from com.concurnas.lang.precompiled.ListMaker import doubleList, doubleMatrix
+mymatrix = doubleMatrix(doubleList( 60., 120. ), doubleList( 90., 360. ))
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	mysin(mymatrix^^, getF())
+	
+	"" + [mymatrix, calledD, callmyseincnt]
+}
+
+~~~~~
+//##5. simple to vector
+
+from java.lang.Math import sin, round
+
+from com.concurnas.lang.precompiled.ListMaker import doubleList
+Mvec = doubleList( 60., 120. )
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	c1 = Mvec@
+	c2 = Mvec@
+	c3 = Mvec@
+	c4 = Mvec@
+	mysin(c1^, getF())
+	mysin(c2^^, getF())
+	r1 = mysin(c3^, getF())
+	r2 =mysin(c4^^, getF())
+	
+	"" + [r1, r2, c1, c2, c3, c4, callmyseincnt, calledD]
+}
+
+~~~~~
+//##6. simple to 3d
+
+from java.lang.Math import sin, round
+from com.concurnas.lang.precompiled.ListMaker import doubleList, doubleMatrix, tripMatrix
+Mvec = tripMatrix(doubleMatrix(doubleList( 60., 120. )))
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	c1 = Mvec@
+	c2 = Mvec@
+	c3 = Mvec@
+	c4 = Mvec@
+	mysin(c1^, getF())
+	mysin(c2^^, getF())
+	r1= mysin(c3^, getF())
+	r2 =mysin(c4^^, getF())
+	
+	"" + [r1, r2, c1, c2, c3, c4, callmyseincnt, calledD]
+}
+
+~~~~~
+//##7. differing types
+
+from java.lang.Math import sin, round
+from com.concurnas.lang.precompiled.ListMaker import intList
+Mvec = intList( 60, 120 )
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	c1 = Mvec@
+	c3 = Mvec@
+	mysin(c1^, getF())//fine
+	r1= mysin(c3^, getF())//fine
+	
+	"" + [r1, c1, c3, callmyseincnt, calledD]
+}
+
+~~~~~
+//##8. boxing unboxing
+
+from java.lang.Math import sin, round
+Mvec = new java.util.ArrayList<Number>()
+Mvec.add(60.)
+Mvec.add(120)
+
+callmyseincnt = 0
+def mysin(arg double, toRand boolean) => callmyseincnt++; round(sin(arg)*100)/100.
+
+calledD = 0
+def getF() => calledD++; true
+
+def doings(){
+	c1 = Mvec@
+	c3 = Mvec@
+	mysin(c1^, getF())//fine
+	r1= mysin(c3^, getF())//fine
+	
+	"" + [r1, c1, c3, callmyseincnt, calledD]
+}
+
+~~~~~
+//##9.vectorization nested chains
+
+def fcall(prec String, arg1 String, arg2 int) => "fcall: {prec} {arg1} => {arg2}"
+
+def outercall(an String) => "outer: {an}"
+
+from com.concurnas.lang.precompiled.ListMaker import stringList
+vec = stringList( "a", "b" )
+
+calledD = 0
+def getF() => calledD++; calledD
+
+def doings(){
+	vec1 = vec@
+	vec2 = vec@
+	vec3 = vec@
+	vec4 = vec@
+
+	r1 = fcall('pre', outercall(vec1^)^, getF())
+	fcall('pre', outercall(vec2^)^, getF())
+	r2 = fcall('pre', outercall(vec3^^)^, getF())
+	fcall('pre', outercall(vec4^^)^, getF())
+	"" + String.join("\n", ""+x for x in [r1, r2]) + '\n~~\n' + String.join("\n", ""+x for x in [vec1, vec2, vec3, vec4,])
+}
+
+~~~~~
+//##10.vectorization nested chains func invoke vectorized
+
+def myFunc(a int, b int, c String) => 'ok {a} {b} {c}'
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+ar2 = intMatrix(intList( 1, 2 ), intList( 3, 4 ))
+
+def passthrough(a int) => a
+
+def doings(){
+	""+myFunc(ar2^, passthrough(ar2^)^, "-")
+}
+
+~~~~~
+//##11. vectorization ambiguity resovled 
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+ar2 = intMatrix(intList( 1, 2 ), intList( 3, 4 ))
+
+def lefunc(a java.util.List<Integer>) => '2d: ' + a
+
+def lefunc(a Integer) => '1d: ' + a
+
+
+def doings(){
+	""+lefunc(ar2^)//maps to 2d
+}
+
+~~~~~
+//##12. cast an array
+from com.concurnas.lang.precompiled.ListMaker import doubleList
+vec = doubleList( 1., 2. )
+
+def doings(){
+	res java.util.List < java.lang.Integer > = vec^ as int
+	"" + res
+}
+
+~~~~~
+//##13. cast an amtrix
+from com.concurnas.lang.precompiled.ListMaker import doubleList, doubleMatrix
+vec = doubleMatrix(doubleList( 1., 2. ), doubleList( 3., 4. ))
+
+def doings(){
+	res java.util.List < java.util.List< java.lang.Integer > > = vec^ as int
+	"" + res
+}
+
+~~~~~
+//##14. cast an sub element
+
+def mysin(a double) => a
+
+def doings(){
+	c4 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2)
+	"" + mysin((c4^ as double)^)
+}
+
+~~~~~
+//##15. use of cast
+
+def getF() => 100
+
+def mysin(a double, an int) => a + an
+
+def doings(){
+	c4 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2)
+	"" +( mysin(c4^, getF())^ as int)
+}
+
+~~~~~
+//##16. more use of cast
+def getF() => 100
+
+def mysin(a double, an int) => a + an
+
+def doings(){
+	c4 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2)
+	"" +( mysin((c4^ as double)^, getF())^ as int)
+}
+
+~~~~~
+//##17. dot operator simple
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+class Myclass{
+	def amethod(a int, b int) => a + b
+	override hashCode() => 1
+	override equals(an Object) => false
+} 
+
+myobj = Myclass()
+
+cnt=0
+def getMyObj() => cnt++; myobj
+
+def doings(){
+	res = getMyObj().amethod(m^, 10)
+	"" + [cnt, res]
+}
+
+~~~~~
+//##18. dot operator simple - process residual post funcinvoke vec
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+class Myclass{
+	def amethod(a int, b int) => a + b
+	override hashCode() => 1
+	override equals(an Object) => false
+} 
+
+myobj = Myclass()
+
+cnt=0
+def getMyObj() => cnt++; myobj
+
+def doings(){
+	res = getMyObj().amethod(m^, 10).size()
+	"" + [cnt, res]
+}
+
+~~~~~
+//##19. dot operator simple - process residual post funcinvoke vec pt 2
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+def myfunc(a int, b int) => a + b
+
+def doings(){
+	res = myfunc(m^, 10).size()
+	"" + res
+}
+
+~~~~~
+//##20. array ref post vect
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+def myfunc(a int, b int) => a + b
+
+def doings(){
+	res = myfunc(m^, 10)[2]
+	"" + res
+}
+
+~~~~~
+//##21. array ref post vect pt 2
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+class Myclass{
+	def amethod(a int, b int) => a + b
+	override hashCode() => 1
+	override equals(an Object) => false
+} 
+
+myobj = Myclass()
+
+cnt=0
+def getMyObj() => cnt++; myobj
+
+def doings(){
+	res = getMyObj().amethod(m^, 10)[0]//was bug here as asfuncref not passing through isvect
+	"" + [cnt, res]
+}
+
+~~~~~
+//##22. vectorize super and this calls
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+open class Sup{
+	def amethod(a int, b int) => a + b + 100
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class Myclass < Sup{
+	override amethod(a int, b int) => a + b
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def straight(){
+		amethod(m^, 10)
+	}
+	
+	def viathis(){
+		this.amethod(m^, 10)
+	}
+	
+	def viasuper(){
+		super.amethod(m^, 10)
+	}
+} 
+
+myobj = Myclass()
+
+def doings(){
+	"" + [myobj.straight(), myobj.viathis(), myobj.viasuper()]
+}
+
+~~~~~
+//##23. ensure correct types captured
+
+m = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+def myfunc(a int) => [a ; a]
+
+
+def doings(){
+	res = myfunc(m^)
+	"" + res
+}
+
+~~~~~
+//##24. ensure correct types captured v2
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+
+m = intMatrix(intList(1, 2, 3))
+
+def myfunc(a int) => [a ; a]
+
+def doings(){
+	res = myfunc(m^)
+	"" + res//res -> int[4]
+}
+
+~~~~~
+//##25. vectorize dop imported function
+
+//##MODULE com.myorg.code2
+
+public def lafunc(a int) => a + 10
+
+//##MODULE
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+ar2 = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	"asdasd" + com.myorg.code2.lafunc(ar2^)
+}
+
+~~~~~
+//##26. vectorize chain with dop argument 
+
+//##MODULE com.myorg.code2
+
+public def lafunc(a int) => a + 10
+
+//##MODULE
+ar2 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2)
+
+def myfunc(a int) => a*2
+
+def doings(){
+	"" + myfunc((com.myorg.code2.lafunc(ar2^))^)
+}
+
+~~~~~
+//##27. vectorize chain with dop argument  precidence bugfix
+
+//##MODULE com.myorg.code2
+
+public def lafunc(a int) => a + 10
+
+//##MODULE
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+ar2 = intMatrix(intList(1, 2), intList(3, 4))
+
+def myfunc(a int) => a*2
+
+def doings(){
+	"asdasd" + myfunc(com.myorg.code2.lafunc(ar2^)^)
+	//reorder dop precidence bug prevoiuly
+}
+
+~~~~~
+//##28. vectorize extesion function 
+
+def int plsThing(a int) => this + a
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+ar2 = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res = (10).plsThing(ar2^)
+	res2 = 10 plsThing ar2^
+	"" + [res, res2]
+}
+
+~~~~~
+//##29. vectorize func invoke simple
+
+class MyClass{
+	def anOp() => 22
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList, objectMatrix
+myAr = objectMatrix(objectList(MyClass(), MyClass()), objectList(MyClass(), MyClass())) as Object as ArrayList<ArrayList<MyClass>>
+
+def doings(){
+	res = myAr^anOp()
+	"" + res
+}
+
+~~~~~
+//##30. vectorize func invoke of array ret func
+class MyClass{
+	def anOp() => [22]
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList, objectMatrix
+myAr = objectMatrix(objectList(MyClass(), MyClass()), objectList(MyClass(), MyClass())) as Object as ArrayList<ArrayList<MyClass>>
+
+def doings(){
+	res = myAr^anOp()
+	"" + res
+}
+
+~~~~~
+//##31. vectorize func invoke of array ret func no ret
+
+cnt = 0
+
+class MyClass{
+	def anOp() => cnt++
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList, objectMatrix
+myAr = objectMatrix(objectList(MyClass(), MyClass()), objectList(MyClass(), MyClass())) as Object as ArrayList<ArrayList<MyClass>>
+
+def doings(){
+	myAr^anOp()
+	"{cnt}"
+}
+
+~~~~~
+//##32. vectorize func invoke of array ret func no ret self set
+
+cnt = 0
+
+class MyClass(val value = "ok"){
+	def anOp() => cnt++; MyClass("anOp called")
+	override toString() => "MyClass-{value}"
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr = objectList(MyClass(), MyClass()) as Object as ArrayList<MyClass>
+
+
+def doings(){
+	res = myAr^^anOp()
+	"{cnt} {res} {myAr}"
+}
+
+~~~~~
+//##33. vectorize func invoke chain
+
+cnt = 0
+
+class MyClass(val value = "ok"){
+	def anOp() => cnt++; MyClass("anOp called")
+	override toString() => "MyClass-{value}"
+	def op2() => value.length()
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr = objectList(MyClass(), MyClass()) as Object as ArrayList<MyClass>
+
+def doings(){
+	res = myAr^anOp()^op2()
+	"{cnt} {res} {myAr}"
+}
+
+~~~~~
+//##34. vectorize func invoke chain indirect
+
+cnt = 0
+
+class MyClass(val value = "ok"){
+	def anOp() => cnt++; MyClass("anOp called")
+	override toString() => "MyClass-{value}"
+	def op2() => value.length()
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr = objectList(MyClass(), MyClass()) as Object as ArrayList<MyClass>
+
+def doings(){
+	res = (myAr^anOp())^op2()
+	"{cnt} {res} {myAr}"
+}
+
+~~~~~
+//##35. vectorize func invoke chain self
+
+cnt = 0
+
+class MyClass(val value = "ok"){
+	def anOp() => cnt++; MyClass("anOp called")
+	override toString() => "MyClass-{value}"
+	def op2() => MyClass(""+value.length()) 
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr = objectList(MyClass(), MyClass()) as Object as ArrayList<MyClass>
+
+def doings(){
+	res = myAr^^anOp()^op2()//weird thing to do but it works
+	"{cnt} {res} {myAr}"
+}
+
+~~~~~
+//##36. vectorize func invoke nested in others
+
+cnt = 0
+
+class MyClass(val value = "ok"){
+	def anOp() => cnt++
+	override toString() => "MyClass-{value}"
+}
+
+def plusOne(a int) => a+10
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr = objectList(MyClass(), MyClass()) as Object as ArrayList<MyClass>
+
+def doings(){
+	res = plusOne(myAr^anOp()^)
+	"{cnt} {res}"
+}
+
+~~~~~
+//##37. vectorize func invoke ext func 
+
+cnt = 0
+
+class MyClass(val value = "ok"){
+	override toString() => "MyClass-{value}"
+}
+
+def MyClass anOp() => cnt++
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr = objectList(MyClass(), MyClass()) as Object as ArrayList<MyClass>
+
+def doings(){
+	res = myAr^anOp()
+	"{cnt} {res}"
+}
+
+~~~~~
+//##38. vectorixed named param
+
+def appender(a String, b int) => a + b
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr = intList(100, 90, 80)
+
+def doings(){
+	"" + appender(b=myAr^, "hi")
+}
+
+~~~~~
+//##39. vectorixed constructor
+
+class MyClass(an int){
+	override toString() => "MyClass" + an
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res = new MyClass(myAr^)
+	"" + res
+}
+
+~~~~~
+//##40. vectorixed constructor implicit
+
+class MyClass(an int){
+	override toString() => "MyClass" + an
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res = MyClass(myAr^)
+	"" + res
+}
+
+~~~~~
+//##41. vectorixed nested constructor implicit and explicit
+
+class MyClass(~an int){
+	override toString() => "MyClass" + an
+}
+
+
+def anoperation(an MyClass) => an.an + 100
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res1 = anoperation(new MyClass(myAr^)^)
+	res2 = anoperation(MyClass(myAr^)^)
+	"" + [res1 res2]
+}
+
+~~~~~
+//##42. vectorixed func invoke chain
+
+class MyClass(an int){
+	override toString() => "MyClass" + an
+	def anoperation() => an + 100
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def makeMK(a int) => new MyClass(a)
+
+def doings(){
+	res = makeMK(myAr^)^anoperation()
+	"" + res
+}
+
+~~~~~
+//##43. vectorixed func invoke chain w constrcutor implicit and explicit
+
+class MyClass(an int){
+	override toString() => "MyClass" + an
+	def anoperation() => an + 100
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res1 = new MyClass(myAr^)^anoperation()
+	res2 = MyClass(myAr^)^anoperation()
+	"" + [res1, res2]
+}
+
+~~~~~
+//##44. construct an actor
+
+class MyClass(an int){
+	override toString() => "MyClass" + an
+	def anoperation() => an + 100
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res1 = actor MyClass(myAr^)
+	"" + res1
+}
+
+~~~~~
+//##45. call actor method
+
+class MyClass(an int){
+	override toString() => "MyClass" + an
+	def anoperation() => an + 100
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr = intMatrix(intList(1, 2), intList(3, 4))
+
+def doings(){
+	res1 = actor MyClass(myAr^)
+	res2 = res1^anoperation()
+	"" + [res1, res2]
+}
+
+~~~~~
+//##46. call on boxed primative
+
+def myfunct(a int) => a+ 100
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr1 = intMatrix(intList(1, 2), intList(3, 4))
+myAr2 = intList(1, 2, 3, 4)
+
+def doings(){
+	res1 = myfunct(myAr1^)
+	res2 = myfunct(myAr2^)
+	"" + [res1, res2]
+}
+
+~~~~~
+//##47. refs of lists and lists of refs and etc
+
+def myfunct(a int) => a+ 100
+
+myAr1 = [1: 2: ; 3: 4:]
+myAr2 := [1 2 ; 3 4]
+myAr3 := [1: 2 ; 3 4:]
+
+
+def doings(){
+	res1 = myfunct(myAr1^)
+	res2 = myfunct(myAr2^)
+	res3 = myfunct(myAr3^)
+	"" + [res1, res2, res3]
+}
+
+~~~~~
+//##48. funcref with binding
+
+def myfunct(b int, a int) => a+ 100 + b
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr1 = intMatrix(intList(1, 2), intList(3, 4))
+
+
+def doings(){
+	res1 = myfunct&(? int, myAr1^)
+	simp = res1[0,0](1000)
+	"" + simp
+}
+
+~~~~~
+//##49. funcref with binding x2
+
+def myfunct(b int, a int) => a+ 100 + b
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	res1 = myfunct&(? int, myAr1^)
+	simp = x(1000) for x in res1
+	"" + simp
+}
+
+~~~~~
+//##50. funcref with no binding 
+
+def myfunct(a int) => a+ 100
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	res1 = myfunct&( myAr1^)
+	simp = x() for x in res1
+	"" + simp
+}
+
+~~~~~
+//##51. funcref with no binding w named param 
+
+def myfunct(a int) => a+ 100
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	res1 = myfunct&( a=myAr1^)
+	simp = x() for x in res1
+	"" + simp
+}
+
+~~~~~
+//##52. implicit constructor vect
+
+def myfunct(a int) => a+ 100
+
+class MyClass(a int){
+	override toString() => "" + ( a+ 100)
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	res1 = MyClass&( a=myAr1^)
+	simp = x() for x in res1
+	"" + simp
+}
+
+~~~~~
+//##53. explicit constructor vect
+
+def myfunct(a int) => a+ 100
+
+class MyClass(a int){
+	override toString() => "" + ( a+ 100)
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	res1 = new MyClass&( myAr1^)
+	simp = x() for x in res1
+	"" + simp
+}
+
+~~~~~
+//##54. vectorized funcrefinvoke
+
+class MyClass(a int){
+	def myfunc() => a + 100
+}
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.ListMaker import objectList
+myAr1 = objectList(MyClass(1), MyClass(2), MyClass(3), MyClass(4)) as Object as ArrayList<MyClass>
+
+def doings(){
+	xx = myAr1^myfunc&()
+	"" + (x() for x in xx)
+}
+
+~~~~~
+//##55. funcrefinvoke vectorized
+
+def getFunc(){
+	def (a int) => a + 100
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	xx = getFunc()(myAr1^)
+	"" + xx
+}
+
+~~~~~
+//##56. vectorized func invoke of funcrefinvoke
+
+class MyClass(a int){
+	def myfunc(g String) => g + ( a + 100)
+}
+
+def getFunc(){
+	def (a int) => MyClass(a)
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+myAr1 = intList(1, 2, 3, 4)
+
+def doings(){
+	xx = getFunc()(myAr1^)^myfunc('k: ')
+	"" + xx
+}
+
+~~~~~
+//##57. vectorized func ref of funcrefinvoke
+
+class MyClass(a int){
+	def myfunc(g String) => g + ( a + 100)
+}
+
+def getFunc(){
+	def (a int) => MyClass(a)
+}
+
+myAr1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+
+def doings(){
+	xx = getFunc()(myAr1^)^myfunc&('k: ')
+	"" + (x() for x in xx)
+}
+
+~~~~~
+//##58. no need for vect to operate on ifexpr
+
+whats = com.concurnas.lang.precompiled.ListMaker.booleanList(true, true, false, false)
+
+def doings(){
+	xx = 'yes' if x else 'no' for x in whats
+	"" + xx
+}
+
+~~~~~
+//##59. vect array ref
+
+origArray = [1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0,3,5)
+
+def doings(){
+	got = origArray[ele^]
+	"" + got
+}
+
+~~~~~
+//##60. vect array ref postfix
+
+origArray = [1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0,3,5)
+
+def doings(){
+	got = origArray[ele^ ... ]
+	"" + got
+}
+
+~~~~~
+//##61. vect array ref prefix
+
+origArray = [1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0,3,5)
+
+def doings(){
+	got = origArray[... ele^  ]
+	"" + got
+}
+
+~~~~~
+//##62. vect array ref range
+
+origArray = [1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0,3,5)
+
+def doings(){
+	got = origArray[0 ... ele^  ]
+	"" + got
+}
+
+~~~~~
+//##63. vect array ref range other way around
+
+origArray = [1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0,3,5)
+
+def doings(){
+	got = origArray[ ele^  ... 6 ]
+	"" + got
+}
+
+~~~~~
+//##64. vect array ref multi
+
+origArray = [1 2 3 4 5 6 7 8 9 10 ; 1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0,3,5)
+
+def doings(){
+	got = origArray[ 0, ele^  ]
+	"" + got
+}
+
+~~~~~
+//##65. vect array ref multi 2
+
+ar = [1 2 3 4 5 6 7 8 9 10]
+ar2 = [1 2 3 4 5 60 7 8 9 10]
+ar3 = [1 2 3 4 5 600 7 8 9 10]
+origArray = [ar ; ar2 ; ar3]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0, 1, 0, 1, 0, 2)
+
+def doings(){
+	got = origArray[  ele^ , 5 ]
+	"" + got
+}
+
+~~~~~
+//##66. more than one sublist vect
+
+origArray = [1 2 3 4 5 6 7 8 9 10]
+ele = com.concurnas.lang.precompiled.ListMaker.intList(0, 1, 0, 1, 0, 2)
+
+def doings(){
+	got = origArray[  (ele^) ... (ele^) ]
+	"" + got
+}
+
+~~~~~
+//##67. vect operator plus
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got = origArray^ + 1
+	"" + got
+}
+
+~~~~~
+//##68. vect operator plus many vect
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got = origArray^ + origArray^
+	"" + got
+}
+
+~~~~~
+//##69. vect operator plus many vect three
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got = origArray^ + origArray^ - 1//and minus!
+	"" + got
+}
+
+~~~~~
+//##70. vect operator plus in place
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got = origArray^^ + 1
+	"" + [origArray, got]
+}
+
+~~~~~
+//##71. vect operator plus operator overload
+
+class MyClass(a int){
+	def plus(b int) => a + b
+}
+
+from java.util import ArrayList
+origArray = com.concurnas.lang.precompiled.ListMaker.objectList(MyClass(1), MyClass(2), MyClass(3)) as Object as ArrayList<MyClass>
+
+
+def doings(){
+	got = origArray^+ 1
+	"" + got
+}
+
+~~~~~
+//##72. vect operator plus operator string concat
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got = origArray^ + "abc"
+	"" + got
+}
+
+~~~~~
+//##73. vect operator multiplier
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got1 = origArray^ * 2
+	got2 = origArray^ mod 2
+	got3 = origArray^ / 2
+	"" + [got1 got2 got3]
+}
+
+~~~~~
+//##74. vect operator power
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got1 = origArray^ ** 2
+	"" + got1
+}
+
+~~~~~
+//##75. vect operator reeq op
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got1 = origArray^ < 5
+	"" + got1
+}
+
+~~~~~
+//##76. vect operator reeq op pt2
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got1 = origArray^ == 5
+	"" + got1
+}
+
+~~~~~
+//##77. bitshift ops
+
+origArray = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4,5,6,7,8,9,10)
+
+def doings(){
+	got1 = origArray^ << 2
+	"" + got1
+}
+
+~~~~~
+//##78. vect operator not
+origArray = com.concurnas.lang.precompiled.ListMaker.booleanList(true, true, true, true, true, false)
+
+def doings(){
+	got1 = not origArray^
+	"" + got1
+}
+
+~~~~~
+//##79. cool
+
+origArray = com.concurnas.lang.precompiled.ListMaker.objectList("",  Integer(23),  Float(4),  new Object())
+
+def doings(){
+	got1 = not origArray^
+	"" + got1
+}
+
+~~~~~
+//##80. vect operator instanceof
+
+origArray = com.concurnas.lang.precompiled.ListMaker.objectList("",  Integer(23),  Float(4),  new Object())
+
+def doings(){
+	got1 = origArray^ is Number
+	got2 = origArray^ is not Number
+	"" + [got1 ; got2]
+}
+
+~~~~~
+//##81. vect operator and or
+
+origArray1 = com.concurnas.lang.precompiled.ListMaker.booleanList(true, true,  false, true, false)
+origArray2 = com.concurnas.lang.precompiled.ListMaker.booleanList(true, false, false, true, true)
+
+
+def doings(){
+	got1 = origArray1^ and origArray2^
+	got2 = origArray1^ or  origArray2^
+	"" + [got1 ; got2]
+}
+
+~~~~~
+//##82. vect operator bitmask ops
+
+origArray1 = com.concurnas.lang.precompiled.ListMaker.intList(0b1001, 0b1011, 0b1011)
+origArray2 = com.concurnas.lang.precompiled.ListMaker.intList(0b1001, 0b1001, 0b0000)
+
+
+def doings(){
+	got1 = origArray1^ band origArray2^
+	got2 = origArray1^ bor  origArray2^
+	got3 = origArray1^ bxor  origArray2^
+	"" + [got1 ; got2; got3]
+}
+
+~~~~~
+//##83. vect operator prefix operator
+
+origArray1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+origArray2 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+def doings(){
+	++origArray1^
+	xxx = ++origArray2^
+	"" + [xxx ; origArray1 ; origArray2]
+}
+
+~~~~~
+//##84. vect operator postfix operator
+
+origArray1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+origArray2 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+
+def doings(){
+	origArray1^--
+	xxx = origArray2^--
+	"" + [xxx ; origArray1 ; origArray2]
+}
+
+~~~~~
+//##85. vect operator comp
+
+origArray2 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3)
+
+def doings(){
+	xxx = comp origArray2^
+	"" + xxx
+}
+
+~~~~~
+//##86. vect ops correct types returned
+
+from java.util import List
+myAr = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myArBool = com.concurnas.lang.precompiled.ListMaker.booleanList(true, true, true, false)
+myArObjs = com.concurnas.lang.precompiled.ListMaker.objectList(Integer(2), "hi", Boolean(false), Float(2)) 
+
+myArpp1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myArpp2 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+
+def doings(){
+	x1 List<Integer> = myAr^ + 1
+	x2 List<Integer> = myAr^ * 2
+	x3 List<Integer> = myAr^ ** 2
+	x4 List<Boolean> = myAr^ == 2
+	x5 List<Integer> = myAr^ << 2
+	x6 List<Boolean> = not myArBool^//not
+	x7 List<Boolean> = myArObjs^ is Number
+	x8 List<Boolean> = myArBool^ and myArBool^
+	x9 List<Integer> = myAr^ band 0b001
+	
+	res1 List<Integer> = myArpp1^++
+	res2 List<Integer> = ++myArpp2^
+	
+	"" + [x1, x2, x3, x4, x5, x6, x7, x8, x9, res1, res2]
+}
+
+~~~~~
+//##87. vect assignment 
+
+myAr1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr3 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+
+def doings(){
+	myAr1^ += myAr1^
+	myAr3^ += 1 
+	"" + [myAr1; myAr3]
+}
+
+~~~~~
+//##88. vect assignment more 
+
+myAr1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr2 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr3 = com.concurnas.lang.precompiled.ListMaker.booleanList(true, true, true, false)
+myAr4 = com.concurnas.lang.precompiled.ListMaker.booleanList(true, false, true, false)
+myAr5 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr6 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr7 = com.concurnas.lang.precompiled.ListMaker.intList(0b01011, 0b01011, 0b01010)
+myAr8 = com.concurnas.lang.precompiled.ListMaker.intList(0b00011, 0b00011, 0b00011)
+
+
+def doings(){
+	myAr1^ *= myAr1^
+	myAr2^ **= myAr2^
+	myAr3^ or= myAr4^
+	myAr4^ and= myAr3^
+	myAr5^ <<= myAr6^
+	myAr7^ band= myAr8^
+	"" + [myAr1;myAr2;myAr3;myAr4;myAr5;myAr7]
+}
+
+~~~~~
+//##89. vect assignment eq
+
+myAr1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr2 = com.concurnas.lang.precompiled.ListMaker.intList(10, 20, 30, 40)
+
+def doings(){
+	myAr1^ = myAr2^
+	"" + [myAr1 ; myAr1 &<> myAr2]
+}
+
+~~~~~
+//##90. vect assignment scalar
+
+myAr1 = com.concurnas.lang.precompiled.ListMaker.intList(1, 2, 3, 4)
+myAr2 = com.concurnas.lang.precompiled.ListMaker.intList(10, 20, 30, 40)
+
+def doings(){
+	myAr1^ = 99
+	"" + [myAr1 ; myAr1 &<> myAr2]
+}
+
+~~~~~
+//##91. explicit call op overload
+
+class MyClass(a int){
+	def plus(b int) => a+=b; this
+	override toString() => "mc: {a}"
+}
+
+from java.util import ArrayList
+myAr = com.concurnas.lang.precompiled.ListMaker.objectList(MyClass(1), MyClass(2), MyClass(3), MyClass(4)) as Object as ArrayList<MyClass>
+
+def doings(){
+	myAr^ = myAr^plus(1)^
+	"" + myAr
+}
+
+~~~~~
+//##92. op overload self
+
+class MyClass(a int){
+	def plus(b int) => a+=b; this
+	override toString() => "mc: {a}"
+}
+
+myAr = new java.util.ArrayList<MyClass>()
+myAr.add(MyClass(1))
+myAr.add(MyClass(2))
+myAr.add(MyClass(3))
+myAr.add(MyClass(4))
+
+def doings(){
+	myAr^^ + 1
+	//myAr^ += 1
+	"" + myAr
+}
+
+~~~~~
+//##93. op overload vectorized assignment
+
+class MyClass(a int){
+	def plus(b int) => a+=b; this
+	def mul(b int) => a*=b; this
+	def pow(b int) => a**=b; this
+	override toString() => "mc: {a}"
+}
+
+myAr = new java.util.ArrayList<MyClass>()
+myAr.add(MyClass(1))
+myAr.add(MyClass(2))
+myAr.add(MyClass(3))
+myAr.add(MyClass(4))
+def doings(){
+	myAr^^ += 1
+	myAr^ *= 2
+	myAr^ **= 2
+	"" + myAr
+}
+
+~~~~~
+//##94. mixed lists and arrays
+
+a = [1 2 3 4]
+b = com.concurnas.lang.precompiled.ListMaker.intList(1,2,3,4)
+
+def plus(a int, b int) => a+ b
+
+def doings(){
+	"" + plus(a^, b^)
+}
+
+~~~~~
+//##95. mixed lists and arrays 2
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+from java.util import ArrayList
+
+maOfList = [intList(1, 2); intList(3, 4)]
+kistofAr = new ArrayList<int[]>()
+kistofAr.add([1 2])
+kistofAr.add([3 4])
+
+maOfListc1 = maOfList@
+kistofArc1 = maOfList@
+
+
+def addone(a int) => a+1
+
+def doings(){
+	oneadd1 = [addone(maOfList^), addone(kistofAr^)]
+	oneadd2 = [maOfList^+1 kistofAr^+1]
+	
+	maOfListc1^ += 1
+	kistofArc1^ += 1
+	
+	"" + [oneadd1 '\n' oneadd2 '\n' maOfListc1 '\n' kistofArc1]
+}

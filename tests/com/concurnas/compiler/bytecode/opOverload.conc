@@ -1,0 +1,1426 @@
+//##1. lets do operator overloading
+
+class Complex(real double, imag double){
+	override toString() => ip = "+" if imag >== 0 else ""; "{real}{ip}{imag}i"
+	def plus(\comp Complex) => Complex(\comp.real + this.real, \comp.imag + this.imag)
+	def minus(\comp Complex) => Complex(this.real-\comp.real, this.imag-\comp.imag)
+	def mul(\comp Complex) => Complex(this.real*\comp.real, this.imag*\comp.imag)
+	def div(\comp Complex) => Complex(this.real/\comp.real, this.imag/\comp.imag)
+	def mod(\comp Complex) => Complex(this.real mod \comp.real, this.imag mod \comp.imag)
+	def pow(\comp Complex) => Complex(this.real**\comp.real, this.imag**\comp.imag)
+	def or(\comp Complex) => Complex(this.real or \comp.real as double, this.imag or \comp.imag as double)//just example
+	def and(\comp Complex) => Complex(this.real and \comp.real as double, this.imag and \comp.imag as double) //just example
+	def compareTo(\comp Complex) => (((this.real**2 + this.imag**2)**.5) as int) - (((\comp.real**2 + \comp.imag**2)**.5) as int)
+	def get(a String) => "nice and {a}"
+	def get(a int) => "nice and number {a}"
+	def sub(a int, b int) => "{a} - {b}"
+	def subfrom(a int) => "{a} ..."
+	def subto(a int) => "... {a}"
+	public myMap = {"-" -> 1}
+	def put(a String, b int) => myMap[a] = b
+	def put(a int, b int) void => myMap[""+a] = b//explicit void
+	def contains(a int) => (this.real as int) == a or (this.imag as int) == a
+	def inc() => Complex(real+1, imag+1)
+	def dec() => Complex(real-1, imag-1)
+	def neg() => Complex(-real, -imag)//- used to have a bug where ALOAD 0 (this) was visited twice - messing up the stack
+	def plus() => Complex(Math.abs(real), Math.abs(imag))
+	def not() => Complex(not real as double, not imag as double)
+	def invoke() => "well done"
+	def invoke(a String) => "well done: {a}"
+}
+
+
+c1 = Complex(12,2)
+c2 = Complex(2,2)
+c3 = Complex(0,0)
+flipper = Complex(6,6)
+minusflipe = Complex(-6,-6)
+
+toInc1 = Complex(99,0)
+toDec1 = Complex(99,0)
+toInc2 = Complex(99,0)
+toDec2 = Complex(99,0)
+
+toInc1r = Complex(99,0)
+toDec1r = Complex(99,0)
+toInc2r = Complex(99,0)
+toDec2r = Complex(99,0)
+
+def commerize(stuff Object[]){
+	ret = ""
+	for(s in stuff; n){ ret+="" + s +('\n' if n<stuff.length-1 else'')}
+	ret
+}
+
+def doings(){
+	p1 = c1+c2+c2
+	m1 = c1-c2-c2
+	
+	mul1 = c1*c2*c2
+	mul2 = c1/c2/c2
+	mul3 = c1 mod c2 mod c2
+	
+	pow = c1**c2**c2
+	
+	ands = c1 and c2 and c3
+	ors = c1 or c2 or c3
+	
+	
+	gt = c1 > c2
+	gteq = c1 >== c2
+	lt = c2 < c1
+	lteq = c2 <== c1
+	
+	gti = c2 > c1
+	gteqi = c2 >== c1
+	lti = c1 < c2
+	lteqi = c1 <== c2
+	
+	
+	got = c1['cool']
+	got2 = c1[69]
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	//map style assignment
+	c1.myMap['check'] = 3
+	c1["x"] = 4
+	c1[69] = 2 //ensure no pop
+	
+	jsstylegetter = c1.one
+	c2.one = 99//js style setter
+	
+	cont1 = 12 in c1
+	cont2 = 13 not in c1
+	
+	toInc1++
+	toDec1--
+	++toInc2
+	--toDec2
+	
+	a1=toInc1r++
+	a2=toDec1r--
+	a3=++toInc2r
+	a4=--toDec2r
+	
+	gotf = -flipper
+	gotmf = +minusflipe
+	
+	notc3 = not c3
+	
+	invk1 = c1()
+	invk2 = c1("hi")
+	
+	//fmt
+	initial = "" + [c1 c2 c3]
+	am = [p1 m1]
+	muls = [mul1 mul2 mul3]
+	pows = [pow]
+	aors = [ands ors]	
+	gteqetc = [gt gteq lt lteq gti gteqi lti lteqi]
+	gets = [got got2]
+	subz = [sublist subpost subpree]
+	contss = [cont1 cont2]
+	prepostOps = [toInc1 toDec1 toInc2 toDec2 ; a1 a2 a3 a4]
+	flipz = [flipper gotf]
+	flipzMin = [minusflipe gotmf]
+	notz = [c3, notc3]
+	invokers = [invk1 invk2]
+	
+	"" + commerize([initial am muls pows aors gteqetc gets subz c1.myMap jsstylegetter c2.myMap contss flipz flipzMin notz invokers])
+}
+
+~~~~~
+//##2. lets do operator overloadingon refs
+
+class Complex(real double, imag double){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	def plus(\comp Complex) => Complex(\comp.real + this.real, \comp.imag + this.imag)
+	def minus(\comp Complex) => Complex(this.real-\comp.real, this.imag-\comp.imag)
+	def mul(\comp Complex) => Complex(this.real*\comp.real, this.imag*\comp.imag)
+	def div(\comp Complex) => Complex(this.real/\comp.real, this.imag/\comp.imag)
+	def mod(\comp Complex) => Complex(this.real mod \comp.real, this.imag mod \comp.imag)
+	def pow(\comp Complex) => Complex(this.real**\comp.real, this.imag**\comp.imag)
+	def or(\comp Complex) => Complex(this.real or \comp.real as double, this.imag or \comp.imag as double)//just example
+	def and(\comp Complex) => Complex(this.real and \comp.real as double, this.imag and \comp.imag as double) //just example
+	def compareTo(\comp Complex) => (((this.real**2 + this.imag**2)**.5) as int) - (((\comp.real**2 + \comp.imag**2)**.5) as int)
+	def get(a String) => "nice and {a}"
+	def get(a int) => "nice and number {a}"
+	def sub(a int, b int) => "{a} - {b}"
+	def subfrom(a int) => "{a} ..."
+	def subto(a int) => "... {a}"
+	public myMap = {"-" -> 1}
+	def put(a String, b int) => myMap[a] = b;
+	def put(a int, b int) void => myMap[""+a] = b//explicit void
+	def contains(a int) => (this.real as int) == a or (this.imag as int) == a
+	def inc() => Complex(real+1, imag+1)
+	def dec() => Complex(real-1, imag-1)
+	def neg() => Complex(-real, -imag)//- used to have a bug where ALOAD 0 (this) was visited twice - messing up the stack
+	def plus() => Complex(Math.abs(real), Math.abs(imag))
+	def not() => Complex(not real as double, not imag as double)
+	def invoke() => "well done"
+	def invoke(a String) => "well done: {a}"
+}
+
+
+c1 = Complex(12,2):
+c2 = Complex(2,2):
+c3 = Complex(0,0):
+flipper = Complex(6,6):
+minusflipe = Complex(-6,-6):
+
+toInc1 = Complex(99,0):
+toDec1 = Complex(99,0):
+toInc2 = Complex(99,0):
+toDec2 = Complex(99,0):
+
+toInc1r = Complex(99,0):
+toDec1r = Complex(99,0):
+toInc2r = Complex(99,0):
+toDec2r = Complex(99,0):
+
+def commerize(stuff Object[]){
+	ret = ""
+	for(s in stuff; n){ ret+="" + s +('\n' if n<stuff.length-1 else'')}
+	ret
+}
+
+
+
+def doigns1(){
+	p1 = c1+c2+c2
+	m1 = c1-c2-c2
+	
+	mul1 = c1*c2*c2
+	mul2 = c1/c2/c2
+	mul3 = c1 mod c2 mod c2
+	
+	pow = c1**c2**c2
+	
+	ands = c1 and c2 and c3
+	ors = c1 or c2 or c3
+	
+	
+	gt = c1 > c2
+	gteq = c1 >== c2
+	lt = c2 < c1
+	lteq = c2 <== c1
+	
+	gti = c2 > c1
+	gteqi = c2 >== c1
+	lti = c1 < c2
+	lteqi = c1 <== c2
+	
+	
+	got = c1['cool']
+	got2 = c1[69]
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	
+	
+	//fmt
+	initial = "" + [c1 c2 c3]
+	am = [p1 m1]
+	muls = [mul1 mul2 mul3]
+	pows = [pow]
+	aors = [ands ors]	
+	gteqetc = [gt gteq lt lteq gti gteqi lti lteqi]
+	gets = [got got2]
+	subz = [sublist subpost subpree]
+
+	
+	"" + commerize([initial am muls pows aors gteqetc gets subz c1.myMap])
+}
+
+def doings2(){
+	jsstylegetter = c1.one
+	cc2 = c2//extract first
+	cc2.one = 99//js style setter
+	
+	cont1 = 12 in c1
+	cont2 = 13 not in c1
+	
+	toInc1++ //err
+	toDec1--
+	++toInc2
+	--toDec2
+	
+	a1=toInc1r++
+	a2=toDec1r--
+	a3=++toInc2r
+	a4=--toDec2r
+	
+	gotf = -flipper
+	gotmf = +minusflipe
+	
+	notc3 = not c3
+	
+	invk1 = c1()
+	invk2 = c1("hi")
+	
+	//fmt
+	contss = [cont1 cont2]
+	prepostOps = [[toInc1 toDec1 toInc2 toDec2] [a1 a2 a3 a4]]
+	flipz = [flipper gotf]
+	flipzMin = [minusflipe gotmf]
+	notz = [c3 notc3]
+	invokers = [invk1 invk2]
+	
+	"" + commerize([jsstylegetter cc2.myMap contss flipz flipzMin notz invokers])
+}
+
+def doings(){
+	"" + [doigns1() doings2()]
+}
+
+~~~~~
+//##3. lets do operator overloadingon refs with generic output
+
+class Complex<Out>(real double, imag double, lout Out){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	def plus(\comp Complex<Out>) =>lout
+	def minus(\comp Complex<Out>) => lout
+	def mul(\comp Complex<Out>) => lout
+	def div(\comp Complex<Out>) => lout
+	def mod(\comp Complex<Out>) => lout
+	def pow(\comp Complex<Out>) => lout
+	def or(\comp Complex<Out>) => lout
+	def and(\comp Complex<Out>) => lout
+	def compareTo(\comp Complex<Out>) => 0
+	def get(a String) => lout
+	def get(a int) => lout
+	def sub(a int, b int) => lout
+	def subfrom(a int) => lout
+	def subto(a int) => lout
+	public myMap = {"_"->2}
+	def put(a String, b int) => lout
+	def put(a int, b int) void {}
+	def contains(a int) => lout
+	def inc() => this
+	def dec() => this
+	def neg() => this
+	def plus() => this
+	def not() => lout
+	def invoke() => lout
+	def invoke(a String) => lout
+}
+
+
+c1 = Complex(12,2, "lout")
+c2 = Complex(2,2, "lout")
+c3 = Complex(0,0, "lout")
+flipper = Complex(6,6, "lout")
+minusflipe = Complex(-6,-6, "lout")
+
+toInc1 = Complex(99,0, "lout")
+toDec1 = Complex(99,0, "lout")
+toInc2 = Complex(99,0, "lout")
+toDec2 = Complex(99,0, "lout")
+
+toInc1r = Complex(99,0, "lout")
+toDec1r = Complex(99,0, "lout")
+toInc2r = Complex(99,0, "lout")
+toDec2r = Complex(99,0, "lout")
+
+def commerize(stuff Object[]){
+	ret = ""
+	for(s in stuff; n){ ret+="" + s +('\n' if n<stuff.length-1 else'')}
+	ret
+}
+
+
+def doings(){
+	p1 = c1+c2
+	m1 = c1-c2
+	
+	mul1 = c1*c2
+	mul2 = c1/c2
+	mul3 = c1 mod c2
+	
+	pow = c1**c2
+	
+	ands = c1 and c2
+	ors = c1 or c2 
+	
+	
+	gt = c1 > c2
+	gteq = c1 >== c2
+	lt = c2 < c1
+	lteq = c2 <== c1
+	
+	gti = c2 > c1
+	gteqi = c2 >== c1
+	lti = c1 < c2
+	lteqi = c1 <== c2
+	
+	
+	got = c1['cool']
+	got2 = c1[69]
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	//map style assignment
+	c1.myMap['check'] = 3
+	c1['x'] = 4
+	c1[69] = 2 //ensure no pop
+	
+	jsstylegetter = c1.one
+	c2.one = 99//js style setter
+	
+	cont1 = 12 in c1
+	cont2 = 13 not in c1
+	
+	toInc1++
+	toDec1--
+	++toInc2
+	--toDec2
+	
+	a1=toInc1r++
+	a2=toDec1r--
+	a3=++toInc2r
+	a4=--toDec2r
+	
+	gotf = -flipper
+	gotmf = +minusflipe
+	
+	notc3 = not c3
+	
+	invk1 = c1()
+	invk2 = c1("hi")
+	
+	//fmt
+	initial = "" + [c1 c2 c3]
+	am = [p1 m1]
+	muls = [mul1 mul2 mul3]
+	pows = [pow]
+	aors = [ands ors]	
+	gteqetc = [gt gteq lt lteq gti gteqi lti lteqi]
+	gets = [got got2]
+	subz = [sublist subpost subpree]
+	contss = [cont1 cont2]
+	prepostOps = [[toInc1 toDec1 toInc2 toDec2] [a1 a2 a3 a4]]
+	flipz = [flipper gotf]
+	flipzMin = [minusflipe gotmf]
+	notz = [c3 notc3]
+	invokers = [invk1 invk2]
+	
+	"" + commerize([initial am muls pows aors gteqetc gets subz c1.myMap jsstylegetter c2.myMap contss flipz flipzMin notz invokers])
+}
+
+~~~~~
+//##4. lets do operator overloadingon refs with generic input
+
+class StrHolder(a String){
+	override toString() => "strhold" + a
+}
+
+class Complex<Out>(real double, imag double, lout Out){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	def plus(\comp Out) =>lout
+	def minus(\comp Out) => lout
+	def mul(\comp Out) => lout
+	def div(\comp Out) => lout
+	def mod(\comp Out) => lout
+	def pow(\comp Out) => lout
+	def or(\comp Out) => lout
+	def and(\comp Out) => lout
+	def compareTo(\comp Out) => 0
+	def get(a String) => lout
+	def get(a int) => lout
+	def sub(a int, b int) => lout
+	def subfrom(a int) => lout
+	def subto(a int) => lout
+	public myMap = {"_"->2}
+	def put(a String, b int) => lout
+	def put(a int, b int) void {}
+	def contains(a int) => lout
+	def inc() => this
+	def dec() => this
+	def neg() => lout
+	def plus() => lout
+	def not() => lout
+	def invoke() => lout
+	def invoke(a String) => lout
+}
+
+
+c1 = Complex(12,2, StrHolder("lout"))
+c2 = Complex(2,2, StrHolder("lout"))
+c3 = Complex(0,0, StrHolder("lout"))
+flipper = Complex(6,6, StrHolder("lout"))
+minusflipe = Complex(-6,-6, StrHolder("lout"))
+
+toInc1 = Complex(99,0, StrHolder("lout"))
+toDec1 = Complex(99,0, StrHolder("lout"))
+toInc2 = Complex(99,0, StrHolder("lout"))
+toDec2 = Complex(99,0, StrHolder("lout"))
+
+toInc1r = Complex(99,0, StrHolder("lout"))
+toDec1r = Complex(99,0, StrHolder("lout"))
+toInc2r = Complex(99,0, StrHolder("lout"))
+toDec2r = Complex(99,0, StrHolder("lout"))
+
+def commerize(stuff Object[]){
+	ret = ""
+	for(s in stuff; n){ ret+="" + s +('\n' if n<stuff.length-1 else'')}
+	ret
+}
+
+
+def doings(){
+	p1 = c1+StrHolder("inout")
+	m1 = c1-StrHolder("inout")
+	
+	mul1 = c1*StrHolder("inout")
+	mul2 = c1/StrHolder("inout")
+	mul3 = c1 mod StrHolder("inout")
+	
+	pow = c1**StrHolder("inout")
+	
+	ands = c1 and StrHolder("inout")
+	ors = c1 or StrHolder("inout")
+	
+	
+	gt = c1 > StrHolder("inout")
+	gteq = c1 >== StrHolder("inout")
+	lt = c2 < StrHolder("inout")
+	lteq = c2 <== StrHolder("inout")
+	
+	gti = c2 > StrHolder("inout")
+	gteqi = c2 >== StrHolder("inout")
+	lti = c1 < StrHolder("inout")
+	lteqi = c1 <== StrHolder("inout")
+	
+	
+	got = c1['cool']
+	got2 = c1[69]
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	//map style assignment
+	c1.myMap['check'] = 3
+	c1['x'] = 4
+	c1[69] = 2 //ensure no pop
+	
+	jsstylegetter = c1.one
+	c2.one = 99//js style setter
+	
+	cont1 = 12 in c1
+	cont2 = 13 not in c1
+	
+	toInc1++
+	toDec1--
+	++toInc2
+	--toDec2
+	
+	a1=toInc1r++
+	a2=toDec1r--
+	a3=++toInc2r
+	a4=--toDec2r
+	
+	gotf = -flipper //can return something other than itself type wise
+	gotmf = +minusflipe
+	
+	notc3 = not c3
+	
+	invk1 = c1()
+	invk2 = c1("hi")
+	
+	//fmt
+	initial = "" + [c1 c2 c3]
+	am = [p1 m1]
+	muls = [mul1 mul2 mul3]
+	pows = [pow]
+	aors = [ands ors]	
+	gteqetc = [gt gteq lt lteq gti gteqi lti lteqi]
+	gets = [got got2]
+	subz = [sublist subpost subpree]
+	contss = [cont1 cont2]
+	prepostOps = [[toInc1 toDec1 toInc2 toDec2] [a1 a2 a3 a4]]
+	flipz = [flipper gotf]
+	flipzMin = [minusflipe gotmf]
+	notz = [c3 notc3]
+	invokers = [invk1 invk2]
+	
+	"" + commerize([initial am muls pows aors gteqetc gets subz c1.myMap jsstylegetter c2.myMap contss flipz flipzMin notz invokers])
+}
+
+~~~~~
+//##5. operator overloading normal ish bools
+
+class Complex(real double, imag double){
+	def or(\comp Complex) => this.real > 0 or \comp.real > 0
+	def and(\comp Complex) => this.real > 0 and \comp.real > 0
+	def or(a bool) => this.real > 0 or a
+	def and(a bool) => this.real > 0 and a
+}
+
+
+c1 = Complex(12,2)
+c2 = Complex(2,2)
+c3 = Complex(0,0)
+
+
+def doings(){
+	retnorm1 = c1 or c3
+	retnorm2 = c1 and c3
+	retnorm3 = c2 and c1
+
+	ands = c1 and (c1 and c3)
+	ors = c1 or (c1 and c3)
+	
+	"" + [retnorm1, retnorm2, retnorm3, ands, ors]
+}
+
+~~~~~
+//##6. operator overloading non eq assignemnt
+
+class Complex(real double, imag double){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	def +=(com Complex) => real += com.real; imag += com.imag
+	def **=(com Complex) => real **= com.real; imag **= com.imag
+}
+
+
+c1 = Complex(12,2)
+c1p = Complex(12,2)
+c2 = Complex(2,2)
+
+
+def doings(){
+	c1 += c2
+	c1p **= c2//only other tricky one
+	
+	"" + [c1, c1p]
+}
+
+~~~~~
+//##7. operator overloading escaped form
+
+class Complex(real double, imag double){
+	override toString() => ip = "+" if imag >== 0 else ""; "{real}{ip}{imag}i"
+	def +(\comp Complex) => Complex(\comp.real + this.real, \comp.imag + this.imag)
+	def -(\comp Complex) => Complex(this.real-\comp.real, this.imag-\comp.imag)
+	def *(\comp Complex) => Complex(this.real*\comp.real, this.imag*\comp.imag)
+	def /(\comp Complex) => Complex(this.real/\comp.real, this.imag/\comp.imag)
+	def mod(\comp Complex) => Complex(this.real mod \comp.real, this.imag mod \comp.imag)
+	def **(\comp Complex) => Complex(this.real**\comp.real, this.imag**\comp.imag)
+	def or(\comp Complex) => Complex(this.real or \comp.real as double, this.imag or \comp.imag as double)//just example
+	def and(\comp Complex) => Complex(this.real and \comp.real as double, this.imag and \comp.imag as double) //just example
+	def compareTo(\comp Complex) => (((this.real**2 + this.imag**2)**.5) as int) - (((\comp.real**2 + \comp.imag**2)**.5) as int)
+	def get(a String) => "nice and {a}"
+	def get(a int) => "nice and number {a}"
+	def sub(a int, b int) => "{a} - {b}"
+	def subfrom(a int) => "{a} ..."
+	def subto(a int) => "... {a}"
+	public myMap = {"-" -> 1}
+	def put(a String, b int) => myMap[a] = b
+	def put(a int, b int) void => myMap[""+a] = b//explicit void
+	def contains(a int) => (this.real as int) == a or (this.imag as int) == a
+	def ++() => Complex(real+1, imag+1)
+	def --() => Complex(real-1, imag-1)
+	def neg() => Complex(-real, -imag)//- used to have a bug where ALOAD 0 (this) was visited twice - messing up the stack
+	def +() => Complex(Math.abs(real), Math.abs(imag))
+	def not() => Complex(not real as double, not imag as double)
+	def invoke() => "well done"
+	def invoke(a String) => "well done: {a}"
+}
+
+
+c1 = Complex(12,2)
+c2 = Complex(2,2)
+c3 = Complex(0,0)
+flipper = Complex(6,6)
+minusflipe = Complex(-6,-6)
+
+toInc1 = Complex(99,0)
+toDec1 = Complex(99,0)
+toInc2 = Complex(99,0)
+toDec2 = Complex(99,0)
+
+toInc1r = Complex(99,0)
+toDec1r = Complex(99,0)
+toInc2r = Complex(99,0)
+toDec2r = Complex(99,0)
+
+def commerize(stuff Object[]){
+	ret = ""
+	for(s in stuff; n){ ret+="" + s +('\n' if n<stuff.length-1 else'')}
+	ret
+}
+
+def doings(){
+	p1 = c1+c2+c2
+	m1 = c1-c2-c2
+	
+	mul1 = c1*c2*c2
+	mul2 = c1/c2/c2
+	mul3 = c1 mod c2 mod c2
+	
+	pow = c1**c2**c2
+	
+	ands = c1 and c2 and c3
+	ors = c1 or c2 or c3
+	
+	
+	gt = c1 > c2
+	gteq = c1 >== c2
+	lt = c2 < c1
+	lteq = c2 <== c1
+	
+	gti = c2 > c1
+	gteqi = c2 >== c1
+	lti = c1 < c2
+	lteqi = c1 <== c2
+	
+	
+	got = c1['cool']
+	got2 = c1[69]
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	//map style assignment
+	c1.myMap['check'] = 3
+	c1["x"] = 4
+	c1[69] = 2 //ensure no pop
+	
+	jsstylegetter = c1.one
+	c2.one = 99//js style setter
+	
+	cont1 = 12 in c1
+	cont2 = 13 not in c1
+	
+	toInc1++
+	toDec1--
+	++toInc2
+	--toDec2
+	
+	a1=toInc1r++
+	a2=toDec1r--
+	a3=++toInc2r
+	a4=--toDec2r
+	
+	gotf = -flipper
+	gotmf = +minusflipe
+	
+	notc3 = not c3
+	
+	invk1 = c1()
+	invk2 = c1("hi")
+	
+	//fmt
+	initial = "" + [c1 c2 c3]
+	am = [p1 m1]
+	muls = [mul1 mul2 mul3]
+	pows = [pow]
+	aors = [ands ors]	
+	gteqetc = [gt gteq lt lteq gti gteqi lti lteqi]
+	gets = [got got2]
+	subz = [sublist subpost subpree]
+	contss = [cont1 cont2]
+	prepostOps = [[toInc1 toDec1 toInc2 toDec2] [a1 a2 a3 a4]]
+	flipz = [flipper gotf]
+	flipzMin = [minusflipe gotmf]
+	notz = [c3 notc3]
+	invokers = [invk1 invk2]
+	
+	"" + commerize([initial am muls pows aors gteqetc gets subz c1.myMap jsstylegetter c2.myMap contss flipz flipzMin notz invokers])
+}
+
+/*
+OPERATOR OVERLOADING GUIDE
++		a.plus(b)
+- 		a.minus(b)
+* 		a.mul(b)
+/ 		a.div(b)
+mod		a.mod(b)
+** 		a.power(b)
+or 		a.or(b)
+and 	a.and(b)
+>==		a.compareTo(b) >== 0           
+>		a.compareTo(b) > 0
+<==		a.compareTo(b) <== 0
+<		a.compareTo(b) < 0             
+== 		a.equals(b)
+<>		not a.eqauls(b)
+&== / <>=== cannot be overriden
+a[b] 	 a.get(b)
+a[b1...b2]	a.sub(b1, b2)
+a[b...]		a.subfrom(b)
+a[...b]		a.subto(b)
+a[b] = c a.put(b, c)
+a.b		 a.get(b) [if b is a refname]
+a.b=c	 a.put(b, c) [if b is a refname]
+a in b 	 	b.contains(a)
+a not in b 	not b.contains(a)
+++ 		a.inc()
+-- 		a.dec()
+-a 		a.neg()
++a		a.plus()
+not a   a.not()
+
+=		is overloadable seperate
+[:+]= 	not overloadable
+
+a += b	a = a plus b
+-=		a = a minus b
+*=		a = a mul b
+/=		a = a div b
+mod=	a = a mod b
+**=		a = a pow b
+or=		a = a or b
+and=	a = a and b
+
+*/
+
+~~~~~
+//##8. operator overloading map stuff in place
+
+class Complex(real double, imag double){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	
+	public myMap = {"-" -> 1}
+	
+	def get(a String) => 70
+	def put(a String, b int) => myMap[a] = b
+}
+
+c1 = Complex(12,2)
+
+c1['hi1'] = 10
+c1['hi2'] = 10
+c1['hi3'] = 10
+c1['hi4'] = 10
+c1['hi5'] = 10
+
+mmap = {"hi"-> 1}
+
+def doings(){
+	
+	c1['hi1'] += 9
+	c1['hi2']++
+	++c1['hi3']
+	
+	a=c1['hi4']++
+	b=++c1['hi5']
+	
+	
+	"" + [c1.myMap, a, b]
+}
+
+~~~~~
+//##9. operator overloading map stuff with Integer convesion
+
+class Complex(real double, imag double){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	
+	public myMap = {"-" -> 1, default -> 10}
+	
+	def get(a String) => myMap.a
+	def put(a String, b Integer) => myMap[a] = b
+}
+
+c1 = Complex(12,2)
+
+c1['hi1'] = 10
+
+def doings(){
+	
+	//int vs Integer conversion
+	
+	c1['hi1'] += 9
+	c1['hi2']++
+	++c1['hi3']
+	//
+	a=c1['hi4']++
+	b=++c1['hi5']
+	
+	
+	"" + [c1.myMap, a, b]
+}
+
+~~~~~
+//##10. operator overloading map stuff with sublist specifically
+
+class Complex(real double, imag double){
+	override toString() => ip = '+' if imag >== 0 else ''; "{real}{ip}{imag}i"
+	def sub(a int, b int) => "{a} - {b}"
+	def subfrom(a int) => "{a} ..."
+	def subto(a int) => "... {a}"
+}
+
+c1 = Complex(12,2)
+
+def doings(){
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	subz = [sublist, subpost, subpree]
+	
+	"" +subz 
+}
+
+~~~~~
+//##11. op overloading cool string example that just works
+
+from java.util import ArrayList
+
+class Complex(real double, imag double){
+	override toString() { 
+		ip = '+' if imag >== 0 else '' 
+		return "{real}{ip}{imag}i"
+	}
+	def get(a String) => "69"
+	def put(a String, b String) { got.add("{a}->{b}")}
+	
+	~got = new ArrayList<String>()
+	
+}
+
+
+def doings(){
+	c1 = Complex(12, -2)
+
+	c1.f1 += "cool"
+	c1['f1'] += "cool"
+	c1['f1'] = c1['f1'] + "cool"
+	c1.put('f1', c1.get('f1') + 'cool')//showing the eqivilance of these statements
+	c1.f2 += "coolxxx"
+	
+	"" + [c1.got, c1]
+}
+
+~~~~~
+//##12. op overloading this is how we do inc and dec
+
+open class ComplexParent(protected -real double, protected imag double){
+	def inc() => ComplexParent(real+1, imag+1)
+	def dec() => ComplexParent(real-1, imag-1)
+}
+
+
+class Complex(real double, imag double) < ComplexParent(real, imag){
+	override inc() => Complex(super.real+1, super.imag+1)
+	override dec() => Complex(super.real-1, super.imag-1)
+	override toString() => "ok"
+}
+
+toInc1 = Complex(99,0)
+toInc2 = toInc1@
+
+def doings(){
+	toInc1++ //this way is ok, as subtype returns instance of itself
+	toInc2--
+	"" +[toInc1.real, toInc2.real]
+}
+
+~~~~~
+//##13. op overloading subtype etc
+
+open class ComplexParent(protected real double, protected imag double){
+	override toString() => ip = "+" if imag >== 0 else ""; "{real}{ip}{imag}i"
+	def plus(\comp ComplexParent) => ComplexParent(\comp.real + this.real, \comp.imag + this.imag)
+	def minus(\comp ComplexParent) => ComplexParent(this.real-\comp.real, this.imag-\comp.imag)
+	def mul(\comp ComplexParent) => ComplexParent(this.real*\comp.real, this.imag*\comp.imag)
+	def div(\comp ComplexParent) => ComplexParent(this.real/\comp.real, this.imag/\comp.imag)
+	def mod(\comp ComplexParent) => ComplexParent(this.real mod \comp.real, this.imag mod \comp.imag)
+	def pow(\comp ComplexParent) => ComplexParent(this.real**\comp.real, this.imag**\comp.imag)
+	def or(\comp ComplexParent) => ComplexParent(this.real or \comp.real as double, this.imag or \comp.imag as double)//just example
+	def and(\comp ComplexParent) => ComplexParent(this.real and \comp.real as double, this.imag and \comp.imag as double) //just example
+	def compareTo(\comp ComplexParent) => (((this.real**2 + this.imag**2)**.5) as int) - (((\comp.real**2 + \comp.imag**2)**.5) as int)
+	def get(a String) => "nice and {a}"
+	def get(a int) => "nice and number {a}"
+	def sub(a int, b int) => "{a} - {b}"
+	def subfrom(a int) => "{a} ..."
+	def subto(a int) => "... {a}"
+	public myMap = {"-" -> 1}
+	def put(a String, b int) => myMap[a] = b
+	def put(a int, b int) void => myMap[""+a] = b//explicit void
+	def contains(a int) => (this.real as int) == a or (this.imag as int) == a
+	def inc() => ComplexParent(real+1, imag+1)
+	def dec() => ComplexParent(real-1, imag-1)
+	def neg() => ComplexParent(-real, -imag)//- used to have a bug where ALOAD 0 (this) was visited twice - messing up the stack
+	def plus() => ComplexParent(Math.abs(real), Math.abs(imag))
+	def not() => ComplexParent(not real as double, not imag as double)
+	def invoke() => "well done"
+	def invoke(a String) => "well done: {a}"
+}
+
+
+class Complex(real double, imag double) < ComplexParent(real, imag){
+	override inc() => Complex(super.real+1, super.imag+1)
+	override dec() => Complex(super.real-1, super.imag-1)
+}
+
+c1 = Complex(12,2)
+c2 = Complex(2,2)
+c3 = Complex(0,0)
+flipper = Complex(6,6)
+minusflipe = Complex(-6,-6)
+
+toInc1 = Complex(99,0)
+toDec1 = Complex(99,0)
+toInc2 = Complex(99,0)
+toDec2 = Complex(99,0)
+
+toInc1r = Complex(99,0)
+toDec1r = Complex(99,0)
+toInc2r = Complex(99,0)
+toDec2r = Complex(99,0)
+
+def commerize(stuff Object[]){
+	ret = ""
+	for(s in stuff; n){ ret+="" + s +('\n' if n<stuff.length-1 else'')}
+	ret
+}
+
+def doings(){
+	p1 = c1+c2+c2
+	m1 = c1-c2-c2
+	
+	mul1 = c1*c2*c2
+	mul2 = c1/c2/c2
+	mul3 = c1 mod c2 mod c2
+	
+	pow = c1**c2**c2
+	
+	ands = c1 and c2 and c3
+	ors = c1 or c2 or c3
+	
+	
+	gt = c1 > c2
+	gteq = c1 >== c2
+	lt = c2 < c1
+	lteq = c2 <== c1
+	
+	gti = c2 > c1
+	gteqi = c2 >== c1
+	lti = c1 < c2
+	lteqi = c1 <== c2
+	
+	
+	got = c1['cool']
+	got2 = c1[69]
+	
+	sublist = c1[1 ... 3]
+	subpost = c1[1 ... ]
+	subpree = c1[ ... 3]
+	
+	//map style assignment
+	c1.myMap['check'] = 3
+	c1["x"] = 4
+	c1[69] = 2 //ensure no pop
+	
+	jsstylegetter = c1.one
+	c2.one = 99//js style setter
+	
+	cont1 = 12 in c1
+	cont2 = 13 not in c1
+	
+	toInc1++
+	toDec1--
+	++toInc2
+	--toDec2
+	
+	a1=toInc1r++
+	a2=toDec1r--
+	a3=++toInc2r
+	a4=--toDec2r
+	
+	gotf = -flipper
+	gotmf = +minusflipe
+	
+	notc3 = not c3
+	
+	invk1 = c1()
+	invk2 = c1("hi")
+	
+	//fmt
+	initial = "" + [c1 c2 c3]
+	am = [p1 m1]
+	muls = [mul1 mul2 mul3]
+	pows = [pow]
+	aors = [ands ors]	
+	gteqetc = [gt gteq lt lteq gti gteqi lti lteqi]
+	gets = [got got2]
+	subz = [sublist subpost subpree]
+	contss = [cont1 cont2]
+	prepostOps = [[toInc1 toDec1 toInc2 toDec2] [a1 a2 a3 a4]]
+	flipz = [flipper gotf]
+	flipzMin = [minusflipe gotmf]
+	notz = [c3 notc3]
+	invokers = [invk1 invk2]
+	
+	"" + commerize([initial am muls pows aors gteqetc gets subz c1.myMap jsstylegetter c2.myMap contss flipz flipzMin notz invokers])
+}
+
+~~~~~
+//##14. op overload assign
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def =(a int){ value = a; }
+	
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing = new AssignOPOverload(100)
+	thing = 99
+	
+	"" + thing
+}
+
+~~~~~
+//##15. op overload assign override op overload
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def =(a AssignOPOverload){ value = a.value + 10000; }
+	
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing2 = new AssignOPOverload(100)
+	
+	thing1 = new AssignOPOverload(22)
+	thing2 \= new AssignOPOverload(22)
+	
+	"" + [thing1 thing2]
+}
+
+~~~~~
+//##16. op overload assign override op overload
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	override toString() => "AssignOPOverload: {value}"
+}
+
+def AssignOPOverload =(a AssignOPOverload){ value = a.value + 10000; }
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing2 = new AssignOPOverload(100)
+	
+	thing1 = new AssignOPOverload(22)
+	thing2 \= new AssignOPOverload(22)
+	
+	"" + [thing1 thing2]
+}
+
+~~~~~
+//##17 op overload if ref returned waitUntilSet
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def =(a AssignOPOverload){ value = a.value + 10000; true: }
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing1 = new AssignOPOverload(22)
+	
+	"" + thing1
+}
+
+~~~~~
+//##18 op overload if ref returned waitUntilSet play nice with delete on return
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def =(a AssignOPOverload){ value = a.value + 10000; true: }
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing1 = new AssignOPOverload(22)
+	
+	"" + thing1
+}
+
+~~~~~
+//##19 op overload sublists
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	def subAssign(a int, b int, c Object) => lastCall.add("sub: {a} - {b} -> {c}");;
+	def subfromAssign(a int, c Object) => lastCall.add("sub: {a} ... -> {c}");;
+	def subtoAssign(a int, c Object) => lastCall.add("sub: ... {a} -> {c}");;
+	var lastCall = new java.util.ArrayList<String>();
+	
+	override toString() => ""+lastCall
+}
+
+def doings(){
+	mc = MyClass()
+	mc[1 ... 5] = "something1"
+	mc[1 ... ] = "something2"
+	mc[ ... 5] = "something3"
+	"" + mc
+}
+
+~~~~~
+//##20. op overload ensure wait for ref set and delete called
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def +=(a AssignOPOverload){ value += a.value + 10000; true: }
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing1 += new AssignOPOverload(22)
+	
+	"" + thing1
+}
+
+~~~~~
+//##21. op overload ensure wait for sublist set and delete called
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def subAssign(c int, d int, a AssignOPOverload){ value += a.value + 10000; true: }
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing1[1 ... 4] = new AssignOPOverload(22)
+	
+	"" + thing1
+}
+
+~~~~~
+//##22. op overload optional stuff still matches
+
+class AssignOPOverload(value int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def subAssign(c int, d int, a AssignOPOverload, optionalstuff int...){ value += a.value + 10000; true: }
+	override toString() => "AssignOPOverload: {value}"
+}
+
+
+def doings(){
+	thing1 = new AssignOPOverload(100)
+	thing1[1 ... 4] = new AssignOPOverload(22)
+	
+	"" + thing1
+}
+
+~~~~~
+//##23. sublist extract with optional args
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def sub(a int, b int, opt Object...) => lastCall.add("sub: {a} - {b} -> {opt}"); 'ok'
+	def subfrom(a int, opt Object...) => lastCall.add("sub: {a} ...  -> {opt}"); 'ok'
+	def subto(a int, opt Object...) => lastCall.add("sub: ... {a}  -> {opt}"); 'ok'
+	var lastCall = new java.util.ArrayList<String>();
+	
+	override toString() => ""+lastCall
+}
+
+def doings(){
+	mc = MyClass()
+	a1 = mc[1 ... 5] 
+	a2 = mc[1 ... ] 
+	a3 = mc[ ... 5] 
+	"" + [a1 a2 a3] + mc
+}
+
+~~~~~
+//##24. unassign op overload
+class MyThing{
+	my int
+	def assign(an int){
+		my = an;
+	}
+	
+	def assign(an String){
+		my = 1000;
+	}
+	
+	def unassign() => my
+	
+	override toString() => "MyThing[{my}]"
+}
+
+
+def doings(){
+	x = new MyThing()
+	x = 56
+	y=x
+	x = "ok"
+	
+	"" + [y x]//unassign
+}
+
+~~~~~
+//##25. unassign op overload supress
+
+class MyThing{
+	my int
+	def assign(an int){
+		my = an;
+	}
+	
+	def unassign() => my
+	
+	def hi() => "hi" + this
+	
+	override toString() => "MyThing[{my}]"
+}
+
+
+def doings(){
+	x = new MyThing()
+	x = 56
+	
+	"" + [x: x x:hi()]//unassign supressed
+}
+
+~~~~~
+//##26. unassign impl type as field
+
+class MyThing{
+	myvar int
+	def assign(anint int){
+		myvar = anint;
+	}
+	
+	def unassign() int => myvar
+	
+	def hi() => "hi" + this
+	
+	override toString() => "MyThing[{myvar}]"
+}
+
+class MyClass(public x MyThing)
+
+
+def doings(){
+	x = new MyThing()
+	x = 56
+	
+	y = MyClass(x:)
+	
+	"" + a[y.x:, y.x, y.x:hi()]//unassign supressed
+}
+
+~~~~~
+//##27. unassign with ref correctly
+
+class MyThing{
+	myvar int
+	def assign(anint int){
+		myvar = anint;
+	}
+	
+	def unassign() int => myvar
+	
+	def hi() => "hi" + this
+	
+	override toString() => "MyThing[{myvar}]"
+}
+
+def doings(){
+	x = new MyThing()
+	x = 56
+	
+	f MyThing: = x::
+	
+	a int = f
+	b MyThing = f:
+	c MyThing: = f::
+	
+	
+	"" + [a, b, c]
+}
+
+~~~~~
+//##28. ignore unassign as it returns void
+
+class MyThing{
+	myvar int
+	def assign(anint int){
+		myvar = anint;
+	}
+	
+	def unassign() void {}
+	
+	def hi() => "hi" + this
+	
+	override toString() => "MyThing[{myvar}]"
+}
+
+def doings(){
+	x = new MyThing()
+	x = 56
+	
+	"" + x
+}
+
+~~~~~
+//##29. assign and unassign
+
+class Myclass<X>(eval () X){
+	def assign(eval () X){
+		this.eval = eval
+	}
+	
+	def unassign() => eval()
+}
+
+def doings(){
+	mc = Myclass<int>(def () {78})
+	mc = def () {100}
+	"" + mc
+}

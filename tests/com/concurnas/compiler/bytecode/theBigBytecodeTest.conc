@@ -1,0 +1,10200 @@
+//##1. vars - 1. String
+
+def doings() String {
+	return "Hello world"
+}
+
+~~~~~
+//##1. vars - 1. ints
+def doingsd() int {
+	return 1 //TODO: cont, bi, si and ldc to test....
+}
+
+def doings() => "" + doingsd()
+
+~~~~~
+//##1. vars - 1. long
+def doingsd() long {
+	return 4147483647
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##1. vars - 1. float
+def doingsd() float {
+	return 5.0f //TODO: this is really float
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##1. vars - 1. double
+def doingsd() double {
+	return 5.0 //TODO: test its really a double
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##1. vars - 1. char
+def doingsd() char {
+	return 'c' //TODO: test it's a really char
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##1. vars - 1. byte, short
+def doingsd() short {
+	return 6 //cont, bi, si and ldc to test....
+}
+
+def doings() => "" + doingsd()
+
+~~~~~
+//##1. vars - 1. boolean
+def doingsd() boolean {
+	return true //cont, bi, si and ldc to test....
+}
+
+def doings() => "" + doingsd()
+
+~~~~~
+//##2. expr - 1. basic string concatination
+
+def doings() String { return "Hello " + "world" }
+
+~~~~~
+//##2. expr - 2. basic string concatination with non string
+
+def doings() String { return "Hello " + 12 }
+
+~~~~~
+//##2. expr - 3. def string concat 1
+def doings() String {	return "a" + 69 }
+
+~~~~~
+//##2. expr - 3. def string concat 2
+def doings() String {	return 69 + "a" }
+
+~~~~~
+//##2. expr - 3. def string concat 3
+def doings() String {	return "a" + 69 +"a" }
+
+~~~~~
+//##2. expr - 3. def string concat 4
+def doings() String {	return 21 + 69 +"a" }
+
+~~~~~
+//##2. expr - 3. def string concat 5
+def doings() String {	return "a" + 69 +50 }
+
+~~~~~
+//##3. real expr - 4. add double
+def doingsd() double {	return 50.2 + 60.3 }
+
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 4. minus double
+def doingsd() double {	return 50.2 - 60.3 }
+
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 4. minus float to double
+def doingsd() double {	return 50.2 - 60.3f }
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 4. plus long
+def doingsd() long {	return 5 + 6}
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 4. plus minus long with casts
+def doingsd() long {	return 5 + 6l - 4 + 53l }
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 1. boolean1
+def doingsd() boolean {	return 5==5;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean2
+def doingsd() boolean {	return 5==4;
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 1. boolean3
+def doingsd() boolean {	return 5<>5;
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 1. boolean4
+def doingsd() boolean {	return 5<>4;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean - with cast1
+def doingsd() boolean {	return 5==5.;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean - with cast2
+def doingsd() boolean {	return 5.==5;
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 1. boolean4 - 3 levels of iteration
+def doingsd() boolean {	return 5==5==true;
+}
+
+def doings() => "" + doingsd()
+~~~~~
+//##3. real expr - 1. boolean4 - rhs nesting
+def doingsd() boolean {	
+	return true==(12==12);
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean4 - lhs nesting
+def doingsd() boolean {	
+	return (12==12)==true;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean4 - both nesting
+def doingsd() boolean {	
+	return (12==12)==(13==13);
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean5 - false always
+def doingsd() boolean {	
+	return true==false;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean5 - rhs nesting - always false
+def doingsd() boolean {	
+	return true==(12==13);
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean5 - lhs nesting - always false
+def doingsd() boolean {	
+	return (12==13)==true;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean5 - mega complex
+def doingsd() boolean {	
+	return ((13==13)==(12==12)==true)==((false==(12<>12))==(13==13)==true);
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 1. boolean5 - mega complex2-false
+def doingsd() boolean {	
+	return ((13==13)==(12==12)==true)==((false==(12<>12))==(13==13)==true)==false;
+}
+def doings() => "" + doingsd()
+
+~~~~~
+//##3. real expr - 2.muler
+def doings() String  {
+	m1 = 10*10
+	m2 = (10*10)*10
+	m3 = 10*(10*10)
+	m4 = (10*10)*(10*10)
+	m5 = (10*10)*(10*10)*2
+	m6 = 10*(10*10)*2
+	m7 = 10 mod 4 * 2
+	m8 = 10 mod (4 * 2)
+	return m1 + ": " + m2 + ": " + m3 + ": " + m4 + ": " + m5 + ": " + m6 + ": " + m7 + ": " + m8
+}
+
+~~~~~
+//##3. real expr - 2.pow
+def doings() String  {
+	m1 int = 4**2
+	m2 = 4**2.
+	return "" + m1 + " double v: " + m2
+}
+
+
+~~~~~
+//##4. var assignment - 1. simple all creation variants
+
+def doings() String  {	
+	a = 69; 
+	b int = 67;
+	c int
+	d int
+	c = 67;
+	return c+b-a +": " + c
+}
+
+~~~~~
+//##4. var assignment - 2. long cast and useage
+def doingsd() double  {	
+	b long = 55;
+	b = 234
+	c double = b+b
+	return c
+}
+
+def doings() => "" + doingsd() 
+
+~~~~~
+//##42. misc - insert dummy return statements in void ret methods
+def doingsd()  {	
+}
+
+def doings()  String => "null"
+
+~~~~~
+//##42. misc - newline via char
+def doingsd() char {	
+	return '\n'
+}
+
+def doings() => "" + doingsd() 
+
+~~~~~
+//##3. factor - prefix headless
+def doings() String  {
+	i1 = 10; i2 = 10
+	++i1; --i2
+	
+	d1 = 10.; d2 = 10.
+	++d1; --d2
+	
+	f1 = 10.f; f2 = 10.f 
+	++f1; --f2
+	
+	return  i1 + "\n" +  i2 + "\n" +  d1 + "\n" +  d2 + "\n" +  f1 + "\n" +  f2
+}
+
+~~~~~
+//##3. factor - post headless
+def doings() String  {
+	i1 = 10; i2 = 10
+	i1++; i2--
+	
+	d1 = 10.; d2 = 10.
+	d1++; d2--
+	
+	f1 = 10.f; f2 = 10.f 
+	f1++; f2--
+	
+	return  i1 + "\n" +  i2 + "\n" +  d1 + "\n" +  d2 + "\n" +  f1 + "\n" +  f2
+}
+
+~~~~~
+//##3. factor - neg
+def doings() String  {
+	a = 12
+	aa = - a 
+	aaa = - (- a)
+	
+	b = 12.
+	bb = -b
+	bbb = -(-b)
+	
+	return  a + "\n" +  aa + "\n" +  aaa +  "\n" + b + "\n" +  bb + "\n" +  bbb
+}
+
+~~~~~
+//##3. factor - as return post
+def doingsd() float{
+	a = 4.f;
+	return a++
+}
+
+def doings() => "" + doingsd() 
+~~~~~
+//##3. factor - as return pre
+def doingsd() double{
+	a = 4.;
+	return ++a
+}
+
+def doings() => "" + doingsd() 
+~~~~~
+//##3. factor - assign post
+def doings() String{
+	a = 4.f;
+	b = a++
+	return b + " " + a
+}
+
+~~~~~
+//##3. factor - assign pre
+def doings() String {
+	a = 4.;
+	b = ++a
+	return b + " " + a
+}
+
+
+~~~~~
+//##4. functions - module level static invokation
+def sub() double{
+	return 67.;
+}
+
+def doingsd() double{
+	a = sub()
+	return a;
+}
+def doings() => "" + doingsd() 
+
+~~~~~
+//##4. functions - module level static invokation -direct
+def sub() double{
+	return 67.;
+}
+
+def doingsd() double{
+	return sub() + sub()
+}
+def doings() => "" + doingsd() 
+
+~~~~~
+//##4. functions - pop from stack if not in use
+
+def sub() double{ return 67.  }
+
+def doingsd() {
+	sub()
+	return
+}
+def doings() => "null" 
+~~~~~
+//##4. functions - with arguments and approperiate casting as well
+
+def sub(gg int) double{ return 67. + gg }
+def subL(gg long) double{ return 67. + gg }
+
+def doings() String {
+	x =	sub(12)
+	y = subL(12)//casted
+	return x + ":" + y
+}
+
+~~~~~
+//##4. functions - with arguments and approperiate casting as well, many args
+def sub(gg int, ff int) int { return gg+ff }
+
+def doings() String { return ""+sub(5, 6) }
+
+~~~~~
+//##4. assignment thingy operators whatever they're called
+def doings() String {
+	a  = 10; b = a  ; c = a;	
+	d = a  ; e = 10.; f = a;
+	
+	a /= 2
+	b *= 2
+	c -= 1
+	d **= 2.//cool, even applies relevant casting
+	e mod= 3.1 
+	f += 2
+	return "" + a + ": " + b + ": " + c + ": " + d + ": " + e + ": " + f
+}
+
+~~~~~
+//##4. assignment thingy operators whatever they're called - string concat
+def v1() String{
+	a = "hi"
+	a += " there"
+	return a
+}
+
+def v2() String{
+	a = "hi "
+	a += 12/2
+	return a
+}
+
+def doings() String {
+	return v1() + ": " + v2()
+}
+
+~~~~~
+//##4. less than greater than for all types etc
+def doings() String {
+	a1 = 5>4
+	a2 = 5.>4.
+	a3 = 5.f>4.f
+	a4 = 5l>4l
+	a1f = 4>5
+	a2f = 4.>5.
+	a3f = 4.f>5.f
+	a4f = 4l>5l
+	
+	b1 = 5>==4
+	b2 = 5.>==4.
+	b3 = 5.f>==4.f
+	b4 = 5l>==4l
+	b1f = 4>==5
+	b2f = 4.>==5.
+	b3f = 4.f>==5.f
+	b4f = 4l>==5l
+	
+	c1 = 5<4
+	c2 = 5.<4.
+	c3 = 5.f<4.f
+	c4 = 5l<4l
+	c1f = 4<5
+	c2f = 4.<5.
+	c3f = 4.f<5.f
+	c4f = 4l<5l
+	
+	d1 = 5<==4
+	d2 = 5.<==4.
+	d3 = 5.f<==4.f
+	d4 = 5l<==4l
+	d1f = 4<==5
+	d2f = 4.<==5.
+	d3f = 4.f<==5.f
+	d4f = 4l<==5l
+	
+	e = 5<==5 //really should have written cases like this for all of the above... but meh
+	
+	return "" + a1  + ", " + a2  + ", " + a3+ ", "  + a4  + "\n" + \ 
+		   "" + a1f + ", " + a2f + ", " + a3f+ ", " + a4f + "\n"+  \ 
+	       "" + b1  + ", " + b2  + ", " + b3+ ", "  + b4  + "\n" +  \ 
+		   "" + b1f + ", " + b2f + ", " + b3f+ ", " + b4f + "\n"+  \ 
+	       "" + c1  + ", " + c2  + ", " + c3+ ", "  + c4  + "\n" +  \ 
+		   "" + c1f + ", " + c2f + ", " + c3f+ ", " + c4f + "\n"+  \ 
+	       "" + d1  + ", " + d2  + ", " + d3+ ", "  + d4  + "\n" +  \ 
+		   "" + d1f + ", " + d2f + ", " + d3f+ ", " + d4f + "\n" + e
+}
+
+~~~~~
+//##4. not
+
+def doings() String {
+	s= ""+ (not true)
+	s2="" + (not (4<5))
+	s3="" + (not  (4<5))
+	s4="" + (not ( 4<5))
+	return s + ": " + s2 +  ": " + s3 +  ": " + s4
+}//improve with bodmas later
+
+~~~~~
+//##4. and or 
+def doings() String {
+	s = ""+ (true and false);
+	s2 = "" + (true and false and true);
+	
+	t =  ""+ (true or false);
+	t2 = "" + (true and false or true);
+	
+	return s +": " + s2 +": " + t +": " + t2 
+}
+
+~~~~~
+//##4. mix 1
+def doings() String {
+	s = ""+ ((true and false) and ( true or false )   );
+	s2 = ""+ ((true and false) or ( true or false )   );
+	
+	t = "" + ( true and true or false and true or false  ) //true?
+	t2 = "" + ( (4<5 and true and 4<3) or (false) )
+	t3 = "" + ( (4<5 and true and 4<3) or (7>6) )
+	
+	return s +": " + s2 +": " +t + ": " +t2 + ": " +t3
+}
+
+~~~~~
+//##4. if expr
+def doings() String {
+	li = 3.
+	l2 = 2
+	c = "hi"
+	d = "there"
+
+	s= c if li > l2 else d 
+	s2 = c if li < l2 else d 
+
+	return "" + s + ": " + s2 ; 
+}
+
+~~~~~
+//##4. if expr - complex nesting
+def doings() String {
+	n=0
+	a = 3 if n == 1 or n==2 else 5;
+	
+	n=1
+	b = 3 if n == 1 or n==2 else 5;
+	
+	c = 3 if n == 1 and n==2 else 5;
+	return "" + a + ": " + b+ ": " + c
+}
+
+~~~~~
+//##4. if expr, fibonaci series!
+def fib(n int) int
+{
+	return  1 if n == 1 or n==0 else fib(n-1)+fib(n-2)
+}
+
+def doings() String {
+
+	return "1:" + fib(1) \ 
+		 + " 2:" + fib(2) \ 
+		 + " 3:" + fib(3) \ 
+		 + " 4:" + fib(4) \ 
+		 + " 5:" + fib(5) \ 
+		 + " 6:" + fib(6) \ 
+		 + " 7:" + fib(7) \ 
+		 + " 8:" + fib(8) \ 
+		 + " 9:" + fib(9) \ 
+		 + " 10:" + fib(10) \ 
+		 + " 11:" + fib(11) \ 
+		 + " 12:" + fib(12);
+}
+
+~~~~~
+//##4. if stmt - really simple
+def ttt()=>true; 
+def fff()=>false; 
+
+def doings() String {
+	a = "ok";	b = ""; c=""; d="ok"
+	
+	if( fff() )	{ a += "fail" }
+	if( ttt() )	{ b += "ok" }
+	if( not fff() )	{ c += "ok" }
+	if( not ttt() )	{ d += "fail" }
+	
+	return a +":"+b + ":" +c + ":" + d
+}
+
+~~~~~
+//##4. if stmt - simple
+def doings() String { a = 9; if(a==9){ a=10 }; return ""+a }
+
+~~~~~
+//##4. if stmt - simple or in stmt
+def doings() String {
+	a = 0; b=0
+	if(a==9 or a==10 ){ a=10 }
+	if(b==0 or b==10 ){ b=66 }
+	
+	return ""+a  + ": " + b + ": " + (true or false)
+	//return " 12:" + fib(12);
+}
+
+~~~~~
+//##4. if stmt - elif
+def doitSimple(n int) int
+{
+	h = n
+	if(n==0)//abuse test and also test inc here..
+	{
+		h = 9;
+	}
+	return h;
+}
+
+def doit(n int) int
+{
+	h = -10 
+	if(n==0)
+	{
+		h = n
+	}
+	elif(n==1)
+	{
+		h = 55
+	}
+	elif(n==2 or n==99)
+	{
+		h = 66
+	}
+	else
+	{
+		h = 88
+	}
+	return h
+}
+
+def doings() String {
+	return  doit(0)+" " + doit(1) +" " + doit(2) +" " + doit(3) + ":" +  doitSimple(0) +" " + doitSimple(1)
+}
+
+~~~~~
+//##4. if stmt - fibonaci
+def fib(n int) int
+{
+	if(n == 0 or n <0 ) {
+		return 1
+	}
+	elif(n==1) {
+		return 1
+	}
+	else{
+		return fib(n-1)+fib(n-2)
+	}
+}
+
+def doings() String {
+	return " 3:" + fib(3);
+}
+
+~~~~~
+//##4. if stmt - elif nested
+def doitSimple(n int) int
+{
+	if(n==0 or n==1 or n==2)
+	{
+		if(n==1)
+		{//nested!
+			return 55
+		}
+		elif(n==2)
+		{
+			return 66
+		}
+		else
+		{
+			return -4
+		}
+	}
+	else
+	{
+		return 88
+	}
+}
+
+def doings() String {
+	return  "" + doitSimple(0) +" " + doitSimple(1) +" " + doitSimple(2) +" " + doitSimple(3)
+}
+
+
+~~~~~
+//##5. while stmt
+def doings() String {
+	n=0
+	g="hi "
+		
+	while(n++<10){
+		g += n + " "
+	}
+	
+	g+="end"
+	return g;
+}
+
+~~~~~
+//##5. while stmt - break
+def doings() String {
+	n=0
+	g="hi "
+		
+	while(n++<10){
+		if(n >5)
+		{
+			break;
+		}
+		g += n + " "
+	}
+	
+	g+="end"
+	return g;
+}
+
+~~~~~
+//##5. while stmt - continue
+def doings() String {
+	n=0
+	g="hi "
+		
+	while(n++<10){
+		if(n >5 and n<7 )
+		{//miss out 6
+			continue;
+		}
+		g += n + " "
+	}
+	
+	g+="end"
+	return g;
+}
+
+~~~~~
+//##6. for simple
+def doings() String {
+	n = 0; dd = ""
+	for(; n<== 10; n++){
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+
+~~~~~
+//##6. for simple - simple expr
+def doings() String {
+	dd = ""
+	n=0
+	for(n++; n<== 10; n++){
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+~~~~~
+//##6. for simple - simple expr var creation
+def doings() String {
+	dd = ""
+	for(n=0; n<== 10; n++){
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+~~~~~
+//##6. for simple - simple expr var assignment
+def doings() String {
+	dd = ""; n=0
+	for(n+=1; n<== 10; n++){
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+~~~~~
+//##6. for simple - simple expr var creation with type
+def doings() String {
+	dd = ""
+	for(n int =1; n<== 10; n++){
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+~~~~~
+//##6. for simple - break and continue
+def doings() String {
+	dd = ""
+	for(n int =1; n<== 10; n++){
+		if(n>==6){
+			if(n==9){
+				break
+			}
+			dd += n + "! "
+			continue
+		}
+		
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+~~~~~
+//##69. misc - test scopes of new vars
+def ttt() => true
+def doings() String
+{
+	ret = ""
+	n int = 9
+	if(ttt())
+	{
+		ret += "" + n
+		n int = 10
+		ret += "" + n
+	}
+	ret += "" + n
+	return ret
+}
+
+~~~~~
+//##69. for - test scopes of new vars - cotninue and break -on own
+def doings() String {
+	dd = ""
+	for(n int =1; n<== 10; n++){
+		dd += n + " "; continue //doesnt reun for eternity
+	}
+	
+	for(n int =1; n<== 10; n++){
+		dd += n + " "; break //just 1
+	}
+	
+	return "" + dd
+}
+
+~~~~~
+//##69. for- test stuff missing
+//should result in the same output every time...
+def doings() String {
+	dd = ""
+	for(n int =1; ; n++){
+		if(n>==6){
+			if(n==9){
+				break
+			}
+			dd += n + "! "
+			continue
+		}
+		
+		dd += n + " "
+	}
+	n int =1;
+	for(; ; n++){
+		if(n>==6){
+			if(n==9){
+				break
+			}
+			dd += n + "! "
+			continue
+		}
+		
+		dd += n + " "
+	}
+	n=1
+	for(n int =1; ; ){
+		n++
+		if(n>==6){
+			if(n==9){
+				break
+			}
+			dd += n + "! "
+			continue
+		}
+		
+		dd += n + " "
+	}
+	
+	return "" + dd
+}
+
+~~~~~
+//##7. arrays - declaration
+
+def al() int { return 2}
+
+def doings() String {
+	v = 2;
+	a = new int[al()];
+	a2 int[] = new int[al()];
+	a3 int[1] = new int[al()];
+	b = new int[v,al()];
+	b2 int[2] = new int[v,al()];
+	
+	c int[2]? = null
+
+	d = new Object[3]
+	
+	dd = new Object[3,3]
+
+	return null + "" + null //MHA: test that this invokes object append as well
+}
+
+~~~~~
+//##7. arrays - ref simple
+def doings() String {
+	ax = new int[2];
+	b = new boolean[10]
+	c = new Object[7]
+	return  "" + ax[0] + " " + b[5] + " " + c[2]
+}
+
+~~~~~
+//##7. arrays - ref >1d simple
+def doings() String {
+	ax = new int[2, 3];
+	o1 = ax[0][0]
+	o2 = ax[0, 0]
+	return  "" + o1 + " " + o2
+}
+
+~~~~~
+//##7. arrays - string print 1d
+def doings() String {
+	ax = new int[5];
+	h = 7+5
+	one =  ax + "" 
+	two =  "" + ax
+	return one + two
+}
+
+~~~~~
+//##7. arrays - string print 2d
+def doings() String {
+	a = new int[5, 5];
+	return  "" + a
+}
+
+~~~~~
+//##7. arrays - string print 3d
+def doings() String {
+	a = new Object[2, 2, 2];
+	zzz = ": "
+	zzz += a
+	return  "" + a + zzz
+}
+
+~~~~~
+//##7. arrays - sublist 1d
+def doings() String {
+	ax = new int[10];
+	return  "" + ax[2 ... 5]
+}
+
+~~~~~
+//##7. arrays - sublist 1d postfix
+def doings() String {
+	ax = new int[10];
+	v = ax[2 ... ]
+	return  "" + v
+}
+
+~~~~~
+//##7. arrays - sublist 1d prefix
+def doings() String {
+	ax = new int[10];
+	v = ax[ ... 2]
+	return  "" + v
+}
+
+~~~~~
+//##7. arrays - sublist 1d nested sublist
+def doings() String {
+	str=""
+
+	s2 = [[1,2,3,4,5,6], [1,2,3,4,5,6]]
+	
+	str += ""+ s2[0][1 ... 4]
+	
+	return str
+}
+
+~~~~~
+//##7. arrays - correctly plus eq onto existig string
+def doings() String {
+	str=""
+
+	str += [1,2,3]
+	
+	return str
+}
+
+
+~~~~~
+//##7. arrays - declaration
+def doings() String {
+	ax = [1,2,3]
+	a2 = [1,2,3.]
+	b = [ [11,12],[13,14] ]
+	c = [ax, ax[2 ... ]]
+	
+	return ""+ ax + ": " + a2 + ": " + b + ": " + c
+}
+
+~~~~~
+//##7. arrays - misc, array as first arg
+def doings() String {
+	a = [1,2,3] 
+	return  a + ""
+}
+
+~~~~~
+//##7. arrays - assignment - simple
+def doings() String {
+	s = [1,2,3]
+	s[1] = 88
+	return "" + s
+}
+
+~~~~~
+//##7. arrays - assignment - with fancy inplace operator
+def doings() String {
+	s =  [1.,2,3,4,5,6,7,8,9,10]
+	si =  [1,4]
+	s2 =  [1.,2,3,4,5,6,7,8,9,10]
+	s3 =  [1.,2,3,4,5,6,7,8,9,10]
+	s4 =  [1.,2,3,4,5,6,7,8,9,10]
+	s[1] = 99
+	s[1] = 99
+	s[2] += 88
+	s[3] -= 8.
+	s[4] *= 2
+	s[5] **=2
+	str = "" + s
+	
+	si[1] **= 2 //we do fiddly casting stuff here
+	str += ": " + si
+	return str
+}
+
+~~~~~
+//##7. arrays - assignment - simple 2d
+def doings() String {
+	s =  [[1,2,3],[3,4,5]]
+	s[0][1] = 88
+	return "" + s
+}
+
+~~~~~
+//##7. arrays - assignment - with fancy inplace operator 2d
+def doings() String {
+	s =  [[1,2,3],[3,4,5]]
+	s[0][1] += 88
+	s[0][2] **=2
+	return "" + s
+}
+//MORE: alltheArrays.conc
+
+~~~~~
+//##8. new for loop, two variants
+def sum(a int[] ) double {
+	ret = 0
+	for(aa in a){ ret += 1 if aa==1 else aa  }
+	for(aa int in a){ ret += aa  }
+	return ret
+}
+
+def doings() String {
+	return "" + sum([1 2 3])
+}
+
+~~~~~
+//##8. new for loop with break, continue
+def sum(a int[] ) String {
+	ret = 0
+	ret2 =0.
+	for(aa in a){
+		if(aa==1){break}
+		ret +=aa
+	}
+	for(aa in a){
+		if(aa==1){continue}
+		ret2 +=aa
+	}
+	
+	return ret +":" + ret2
+}
+
+def doings() String {
+	return "" + sum([1 2 3])
+}
+
+~~~~~
+//##9. cast and instanceof - cast
+from java.util import List, ArrayList;
+def lt() => 4>5
+def doings() String {
+	a = new ArrayList<String>() as List<String>;
+	b = "str" as Object
+	c = (8 if lt() else 5 ) as double 
+	
+	//return "" + [a, b, c]
+	return "" + a +":" +b +":" + c
+}
+
+~~~~~
+//##9. cast and instanceof - instanceof is isnot
+def doings() String {
+	bTrue = "str" is Object
+	bFalse = "str" isnot Object
+	
+	return "" + [bTrue, bFalse]
+}
+
+~~~~~
+//##10. Exceptions-catch many
+def exceper(h int) String {
+	ret = "";
+	try{
+		if(h==1){
+			throw new Exception("ughExcep");
+		}
+		elif(h==2){
+			throw new Throwable("ughTrh");
+		}
+		
+	}
+	catch(e Exception){
+		ret = "Exception thrown" + e;
+	}
+	catch(e Throwable){
+		ret = "Throwable thrown" + e;
+	}
+	
+	return ret;
+}
+def doings() String {
+	return exceper(1) + ":" +exceper(2) + ":" + exceper(3)
+}
+
+~~~~~
+//##10. Exceptions-nothing
+def doings() String {
+	ret = "nothing";
+	try{
+		x=9;;//actual nothing, u get a slap cos its stupid
+	}
+	catch(e Exception){
+		ret = "Exception thrown";
+	}
+	
+	return ret;
+}
+
+~~~~~
+//##10. Exceptions-from functioncall
+
+def nothiing(){
+	throw new Exception("ughExcep");
+}
+
+def exceper() String {
+	ret = "";
+	try{
+		nothiing()
+	}
+	catch(e Throwable){
+		ret = "Exception thrown: " + e;
+	}
+	
+	return ret;
+}
+def doings() String {
+	return exceper()
+}
+
+~~~~~
+//##10. Exceptions-finally
+def exceper(n int) String {
+	ret = "";
+	try{
+			if(n==0){ throw new Exception("myException"); }
+		elif(n==1){ throw new Throwable("myThrowable" ); }
+	}
+	catch(e Exception){
+		ret = "Exception: " + e;
+	}
+	catch(e Throwable){
+		ret = "Throwable: " + e;
+	}
+	finally {
+		ret += " - finally!"
+	}
+	return ret;
+}
+
+def doings() String {
+	return ""+[exceper(0), exceper(1), exceper(2)]
+}
+
+~~~~~
+//##10. Exceptions-finally no catch
+def exceper(n int) String {
+	ret = "";
+	try{
+		ret = "hi";
+	}
+	finally {
+		ret += " - finally!"
+	}
+	return ret;
+}
+
+def doings() String {
+	return ""+[exceper(0), exceper(1), exceper(2)]
+}
+
+~~~~~
+//##10. Exceptions-nested exceptions 2
+def thrower(n int) {
+	if(n==1){ throw new Exception("Dd2d") }
+}
+
+
+def exceper(n int) String {
+	ret = "";
+	
+	try{
+		try{
+			ret = "mainBlock";
+			thrower(1)
+		}
+		catch(e Exception)
+		{
+			ret += " - first exception" + e;
+			thrower(n)
+		}
+	}
+	catch(e Exception)
+	{
+		ret += " - second exception" + e;
+	}
+	
+	return ret;
+}
+
+
+def doings() String {
+	return ""+[exceper(0), exceper(1)]
+}
+
+
+~~~~~
+//##10. Exceptions-nested exceptions 2 with a finally it works!
+
+def thrower(n int) {
+	if(n==1){ throw new Exception("Dd2d") }
+}
+
+
+def exceper(n int) String {
+	ret = "";
+	
+	try{
+		try{
+			ret = "mainBlock";
+			thrower(1)
+		}
+		catch(e Exception)
+		{
+			ret += " - first exception" + e;
+			thrower(n)
+		}
+		finally
+		{
+			ret += " + fin";
+		}
+	}
+	catch(e Exception)
+	{
+		ret += " - second exception" + e;
+	}
+	
+	return ret;
+}
+
+
+def doings() String {
+	return ""+[exceper(0), exceper(1)]
+}
+
+
+~~~~~
+//##10. Exceptions-nested exceptions 3 with a finally it works! OMG this took so much fucking work!
+
+def thrower(n int) {
+	if(n==1){ throw new Exception("Dd2d") }
+}
+
+
+def exceper(n int) String {
+	ret = "";
+	
+	try{
+		try{
+			try{
+				ret = "mainBlock";
+				thrower(1)
+			}
+			catch(e Exception)
+			{
+				ret += " - first exception"
+				thrower(n)
+			}
+		}
+		catch(e Exception)
+		{
+			ret += " - second exception"
+			thrower(n)
+		}
+		finally
+		{
+			ret += " + fin";
+		}
+	}
+	catch(e Exception)
+	{
+		ret += " - third exception"
+	}
+	
+	return ret;
+}
+
+
+def doings() String {
+	return ""+[exceper(0), exceper(1)]
+}
+
+~~~~~
+//##11. Assert keyword
+
+def checker(xxx boolean) String
+{
+	ret=""
+	try
+	{
+		assert xxx if xxx==true or xxx==false else xxx //seeems silly but i want to capture the visit if req case
+		ret="ok"
+	}
+	catch(er AssertionError)
+	{
+		return "failed"
+	}
+	return ret
+}
+
+def doings() String {
+	return "" + [ checker(true), checker(false) ]
+}
+
+
+~~~~~
+//##12. function call on static imported preimport
+
+from java.util import ArrayList
+
+def doings() String {
+	x=System.currentTimeMillis()
+	ar = new ArrayList<String>();
+	ar2 = new java.util.ArrayList<String>();
+	ar.add("hi")
+	ar.add("there")
+	ar2.add("wassup")
+	return "" + 2 + ar + ar2
+}
+
+~~~~~
+//##13.1 equals and not equals on objects
+
+class MyClas(x int, y int){
+
+	-eqCallcnt = 0
+
+	override def equals(ob Object) boolean
+	{
+		eqCallcnt += 1
+		if(ob is MyClas)
+		{
+			other = ob as MyClas
+			return other.x == this.x and other.y == this.y
+		}
+		return false
+	}
+
+}
+
+
+def doings() String {
+	cls1 = new MyClas(1,2)
+	cls2 = new MyClas(1,2)
+	cls3Dif = new MyClas(2,2)
+	
+	
+	traditionalEq1 = cls1.equals(cls2)
+	traditionalEq2 = not (cls1.equals(cls3Dif))
+	
+	eqCnt1 = cls1.eqCallcnt
+	
+	eq1 = cls1 &== cls1       //direct eq
+	eq2 = not (cls1 &<> cls1) //direct eq
+	
+	eq3 = cls1 == cls2      //converted !eq
+	eq4 = not(cls1 <> cls2) //converted !eq
+	eq5 = not (cls1 == cls3Dif )
+	eq6 = (cls1 == cls3Dif) == (cls3Dif == cls1)
+	fls = cls1 == cls3Dif
+	
+	eqCnt2 = cls1.eqCallcnt
+	
+	return "" + [traditionalEq1, traditionalEq2, eq1, eq2, eq3, eq4, eq5, eq6, not fls] + "" + [eqCnt1, eqCnt2]
+}
+
+~~~~~
+//##13.2 equals and not equals on primatives
+def doings() String {	
+	eq1 = 1==1
+	eq2 = not (1<>1)
+	return "" + [eq1, eq2]
+}
+
+~~~~~
+//##14 autoboxing
+def doings() String {	
+	inter1 = new Integer(1)
+	eq1 = 1==inter1
+	eq2 = inter1==1
+	eq3 = not (inter1<>inter1)
+	
+	somethign Integer = 66;
+	anotherThing int = new Integer(78)
+
+	ll long = inter1
+	ll2 Long = 88;
+	
+	return "" + [eq1, eq2, eq3] +": " + somethign + ", " + anotherThing + ": "+ ll + "," + ll2
+}
+
+~~~~~
+//##14.1 autoboxing - functions involving sums etc
+
+def some(g Integer) Integer{
+	return g + 9 + g;
+}
+
+def anotherM(g float) float{
+	return g + 9.0f + g;
+}
+
+def something(g Double) double{
+	return g + 9.0 + g;
+}
+
+def somethingd(g double) Double{
+	return g + 9.0 + g;
+}
+
+def someInv(g Integer) Integer{
+	return 9 -g-g;
+}
+
+def anotherMInv(g float) float{
+	return 9.0f -g-g;
+}
+
+def somethingInv(g Double) double{
+	return 9.0 -g-g;
+}
+
+def somethingdInv(g double) Double{
+	return 9.0-g-g;
+}
+
+
+def doings() String {	
+
+	cool int = some(66)
+	cool2  = anotherM(66)
+	cool3  = something(66)
+	cool4  = somethingd(66)
+	
+	coolInv int = someInv(66)
+	cool2Inv  = anotherMInv(66)
+	cool3Inv  = somethingInv(66)
+	cool4Inv  = somethingdInv(66)
+	
+	return "" + [cool, cool2, cool3, cool4] + [coolInv, cool2Inv, cool3Inv, cool4Inv]
+}
+
+~~~~~
+//##14.2 autoboxing - functions involving mmultiplication etc
+
+def some(g Integer) Integer{
+	return g / 9 / g;
+}
+
+def anotherM(g float) float{
+	return g / 9.0f / g;
+}
+
+def something(g Double) double{
+	return g / 9.0 / g;
+}
+
+def somethingd(g double) Double{
+	return g / 9.0 / g;
+}
+
+
+def someInv(g Integer) Integer{
+	return 9 *g*g;
+}
+
+def anotherMInv(g float) float{
+	return 9.0f *g*g;
+}
+
+def somethingInv(g Double) double{
+	return 9.0 *g*g;
+}
+
+def somethingdInv(g double) Double{
+	return 9.0*g*g;
+}
+
+def doings() String {	
+	cool int = some(66)
+	cool2  = anotherM(66)
+	cool3  = something(66)
+	cool4  = somethingd(66)
+	
+	coolInv int = someInv(66)
+	cool2Inv  = anotherMInv(66)
+	cool3Inv  = somethingInv(66)
+	cool4Inv  = somethingdInv(66)
+	
+	return "" + (cool, cool2, cool3, cool4) + (coolInv, cool2Inv, cool3Inv, cool4Inv)// + a
+}
+~~~~~
+//##14.3 autoboxing - pow and mod
+
+
+def some(g Integer) Integer{
+	return g ** 9 **g;
+}
+
+def anotherM(g float) float{
+	return g ** 9.0f;
+}
+
+def something(g Double) double{
+	return g ** 9.0;
+}
+
+def somethingd(g double) Double{
+	return g ** 9.0;
+}
+
+
+def someInv(g Integer) Integer{
+	return 9 mod g mod g;
+}
+
+def anotherMInv(g float) float{
+	return 9.0f mod g mod g;
+}
+
+def somethingInv(g Double) double{
+	return 9.0 mod g mod g;
+}
+
+def somethingdInv(g double) Double{
+	return 9.0 mod g mod g;
+}
+
+
+def doings() String {	
+	cool int = some(66)
+	cool2  = anotherM(66)
+	cool3  = something(66)
+	cool4  = somethingd(66)
+	
+	coolInv int = someInv(66)
+	cool2Inv  = anotherMInv(66)
+	cool3Inv  = somethingInv(66)
+	cool4Inv  = somethingdInv(66)
+	
+	return "" + (cool, cool2, cool3, cool4) + (coolInv, cool2Inv, cool3Inv, cool4Inv)// + a
+}
+
+~~~~~
+//##14.4 autoboxing - operations in place
+def doings() String {
+	one = new Integer(2)	
+	ar = [1,2,3,4,5]
+	ar[1] += one
+	ar[3] /= one
+	ar[0] *= one
+	ar[2] mod= one
+	
+	xxx = 53
+	xxx mod= one
+	xxx += one
+	xxx /= one
+	xxx *= one ** one ** one 
+	
+	return "" + ar + ": " + xxx
+}
+
+~~~~~
+//##14.4b autoboxing - operations in place -other way
+def doings() String {
+	one = new Integer(2)	
+	ar = [new Integer(1),new Integer(2),new Integer(3),new Integer(4),new Integer(5)]
+	ar[0] += one
+	ar[2] /= one
+	ar[3] *= one
+	ar[4] mod= one
+	
+	xxx = 53
+	xxx mod= one
+	xxx += one
+	xxx /= one
+	xxx *= one ** one ** one 
+	
+	return "" + ar + ": " + xxx
+}
+
+~~~~~
+//##14.4c autoboxing - operations in place -and another one
+def doings() String {
+	one = new Integer(2)	
+	ar = [new Integer(1),new Integer(2),new Integer(3),new Integer(4),new Integer(5)]
+	ar[1] += 2
+	ar[3] /= 2
+	ar[0] *= 2
+	ar[2] mod= 2
+	
+	xxx = 53
+	xxx mod= 2
+	xxx += 2
+	xxx /= 2
+	xxx *= 2 ** 2 ** 2 
+	
+	return "" + ar + ": " + xxx
+}
+
+~~~~~
+//##14.5 - all autoboxing unboxing combinations when calling constructors
+
+def doings() String {
+	ff float = new Float(6)
+	ff2 Float = new Float(6)
+	ff3 Float = 6f
+	return "" + ff + ": " + ff2 + ": " + ff3
+}
+
+~~~~~
+//##14.6 - prefix, postfix and neg sign
+
+def doings() String {
+	ff = -new Float(6)
+	ff2 = -new Float(6)
+	ff--
+	ff2++
+	--ff
+	++ff2
+	
+	ffRefee = -ff
+	ff2Refee = -ff2
+	
+	gg  = new Float(6)
+	gg2 = new Float(6)
+	
+	a1 = gg--
+	a2 = --gg
+	a3 = gg2++
+	a4 = ++gg2
+	
+	
+	return "" + [ff, ff2] + [ffRefee, ff2Refee] + [gg, gg2] + [a1, a2, a3, a4]
+}
+
+~~~~~
+//##14.7 autoboxing - and or not
+def some(g Boolean) Boolean{
+	return g and true and g;
+}
+
+
+def some2(g boolean) boolean{
+	return g and true and g;
+}
+
+def some3(g Boolean) boolean{
+	return g and true  and g;
+}
+
+def some4(g boolean) Boolean{
+	return g and true and g;
+}
+
+
+def someOr(g Boolean) Boolean{
+	return g or true or g;
+}
+
+def some2Or(g boolean) boolean{
+	return g or true or g;
+}
+
+def some3Or(g Boolean) boolean{
+	return g or true or g;
+}
+
+def some4Or(g boolean) Boolean{
+	return g or true or g;
+}
+
+def doings() String {	
+
+	cool1 boolean = some(true)
+	cool2  = some2(true)
+	cool3  = some3(true)
+	cool4  = some4(true)
+	
+	cool1Inv boolean = someOr(true)
+	cool2Inv  = some2Or(true)
+	cool3Inv  = some3Or(true)
+	cool4Inv  = some4Or(true)
+	
+	ocool1 boolean = some(false)
+	ocool2  = some2(false)
+	ocool3  = some3(false)
+	ocool4  = some4(false)
+	
+	ocool1Inv boolean = someOr(false)
+	ocool2Inv  = some2Or(false)
+	ocool3Inv  = some3Or(false)
+	ocool4Inv  = some4Or(false)
+	
+	andTheNot Boolean = not new Boolean(true)
+	andTheNot2 Boolean = not new Boolean(false)
+	
+	oandTheNot boolean = not new Boolean(true)
+	oandTheNot2 boolean = not new Boolean(false)
+	
+	nn1 Boolean =   new Boolean(true)
+	nn2 boolean =   new Boolean(true)
+	
+	return "" + [cool1, cool2, cool3, cool4] + [cool1Inv, cool2Inv, cool3Inv, cool4Inv] + [ocool1, ocool2, ocool3, ocool4] + [ocool1Inv, ocool2Inv, ocool3Inv, ocool4Inv] + [andTheNot, andTheNot2, oandTheNot, oandTheNot2] + [nn1, nn2]
+}
+
+
+~~~~~
+//##15 list gets translated into objlist - TODO: fix moi
+
+def doings() String {
+	ss Object[] = [1 new Integer(2) 3.0 "" 5 6]
+	return "" + ss;
+}
+
+~~~~~
+//##16.1 generic - use existing
+
+from java.util import ArrayList
+
+def doings() String {
+	ar  ArrayList<String> = new ArrayList<String>();
+	ar2 = new ArrayList<String>();
+	ar.add("hi")
+	ar2.add("there")
+	
+	return "" + ar + ar2;
+}
+
+
+~~~~~
+//##16.1 generic - user defined class
+
+class MyClass<Xxx>(~x Xxx[]){ }
+
+def doings() String {
+	a = new MyClass<String>(["hi" "there"]) //const
+	a.x = ["hi" "there2"] //setter
+	return "" + a.x //getter
+}
+
+~~~~~
+//##16.2 generic - user der with boxing etc
+
+class MyClass<Xxx, Y, Z>(~x Xxx[], ~y Y, ~z Z){ }
+
+def doings() String {
+	a = new MyClass<String, Integer, String>(["hi" "there"], 99, "hi") //const
+	a.x = ["hi" "there2"] //setter
+	a.x[1] += "mate"//since we are operating on a generic array this normally triggers a cast - which causes a copy sadly, however, the array is already of the desired type, so no casting is needed and so no copy is made
+	a.y +=1
+	a.z += 89
+	return "" + a.x + a.y + a.z  //getters
+}
+
+~~~~~
+//##17.1 superclass invoke
+
+open class Sup(~x String){}
+
+class Child(s String) extends Sup(s){}
+
+class Child2() extends Sup("wassup"){}
+
+def doings() String {
+	ax = [new Child("yo"), new Child2() ]
+	return "" + ax[0].x + ax[1].x //sup method
+}
+
+~~~~~
+//##17.2 superclass invoke - with generics! and constructor flavours
+
+open class Sup<X>(~x X){}
+
+class MyClass() extends Sup<String>("hi"){}
+
+class MyClass2(s String) extends Sup<String>(s){}
+
+class MyClass3<X>(x X, ~y X) extends Sup<X>(x){}
+
+
+def doings() String {
+	a = new MyClass()
+	b = new MyClass2("there")
+	c = new MyClass3<String>("whatu", "want");
+	d = new MyClass3<Integer>(99, 101);
+	return "" + [ a.x, b.x,  c.x, c.y, d.x, d.y]
+}
+
+~~~~~
+//##17.3a superclass invoke - generic fields
+
+open class Sup<X>(public x X){}
+
+class MyClass(public x String) extends Sup<String>(x + "hi"){}
+
+def doings() String {
+	a = new MyClass("mate")
+	b = new Sup<String>("hi")
+	return "" + [a\.x, b\.x]+ [a.x, b.x]
+}
+
+~~~~~
+//##17.3b superclass invoke - generic fields with accessor
+
+open class Sup<X>(public -x X){}
+
+class MyClass(public x String) extends Sup<String>(x + "hi"){}
+
+def doings() String {
+	a = new MyClass("mate")
+	b = new Sup<String>("hi")
+	return "" + [a\.x, b\.x]+ [a.x, b.x]
+}
+
+~~~~~
+//##17.4 holder generics - ensure correct checcast cast operation when retrun generic
+
+class Holder<A>(~a A){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(~x X){}
+class MyClass(x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	a = new Holder<MyClass>(new MyClass("mate"))
+	ooh = a.a.x;
+	k = a.a //ensure that this gets checkcasted
+	oohh = k.x
+	return "" + a + ", " + a.a + ", " + a.a.x + ", " + ooh
+}
+
+~~~~~
+//##17.4b holder generics - ensure correct checcast cast operation when retrun generic ARRAYS
+
+class Holder<A>(~ax A){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(~x X){}
+class MyClass(x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	stuff =  [new MyClass("mate2") new MyClass("mate3")]
+	anotherCheckCast = new Holder<MyClass[]>(stuff)
+	
+	return "" + anotherCheckCast.ax[0].x + ", " + anotherCheckCast.ax[1].x
+}
+
+~~~~~
+//##17.4b.b holder generics - ensure correct checcast cast operation when retrun generic ARRAYS -other way!
+
+class Holder<A>(~ax A[]){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(~x X){}
+class MyClass(x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	stuff =  [new MyClass("mate2") new MyClass("mate3")]
+	anotherCheckCast = new Holder<MyClass>(stuff)
+	
+	return "" + anotherCheckCast.ax[0].x + ", " + anotherCheckCast.ax[1].x
+}
+
+~~~~~
+//##18.1 superclass invoke - DIRECT Field ACCESS
+
+open class Sup(public x String){}
+
+class Child(s String) extends Sup(s){}
+
+class Child2() extends Sup("wassup"){}
+
+def doings() String {
+	ax = [new Child("yo"), new Child2() ]
+	return "" + ax[0].x + ax[1].x //sup method
+}
+
+~~~~~
+//##18.3b superclass invoke - generic fields with accessor- DIRECT Field ACCESS
+
+open class Sup<X>(public x X){}
+
+class MyClass(x String) extends Sup<String>(x + "hi"){}
+
+def doings() String {
+	a = new MyClass("mate")
+	b = new Sup<String>("hi")
+	return "" + [a\.x, b\.x]+ [a.x, b.x]
+}
+
+~~~~~
+//##18.4 holder generics - ensure correct checcast cast operation when retrun generic- DIRECT Field ACCESS
+
+class Holder<A>(public a A){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(~x X){}
+class MyClass(x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	a = new Holder<MyClass>(new MyClass("mate"))
+	ooh = a.a.x;
+	k = a.a //ensure that this gets checkcasted
+	oohh = k.x
+	return "" + a + ", " + a.a + ", " + a.a.x + ", " + ooh
+}
+
+~~~~~
+//##18.4b holder generics - ensure correct checcast cast operation when retrun generic ARRAYS- DIRECT Field ACCESS
+
+class Holder<A>(public ax A){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(public x X){}
+class MyClass(public x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	stuff =  [new MyClass("mate2") new MyClass("mate3")]
+	anotherCheckCast = new Holder<MyClass[]>(stuff)
+	
+	return "" + anotherCheckCast.ax[0].x + ", " + anotherCheckCast.ax[1].x
+}
+
+~~~~~
+//##18.4b.b holder generics - ensure correct checcast cast operation when retrun generic ARRAYS -other way!- DIRECT Field ACCESS
+
+class Holder<A>(public ax A[]){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(public x X){}
+class MyClass(public x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	stuff =  [new MyClass("mate2") new MyClass("mate3")]
+	anotherCheckCast = new Holder<MyClass>(stuff)
+	
+	return "" + anotherCheckCast.ax[0].x + ", " + anotherCheckCast.ax[1].x
+}
+
+~~~~~
+//##19 For loop - new fancy iterator style
+from java.util import ArrayList
+
+def doings() String {
+	strs = new ArrayList<String>();
+	strs.add("one"); 
+	strs.add("two"); 
+	
+	agg=""
+	for(a String in strs){
+		agg += a + ", "
+	}
+	
+	for(a in strs){
+		agg += a + ", "
+	}
+	
+	return "" + agg
+}
+
+~~~~~
+//##19.z For loop - old style dun belong here - check casts
+
+def doings() String {
+	
+	agg=""
+	
+	for(a int in [(1),2,3,4] ){
+		agg += a + ", "
+	}
+	
+	for(a int in [new Integer(1),2,3,4] ){
+		agg += a + ", "
+	}
+	
+	for(a Integer in [new Integer(1),2,3,4] ){
+		agg += a + ", "
+	}
+	
+	return "" + agg
+}
+
+~~~~~
+//##19.1 For loop - new fancy iterator style - watch out for boxing
+
+from java.util import ArrayList
+
+def doings() String {
+	strs = new ArrayList<Integer>();
+	strs.add(1); 
+	strs.add(2); 
+	strs.add(77); 
+	
+	agg=""
+	gg = 0
+	a int = new Integer(999) //no purppuse just check it gets overriden below
+	for(a Integer in strs){
+		agg += a + ", "
+		gg += a
+	}
+		
+	return "" + agg + gg
+}
+
+~~~~~
+//##19.2 For loop - new fancy iterator style - watch out for boxing
+
+from java.util import ArrayList
+
+def doings() String {
+	strs = new ArrayList<Integer>();
+	strs.add(1); 
+	strs.add(2); 
+	strs.add(77); 
+	
+	agg=""
+	gg = 0
+	a Integer = 999 //no purppuse just check it gets overriden below
+	for(a int in strs){
+		agg += a + ", "
+		gg += a
+	}
+		
+	return "" + agg + gg
+}
+
+~~~~~
+//##19.3 For loop - new fancy iterator style - watch out for boxing
+
+from java.util import ArrayList
+
+def doings() String {
+	strs = new ArrayList<Integer>();
+	strs.add(1); 
+	strs.add(2); 
+	strs.add(77); 
+	
+	agg=""
+	gg = 0
+	a = 999 //no purppuse just check it gets overriden below
+	for(a in strs){
+		agg += a + ", "
+		gg += a
+	}
+		
+	return "" + agg + gg
+}
+
+
+~~~~~
+//##19.4 For loop - new fancy iterator style - oh it works
+
+from java.util import ArrayList
+
+def doings() String {
+	strs = new ArrayList<ArrayList<String>>();
+	first = new ArrayList<String>();
+	first.add("hi"); 
+	first.add("there"); 
+	second = new ArrayList<String>();
+	second.add("wass");
+	second.add("up");
+	
+	strs.add(first)
+	strs.add(second)
+	
+	output=""
+	for(a in strs){
+		for( b in a){
+			output += b
+		}
+		output += ": "
+	}
+		
+	return "" + output
+}
+~~~~~
+//##19.4b For loop - new fancy iterator style - oh it works
+
+from java.util import ArrayList
+
+def doings() String {
+	strs = new ArrayList<ArrayList<String>>();
+	first = new ArrayList<String>();
+	first.add("hi"); 
+	first.add("there"); 
+	second = new ArrayList<String>();
+	second.add("wass");
+	second.add("up");
+	
+	strs.add(first)
+	strs.add(second)
+	
+	output=""
+	for(a ArrayList<String> in strs){
+		for( b  in a){
+			output += b
+		}
+		output += ": "
+	}
+		
+	return "" + output
+}
+
+
+~~~~~
+//##20.1 nested class - simple decl
+class Outer
+{
+	override def toString() String {return "Outer" }
+	x = 99
+
+	public class Inner {override def toString() String {return "Inner" } }
+	public class SubB {override def toString() String {return "SubB" } }
+}
+
+
+def doings() String {
+	out = new Outer();
+
+	ok1 = out.new Inner();
+	ok2 Outer.Inner = out.new Inner();
+
+	ok3 SubB = out.new SubB();
+
+	return "" + [out , ok1, ok2, ok3]
+}
+
+~~~~~
+//##20.2-a nested class - constructors
+class Outer(){ x = 99
+	public class Inner(public ~y int) {}
+}
+
+def doings() String {
+	out = new Outer();
+	inner = out.new Inner(12);
+	return "" + inner.y + inner\.y
+}
+
+~~~~~
+//##20.2-b nested class - double nested constructors
+
+class Outer(){ x = 99
+	public class Inner(public ~y int) {
+		public class Inner2(public ~y int){}
+	}
+}
+
+def doings() String {
+	out = new Outer();
+	inner = out.new Inner(12);
+	inner2 = inner.new Inner2(24);
+	return "" + inner2.y + inner2\.y
+}
+
+~~~~~
+//##20.3 nested class - vars funcs and classes direct and indirect
+
+class Outer(public x int){ 
+
+	def outerFun() int { return 67; }
+
+	public class AnotherInner(public g int) {
+		def messup() int[] {
+			return [g x]
+		}
+	}
+
+	public class Inner() {
+		y = 1
+		def func() int { return x }
+		def outerf() int { return outerFun() }
+		def anotherM() AnotherInner { return new AnotherInner(12) }
+		def watchout(otter Outer) AnotherInner { return otter.new AnotherInner(x) }
+		
+		public class InnerInner(){
+			z = 1
+			def func() int { return x + y }
+			def outerf() int { return outerFun() }
+			def anotherM() AnotherInner { return new AnotherInner(12) }
+			def watchout(otter Outer) AnotherInner { return otter.new AnotherInner(x) }
+			
+			public class InnerInnerInner(){
+				def func() int { return x + y + z }
+				def outerf() int { return outerFun() }
+				def anotherM() AnotherInner { return new AnotherInner(12) }
+				def watchout(otter Outer) AnotherInner { return otter.new AnotherInner(x) }
+			}
+		}
+	}
+}
+
+def doings() String {
+	out = new Outer(99);
+	inner = out.new Inner();
+	innerInner = inner.new InnerInner();
+	innerInnerInner = innerInner.new InnerInnerInner();
+	
+	funcs = [inner.func() , innerInner.func() , innerInnerInner.func()]
+	outerFuncRefs = [inner.outerf() , innerInner.outerf() , innerInnerInner.outerf()]
+	anotherMs = [inner.anotherM().g , innerInner.anotherM().g , innerInnerInner.anotherM().g]
+	
+	tricksterHelper = new Outer(101);
+	
+	tricky = [inner.watchout(tricksterHelper).messup() , innerInner.watchout(tricksterHelper).messup() , innerInnerInner.watchout(tricksterHelper).messup()]
+	
+	return "" + funcs + outerFuncRefs + anotherMs + tricky
+}
+
+~~~~~
+//##20.4a nested class - nested var pre post operations
+
+class Outer(public x int, public y int){ 
+
+	public class Inner() {
+		def func() int { return x++ }
+		def func2() int { return ++x }
+		def func3() int { y += 2; y *= 2; y **=.5; return y }
+	}
+}
+
+def doings() String {
+	out = new Outer(99, 150);
+	inner = out.new Inner();
+	
+	return "" + [ inner.func(), inner.func2(), inner.func3(), out.x, out.y ]
+}
+
+~~~~~
+//##20.4b nested class - nested var pre post operations accessors
+
+class Outer(~x int, ~y int){ 
+
+	public class Inner() {
+		def func() int { return x++ }
+		def func2() int { return ++x }
+		def func3() int { y += 2; y *= 2; y **=.5; return y }
+	}
+}
+
+def doings() String {
+	out = new Outer(99, 150);
+	inner = out.new Inner();
+	
+	return "" + [ inner.func(), inner.func2(), inner.func3(), out.x, out.y ]
+}
+
+
+~~~~~
+//##20.5a nested class - array operations
+class Outer(public x int[], public y int[]){ 
+
+	public class Inner() {
+		def func() int { return x[0]++ }
+		def func2() int { return ++x[0] }
+		def func3() int { y[0] += 2; y[0] *= 2; y[0] **=.5; return y[0] }
+	}
+}
+
+def doings() String {
+	out = new Outer([99], [150]);
+	inner = out.new Inner();
+	
+	return "" + [ inner.func(), inner.func2(), inner.func3(), out.x[0], out.y[0] ]
+}
+
+
+~~~~~
+//##20.5b nested class - array operations via accessors
+class Outer(public x int[], public y int[]){ 
+
+	public class Inner() {
+		def func() int { return x[0]++ }
+		def func2() int { return ++x[0] }
+		def func3() int { y[0] += 2; y[0] *= 2; y[0] **=.5; return y[0] }
+	}
+}
+
+def doings() String {
+	out = new Outer([99], [150]);
+	inner = out.new Inner();
+	
+	return "" + [ inner.func(), inner.func2(), inner.func3(), out.x[0], out.y[0] ]
+}
+
+~~~~~
+//##20.6 nested class - call superclass stuff
+
+open class Sup{
+	x = [1,1,1]
+	def someth() int{
+		ret=  0
+		for(a in x){
+			ret += a
+		}
+		return ret
+		
+	}
+}
+
+class Outer extends Sup{
+	public class Inner() {
+		def func() int { return x[0]++ }
+		def func1() int { return x[0] }
+		def func2() int { return someth() }
+	}
+}
+
+def doings() String {
+	out = new Outer();
+	inner = out.new Inner();
+	
+	return "" + [ inner.func(), inner.func1(),  inner.func2()]
+}
+
+~~~~~
+//##20.7a nested class - generics 1
+
+class Outer<X>(~x X){
+	public class Inner() {
+		def func() X { return x }
+		def func1() X { return getX() }
+	}
+}
+
+def doings() String {
+	out = new Outer<String>("hi there");
+	inner = out.new Inner();
+	
+	return "" + [ inner.func(), inner.func1()]
+}
+
+~~~~~
+//##20.7b nested class - generics 2
+class Outer<X>(~x X){
+	public class Inner<Y>(~y Y) {
+		def func() X { return x }
+		def func1() X { return getX() }
+	}
+}
+
+def doings() String {
+	out = new Outer<String>("hi there");
+	inner = out.new Inner<Integer>(99);
+	
+	return "" + [ inner.func(), inner.func1(), inner.y]
+}
+
+~~~~~
+//##20.7c nested class - generics 3
+open class Sup<X>(~x X){}
+
+class Outer<X>(x X) extends Sup<X>(x){
+	public class Inner<Y>(~y Y) {
+		def func() X { return x }
+		def func1() X { return getX() }
+	}
+}
+
+def doings() String {
+	out = new Outer<String>("hi there");
+	inner = out.new Inner<Integer>(99);
+	
+	return "" + [ inner.func(), inner.func1(), inner.y]
+}
+
+~~~~~
+//##21. abstract classes
+open class Sup(){ def aFun() int }
+//well, that was easy!
+class Child extends Sup{
+	def aFun() int { return 66; }
+}
+
+def doings() String {
+	child = new Child()
+	return "" + child.aFun() 
+}
+
+~~~~~
+//##22. no bridge method needed
+from java.util import ArrayList
+
+class Function1x<Input1, Output> {
+	def apply(i1 Input1 ) Output
+} 
+
+class Lam(opon ArrayList<String>) extends Function1x<Integer, String>  {
+	
+	def apply(i1 Integer ) String {
+		return this.opon.get(i1);
+	}
+	//normally here we'd need a bridge method, but because we dont have coveriant [return] types or support raw types we're ok...
+}
+
+def doings() String {
+	ooo = new ArrayList<String>();
+	ooo.add("hi");
+	ooo.add("there");
+	l = new Lam(ooo);
+	return "" + l.apply(1)
+}
+
+~~~~~
+//##23. ensure that u can have nested classes inherit from their own parent nestor
+open class My{
+	public class Mini extends My{public x=7}
+}
+
+def doings() String{
+	m = new My().new Mini()
+	return "Hello world" + m.x
+}
+
+~~~~~
+//##24.use of generics, arrays of prims
+
+one = [1 2 3]
+two = [4 5 6]
+
+class MyGen<X>(public ~x X){}
+
+def doings() String{
+	//my = new MyGen<Integer>(2)
+	my = new MyGen<int[]>(one)
+	my.x = two
+	got = my.x
+	return "" + my\.x //other got
+}
+
+~~~~~
+//##25. catch all the exptions throwable
+def ttt() => true
+def doings() String{
+try{
+	if(ttt()){throw new Exception("ok")}
+	return "FAIL"
+	} catch(e){
+		return e.getMessage()
+	}
+}
+
+
+~~~~~
+//##26. test empty array toString
+from java.util import ArrayList
+
+def doings() String{
+	h1 = new ArrayList<int[]>[4]  
+	h2 = new ArrayList<String[]>[4] 
+			
+	return "empty:" + h1  +"::" + h2//nully
+}
+
+~~~~~
+//##27. dict def 1
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{
+	xxx = new HashMap<String, String>()
+	xxx.put("hi", "there")
+	xxx.put("wassup", "mate")
+	
+	xxx2 = {"wassup2" -> "mate2", "hi2" -> "there2"}
+	xxx3 = {"wassup2" -> 1, "hi2" -> 2}
+	xxx4 = {1-> "wassup2", 2-> "hi2" }
+	xxx5 = {1-> [1,2,3], 2-> [2,3,4] }
+	xxx6 = {"one" -> {1->2, 3->4}, "two" -> {1->2, 3->4}}
+		
+	return "" + xxx + "\n" + xxx2+ "\n" + xxx3+ "\n" + xxx4+ "\n" + xxx5+ "\n" + xxx6
+}
+
+~~~~~
+//##28. null eq optimization
+
+def doings() String{
+	nulls String[] = [null null null null  null  null as String]
+	notnulls String[] = ["ok" "ok" "ok" "ok" "ok" "ok" as String]
+	
+	def proc(dd String[], dda String) String[]{
+		if(dd[0] == null){
+			dd[0] = dda
+		}
+		
+		if(null == dd[1] ){
+			dd[1] = dda
+		}
+		
+		if(not (dd[2] <> null)){
+			dd[2] = dda
+		}
+		
+		if(not (null <> dd[3]) ){
+			dd[3] = dda
+		}
+		
+		if(dd[4] == null == true){
+			dd[4] = dda
+		}
+		
+		if(dd[5] == null <> false){
+			dd[5] = dda
+		}
+		
+		return dd
+	}
+	
+	return ""  + proc(nulls, "ok") + proc(notnulls, "fail")
+}
+
+~~~~~
+//##28. null eq optimization via ifexpr
+
+def doings() String{
+	nulls String[] = [null null null null  null  null as String]
+	notnulls String[] = ["ok" "ok" "ok" "ok" "ok" "ok" as String]
+	
+	def proc(dd String[], dda String) String[]{
+		dd[0] = dda if dd[0] == null else dd[0]
+		dd[1] = dda if null == dd[1] else dd[1]
+		dd[2] = dda if not (dd[2] <> null) else dd[2]
+		dd[3] = dda if not (null <> dd[3]) else dd[3]
+		dd[4] = dda if dd[4] == null == true else dd[4]
+		dd[5] = dda if dd[5] == null <> false else dd[5]
+		
+		return dd
+	}
+	
+	return ""  + proc(nulls, "ok") + proc(notnulls, "fail")
+}
+
+~~~~~
+//##29. default dict impl tests a few things
+
+from java.util import ArrayList, List, Map, HashMap
+
+class DefaultDict<K, V>(dd V) extends HashMap<K,V>{
+
+	override def get(k Object) V{
+		ret V? = super.get(k)//invoke special
+		if(null == ret){
+			ret = dd
+			put(k, ret)//invoke virtual
+			super.put(k, ret)//double set to try both - > invokespecial
+		}
+		return ret
+	}
+} 
+
+
+def doings() String{
+	dd = new DefaultDict<String, String>("default") 
+	dd["there"] += " mate"
+	//dd["there"] this on it's own is ok because it calls a function under the hoods
+	s = dd["hi"]
+	return "" + dd
+}
+
+~~~~~
+//##29. default dict impl tests a few things b - more correct impl i think shakes fist at java
+
+from java.util import ArrayList, List, Map, HashMap
+
+class DefaultDict<K, V>(dd V) extends HashMap<K,V>{
+
+	//override def get(k K) V{
+	def get(k K) V{
+		ret V? = super.get(k)//invoke special
+		if(null == ret){
+			ret = dd
+			put(k, ret)//invoke virtual
+			super.put(k, ret)//double set to try both - > invokespecial
+		}
+		return ret
+	}
+} 
+
+
+def doings() String{
+	dd = new DefaultDict<String, String>("default") 
+	dd["there"] += " mate"
+	//dd["there"] this on it's own is ok because it calls a function under the hoods
+	s = dd["hi"]
+	return "" + dd
+}
+
+~~~~~
+//##30. you cant do this in java
+
+def cahpo2( o Integer) String { return "cool" + o; }
+ 
+res = cahpo2( 5.0);///auto convert from double to int, double -> int -> Integer
+
+//this is also ok
+
+def sdf(h Long) String {return ""+h}
+
+g Long = 9;
+
+ff = sdf(9) //int -> long -> Long
+
+def doings() String{
+	return "" + res + ":" + ff
+}
+
+
+~~~~~
+//##30. call functions taking objects which implement interface desired
+
+from java.util import ArrayList, List, Map, HashMap
+
+
+def doings() String{
+	myList = [new HashMap<Integer, Integer>()]
+	myList[0][0]=7
+
+	ll = new ArrayList<Map<Integer, Integer>[]>()
+	ll.add(myList)//hashmap being set to map
+	ll.add([new HashMap<Integer, Integer>()])//hashmap being set to map direct
+	
+	return ""+ll
+}
+
+~~~~~
+//##31. import a final var
+
+from java.awt import Color
+
+bet = Color.black
+
+def doings() String{
+	return "" + bet
+}
+
+~~~~~
+//##32. does gen ppp correctly
+
+open class Cls{
+	public def methpub() {}
+	protected def methprotect() {}
+	private def methprivat() {}
+	
+	
+	def sdfsdf() {
+		methpub()//ok
+		methprotect()//ok
+		methprivat()//ok
+		this.methpub()//ok
+		this.methprotect()//ok
+		this.methprivat()//ok
+	}
+	
+	def takesOwn(inst Cls){
+		inst.methpub()//ok
+		inst.methprotect()//ok
+		inst.methprivat()//ok
+	}
+}
+
+open class ClsSup{
+	public def methpub() {}
+	protected def methprotect() {}
+	private def methprivat() {}
+	
+	open class ClsChiNestee{
+		def takesOwn(inst ClsSup){
+			inst.methpub()//ok
+			inst.methprotect()//ok
+			inst.methprivat()//ok
+		}
+	}
+}
+
+
+def funco(){
+	c = new Cls()
+	c.methpub() //ok
+	//c.methprotect() //fail
+	//c.methprivat()//fail
+}
+
+class Chi extends Cls{
+	def sdfsdfxcx() {
+		super.methpub()//ok
+		super.methprotect()//ok
+		//super.methprivat()//fail
+		
+		methpub()//ok
+		methprotect()//ok
+		//methprivat()//fail
+	}
+}
+
+def doings() String{
+	return "yeah, probably"
+}
+
+~~~~~
+//##33. make sure arrays get cast correctly
+
+def main() String  {
+    ia1 int[] = [ 1  2 ];
+    ia2 int[] = ia1.clone();
+    res = (ia1 == ia2) + " "
+    ia1[1]++;
+    res += ia2[1];//still 2
+    
+    return res
+}
+
+def main2( ) String  {
+	ia Integer[2] = [ Integer(1) 2 ; null  ]
+	ja Integer[2] = ia.clone()
+    res = (ia == ja) + " ";
+    res += (ia[0] == ja[0]) and (ia[0] == ja[0]) //no npe
+    return res
+}
+
+//TODO try other == variant
+def doings() String{
+	return "" + main() + ":" + main2()
+}
+
+~~~~~
+//##34.1 exceptions properly - correct early termination simple case
+
+def doings2(fail boolean) String{
+	try{
+		if(fail){ throw new Exception("fail as expected") }
+		return "Hello world"//early termination
+	}
+	catch(e Exception){
+		return e.getMessage();
+	}
+}
+
+def doings() String{
+	return "" + [doings2(false), doings2(true)]
+}
+
+~~~~~
+//##34.2 exceptions properly - correct no early term
+
+def doings2(fail boolean) String{
+	g String
+	try{
+		if(fail){ throw new Exception("fail as expected") }
+		g= "Hello world"//early termination
+	}
+	catch(e Exception){
+		g= e.getMessage();
+	}
+	return g
+}
+
+def doings() String{
+	return "" + [doings2(false), doings2(true)]
+}
+
+~~~~~
+//##34.3 exceptions properly - branching logic should need an extra try catch but ok hmmm
+
+failon int = 0
+
+def blowUp(ona int){
+	if(failon==ona){
+		throw new RuntimeException("exception NOT caught, ")
+	}
+}
+
+def doings2(fail boolean) String{
+	g = "wrong"
+	try{
+		if(fail){
+			blowUp(1) 
+			g= "fail as expected, " 
+		}
+		else{
+			blowUp(2)
+			return "All ok, "//early termination
+		}
+	}
+	catch(e Exception){
+		g= "exception caught, "
+	}
+	blowUp(3)
+	return g
+}
+
+def doings() String{
+	res = ""
+	failon=1
+	res += doings2(false) == "All ok, "
+	res += doings2(true)  == "exception caught, "
+	failon=2
+	res += doings2(false) == "exception caught, "
+	res += doings2(true)  == "fail as expected, " 
+	failon=3
+	res += doings2(false) == "All ok, "
+	try{
+		res += doings2(true)
+	}catch(e Exception){ res+= "true" }
+	return "" + res
+}
+
+~~~~~
+//##34.4 exceptions properly - early term via break, again, seems ok...
+
+def doingsa(fail boolean) String{
+	n = 0
+	while(true){
+		try{
+			if(n++ == 10){
+				if(fail){ throw new Exception("excep: " + n); }
+				break
+			}
+			n++
+		}
+		catch(e Exception){
+			return e.getMessage()
+		}
+	}		
+	return "no excep: " + n
+}
+
+
+def doings() String{
+	return "Hello world" + [doingsa(false), doingsa(true)]
+}
+
+~~~~~
+//##35 dunno what this does but its in the spec and is somewhat complex
+//#Ignore WARN
+@SuppressWarnings("all")
+
+class A<T> ~ java.io.Serializable {//not marked as clonable
+     override clone() T[]  {
+        try {
+            return super.clone() as T[]
+        } catch (e CloneNotSupportedException) {
+           throw new RuntimeException("excep");
+        }
+    }
+}
+
+def doings() String{
+	try{
+		x = (new A<String>()).clone()
+	}
+	catch(e Exception){
+		assert e.getMessage() == "excep" 
+	}
+	return "Hello world"
+}
+
+
+~~~~~
+//##36 ppp - calling methods whith are ppp - dynamic binding to one which is visible
+
+class Molly{
+	private def meth(a String){}
+	public def meth(a Object){}
+}
+
+def doings() String{
+	(new Molly()).meth("");
+	return "Hello world"
+}
+
+~~~~~
+//##37 ppp - accessability of constructors - extend in childclass
+open class Molly{
+	val -x int
+	private this(x int){
+		this.x = x
+	}
+	
+	protected this(x int, y int){
+		this.x = x
+	}		
+	
+	this(){
+		this(12)
+	}
+}
+
+class Dolly extends Molly{
+	this(g int){
+		super() // ok
+	}
+
+	this(g int, f int){
+		super(g,f) // ok
+	}
+	
+	this(){
+	}
+}
+
+ 
+def doings() String{
+	d = new Dolly()
+	new Dolly(12)
+	new Dolly(12, 13)
+	return "Hello world" + d.x
+}
+
+~~~~~
+//##38 ppp - accessability of constructors - extend in childclass precomp class extend in childclass
+from com.concurnas.lang.precompiled.PrivatePublicProtected import MollyPreDef
+
+class Dolly extends MollyPreDef{
+	this(g int){
+		super() // ok
+	}
+
+	this(g int, f int){
+		super(g,f) // ok
+	}
+	
+	this(){
+		//super(1) // fail as private
+	}
+}
+
+ 
+def doings() String{
+	d = new Dolly()
+	new Dolly(12)
+	new Dolly(12, 13)
+	return "Hello world" + d.x
+}
+
+~~~~~
+//##39 ppp - accessability of constructors - extend in childclass precomp class extend in childclass direct invoke par
+from com.concurnas.lang.precompiled.PrivatePublicProtected import MollyPreDef
+
+public class Ab{
+	def doings() String{
+		m = new MollyPreDef()
+		//new MollyPreDef(12)//fail - not accesible
+		//new MollyPreDef(12, 13)//fail - not accesible
+		return "Hello world" + m.x
+	}
+}
+
+def doings() String{
+	return "" + (new Ab()).doings();
+}
+
+~~~~~
+//##40 ppp - accessability of constructors - extend in childclass precomp class extend in childclass direct invoke par
+
+from com.concurnas.lang.precompiled.PrivatePublicProtected import publicModLevel
+from com.concurnas.lang.precompiled.PrivatePublicProtected import aFunction
+from com.concurnas.lang.precompiled.PrivatePublicProtected import aFunctionPrivate
+from com.concurnas.lang.precompiled.PrivatePublicProtected import aFunctionProtected
+
+
+//import predef function as well
+
+def doings() String{
+	xxx = aFunction("")
+	return "Hello world" + [""+publicModLevel,  xxx]
+}
+
+~~~~~
+//##41 ppp - vars dont override
+
+public open  class One{
+	public g = 99;
+}
+
+public class Chi1 extends One{
+	public g = 9;
+}
+
+def doings() String{
+	xxx = new Chi1()
+	return "Hello world" + [xxx.g, (xxx as One).g] //vars dont override
+}
+
+~~~~~
+//##42 ppp - private static variable or function can only be accessed with an accessor inside nested classes - dumb i know
+
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hey"); 
+
+private def sdf() int{
+	return 3;
+}
+
+class MM{
+	def getMethRef() String{
+		xxx = ar.get&(? int)
+		return  "" + ar.get(0) + sdf() + xxx(0)
+	}
+}
+
+def doings() String {
+	return "" + new MM().getMethRef()
+}
+
+~~~~~
+//##43 ppp - private static lambdas - cool worked first time
+
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hey"); 
+
+private xxx = ar.get&(? int)
+
+def doings() String {
+	return "" +xxx(0)
+}
+
+~~~~~
+//##44 ppp - private static lambdas - cool worked first time - needs accessor
+
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hey"); 
+
+private xxx = ar.get&(? int)
+
+class MM{
+	def doings() String {
+		y = xxx //wow!
+		r = xxx(0) +y(0)
+		return "" + r
+	}
+}
+
+def doings() String {
+	return "" + new MM().doings()
+} 
+
+~~~~~
+//##45 misc ensure the other eq type works - ugly test shouldnt be here but meh
+def main() String  {
+    ia1 int[] = [ 1 2 ];
+    ia2 int[] = ia1.clone();
+    res = (ia1 &<> ia2) + " "
+    ia1[1]++;
+    res += ia2[1];
+    
+    return res
+}
+
+def main2( ) String  {
+	ia Integer[2] = [ Integer(1) 2 ; null  ]
+	ja Integer[2] = ia.clone()
+    res = (ia &<> ja) + " ";
+    res += (ia[0] &== ja[0]) and (ia[0] &== ja[0]) //no npe
+    return res
+}
+
+//TODO try other == variant
+def doings() String{
+	return "" + main() + ":" + main2()
+}
+
+~~~~~
+//##46 default equals implementation - basics
+
+class MyClas(x int, y int){}
+
+open class SupCls(z int){}
+
+class Child(x int, y int, zz int) extends SupCls(zz+2){}
+
+def doings() String{
+	a = new MyClas(1,2)
+	b = new MyClas(1,2)
+	c = new MyClas(1,23)
+	
+	c1 = new Child(1,2,3)
+	c2 = new Child(1,2,32)
+	c3 = new Child(1,4,3)
+	c4 = new Child(1,4,3)
+	
+	//t,t, t, f, f, f	
+	simple = ""+ [[a&==a, a==a], [a==b, a&==b], [a==c, a&==c], ]
+
+	//only first and last is true...		
+	simpleSup = ""+ [[c1&==c1, c1==c1, c2&==c2, c2==c2, c3&==c3, c3==c3,], [c1==c2, c1==c3, c1==c4], [c2==c3, c2==c4], [c3==c4]]
+	
+	//false
+	ovios = "" + [a == new Object(),] 
+	
+	return "" + simple + "\n" + simpleSup+"\n"+ovios
+}
+
+~~~~~
+//##47 simple arrays equality
+
+class ClsWithFields{
+	a = "stringola"
+}
+
+class Child{
+	strola String[]?
+}
+
+def doings() String {
+	cc2 = new Child()
+	cwf = new ClsWithFields()
+	cwf2 = new ClsWithFields()
+	nf = not (cc2 == null)
+	x = not ([1,2,3] == null)
+	\also = [1,2,3] == [1,2,3]//make sure that these call my special function too
+	//map to equals function
+	return "" + [ (cc2==cc2), (cwf==cwf2) , \also, nf, x]
+}
+
+~~~~~
+//##48 default equals for funcrefs
+
+class AClass(x int){
+	def pairMeth(a int, o Object, b int) int { return a+b; }
+}
+
+myclass1 = new AClass(0)
+myclass2 = new AClass(0)
+myclass3 = new AClass(1)
+
+yy  = myclass1.pairMeth&(6, "", ? int)
+yy2 = myclass1.pairMeth&(6, "", ? int)
+yy3 = myclass2.pairMeth&(6, "", ? int)
+yy4 = myclass3.pairMeth&(6, "", ? int)//diff obj
+n1 = myclass1.pairMeth&(6, new Object(), ? int)
+n2 = myclass1.pairMeth&(6, new Object(), ? int)
+n3 = myclass1.pairMeth&(6, new Float(3), ? int)
+
+def pairMeth2(a int, o Object, b int) int { return a+b; }
+def pairMeth(a int, o Object, b int) int { return a+b; }
+pyy  = pairMeth&(6, "", ? int)
+pyy2 = pairMeth&(6, "", ? int)
+pyy3 = pairMeth&(7, "", ? int)
+pyy4 = pairMeth&(7, "", ? int)
+pyy5 = pairMeth2&(7, "", ? int)
+
+
+def doings() String{//all true
+	return "" + [[ yy == yy2, yy<> yy3, yy <> yy4, n1<> n2, n1<> n3],
+		[pyy == pyy2, pyy <> pyy3, pyy <> pyy4, pyy4 <> pyy5]]
+}
+
+~~~~~
+//##49 default equals class must match exactly
+
+open class MySupClass(x int){ }
+class MyChildClass(x int, y int) extends MySupClass(x){ }
+
+def doings() String{
+	sup = new MySupClass(1)
+	chi = new MyChildClass(1,2)
+	return "" + [sup<>chi,]//not the same as diff class
+}
+
+~~~~~
+//##50 default equals for lambdas
+lam1 = def (a int, b int) int { return a+b; } 
+lam2 = def (a int, b int) int { return a+b; } 
+lam3 = def (a int, b int) int { return a-b; } 
+lamObj1 = def (a Object, b Object) boolean { return a==b; } 
+lamObj2 = def (a Object, b Object) boolean { return a&==b; } 
+
+
+class MyCls{
+	public lam2 = def (a int, b int) int { return a+b; } 
+	public lam1 = def (a int, b int) int { return a+b; } 
+	public lam3 = def (a int, b int) int { return a-b; } 
+	public lamObj1 = def (a Object, b Object) boolean { return a==b; } //in the past an erronous load of ALOAD 0 was being triggered
+	public lamObj2 = def (a Object, b Object) boolean { return a&==b; } 
+}
+
+def doings() String{//all true
+	mc = new MyCls()
+	return "" + [lam1==lam2, lam1<>lam3, lamObj1<>lamObj2] + [mc.lam1 == mc.lam2, mc.lam1 <> mc.lam3, mc.lam1.equals(mc.lam2), mc.lam1(1,2) == mc.lam2(1,2), mc.lamObj1<>mc.lamObj2   ]
+}
+
+~~~~~
+//##51 default equals for inner functions
+
+def top(x int) (int, int) int{
+	
+	def inner(a int, b int, c int) int {
+		return a+b+c
+	} 
+	return inner&(? int, ? int, x)
+}
+
+def doings() String{
+	mydef = top(1)
+	myFunclone = top(1)
+	myFun2 = top(2)
+	return "" +  [mydef == myFunclone, mydef <> myFun2] + myFunclone(2,3)
+}
+
+~~~~~
+//##52 correctly box up and set type of list with null element
+
+ar1 = [1  null];//1 gets boxed up as object
+
+def doings() String {
+	isIntAr = ar1 is Integer[]
+	clsName =  ar1.getClass().getName()
+	return "" + [ar1 , isIntAr] + " : " + clsName
+}
+
+~~~~~
+//##53 correctly box up and set type of list with null element -2
+
+ar1 = [Integer(1) 2 ; null]
+
+def doings() String {
+	
+	isIntAr = ar1 is Integer[2]
+	clsName =  ar1.getClass().getName()
+	return "" + [ar1 , isIntAr] + " : " + clsName
+}
+
+~~~~~
+//##54 correctly box up and set type of list with null element -3
+ 
+ar1 = [null null]
+xyz = null //also this is null -> Object - this is ok
+
+def doings() String {
+	
+	isIntAr = ar1 is Object[]
+	clsName =  ar1.getClass().getName()
+	return "" + [ar1 , isIntAr] + " : " + clsName + " : " + xyz
+}
+
+~~~~~
+//##55 various types of list being instantiated
+
+def doings() String {
+	ok String?[] = [null as String  null   ]
+	ok2 Object?[] = [null  null   ]
+	notOkObj = [null  null]   //ok - object array!
+	notOk2 String?[] = [null  null] //ok, rhs cast
+	notOk2 = [null  null  null] //ok, rhs cast
+	return "" + notOk2;
+}
+
+~~~~~
+//##56 null list as argument gets cast to approperiate type
+
+def functo(arg Object?) String{
+	return "Object" + arg
+} 
+
+
+def functo(arg Object?[]) String{
+	return "Object[]"+ arg
+} 
+
+
+def functo(arg String?[]) String{
+	return "nice String"
+} 
+
+
+def doings() String {
+	return "" + functo( [null null]) + functo(new Object[2, 4]);
+}
+
+~~~~~
+//##56 null list on multildir array
+
+thisIsFine int[3] = [null]
+thisIsFine = [null null]
+
+def doings() String {
+	return ""  + thisIsFine
+}
+
+~~~~~
+//##57 just wanted to double check this functionality
+
+class MyClass{
+	public x int
+	
+	def setX(a String){
+		x=9
+	}
+}
+
+def doings() String{
+	mc = new MyClass()
+	mc.x = "12"
+	return "its fine: " + mc.x
+}
+
+~~~~~
+//##58 check setters when using null lists
+
+class MyClass{
+	~x int[2]?
+	~x2 Integer[2]?
+	
+	override def equals(a Object) boolean{
+		return true
+	}
+}
+
+def doings() String{
+	mc = new MyClass()
+	mc.x = [null null]//this is not ok
+	mc.x2 = [null null]//this is ok
+	return "" + mc.x+ ":" + mc.x2
+}
+
+~~~~~
+//##59 null lists on if epxrs
+def ttt() => true
+myPiggie1 = [null  null] if ttt() else [null  null]
+myPiggie2 Object[]? = [null  null] if ttt() else [null  null]
+myPiggie3 Integer[]? = [null  null] if ttt() else {f=9; [null  null]}
+
+def doings() String{
+	return ""+ [myPiggie1, myPiggie2, myPiggie3]
+}
+
+~~~~~
+//##60 nested null list
+//not supported
+//myPiggie1 Integer[2] = [null  [null  null]]
+myPiggie1  = "[null  [null  null]]"
+myPiggie2  = "[null  [null  null]]"
+
+
+def doings() String{
+	return ""+ [myPiggie1  myPiggie2]
+}
+
+~~~~~
+//##61 ifExp choice null list - 2
+def ttt() => true
+def fff() => false
+waldo1 Object? = null if ttt() else [null,null]
+waldo2 Object?= [null,null] if ttt() else null
+waldo3 Object?= null if fff() else [null,null]
+waldo4 Object?= [null,null] if fff() else null
+waldo1a Object? = null if ttt() else  [null,null]
+waldo2a Object?= [null,null] if ttt() else  null
+waldo3a Object?= null if fff() else  [null,null]
+waldo4a Object?= [null,null] if fff() else null
+
+//in above case should all resolve to Object
+
+def doings() String{
+	return ".\n" +  [waldo1, waldo2, waldo3, waldo4] \ 
+		+	"\n" + [waldo1 is Object[], waldo2 is Object[], waldo3 is Object[], waldo4 is Object[]] \ 
+		+   "\n" + [waldo1a, waldo2a, waldo3a, waldo4a] \ 
+		+	"\n" + [waldo1a is Object[], waldo2a is Object[], waldo3a is Object[], waldo4a is Object[]]
+}
+
+~~~~~
+//##62 qmark rules all
+@SuppressWarnings("all")
+
+def doings() String{
+	ar = new java.util.ArrayList<String>()
+	asfd = ar is java.util.ArrayList<?>
+	dude java.util.ArrayList<?> = ar as java.util.ArrayList<?>
+	dude.add("hi")
+	dude.add(12) //fine, because it is an object, which we treat the qmark as
+	return "" + dude //ok
+}
+
+~~~~~
+//##63.1 null lists in maps - basic
+
+from java.util import Map
+myPiggie1 Map<Boolean, Integer[]> = {true ->[null null], false->[null  null]}
+myPiggie1  = {true ->[null  null], false->[null  null]}
+
+
+def doings() String{
+	a = myPiggie1[true] 
+	istrue = (a is Integer[])
+	return ""+ [myPiggie1] + "" + istrue
+}
+
+~~~~~
+//##63.2 null lists in maps - as obj
+
+
+from java.util import Map
+
+myPiggie1 Map<Boolean, Object[]> = {true ->[null null], false->[null null]}
+myPiggie1 = {true ->[null null], false->[null null]}
+
+
+def doings() String{
+	a = myPiggie1[true] 
+	istrue = (a is Object[])
+	return ""+ [myPiggie1] + "" + istrue
+}
+
+~~~~~
+//##63.3 null lists in maps - 2d int
+
+from java.util import Map
+
+myPiggie1 Map<Boolean, int[2]> = {true ->[null null], false->[null null]}
+myPiggie1  = {true ->[null null], false->[null null]}
+
+def lam(x int) int{ return x+1;}
+
+def doings() String{
+	a = myPiggie1[true] 
+	istrue = (a is int[2])
+	lamCool = lam&(? int) is lambda
+	return ""+ [myPiggie1] + "" + istrue + ": " + a.getClass().getName() + ": " + lamCool
+}
+
+~~~~~
+//##63.5 null lists in maps - maps
+@SuppressWarnings("all")
+from java.util import Map, HashMap
+
+myPiggie1 HashMap<Boolean, HashMap<Boolean, Integer[]>> = {true ->{true ->[null null]}}
+myPiggie1 = {true ->{true ->new Integer[2]}}
+
+def doings() String{
+	a = myPiggie1[true] 
+	istrue = (a is Map<?,?>)
+	return "" + [myPiggie1]  + ": " + istrue + " : " + a.getClass().getName()
+}
+
+~~~~~
+//##63.6 null lists in maps - 2d maps
+@SuppressWarnings("all")
+from java.util import Map, HashMap
+
+myPiggie1 HashMap<Boolean, HashMap<Boolean, Integer[]>>[] = [{true ->{true ->[null null]}} {true ->{true ->[null null]}}]
+myPiggie1 = [{true ->{true ->[null null]}} {true ->{true ->[null null]}}]
+
+def doings() String{
+	a = myPiggie1[0][true] 
+	istrue = (a is Map<?,?>)
+	istrue2 = (myPiggie1 is Map<?,?>[])
+	return "" + [myPiggie1]  + ": " + istrue + ":" + istrue2 + " : " + a.getClass().getName() + " : " + myPiggie1.getClass().getName()
+}
+
+~~~~~
+//##63.7 null lists in maps - maps in functions
+
+from java.util import Map
+
+def functo1(a Map<Boolean, Integer[]>) String {
+	return "functo1"
+}
+
+def functo2(a Map<Boolean, Map<Boolean, Integer[]>>) String {
+	return "functo2"
+}
+
+def functo3(a Map<Boolean, Map<Boolean, Integer[]>>[]) String {
+	return "functo3"
+}
+
+def doings() String{
+	a1 = "" + functo1({true ->[null null]} )
+	a2 = "" + functo2({true-> {true ->[null null]}} )
+	a3 = "" + functo3([{true-> {true ->[null null]}} {true-> {true ->[null null]}}] )
+	return "" +[a1,a2, a3]
+}
+
+
+~~~~~
+//##64.1 null lists in stuff used in lambdas - simple
+
+from java.util import Map
+
+def functo1(a Map<Boolean, Integer[]>) String {
+	return "functo1"
+}
+
+def functo2(a Map<Boolean, Map<Boolean, Integer[]>>) String {
+	return "functo2"
+}
+
+
+def functo3(a Map<Boolean, Map<Boolean, Integer[]>>[]) String {
+	return "functo3"
+}
+
+
+def doings() String{
+	fref1 = functo1&(? Map<Boolean, Integer[]>)
+	fref2 = functo2&(? Map<Boolean, Map<Boolean, Integer[]>>)
+	fref3 = functo3&(? Map<Boolean, Map<Boolean, Integer[]>>[])
+
+	a1 = "" + fref1({true ->[null null]} )
+	a2 = "" + fref2({true-> {true ->[null null]}} )
+	a3 = "" + fref3([{true-> {true ->[null null]}} {true-> {true ->[null null]}}] )
+	return "" + [a1,a2, a3]
+}
+
+~~~~~
+//##64.2 null lists in stuff used in lambdas - curry in args
+
+from java.util import Map
+
+def functo1(a Map<Boolean, Integer[]>) String {
+	return "functo1"
+}
+
+def functo2(a Map<Boolean, Map<Boolean, Integer[]>>) String {
+	return "functo2"
+}
+
+
+def functo3(a Map<Boolean, Map<Boolean, Integer[]>>[]) String {
+	return "functo3"
+}
+
+
+def doings() String{
+	fref1 = functo1&({true ->[null null]})
+	fref2 = functo2&({true-> {true ->[null null]}})
+	fref3 = functo3&([{true-> {true ->[null null]}} {true-> {true ->[null null]}}])
+
+	a1 = "" + fref1( )
+	a2 = "" + fref2( )
+	a3 = "" + fref3( )
+	return "" + [a1,a2, a3]
+}
+
+~~~~~
+//##65.1 prealloc jump labels - 1
+
+def newif(x boolean, y boolean, z boolean) int{
+	thing=0
+	tt=true
+	if(x){
+		if(y){
+			thing=1
+		}	
+		elif(z){
+			thing=2
+		}
+		else{
+			thing=3
+		}
+		if(tt){
+			thing += 100
+		}
+	}
+	else{
+		thing=9
+	}
+
+	return thing + 10
+}
+
+
+
+def doings() String{
+	
+	
+	return "" + [newif(true, true, true)  ==111  , 
+				 newif(true, false, true)  ==112 , 
+				 newif(false, true, true)  ==19 , 
+				 newif(false, false, true) == 19,
+				 newif(true, true, false)  == 111 , 
+				 newif(true, false, false) == 113 , 
+				 newif(false, true, false)  == 19 , 
+				 newif(false, false, false) == 19 ]
+}
+
+~~~~~
+//##65.2 prealloc jump labels - void meths consume final label
+
+from java.util import ArrayList
+
+xxx = new ArrayList<Integer>();
+
+def newif(x boolean, y boolean, z boolean) {
+	thing=0
+	tt=true
+	if(x){
+		if(y){
+			thing=1
+		}	
+		elif(z){
+			thing=2
+		}
+		else{
+			thing=3
+		}
+		if(tt){
+			thing += 100
+		}
+		xxx.add(thing + 10)
+	}
+	else{
+		thing=9
+		xxx.add(thing + 10)
+	}
+}
+
+
+
+def doings() String{
+	newif(true, true, true) 
+				 newif(true, false, true) 
+				 newif(false, true, true)  
+				 newif(false, false, true)
+				 newif(true, true, false)  
+				 newif(true, false, false)
+				 newif(false, true, false) 
+				 newif(false, false, false) 
+	
+	
+	return "" + xxx
+}
+
+~~~~~
+//##65.3 prealloc jump labels - top level, and sneak in ifexpr test
+
+xxx = 0
+def sss() => true
+if(sss()){xxx=9;}
+else{xxx=8;}
+
+
+def doings() String{
+	yyy = 7 if sss() else 6;
+	return "" + [xxx , yyy]
+}
+
+~~~~~
+//##65.4 prealloc jump labels - while break continue
+def sss() => true
+def doings() String{
+	
+	a=10
+	a2 = 10
+	b=0
+	b2 = 0
+	
+	if(sss()){
+		while(++a < 20){
+			b += 10
+		}
+	}
+	
+	if(sss()){
+		while(a2++ < 20){
+			b2 += 10
+		}
+	}
+	
+	evenupTo = 10
+	res = 0
+	n=0
+	while(n++ < evenupTo){
+		if(n mod 2 <>0){ continue		}
+		res += n
+	}
+	
+	sumUpTo = 4
+	n=0
+	res2 = 0
+	while(n++ < 10000){
+		if(n > sumUpTo){break}
+		res2 += n
+	}
+	
+	return "" + [a , b, a2, b2, res, res2]
+}
+
+~~~~~
+//##65.5 prealloc jump labels - for loop simple and advanced
+
+def doings1() String {
+	dd = ""
+	for(n=0; n<== 10; n++){
+		dd += n + " "
+	}
+	return "" + dd
+}
+
+
+def doings() String {
+	dd = ""
+	n=0;
+	for( ; ; ){ //ensure that goto gotes to right place...
+		if(n<== 10){
+			dd += n + " "
+			n++
+		}//goto start...
+		else{
+			break//outside loop
+		}
+	}
+	return "" + doings1() + dd
+}
+
+~~~~~
+//##65.6 prealloc jump labels - more complex for loop
+
+def doings1() String {
+	dd = ""
+	for(n=0; n<10; n++){
+		dd += n 
+		if(n==4){ dd+="end"; break}
+		dd += "ok "
+		continue
+	}
+	return "" + dd
+}
+
+def doings2() String {
+	dd = ""
+	for(n in [1,2,3,4,5, 6, 7]){
+		dd += n +","
+		if(n==4){ dd+="end"; break}
+	}
+	return "" + dd
+}
+
+
+def doings() String {
+	return "" + [doings1(), doings2()]
+}
+
+~~~~~
+//##65.7 prealloc jump labels - for loop with implicit iterator support
+
+from java.util import ArrayList
+
+ar = new ArrayList<Integer>()
+ar.add(1)
+ar.add(2)
+ar.add(3)
+ar.add(4)
+
+
+def doings() String {
+	dd = ""
+	for(n in ar){
+		dd += n + ","
+		if(n==4){ dd+="end"; break}
+	}
+	return "" + dd
+}
+
+~~~~~
+//##66 thegetsettest misc
+
+class MyClass(~x int){}
+
+def retme(x int, y int) int{ return x + y}
+
+
+def doings() String{
+	m = new MyClass(50)
+
+	return "" + retme(m.x++, m.x) +  retme(m.x, 0)
+}
+
+~~~~~
+//##67 something with loops and fin thing being break so u dont need another one
+
+def doings2() String {
+
+	n=0
+	
+	while(n++<10){
+		if(n==1){ }
+		else{
+		break
+		 }
+	}
+	
+	return ""+n
+
+}
+
+def doings() String {
+
+	n=0
+	
+	while(n++<10){
+		if(n==5){ break}
+		else{
+		 }
+	}
+	
+	return ""+n + "::"+ doings2()
+
+}
+
+~~~~~
+//##68 some extra for loop tests which could blow up
+
+def doingsa() String {
+	dd = "s"
+
+	for(n int =1; n<== 10; n++){
+		dd +="h"
+		if(n==1){	break }
+		else{	break }
+	}
+	
+	return "ok" + dd
+}
+
+def doingsb() String {
+	dd = "s"
+
+	for(n int =1; n<== 10; n++){
+		dd +="h"
+		//return ""
+		break
+	}
+	
+	for(n int =1; n<== 10; n++){
+		dd +="h"
+		return "k" + dd
+	}
+	
+	return "fail" + dd
+}
+
+def doingsc() String {
+	dd = "s"
+
+	for(n int =1; n<== 10; n++){
+		dd +="h"
+		if(n==1){	 }
+		else{break	 }
+	}
+	
+	return "ok" + dd
+}
+
+def doings() String {
+	return "" + [doingsa() , doingsb(),  doingsc()]
+}
+
+
+
+~~~~~
+//##69 assign private module filed from class inside module
+
+r=-30;
+
+class XXX{
+
+	def stuff(){
+		//a=r
+		r=99
+	}
+	
+	def stuff2() int{
+		r += 1
+		return r
+	}
+	
+	def stuff3() int{
+		r++
+		return r
+	}
+	
+	def stuff4() int{
+		c = r++
+		return c
+	}
+	
+	override def equals(p Object ) boolean { return true;}
+}
+
+
+def doings() String{
+	n = new XXX()
+	n.stuff()
+	return "" +[ r, [n.stuff2() , r], [n.stuff3() , r], [n.stuff4() , r]]
+}
+
+~~~~~
+//##69.b works as expected with nested classes too
+
+class My{
+
+	-r=-30;
+		
+	public class XXX{
+	
+		def stuff(){
+			//a=r
+			r=99
+		}
+		
+		def stuff2() int{
+			r += 1
+			return r
+		}
+		
+		def stuff3() int{
+			r++
+			return r
+		}
+		
+		def stuff4() int{
+			c = r++
+			return c
+		}
+		
+		override def equals(p Object ) boolean { return true;}
+	}
+}
+
+def doings() String{
+	w = new My()
+	n = w.new XXX()
+	n.stuff()
+	return "" +[ w.r, [n.stuff2() , w.r], [n.stuff3() , w.r], [n.stuff4() , w.r]]
+}
+
+
+~~~~~
+//##69.c assign private module filed from class inside module - to Integer
+
+r= new Integer(-30);
+
+class XXX{
+
+	def stuff(){
+		//a=r
+		r=99
+	}
+	
+	def stuff2() int{
+		r += 1
+		return r
+	}
+	
+	def stuff3() int{
+		r++
+		return r
+	}
+	
+	def stuff4() int{
+		c = r++
+		return c
+	}
+	
+	override def equals(p Object ) boolean { return true;}
+}
+
+
+def doings() String{
+	n = new XXX()
+	n.stuff()
+	return "" + [ r, n.stuff2() , r, n.stuff3() , r, n.stuff4() , r]
+}
+
+~~~~~
+//##69.d assign private module filed from class inside module - to Integer other way
+
+r= -30
+
+class XXX{
+
+	def stuff(){
+		//a=r
+		r=new Integer(99)
+	}
+	
+	def stuff2() int{
+		r += new Integer(1)
+		return r
+	}
+	
+	def stuff3() int{
+		r++
+		return r
+	}
+	
+	def stuff4() int{
+		c = r++
+		return c
+	}
+	
+	override def equals(p Object ) boolean { return true;}
+}
+
+
+def doings() String{
+	n = new XXX()
+	n.stuff()
+	return "" + [ r, n.stuff2() , r, n.stuff3() , r, n.stuff4() , r]
+}
+
+
+~~~~~
+//##70. default equals - check circular rrefs
+
+class PP{
+	public class A{
+		~f B?
+	}
+	
+	public class B{
+		~f A?
+	}
+}
+
+def doings() String {	
+	p = new PP()
+	a = p.new A()
+	b = p.new B()
+	a.f = b
+	b.f = a
+	c=a
+	return "" +  (a==c)
+}
+
+~~~~~
+//##71. default equals - misc field tests
+
+class A(~x int, ~s String){ }
+
+class CustOver{
+	override equals(o Object) boolean { return true;}
+}
+
+class RefAnother(~a A){}
+
+def doings() String {	
+	a = new A(12, "hi")
+	b = new A(12, "hi")
+	c = new A(12, "hithere")
+	c1 = new CustOver()
+	c2 = new CustOver()
+	r1 = new RefAnother(a)
+	r2 = new RefAnother(b)
+	r3 = new RefAnother(c)
+	return "" + [ a==b, not( a&==b), a<> c, c1 == c2, r1==r2, r1<>r3 ]
+}
+
+~~~~~
+//##72. default equals - ensure superclass called correctly
+
+open class Parent(~z int){}
+
+class A(~x int, ~s String, az int) extends Parent(az)
+{ }
+
+def doings() String {	
+	a = new A(12, "hi",1)
+	b = new A(12, "hi", 1)
+	c = new A(12, "hi", 2)
+	return "" + [a==b, a<>c] 
+}
+
+~~~~~
+//##73. default equals - another one
+class MyClas(x int, y int){}
+
+open class SupCls(z int){}
+
+class Child(x int, y int, zz int) extends SupCls(zz+2){}
+
+def doings() String{
+	a = new MyClas(1,2)
+	b = new MyClas(1,2)
+	c = new MyClas(1,23)
+	
+	c1 = new Child(1,2,3)
+	c2 = new Child(1,2,32)
+	c3 = new Child(1,4,3)
+	c4 = new Child(1,4,3)
+		
+	return "" + [c1==c2, c1==c3, c1==c4]
+}
+
+~~~~~
+//##74. forward references
+def doings() String {	
+	return ""  + (new A()).f.z + x()
+}
+
+
+class B{
+	~z = "hi there"
+}
+
+
+class A{
+	~f =new B()
+	override equals(o Object) boolean { return false; }
+}
+
+
+def x() int{
+	return y()
+}
+
+def y() int{ return 2;}
+
+
+~~~~~
+//##75. default equals implementation for lamdabs
+
+def sum(a int, b int) int 
+{ return a+b; }
+
+def another(a int, b int) int{
+	return a*b
+}
+
+def produceOne() (int) void {
+	def inner(a int){}
+	return inner&(? int)
+}
+
+def produceAnother() (int) void {
+	def inner(a int){}
+	return inner&(? int)
+}
+
+
+def doings() String{
+	one = sum&(? int, ? int)
+	two = sum&(? int, ? int)
+	three = sum&(6, ? int)
+	gourp = another&(? int, ? int)
+	noteq1 = produceOne()
+	noteq2 = produceAnother()
+
+	return "" + [noteq1 <> noteq2, one == one, one &==one, one==two, one&<>two, (one as Object)<>(three as Object), one<>gourp] \ 
+			+ "\nInteresing"  + [noteq1.signature(), noteq2.signature() ] //I think these are basically unique 
+}
+
+~~~~~
+//##76. while loop tests
+
+s=0
+
+def something() boolean{
+	return s++ <== 4
+}
+
+def doingsa() String{
+	a = ""
+	while(something()){
+		while(something()){
+			a+=s
+		}
+		a+=9
+	}
+	return "" + a
+}
+
+def doingsb() String{
+	a = ""
+	while(something()){
+		while(something()){
+			a+=s
+		}
+	}
+	return "" + a
+}
+
+def doings() String{
+	p = doingsa()
+	s=0
+	p +=doingsb()
+	return "" + p 
+}
+
+~~~~~
+//##77. for double loop tests
+
+s=0
+
+def something() boolean{
+	return s++ <== 4
+}
+
+
+def doings() String{
+	a = ""
+	for(; something(); ){
+		for(; something(); ){
+			a+=s
+		}
+	}
+	return "" + a
+}
+
+~~~~~
+//##78. double check while
+
+def doings() String{
+	sz=10
+	xxx = ""
+	while(sz-- > 4){
+		xxx += "sz,"
+	}
+	
+	sz=10
+	xxx2 = ""
+	while(--sz > 4){
+		xxx2 += "sz,"
+	}
+	
+	return "" + xxx +":" + xxx2
+}
+
+~~~~~
+//##79. minor arrays fix
+def doings() String{
+	g = [1,2,3].hashCode()
+	return "true"
+}
+
+~~~~~
+//##80. check that u can cast from primative tpye to object and boxing operation auto added
+
+def doings() String{
+	h = 5 as Object
+
+	ar Object = [1,2,3]
+	aa Object = ar.hashCode() as Object
+	xo = aa is int[]
+	x = (([1,2,3].hashCode() as Object) is int[])
+	return "" + h + x + xo
+}
+
+~~~~~
+//##81. test hashcode gennerator
+
+open class Par(z int){}
+
+class AnotherClass{
+	override def equals(o Object) boolean { return false; }
+	override def hashCode() int { return 78; }
+}
+
+class MyClass(a int, b int[], c AnotherClass) extends Par(55){
+	override def equals(o Object) boolean { return false; }
+}
+
+class Class2(x int) extends Par(x){}
+
+
+class LooperA(z int){
+	~b LooperB?
+}
+
+class LooperB(q int){
+	~a LooperA?
+}
+
+class ClassBol(b boolean){}
+
+def doings() String{
+	
+	mc1 = new MyClass(69, [1 2 3], new AnotherClass())
+	mc2 = new MyClass(69, [1 2 3], new AnotherClass())
+	mc3 = new MyClass(69, [1 2 4], new AnotherClass())
+	x = new Class2(1)
+	y = new Class2(1)
+	z = new Class2(2)
+	
+	a1 = new LooperA(1)
+	b1 = new LooperB(2);
+	a1.b=b1
+	b1.a=a1
+	
+	a2 = new LooperA(1)
+	b2 = new LooperB(2);
+	a2.b=b2
+	b2.a=a2
+	
+	a3 = new LooperA(1)
+	b3 = new LooperB(22)
+	a3.b=b3
+	b3.a=a3
+	
+	//you can cast from boolean to int (why not!)
+	cb1 = new ClassBol(true)
+	cb2 = new ClassBol(true)
+	cb3 = new ClassBol(false)
+	
+	return "" + [mc1.hashCode() == mc2.hashCode(), mc1.hashCode() <> mc3.hashCode(), x==y, x <> z] \ 
+			+ "\n" + [a1.hashCode()==b1.hashCode(), a1.hashCode()==3, a1.hashCode()==a2.hashCode(), a1.hashCode()<>a3.hashCode()]  \ 
+	        + "\n" + [cb1 == cb2, cb1 <> cb3]
+}
+
+~~~~~
+//##82. test hashcode edge case
+
+def getNo() int { return 0; } 
+
+class Child<X,Y> (x X, y Y){
+	def getIdx() int{
+		return 0
+	}	
+	
+	def getStroller() String[]{
+		return this.stroller
+	}
+	
+	stroller = ["" "" "" ""]
+	def fiddleStroller()
+	{
+		this.getStroller()[getIdx()] += "hiloo"
+		this.getStroller()[getNo()] += "hiloo"
+		this.getStroller()[this.getIdx()] += "hiloo"
+	}
+	
+	override hashCode() int {
+		hash = this.x.hashCode ( ) ;
+		hash += this.y.hashCode ( ) ;
+		//above was blowing up as ALOAD was being added after the y call
+		return hash
+	}
+	
+	override equals(o Object)boolean { return false; }
+}
+
+def doings() String {
+	cc2 = new Child<String, String>("sdf","1")
+
+	return "" +  cc2.hashCode()
+}
+
+~~~~~
+//##83. hashcode doesnt blow up when field is null
+
+class MyClass(a String?){
+
+}
+
+
+def doings() String {
+	mc1 = new MyClass("")
+	mc2 = new MyClass(null)
+	return "" + [mc1.hashCode(), mc2.hashCode()]
+}
+
+~~~~~
+//##84. lambda equals operates on object being called on to ensure equal by ref and not var
+
+class MyClass(~a String){
+}
+
+def doings() String {
+	mc1 = new MyClass("")
+	mc2 = new MyClass("")
+	
+	l1 = mc1.getA&()
+	l3 = mc1.getA&()
+	l2 = mc2.getA&()
+	
+	return "" + [l1==l3, l1<>l2]
+}
+
+~~~~~
+//##85. lambda hashcode
+
+class MyClass(~a String){ }
+
+def doings() String {
+	mc1 = new MyClass("")
+	mc2 = new MyClass("")
+	
+	l1 = mc1.getA&()
+	l3 = mc1.getA&()
+	l2 = mc2.getA&()
+	
+	return "" + [l1.hashCode()==l3.hashCode(), l1.hashCode()<>l2.hashCode()]
+}
+
+
+~~~~~
+//##86. ensure that arr plus singles is cast to Object
+
+def doings() String {
+	r= new Integer(-30);
+	l2 = [r,r]
+	sdf="hi"
+	s =  [r, l2]
+	return ""  + s
+}
+
+~~~~~
+//##87. dunno
+
+def doings() String {
+	da2 = def () int{ return 7}
+	res=-8;	
+	try{ 
+		res = da2(); }	
+	catch(t Exception){
+		 s = t.getMessage()}
+		 
+	return ""+[1, 2, 3, 4, res]
+}
+
+~~~~~
+//##88. fin
+
+class MyClass{
+	val d int
+	this(a int){
+		d=a
+	}
+}
+
+def doings() String {
+	m = new MyClass(2)
+	return "k"
+}
+
+~~~~~
+//##89. i thought this was interesting
+
+def theOne(x int) (int, int) int {
+	inner = def (a int, b int) int { return a+b+x }
+	
+	return inner&(? int, ? int)
+
+}
+
+def doings() String {
+	g=2000000//lol these used to fail as wrong ldc inst was called!
+	return "" + [theOne(7)(2,3), g]
+}
+
+~~~~~
+//##90. ok nice
+
+from java.util import ArrayList
+
+def doings() String{
+	a1 = {1-> 3, 2-> new Long(4)}
+	a2 = {new Long(1)-> 3, new Long(4) ->2}
+	a3 = [new Long(1), 2, 3]
+	a4 =  new ArrayList<Long>(); a4.add(4)
+	return "" + [a1, a2, a3, a4] //cast all to object -> Object[]
+}
+
+~~~~~
+//##91. add null check on equals
+
+class MyClass(zx int){
+
+}
+
+def doings() String{
+	m = new MyClass(69);
+	m2 MyClass? = null
+	m3 MyClass? = null
+	
+	ret = "" + [not(m2==m), not(m==m2), m2==m3] + "::" + [m2<>m, m<>m2, not(m2<>m3)]
+		
+	return ret
+}
+
+
+
+~~~~~
+//##134.a primatives can be generic qualifiers
+
+class MyGen<X>{
+	public ~x X?
+ }
+
+open class MyGenCon<X>(~x X){ }
+
+class MyGenCon2<X>(y X) extends MyGenCon<X>(y) { }
+
+
+def doings() String{
+	a = new MyGen<int>()
+	b = new MyGen<double>()
+	a\.x = 9
+	a.x += 4
+	b.x=9
+	
+	
+	c = new MyGenCon<float>(7)
+	d = new MyGenCon2<double>(7.23)
+	
+	return "" + [a.x , b.x, c.x, d.x] 
+}
+
+~~~~~
+//##134.b primatives can be generic qualifiers fix bool bug
+
+open class MyGenCon<X>(private ~x X){ }
+
+def doings() String{
+	a = new MyGenCon<Boolean>(false)
+	b = new MyGenCon<Boolean>(false)
+	
+	return "" + [a.x , b.x]
+}
+
+~~~~~
+//##134.c the joy of lambdas
+
+open class MyGenCon<X>(private ~x X){ }
+
+def doings() String{
+	zz lambda = def () int { return 7}
+	zz2 com.concurnas.bootstrap.lang.Lambda = def () int { return 7}
+	zz3 Lambda = def () int { return 7}//auto import
+	
+	a = new MyGenCon<lambda>( def () int { return 7} )
+	b = new MyGenCon<lambda>( def () int { return 7} )
+	
+	//a = new MyGen<lambda>()
+	//a = new MyGen<int>()
+	//a = new MyGenCon<Integer>(5)
+	//b = new MyGenCon<Boolean>(false)
+	
+	f=(zz as () int )()
+	f2=(zz2 as () int )()
+	f3=(zz3 as () int )()
+	f4 = (a.x as () int )()
+	f5 = (b.x as () int )()
+	
+	return "" + [f, f2, f3, f4, f5]    //+ [a.x]// , b.x]
+}
+
+~~~~~
+//##134.d the joy of lambdas Function
+
+def doings() String{
+	zz com.concurnas.bootstrap.lang.Lambda.Function0<int> = def () int { return 7}
+			
+	a  = (zz as () int)
+	b = a as com.concurnas.bootstrap.lang.Lambda.Function0<int>
+	c = ((zz as lambda) as com.concurnas.bootstrap.lang.Lambda.Function0<int>)
+	
+	zz2 com.concurnas.bootstrap.lang.Lambda.Function1<int, int> = def (a int) int { return a+7}
+			
+	a2  = (zz2 as (int) int)
+	b2 = a2 as com.concurnas.bootstrap.lang.Lambda.Function1<int, int>
+	c2 = ((zz2 as lambda) as com.concurnas.bootstrap.lang.Lambda.Function1<int, int>)
+	
+	
+	//f1 = (a as  () int)()
+	//f2 = (b as  () int)()
+	//f3 = a()
+			
+	return "" + [a(), b(), c(), a2(1), b2(1), c2(1)]
+}
+
+
+~~~~~
+//##134.e the joy of lambdas2
+
+def doings() String{
+	zz Function0<int> = def () int { return 7}
+			
+	a  = (zz as () int)
+	b = a as Function0<int>
+	c = ((zz as lambda) as Function0<int>)
+	
+	zz2 Function1<int, int> = def (a int) int { return a+7}
+			
+	a2  = (zz2 as (int) int)
+	b2 = a2 as Function1<int, int>
+	c2 = ((zz2 as lambda) as Function1<int, int>)
+	
+	
+	//f1 = (a as  () int)()
+	//f2 = (b as  () int)()
+	//f3 = a()
+			
+	return "" + [a(), b(), c(), a2(1), b2(1), c2(1)]
+}
+
+~~~~~
+//##135. copier functionality
+
+class A(){~a A?; ~x int }
+
+class Looper{
+	a A
+	this(){
+		a1 = new A()
+		a2 = new A()
+		a1.a = a2
+		a2.a = a1
+		a=a1
+	}
+}
+
+from java.util import ArrayList
+
+def doings() String{
+	l = new Looper()
+	l2 = l@
+	
+	ar1 = new ArrayList<String>()
+	ar1.add("hi")
+	ar1.add("there")
+	
+	ar2 = ar1@
+	
+	return "" + [ [l==l2, l&<>l2] , [ar1==ar2, ar1&<>ar2]]
+}
+
+~~~~~
+//##135.b copier functionality - double check copies work ok
+
+from java.util import ArrayList
+
+class MyClass<X>(~x X){}
+
+class Closed{
+	val x  = 9
+}
+
+def doings() String{
+	ar1 = new ArrayList<String>()
+	ar1.add("hi")
+	ar1.add("there")
+	
+	ar2 = ar1@
+	ar2.add("mate")
+	
+	//mycustom things
+	mc1 = new MyClass<int>(89)
+	mc2 = mc1@
+	mc2.x=99
+	
+	c = new Closed()
+	c2 = c@ //immutable so matches
+	
+	a = "hi"//also immutable
+	b = a@
+	
+	return "" + [ar1.size() <> ar2.size(), mc1 <> mc2, mc1 &<> mc2, mc1.x==89, mc2.x==99, c==c2, c&==c2, a==b, a&==b]
+}
+
+
+~~~~~
+//##137. check math
+def doings() String{
+	return "" + (20*2+4)
+}
+
+~~~~~
+//##138. another edge case
+
+def doings() String{
+	a Integer = 5
+	
+	//b = a:@
+	c = (a@)++ //yeah works
+	
+	return "" +c //+ [b, c]
+}
+
+
+~~~~~
+//##139.a private field accessor
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private a1 int = 8
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def getter() String{
+			//a1 += 2
+			return "" + a1
+		}
+		
+		def setter() String{
+			a1 = 2
+			return "" + a1
+		}
+		
+		def getandset() String{
+			a1 += 1
+			a1++
+			++a1
+			
+			c1 = a1++
+			c2 = ++a1
+			
+			return "" + a1 + "" + [c1,c2]
+		}
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.getter(), Inn.setter(), Inn.getandset() ]
+}
+
+~~~~~
+//##139.b private static accessor
+
+private a1 int = 8
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def getter() String{
+			//a1 += 2
+			return "" + a1
+		}
+		
+		def setter() String{
+			a1 = 2
+			return "" + a1
+		}
+		
+		def getandset() String{
+			a1 += 1
+			a1++
+			++a1
+			
+			c1 = a1++
+			c2 = ++a1
+			
+			return "" + a1 + "" + [c1,c2]
+		}
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.getter(), Inn.setter(), Inn.getandset() ]
+}
+
+~~~~~
+//##139.c private field accessor ref
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private a1 : = 8
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def getter() String{
+			//a1 += 2
+			return "" + a1
+		}
+		
+		def setter() String{
+			a1 = 2
+			return "" + a1
+		}
+		
+		def getandset() String{
+			a1 += 1
+			a1++
+			++a1
+			
+			c1 = a1++
+			c2 = ++a1
+			
+			return "" + a1: + "" + [c1,c2]
+		}
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.getter(), Inn.setter(), Inn.getandset() ]
+}
+
+
+~~~~~
+//##139.d private static accessor ref
+
+private a1 : = 8
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def getter() String{
+			//a1 += 2
+			return "" + a1
+		}
+		
+		def setter() String{
+			a1 = 2
+			return "" + a1
+		}
+		
+		def getandset() String{
+			a1 += 1
+			a1++
+			++a1
+			
+			c1 = a1++
+			c2 = ++a1
+			
+			return "" + a1: + "" + [c1,c2]
+		}
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.getter(), Inn.setter(), Inn.getandset() ]
+}
+
+~~~~~
+//##139.e private static accessor ref FUNCTION
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private g="one"
+	
+	private def  callPrivFunP() String{
+		return "hi" + g
+	}
+	
+	
+	private def  callPrivFunPVoid() {
+		g+=8
+		return 
+	}
+	
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def callPrivFun() String{
+			callPrivFunPVoid()
+			x =  callPrivFunP()
+			return "" +x
+		}
+		
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.callPrivFun() ]
+}
+
+~~~~~
+//##139.f private static accessor ref FUNCTION module
+
+private g="one"
+
+private def  callPrivFunP() String{
+	return "hi" + g
+}
+
+
+private def  callPrivFunPVoid() {
+	g+=8
+	return 
+}
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def callPrivFun() String{
+			callPrivFunPVoid()
+			x =  callPrivFunP()
+			return "" +x
+		}
+		
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.callPrivFun() ]
+}
+
+~~~~~
+//##139.g private static accessor ref FUNCTION lambda
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private g="one"
+	
+	private callPrivFunP = def () String{
+		return "hi" + g
+	}
+	
+	
+	private callPrivFunPVoid = def () {
+		g+=8
+		return 
+	}
+	
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def callPrivFun() String{
+			callPrivFunPVoid()
+			x =  callPrivFunP()
+			return "" +x
+		}
+		
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.callPrivFun() ]
+}
+
+
+~~~~~
+//##139.h private static accessor ref FUNCTION module lambda
+private g="one"
+
+private callPrivFunP = def () String{
+	return "hi" + g
+}
+
+
+private callPrivFunPVoid = def () {
+	g+=8
+	return 
+}
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+
+	
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def callPrivFun() String{
+			callPrivFunPVoid()
+			x =  callPrivFunP()
+			return "" +x
+		}
+		
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [Inn.callPrivFun() ]
+}
+
+
+~~~~~
+//##140. dont create acessor when not needed
+
+
+class MC{
+	private def donothing(d boolean){
+		
+	}//we should not gennerate an accessor for this, cos not used in nested class (there arnt even any in existnace)
+	
+	public def doings1() String {
+		donothing(false)
+		return "" + 12
+	}
+}
+
+def doings() String{
+	mc = new MC()
+	return "" + mc.doings1()
+}
+
+~~~~~
+//##141. fix continue in new for loop when operating on non array
+
+from java.util import ArrayList
+
+x = [0 1 2 3 4 5 6 7 8 9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings() String {
+	f=0 
+	for(a in xxx){ f+=a; continue ;	}//prevoiusly continue was pointing to the wrong place
+	return "" + f
+}
+
+~~~~~
+//##142. another loop fix, just cos last thing is break dosnt mean entire stmt 100pct always breaks, so dont skip the postop code please
+
+def doings() String { 
+	z=-99
+	for(a =0; a < 10; a++) {if(a==0){continue} z=1; break ;	} //ok
+	return "" + z
+}
+
+~~~~~
+//##143. dunno what this does looks important
+
+from java.lang import Comparable //its ok to import this and override the defualt import
+def ttt() => true
+def doings() String{
+	a Comparable<String> = "hi"
+	b Comparable<Integer> = new Integer(9)
+	
+	//a="hi"
+	//b = 9//new Integer(9)
+	
+	c =  a if ttt() else b	
+	
+	return "" + c
+}
+
+~~~~~
+//##144. ensure array length is called correctly
+
+class IntVector 
+{
+    v int[] = [1 2 3]
+    override equals(o Object) boolean {return true;}
+    override hashCode() int {return 6;}
+    
+    def thing(other IntVector) boolean {
+        a = v.length 
+        b = other.v.length
+        
+        return a==b;
+    }
+}
+
+def doings(){
+	i = new IntVector()
+	"" + i.thing(i)
+}
+
+~~~~~
+//##145. ensure for block temp items created locally
+
+len=0
+oldlen=9
+a=[new Object() ]
+
+
+for (nohoh=9;nohoh++<10;) {//nohoh doesnt exist outside the for block so no need for it to be a module level static
+    ++len;
+    temp = new Object[1]
+    temp[0] = a;
+    a = temp;
+}
+
+def doings() => "" + (a.length==1)
+
+~~~~~
+//##146. no inf loop caused by for
+
+def doings() {
+	for (nohoh=9;{nohoh++; nohoh<10}; {nohoh++; nohoh++;} ) {
+	    a=5
+	}
+ 	"fine"
+}
+
+
+~~~~~
+//##147. module level for loop works ok
+
+from java.util import ArrayList
+
+dude = new ArrayList<String>()
+
+for (n=0; n<10; n++) {
+    a=5
+}
+
+for (x in dude) {
+    a=5
+}
+
+def doings() => "fine"
+
+~~~~~
+//##148. skip goto at end of thing when it contains an inf loop
+
+f = false
+
+def compok1() {
+
+	while(f){
+		for (;;) { a=1}//defo goes here
+	}
+	//return
+}
+
+def compok2() {
+
+	for(n=0;n<10;n++){
+		for (;;) { a=1}//defo goes here
+	}
+	//return
+}
+
+
+def compok3() {
+
+	for(x in [1,2,3]){
+		for (;;) { a=1}//defo goes here
+	}
+	//return
+}
+
+from java.util import ArrayList
+
+xxx = new ArrayList<String>()
+
+def compok4() {
+
+	for(x in xxx){
+		for (;;) { a=1}//defo goes here
+	}
+	//return
+}
+
+def compok5() {
+
+	try{
+		for (;;) { a=1}//defo goes here
+	}
+	catch(e){}
+	finally{}
+	//return
+}
+
+def doings() => "fine"
+
+
+~~~~~
+//##149. oops, if boxed type on comparison, this needs to be unboxed
+
+def theFunx(f int) String{
+	if(f > 5){ 
+		return "above"; } 
+	else{ 
+		return "below"; 
+	}
+}
+
+def theFunx2(f Integer) String{
+	if(f > 5){ 
+		return "above"; } 
+	else{ 
+		return "below"; 
+	}
+}
+
+
+def doings() String{
+	return "" + [theFunx(1), theFunx(10)] + ":" + [theFunx2(1), theFunx2(10)]
+}
+
+~~~~~
+//##150.a overriden methods can return subtypes - java cls
+
+def v1() => 2
+
+def doings() String {
+	ssb  =new StringBuilder() // used to blow up on thinking these were different[def (INT) java.lang.AbstractStringBuilder, def (INT) java.lang.StringBuilder]
+	//one from parent abstr cls one from defo
+	ssb.append( v1() ) 
+	return "its fine"
+}
+
+~~~~~
+//##150.b overriden methods can return subtypes - conc cls
+
+abstract class Abstr{
+	def meth() Abstr
+}
+
+class Impl{
+	def meth() => this
+}
+
+def doings() String {
+	i = new Impl()
+	i = i.meth()
+	return "its fine"
+}
+
+~~~~~
+//##151. nested class construction inside parent - pub
+class X{
+
+	override equals(a Object) => true
+	override hashCode() => 1
+			
+	public class Y{
+		override equals(a Object) => true
+		override hashCode() => 1
+		private a =9
+		
+		public class Z{
+			public f=8
+			private f2=8
+			override equals(a Object) => true
+			override hashCode() => 1
+		}
+		
+		zz1 = new Z();
+		zz2 = this.new Z();
+		 
+	}
+
+	yy1 Y = new Y();
+	yy2 X.Y = this.new Y();
+	
+	yz1 Y.Z = new Y().new Z();
+	yz2 Z = this.new Y().new Z();
+	
+	def showme() => "" + [yy1.a, yy2.a, \
+						yy1.zz1.f, yy1.zz2.f, yy2.zz1.f, yy2.zz2.f,\ 
+						yy1.zz1.f2, yy1.zz2.f2, yy2.zz1.f2, yy2.zz2.f2,\
+						yz1.f2, 
+						yz1.f2,
+						 yz2.f2, 
+						 yz2.f2]
+}
+
+def doings() String {
+	return "" + new X().showme()
+}
+
+~~~~~
+//##152.a nested class extension - constru
+
+private open class Sup{
+	override toString() => "hi"
+}
+
+private class X{
+	public class Y extends Sup{}
+	public class Y2{}
+	override toString() => "hi"
+	public this() {}
+}
+
+s = new Sup();//fine
+
+myY Sup = new X().new Y();
+myY2 = new X().new Y();
+myY3 Object = new X().new Y2();
+myY4  = new X().new Y2();
+
+
+def doings() String {
+	return "" + [myY is Sup, myY2 is Sup, myY3 is Object, myY4 is Object] + s
+}
+
+~~~~~
+//##153. ensure that private fields are accesable to outer class
+
+class Parent{
+	class Inner{
+		public  a=10
+		private b=10
+	}
+	
+	i = new Inner()
+	
+	def summ() => "" + [i.a, i.b]//fields are accessable from here
+}
+
+def doings() => "" + new Parent().summ()
+
+~~~~~
+//##153.b ensure that private fields are accesable to outer class
+
+private open class Parent{
+	override equals(o Object) => true
+	override hashCode() => 2
+	public a = 2
+		override toString() => ""+a
+	
+	private class Priv{
+		override equals(o Object) => true
+		override hashCode() => 2
+		public a = 2
+		override toString() => ""+a
+	}
+	
+	protected class Pro{
+		override equals(o Object) => true
+		override hashCode() => 2
+		public a = 2
+		override toString() => ""+a
+	}
+	
+	public class Pub{
+		override equals(o Object) => true
+		override hashCode() => 2
+		public a = 2
+		override toString() => ""+a
+	}
+}
+
+private open class Parent2 extends Parent{
+	//nested are always visible
+	//~c1 = this.new Priv()//ok
+	~c2 = this.new Pro()//ok
+	~c3 = this.new Pub()//ok
+	//~c4 = new Priv()//ok
+	~c5 = new Pro()//ok
+	~c6 = new Pub()//ok
+}
+
+def doings() {
+	p2 = new Parent2()
+	"" + [ p2.c2, p2.c3, p2.c5, p2.c6]
+}
+
+~~~~~
+//##154. ensure no extra dup is created
+
+class Cls{ 
+	public x String="hi"
+	~y String="hi"
+	
+	override equals(o Object) => false
+	override hashCode() => 1
+
+}
+
+cls Cls = new Cls()
+
+def doings() String {
+	
+	cls.x += " there"
+	cls.y += " there"
+	
+	return "" + [cls.x, cls.y]
+}
+
+~~~~~
+//##155. ensure that custom toStrings are called for set, list and map if one is defined
+
+from java.util import HashMap, HashSet, ArrayList
+
+open class CustomHashMap extends HashMap<String, String>{
+	override toString() => "CustomHashMap impl of toString"
+}
+
+class CustomHashMapKid extends CustomHashMap{
+
+}
+
+
+open class CustomList extends ArrayList<String>{
+	override toString() => "CustomList impl of toString"
+}
+
+class CustomListKid extends CustomList{
+
+}
+
+
+open class CustomSet extends HashSet<String>{
+	override toString() => "CustomSet impl of toString"
+}
+
+class CustomSetKid extends CustomSet{
+
+}
+
+def doings() String {
+	cust = new CustomHashMap()
+	cust2 = new CustomHashMapKid()
+	
+	cuList = new CustomList()
+	cuList2 = new CustomListKid()
+	
+	cuSet = new CustomSet()
+	cuSet2 = new CustomSetKid()
+	
+	hh = new HashSet<HashMap<String, String>>()
+	hh.add({"hi" -> "there"})
+	
+	hh2 = new ArrayList<HashMap<String, String>>()
+	hh2.add({"hi" -> "there"})
+	
+	hh3 = new HashMap<HashMap<String, String>, HashMap<String, String>>()
+	hh3.put({"hi" -> "there"} , {"hi" -> "there"})
+	
+		
+	"" + [cust, cust2] + " -> " + [hh, hh2, hh3] + "\n" +\ //ensure that normal stuff is still ok
+			 cust + " - " + cust2 + "\n" +\
+			 cuList + " : " + cuList2 + "\n" +\
+			 cuSet + " : " + cuSet2
+}
+
+~~~~~
+//##156. dunno what this test does but looks clever
+
+def doings() String {
+	n=0
+	g="hi "
+	g += while( n++ < 10){
+		if(n >5 and n<7 )
+		{//miss out 6
+			continue;
+		}
+		g += n + " "
+		g
+	}
+	g+="end"
+	return g;
+}
+
+~~~~~
+//##157. this is also strange so add anyway
+
+rawAOnes = def () boolean { true }
+
+def doings() String{
+	
+	proc = def  ( funcl () boolean ) {  return funcl(); }
+	
+	res = proc(rawAOnes)
+					
+		
+	return "" + res
+}
+
+~~~~~
+//##158. using java classes which have local generic types
+
+from com.concurnas.lang.precompiled import WithALocalGenericType
+from java.util import ArrayList
+
+def doings() String {
+	a = new WithALocalGenericType()
+	res Integer = a.getaT(2, 12);
+	
+	ar = new ArrayList<Integer>()
+	ar.add(1)
+	
+	res2 Integer = a.getaComplex(ar, 12);
+	resxx Object? = a.getarr("6", 12);
+	
+	//res2 String = a.getaT(2, 12);//complains
+	
+	res3 String = a.getaT("2", 12);
+	res4 = a.getaT(["hi", "there"], 4);
+	//getaFup
+	
+	"" + [res, res2, res3, res4, resxx]
+}
+
+~~~~~
+//##158.b using java classes which have local generic types
+
+from java.util import HashSet
+
+class MyClass extends HashSet<String>{
+	this(x int){
+		super(x)
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClass(10)
+	mc.add("hi")
+	return "" + (mc.toArray().length==1)//uh oh!
+}
+
+~~~~~
+//##159. ensure all refs in lambdas get bound
+a=10
+
+def doings() {
+	
+	//res2 = {a  + 4; }!
+	res2 = def (){ a + 4}
+	//double check dude gets bound
+	"done cool " + res2()
+}
+
+~~~~~
+//##160. bugfix lambda name
+
+def produceOne() (int) void {
+	def inner(a int){}
+	return inner&(? int)
+}
+
+def produceAnother() (int) void {
+	def inner(a int){}
+	return inner&(? int)
+}
+
+def doings() String{
+	noteq1 = produceOne()
+	noteq2 = produceAnother()
+
+	return "" + [noteq1 <> noteq2]//two falls should not match cos different
+}
+
+
+
+~~~~~
+//##162. weird returns bug
+
+//failing previously because incorrect labels being tagged for return block and extra catch block being captured
+
+def s() => true
+
+def rnot() => { 
+	try{
+		return not(s())
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rnnot() => { 
+	try{//paranoid!
+		return not(not(s()))
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rnnot2() => { 
+	try{//really paranoid!
+		x= not(not(s()))
+		return x
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rwhile() => { 
+	try{
+		a=0
+		return while(a++<10){a}
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rfor() => { 
+	try{
+		return for(a in [1,2,3]){ a+1}
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rforold() => { 
+	try{
+		return for(a=0; a< 10; a++){ a+1}
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rifstmt() => { 
+	try{
+		return if (s()){true} else{false} 
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+def rifexpr() => { 
+	try{
+		return true if s() else false
+	}
+	catch(e)
+	{} 
+	return null
+}
+
+
+def doings() => "" + [rfor(), rforold(), rnot(), rnnot(), rnnot2(), rifstmt(), rifexpr(), rwhile()] 
+
+~~~~~
+//##163. ugly bug concerning stack frame management
+
+public class Fiely(public ff double:){
+	override toString() String { "Fiely: " + ff; }
+}
+
+def sss() => false
+
+public class MyC{
+	a = new Fiely(1)
+	
+	def doings() String{
+		a.ff = try{ 444. } catch(e){ 4. } //this fella wipes out the stack! - this used to be a problem! - now we have the stack state tracking
+		"hh"+ a
+	}
+}
+
+def doings() String{
+	mmm = new MyC()
+	"" + mmm.doings()
+}
+
+
+~~~~~
+//##164. prevsoiuly i messed up the getlest common acestor logic which was operating without the generic type qualifciation this fixes that
+
+
+def s() => true
+
+def rforold3() => { 
+	try{
+		return for(a=0; a< 10; a++){ a+1}
+	}
+	catch(e)
+	{} 
+	return null //Object vs LinkedList<int>
+}
+
+
+def doings2() => "" +rforold3() 
+
+
+
+def rforold() => { 
+	return  66 if s() else  for(a=0; a< 10; a++){ a+1}
+}
+
+def rforold2() => { 
+	return  for(a=0; a< 10; a++){ a+1} if s() else  66
+}
+
+
+def doings() => "" + [rforold() is Object, rforold2() is Object] + ":" + doings2()
+
+
+
+~~~~~
+//##165. iterate on map auto maps to keyset
+
+from java.util import HashMap
+
+f = new HashMap<int, int>()
+f.put(8,9)
+f.put(18,19)
+
+def doings() String{
+	"" + for(a in f){ a } 
+}
+
+~~~~~
+//##166. ensure local array handled correctly
+
+def all(items String:[]){
+	for(a in items){//operate on iterator
+		if(a ==""){ return false }
+	}
+	return true
+}
+
+def all2(items String:[]){
+	for(n=0; n < items.length; n++){//pull out length
+		if(items[n] ==""){ return false }
+	}
+	return true
+}
+
+def checkfirst(items String:[]){
+	return items[0] <> "" //this already worked when test written
+}
+
+def doings() {
+	a = ["p":  "x":]
+	x=all(a)!
+	y=all2(a)!
+	z=checkfirst(a)!
+	return ""+ [x, y, z]
+}
+
+~~~~~
+//##167. abstract method correctly created
+
+open class toSr{
+	override toString() => getA()
+	def getA() String
+}
+
+class SubA extends toSr{
+	def getA() => "hi2"
+} 
+
+def doings(){
+	a1 = new SubA()
+
+	"" + a1
+}
+
+~~~~~
+//##168. ensure correct type created
+
+open class toSr{
+	override toString() => getA()
+	def getA() String
+}
+
+class Cont{
+	public class SubA extends toSr { 
+		def getA() => "hi1"
+	}
+}
+
+class SubA extends toSr{
+	def getA() => "hi2"
+} //this is ok
+
+def doings(){
+	con = new Cont()
+	a1 = con.new SubA()//prevsoiuly the assign exp on the left was visiting the rhs as well which is not right cos the dot is missed out and the wrong sub is chosen
+	a2 = new SubA()
+	
+	"" + [a1,a2]
+}
+
+~~~~~
+//##169. the double arg was taking up too much space
+
+def stringThrow() String {
+    return null; //throw new RightHandSideThrow();
+}
+
+def name(q Object ) String {
+     sq String = q.getClass().getName();
+     k int = sq.lastIndexOf('.');
+    return sq if (k < 0) else sq.substring(k+1);
+}
+
+def testEight(x String[], z double[], j int ) {
+	x[j] += stringThrow();
+}
+
+
+def doings() => "hi"
+
+~~~~~
+//##169. getset on strings with pre and postfix operations
+
+class Cls{
+	~x = "89"
+}
+
+cc = new Cls()
+
+def doings(){
+	f1 = cc.x++ 
+	f2 = ++cc.x
+	//was not correctly coded before, but the case where above was a ref was ok lol
+	"" + [f1, f2]
+}
+
+~~~~~
+//##194 multilevel as before - these are all ok
+					
+def doings() => "ok"
+
+~~~~~
+//##195 type check is performed on set
+			
+a := "hi"
+
+def takeMe(acc Object:) {
+	try{ 
+		acc = 12
+		"fail - "+a		
+	}catch(e){
+		e.getMessage()
+	} 
+} 
+
+def doings() => takeMe(a);
+
+~~~~~
+//##196 ensure non boxing
+		
+def doings(){
+	ar int[]: = [10 20 30]://not boxed to Int[]
+	o = ar[0]
+	ar = [1 2 3]:
+	
+	return "it's done: " + [o, ar[0]]
+}
+
+~~~~~
+//##197 double check ref from method return function
+	
+def aaa() => 12:
+
+f = aaa&()//functions returnning refs dont auto unref
+
+def doings() => "" + f() + "-> " + aaa()
+
+~~~~~
+//##198 ensure generic field types are captured
+from java.util import ArrayList
+from com.concurnas.lang.precompiled import AGenericClassWithField
+
+class MyClass<X>{
+	public aField ArrayList<X>?
+	override equals(a Object) => false
+	override hashCode() => 11
+}
+
+def doings() {
+	//locally defined class in concrucnas
+	mc1 = new MyClass<String>()
+	tcheck11 ArrayList<String>? = mc1.aField;
+	mc1.aField = new ArrayList<String>();
+	
+	//import from java...
+	mc2 = new AGenericClassWithField<String>();
+	tcheck2 ArrayList<String>? = mc2.aField;
+	mc2.aField = new ArrayList<String>();
+	
+	"" + [mc1.aField, mc2.aField] 
+} 
+
+~~~~~
+//##199 ensure generic field types are captured arrays
+
+from com.concurnas.lang.precompiled import AGenericClassWithField
+
+class MyClass<X>{
+	public anArrayField X[]?
+	override equals(a Object) => false
+	override hashCode() => 11
+}
+
+def doings() {
+	//locally defined class in concrucnas
+	mc1 = new MyClass<String>()
+	tcheck11 String[]? = mc1.anArrayField;
+	mc1.anArrayField = ["ok"]
+	
+	//import from java...
+	mc2 = new AGenericClassWithField<String>();
+	tcheck2 String[]? = mc2.anArrayField;
+	mc2.anArrayField = ["ok"]
+	
+	"" + [mc1.anArrayField, mc2.anArrayField] 
+} 
+
+~~~~~
+//##200 local array direct and indirect calls
+from com.concurnas.lang.precompiled import Returner
+
+def doings(){
+	ladirect = [1:]
+	la = Returner.getMeALocalArray() //here we convert the type to be that of 
+
+	aa = "" + for(a in ladirect){ a }
+	a2 ="" + for(a in la){ a }
+	
+	"" + [aa, a2]
+}
+
+~~~~~
+//##201 we can infer the type here
+
+class MyClass<X>{
+	private var x X;
+
+	this(x X){
+		this.x = x
+	}
+
+	override toString() => "" + x
+}
+
+def doings() {
+	mc = new MyClass<String>("one")
+	mc2 = new MyClass("one") //gets infered as String
+ 	"" + [mc, mc2]
+} 
+
+~~~~~
+//##202 new keyword optional
+
+class MyClass{
+	private val x String
+	this(x String){
+		this.x = x
+	}
+	
+	override toString() => "" + x
+}
+
+def doings() {
+	mc2 = MyClass("one") //new keyboard is optional required!
+ 	"" + mc2
+}
+
+~~~~~
+//##203 no new and gen inf
+
+class MyClass<X>{
+	private var x X;
+
+	this(x X){
+		this.x = x
+	}
+
+	override toString() => "" + x
+}
+
+def doings() {
+	mc2 = MyClass("one") //new keyboard is optional required!
+ 	"" + mc2
+}
+
+~~~~~
+//##204 infer of generics
+
+class MyClass<X>{
+	public var x X?
+	public var y = "no set"
+
+	this(x X){
+		this.x = x
+	}
+	
+	this(a String){
+		this.x = null
+		this.y="set"
+	}
+
+	override toString() => "" + [""+x,y]
+}
+
+def doings() {
+	mc2 = new MyClass([1,2]) //new keyboard is optional required!
+	mc2.x=[3,4]//type gets bound correctly
+ 	"" + [mc2, mc2.x?[1]]
+}
+
+~~~~~
+//##205 infer of generics more than one here but its not a problem
+
+class MyClass<X>{
+	public var x X?
+	public var y = "no set"
+
+	this(x X){
+		this.x = x
+	}
+	
+	this(a String){
+		this.x = null
+		this.y="set"
+	}
+
+	override toString() => "" + [""+x,y]
+}
+
+def doings() {
+	mc2 = new MyClass([1,2]) //new keyboard is optional required!
+	mc2.x=[3,4]//type gets bound correctly
+ 	"" + [mc2, mc2.x?[1]]
+}
+
+~~~~~
+//##206 array type correctly chosen with respect to generic types
+
+class MyClass<X>{
+	public var x X?
+	public var y = "no set"
+
+	this(x X){
+		this.x = x
+	}
+	
+	this(a int[]){
+		this.x = null
+		this.y="set"
+	}
+
+	override toString() => "" + [x,y] //respects fact that x is not bound at this point so points to Object
+	//thus returned as an object array
+}
+
+def doings() {
+	mc2 = new MyClass<int[]>([1 2]) //new keyboard is optional required!
+	mc2.x=[3 4]//type gets bound correctly
+ 	"" + [mc2, mc2.x?[1]]
+}
+
+~~~~~
+//##207 infer of generics ensure mapped to correct constructor
+
+//here, either constructor could be called, but we need the one which
+//binds the generic types, thus the first one is called - call the second one AND bind the generic types...
+class MyClass<X>{
+	public var x X?
+	public val y String
+
+	this(x X){
+		this.x = x
+		this.y = "first"
+	}
+	
+	public this(a int[]){ //direct match!
+		this.x = null
+		this.y="second"
+	}
+
+	override toString() => "" + [""+x,y]
+}
+
+def doings() {
+	mc2 = new MyClass([1 2]) //new keyboard is optional required!
+	mc2.x=[3 4]//type gets bound correctly
+ 	"" + [mc2, mc2.x?[1]]
+}
+
+~~~~~
+//##208 method generics
+
+from java.util import ArrayList
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+}
+
+def doings(){
+	kid = new ArrayList<String>();
+	myGen<String>("hi", kid);
+
+	"" + kid
+}
+
+~~~~~
+//##209 the gen captured from enclosing class
+
+from java.util import ArrayList
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+}
+
+class LeClass<T>{
+
+	def doings( vvv T, kid ArrayList<T>){
+		myGen<T>(vvv, kid);
+	
+		"" + kid
+	}
+}
+def doings(){
+	lc = new LeClass<String>()
+	kid = new ArrayList<String>();
+
+	"" + [lc.doings("hi", kid), kid]
+}
+
+~~~~~
+//##210 merge use of types from class and method
+
+class IntExcep(~valu int) extends Exception{ 
+	override equals(o Object) boolean{return true;} 
+}//this is here code had problems with override and functype equality previously
+
+from java.util import HashMap
+
+class LeClass<Y>{
+
+	def theWork<X>( x X, y Y, kid HashMap<X, Y>){
+		kid.put(x,y)
+		""+kid
+	}
+}
+
+def doings(){
+	lc = new LeClass<Integer>()
+	kid = new HashMap<String, Integer>();
+
+	"" + [lc.theWork<String>("hi", 12, kid), kid]
+}
+
+~~~~~
+//##211 locally defined generics override those provided at class level
+
+from java.util import HashMap
+
+class LeClass<X, Y>{
+
+	def theWork<X>( x X, y Y, kid HashMap<X, Y>){
+		//overrides the X defined at class level
+		kid.put(x,y)
+		""+kid
+	}
+}
+
+def doings(){
+	lc = new LeClass<Float, Integer>()
+	kid = new HashMap<String, Integer>();
+
+	"" + [lc.theWork<String>("hi", 12, kid), kid]
+}
+
+~~~~~
+//##212 as before but imported
+
+from java.util import HashMap
+from com.concurnas.lang.precompiled import GiveMeAGenericMethod
+
+def doings(){
+	lc = new GiveMeAGenericMethod<String>()
+	kid = new HashMap<String, Integer>();
+
+	"" + [lc.proc<Integer>("hi", 12, kid), kid]
+}
+
+~~~~~
+//##212 as before but imported and type inf
+
+from java.util import HashMap
+from com.concurnas.lang.precompiled import GiveMeAGenericMethod
+
+def doings(){
+	lc = new GiveMeAGenericMethod<String>()
+	kid = new HashMap<String, Integer>();
+
+	"" + [lc.proc("hi", 12, kid), kid]
+}
+
+~~~~~
+//##212 as before but imported and type boxed
+
+from java.util import HashMap
+from com.concurnas.lang.precompiled import GiveMeAGenericMethod
+
+def doings(){
+	lc = new GiveMeAGenericMethod<String>()
+	kid = new HashMap<String, Integer>();
+
+	"" + [lc.proc<int>("hi", 12, kid), kid]
+}
+
+~~~~~
+//##213 tweak of new keyword ensure geners are passed in
+
+from java.util import ArrayList
+
+def doings(){
+	kid =  ArrayList<String>();//new and generics are passed in
+	//above got input, should be findable as constructor
+	kid.add("hi")
+
+	"" + kid
+}
+
+~~~~~
+//##214 tweak of new keyword ensure geners are passed in more complex
+
+from java.util import ArrayList
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+}
+
+class LeClass<T>{
+
+	def doings( vvv T, kid ArrayList<T>){
+		myGen<T>(vvv, kid);
+	
+		"" + kid
+	}
+}
+def doings(){
+	lc = LeClass<String>()
+	kid = ArrayList<String>();
+
+	"" + [lc.doings("hi", kid), kid]
+}
+
+~~~~~
+//##215 funcref to function with local generics
+
+from java.util import ArrayList
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+	""+ taker
+}
+
+def doings(){
+ 	kid = ArrayList<String>()
+	thing = myGen<String>&("hi there", kid);
+	
+	"" + [thing(), kid]
+}
+
+~~~~~
+//##216 type inference complex constuctors
+
+from java.util import ArrayList
+
+class MyClass<T>(t ArrayList<T>){
+	def addToT(a T){
+		t.add(a)
+	}
+	override toString() => "" + t
+}
+
+def doings(){
+	xxx = MyClass(
+		ArrayList<String>()
+		)
+	xxx2 = new MyClass(	ArrayList<String>()	)
+	
+	xxx.addToT("hi")
+	xxx2.addToT("hi")
+	
+	return ""+ [xxx, xxx2]
+}
+
+~~~~~
+//##217 type inference complex generic methods
+
+from java.util import ArrayList
+
+class MyClass(){
+	def addToT<T>(a T, t ArrayList<T>) T{
+		t.add(a)
+		a
+	}
+	override equals(a Object) => false
+}
+
+def doings(){
+	xxx = MyClass()
+	thing = ArrayList<String>()
+	res = xxx.addToT("hi", thing)
+	return ""+ [thing, res]
+}
+
+~~~~~
+//##218 type inference complex const step up heirarchy
+
+from java.util import ArrayList
+class MyAR extends ArrayList<String>{}
+
+class MyClass<T>(t ArrayList<T>){
+	def addToT(a T){
+		t.add(a)
+	}
+	override toString() => "" + t
+}
+
+def doings(){
+	xxx = MyClass(
+		MyAR()
+		)
+	xxx2 = new MyClass(	MyAR()	)
+	
+	xxx.addToT("hi")
+	xxx2.addToT("hi")
+	
+	return ""+ [xxx, xxx2]
+}
+
+~~~~~
+//##219 type inference complex const step up heirarchy more than one
+
+from java.util import ArrayList
+class MyAR extends ArrayList<String>{}
+class MyARInt extends ArrayList<String>{}
+
+//MyAR and MyARInt dont map to same type so this is not possible
+class MyClass<T>(t ArrayList<T>, t2 ArrayList<T>){
+	def addToT(a T){
+		t.add(a)
+		t2.add(a)
+	}
+	override toString() => "" + [t, t2]
+}
+
+def doings(){
+	xxx = new MyClass(	MyAR(), MyARInt()	)
+	
+	xxx.addToT("hi")
+	
+	return ""+ xxx
+}
+
+~~~~~
+//##220 type inference complex method step up heirarchy more than one as well
+
+from java.util import ArrayList
+//class MyAR extends ArrayList<String>{}
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+	""+ taker
+}
+
+def doings(){
+ 	kid = ArrayList<String>()
+ 	kid2 = ArrayList<String>()
+	thing = myGen("hi there", kid);
+	thing2 = myGen("hi there", kid2);
+	
+	"" + [thing, kid, thing2, kid2]
+}
+
+~~~~~
+//##221 type inference complex method step up heirarchy more than one as well for reftypes
+
+from java.util import ArrayList
+//class MyAR extends ArrayList<String>{}
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+	""+ taker
+}
+
+def doings(){
+ 	kid = ArrayList<String>()
+ 	kid2 = ArrayList<String>()
+	thing = myGen&("hi there", kid);
+	thing2 = myGen&("hi there", kid2);
+	
+	"" + [thing(), kid, thing2(), kid2]
+}
+
+~~~~~
+//##222 type inference complex method step up heirarchy more than one as well for reftypes bit more complex
+
+from java.util import ArrayList
+class MyAR extends ArrayList<String>{}
+
+def myGen<T>(t T, taker ArrayList<T>){
+	taker.add(t)
+	""+ taker
+}
+
+def doings(){
+ 	kid = MyAR()
+ 	kid2 = MyAR()
+	thing = myGen&("hi there", kid);
+	thing2 = myGen&("hi there", kid2);
+	
+	"" + [thing(), kid, thing2(), kid2]
+}
+
+~~~~~
+//##223 i guess this can work
+//#Ignore WARN
+from java.util import ArrayList
+class MyAR extends ArrayList<String>{}
+
+def myGen<T, H>(t T, taker ArrayList<T>) H {
+	taker.add(t)
+	""+ taker as H //this is a little hack, not relevant but i thought id sneak it in
+}
+
+def doings(){
+ 	kid = MyAR()
+	thing  = myGen<String, Object>("hi there", kid);//this doesnt qualify H so error in local bindings
+	
+	//a bit nasty, we technically cannot cast to H so above can fail if we say try to return an Int or something
+	
+	"" + [thing, kid]
+}
+
+~~~~~
+//##224 call method of ref
+
+class MyClass{
+	def thing() => 11
+	override toString() => "ok"
+}
+
+mc := MyClass()
+
+def doings(){
+ 	ins = mc.thing&() //mc is a ref
+ 	ins2 = mc:get&()//this one works
+	
+	"" + [ins(), ins2()]
+}
+
+~~~~~
+//##225 call method of ref more complex
+
+class MyClass{
+	def thing() => 11
+	def thing2<T>(a T) T => a
+	override toString() => "ok"
+}
+
+mc := MyClass()
+
+def doings(){
+ 	ins = mc.thing&() //mc is a ref
+ 	insx = mc.thing2&("yo") //mc is a ref
+ 	insxx = mc.thing2<String>&("yo") //mc is a ref
+ 	ins2 = mc:get&()//this one works
+	
+	"" + [ins(), insx(), insxx(), ins2()]
+}
+
+~~~~~
+//##226 various methods with Ref arrays
+
+def doings() {
+	
+	xs = [1:, 1:]
+	
+	output :=""
+	cnt :=0
+	
+	onchange(xs){ 
+		h=999
+		stuff = changed.getChanged()
+		got = xs[0]: 
+		got2 = xs[1]:
+		output += "" + [stuff.length, 
+						//got, //not permitted
+						not(got:isClosed()), 
+						got2:isClosed()]
+		cnt++
+	}
+	
+	trans{
+		//System.err.println("109.23")
+		xs[0] = 98
+		xs[1]:close()
+		//System.err.println("1.88")
+	}
+	
+	await(cnt ; cnt == 1)
+	
+	"" + [output]
+}
+
+~~~~~
+//##227 class keyword
+
+class MyClass {}
+class MyClass2<X> {}
+
+def doings(){
+
+	"" + [[Integer.class, Integer[].class, Integer[].class.getName()],
+		[MyClass.class, MyClass2<String>.class, MyClass2<String>[].class ],
+		[boolean.class, int[].class, int[2].class ]//prims
+		]
+}
+
+~~~~~
+//##228 use of nop expression
+
+//;; means nop!
+
+class MyClass{
+	~x int[]?
+	~x2 int[2]?
+	
+	override def equals(a Object) boolean{
+		return true
+	}
+	
+	//override hashCode ( ) =>9
+	
+	override hashCode ( )  {//try int here it also fails
+      try {
+        if ( com.concurnas.lang.Hasher.defVisitAlready.containsKey ( this ) ) {
+          return 0 ;
+        }
+        com.concurnas.lang.Hasher.defVisitAlready.put ( this , this ) ;
+        hash  int = com.concurnas.lang.Hasher. hashCode ( this. x ) ;
+        hash  += com.concurnas.lang.Hasher. hashCode ( this. x2 ) ;
+        com.concurnas.lang.Hasher. defVisitAlready. remove ( this ) ;
+        hash
+      }
+      finally {
+        com.concurnas.lang.Hasher.defVisitAlready.remove( this ) ;
+        //make above a nop, maybe asdasd();; will work as a nop
+        //n=0
+        ;; //lovely, since remove returns something, this nop supresses the thing it returns
+      }
+    }
+}
+
+mc = new MyClass()
+	
+def doings() String{
+	return "" + mc.hashCode()
+}
+
+~~~~~
+//##229 lovely now we can create references to constructors
+
+private class MyClass(x int){
+	def plus(b int) =>  x += b; x 
+	override toString() => "myclass: " + x
+}
+
+def doings(){
+	maker = MyClass&(12)
+	made = maker()
+	
+	"" + made
+}
+
+~~~~~
+//##230 as above but with types
+
+private class MyClass<DD>(x int, s DD){
+	def plus(b int) =>  x += b; x 
+	override toString() => "myclass: " + x + " " + s
+}
+
+def doings(){
+	maker = MyClass<String>&(12, "hi")
+	maker2 = MyClass&(12, "hi")
+	made = maker()
+	made2 = maker()
+	
+	"" + [made, made2]
+}
+
+~~~~~
+//##231. funcref unbounded binding and direct invokation of apply
+
+private class MyClass(x int){
+	def plus(b int) => x += b; x 
+}
+
+def doings(){
+	m = MyClass(12)
+
+	myRef = MyClass.plus&(12)
+	
+	myRef.bind(m)
+	xx=myRef.apply()
+
+	"" + [myRef(), xx]
+}
+
+~~~~~
+//##232. funcref exceptions on bindings
+
+private class MyClass(x int){
+	def plus(b int) =>  x += b; x 
+}
+
+def leFun(a int) => 12
+
+def doings(){
+	myRef = MyClass.plus&(12)//unbound
+	
+	//myRef.bind(MyClass(12))
+	
+	xx=try{
+		"" + myRef.apply()
+	}
+	catch(e){//not bound
+		"fail as expected: " + e
+	}
+	
+	myRef2 = leFun&(12)
+	
+	xx2=try{
+		myRef2.bind("lol")
+		""
+	}
+	catch(e){
+		"fail as expected: " + e
+	}
+
+	"" + [xx, xx2]
+}
+
+~~~~~
+//##233. actingOn type for lambda
+
+class Myclass{
+	def plus() => 12
+}
+
+def doings(){
+	my = Myclass()
+	pp = my.plus&()
+	
+	"" + [pp(), pp.actingOnType()]
+}
+
+~~~~~
+//##234. only valid use of pure type reference in contents of function reference
+
+class MyClass(public ~a String){
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+def doings(){
+	mc = MyClass("cool")
+	
+	xx = MyClass.getA&()
+	xx.bind(mc)
+	
+	"" + xx()
+}
+
+~~~~~
+//##235. make use of generic array
+
+b = new String()
+
+class MyClass<T>{
+	def  getLa2(a T) => [a,a] //returns Object - should return T
+	
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<String>();
+	la = mc.getLa2("hi" )//casts array type to that needed
+		
+	"" + [la[0], la[1]]
+}
+
+~~~~~
+//##236. make use of generic array - 2d
+
+b = new String()
+
+class MyClass<T>{
+	def  getLa2(a T) => [[a,a],] //returns Object - should return T
+	
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<String>();
+	la = mc.getLa2("hi" )//casts array type to that needed
+		
+	"" + [la[0][0], la[0][1]]
+}
+
+~~~~~
+//##237. make use of generic array - operates on functions now
+
+b = new String()
+
+class MyClass<T>{
+	def  getLa2(a T) => [a,a] //returns Object - should return T
+	
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	la = mc.getLa2(dd )
+		
+	"" + [la[0](), la[1]()]
+}
+
+~~~~~
+//##238. unbound method ref with generic args
+
+class MyClass<T>{
+	//def  getLa(a T) => [a,a]
+	def  getLa(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass<() String>.getLa&(dd)//<- fully defined
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + la()//[la[0](), la[1]()]
+}
+
+~~~~~
+//##239. unbound method ref with generic args complex
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass<() String>.getLa&(dd)//<- fully defined
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + [la[0](), la[1]()]
+}
+
+~~~~~
+//##240. quick check
+
+def doings() {
+	f = [0,0,0]
+	g = [1,1,1]
+	
+	n=0
+	
+	g[f[n]] = 10
+	
+	"" + g
+}
+
+~~~~~
+//##241. funcrefs to things with generic params simple
+
+class MyClass<T>{
+	def  getLa(a T) => a
+	def  getLaTyped<T>(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def d1(){
+	myRef = MyClass<String>.getLa&("hi")//<- fully defined
+	myRef2 = MyClass<String>.getLaTyped<String>&("hi")//<- fully defined
+	
+	mc = MyClass< String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef(), myRef2()]
+}
+
+def d2(){
+	myRef = MyClass<int>.getLa&(12)//<- fully defined
+	myRef2 = MyClass<int>.getLaTyped<int>&(12)//<- fully defined
+	
+	mc = MyClass< int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef(), myRef2()]
+}
+
+def d3(){
+	low = def () String { "yo"}
+
+	myRef = MyClass<() String>.getLa&(low)//<- fully defined
+	myRef2 = MyClass<() String>.getLaTyped<() String>&(low)//<- fully defined
+	
+	mc = MyClass< () String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()(), myRef2()()]
+}
+
+def d4(){
+	low = def () int {999 }
+
+	myRef = MyClass<() int>.getLa&(low)//<- fully defined
+	myRef2 = MyClass<() int>.getLaTyped<() int>&(low)//<- fully defined
+	
+	mc = MyClass< () int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()(), myRef2()()]
+}
+
+
+def doings(){
+	//unbounded
+	"" + [d1(), d2(), d3(), d4()]
+}
+
+~~~~~
+//##242. funcrefs to things with generic params infer
+
+class MyClass<T>{
+	def  getLa(a T) => a
+	def  getLaTyped<T>(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def d1(){
+	//assignNew on lhs because we want to double check the types
+	myRef () String = MyClass.getLa&("hi")
+	myRef2 () String = MyClass.getLaTyped&("hi")
+	
+	mc = MyClass< String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef(), myRef2()]
+}
+
+def d2(){
+	myRef () int = MyClass.getLa&(12)
+	myRef2 () int = MyClass.getLaTyped&(12)
+	
+	mc = MyClass< int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef(), myRef2()]
+}
+
+def d3(){
+	low = def () String { "yo"}
+
+	myRef () () String = MyClass.getLa&(low)
+	myRef2 () () String = MyClass.getLaTyped&(low)
+	
+	mc = MyClass< () String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()(), myRef2()()]
+}
+
+def d4(){
+	low = def () int {999 }
+
+	myRef () () int = MyClass.getLa&(low)
+	myRef2 () () int = MyClass.getLaTyped&(low)
+	
+	mc = MyClass< () int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()(), myRef2()()]
+}
+
+
+def doings(){
+	//unbounded
+	"" + [d1(), d2(), d3(), d4()]
+}
+
+~~~~~
+//##242. funcrefs to things with generic params simple array
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	def  getLaTyped<T>(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def d1(){
+	myRef = MyClass<String>.getLa&("hi")//<- fully defined
+	myRef2 = MyClass<String>.getLaTyped<String>&("hi")//<- fully defined
+	
+	mc = MyClass< String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d2(){
+	myRef = MyClass<int>.getLa&(12)//<- fully defined
+	myRef2 = MyClass<int>.getLaTyped<int>&(12)//<- fully defined
+	
+	mc = MyClass< int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d3(){
+	low = def () String { "yo"}
+
+	myRef = MyClass<() String>.getLa&(low)//<- fully defined
+	myRef2 = MyClass<() String>.getLaTyped<() String>&(low)//<- fully defined
+	
+	mc = MyClass< () String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+def d4(){
+	low = def () int {999 }
+
+	myRef = MyClass<() int>.getLa&(low)//<- fully defined
+	myRef2 = MyClass<() int>.getLaTyped<() int>&(low)//<- fully defined
+	
+	mc = MyClass< () int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+
+def doings(){
+	//unbounded
+	"" + [d1(), d2(), d3(), d4()]
+}
+
+~~~~~
+//##242. funcrefs to things with generic params simple array infer
+
+class MyClass<T>{
+	def  getLa(a T) => [a a]
+	def  getLaTyped<T>(a T) => [a a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def d1(){
+	//assignNew on lhs because we want to double check the types
+	myRef () String[] = MyClass.getLa&("hi")
+	myRef2 () String[] = MyClass.getLaTyped&("hi")
+	
+	mc = MyClass< String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d2(){
+	myRef () Integer[] = MyClass.getLa&(12)
+	myRef2 () Integer[] = MyClass.getLaTyped&(12)
+	
+	mc = MyClass< int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d3(){
+	low = def () String { "yo"}
+
+	myRef () (() String)[] = MyClass.getLa&(low)
+	myRef2 () (() String)[] = MyClass.getLaTyped&(low)
+	
+	mc = MyClass< () String>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+def d4(){
+	low = def () int {999 }
+
+	myRef () (() int)[] = MyClass.getLa&(low)
+	myRef2 () (() int)[] = MyClass.getLaTyped&(low)
+	
+	mc = MyClass< () int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+
+def doings(){
+	//unbounded
+	"" + [d1(), d2(), d3(), d4()]
+}
+
+~~~~~
+//##243. funcrefs to things with generic params simple array - bounded
+
+class MyClass<T>{
+	def  getLa(a T) => [a a]
+	def  getLaTyped<T>(a T) => [a a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def d1(){
+	mc = MyClass< String>();
+
+	myRef = mc.getLa&("hi")//<- fully defined
+	myRef2 = mc.getLaTyped<String>&("hi")//<- fully defined
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d2(){
+	mc = MyClass< int>();
+	myRef = mc.getLa&(12)//<- fully defined
+	myRef2 = mc.getLaTyped<int>&(12)//<- fully defined
+	
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d3(){
+	mc = MyClass< () String>();
+	low = def () String { "yo"}
+
+	myRef = mc.getLa&(low)//<- fully defined
+	myRef2 = mc.getLaTyped<() String>&(low)//<- fully defined
+	
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+def d4(){
+	mc = MyClass< () int>();
+	low = def () int {999 }
+
+	myRef = mc.getLa&(low)//<- fully defined
+	myRef2 = mc.getLaTyped<() int>&(low)//<- fully defined
+	
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+
+def doings(){
+	//unbounded
+	"" + [d1(), d2(), d3(), d4()]
+}
+
+~~~~~
+//##244. funcrefs to things with generic params simple array - bounded with infered stuff
+
+//make me arr
+class MyClass<T>{
+	def  getLa(a T) => [a a]
+	def  getLaTyped<T>(a T) => [a a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def d1(){
+	//assignNew on lhs because we want to double check the types
+	mc = MyClass< String>();
+	myRef () String[] = mc.getLa&("hi")
+	myRef2 () String[] = mc.getLaTyped&("hi")
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d2(){
+	mc = MyClass< int>();
+	myRef () Integer[] = mc.getLa&(12)
+	myRef2 () Integer[] = mc.getLaTyped&(12)
+	
+	
+	"" + [myRef()[0], myRef2()[0]]
+}
+
+def d3(){
+	mc = MyClass< () String>();
+	low = def () String { "yo"}
+
+	myRef () (() String)[] = mc.getLa&(low)
+	myRef2 () (() String)[] = mc.getLaTyped&(low)
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+def d4(){
+	mc = MyClass< () int>();
+	low = def () int {999 }
+
+	myRef () (() int)[] = mc.getLa&(low)
+	myRef2 () (() int)[] = mc.getLaTyped&(low)
+	
+	
+	"" + [myRef()[0](), myRef2()[0]()]
+}
+
+
+def doings(){
+	//unbounded
+	"" + [d1(), d2(), d3(), d4()]
+}
+
+~~~~~
+//##245. funcref to constructor
+
+class MyClass<T>{
+	def hi() => "hi"
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def doings(){
+	mc = MyClass<() String>&();
+	ins = mc()
+	
+	"" + ins.hi()
+}
+
+~~~~~
+//##246. funcref to constructor with inf
+
+class MyClass<T>(public a T){
+	def hi() => "hi"
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def doings(){
+	mc = MyClass&("hi");
+	ins = mc()
+	
+	"" + [ins.hi(), ins.a]
+}
+
+~~~~~
+//##247. boxing bug on generic type inference
+
+class MyClass<T>{
+	this( a T) {} 
+	this( ) {} 
+	def doLa(t T) => t
+	override equals(a Object)=>true
+	override hashCode()=>69
+	override toString()=>"wonderful"
+}
+
+def doings(){
+	x= new MyClass(12)//ensure this gets boxed up
+	"" +x 
+}
+
+~~~~~
+//##248. local gen correctly overwrites class gen
+
+class MyClass<T>{
+	this( a T) {} 
+	this( ) {} 
+	def doLa<T>(t T) => t
+	override equals(a Object)=>true
+	override hashCode()=>69
+	override toString()=>"wonderful"
+}
+
+
+def doings(){
+	mc () int = MyClass<String>.doLa<int>&(12);
+	
+	ins = new MyClass<String>()
+	mc.bind(ins)//should fail
+	
+	"" + mc()
+}
+
+~~~~~
+//##249. this is fine
+
+class MyClass<T>{
+	def  getLa(a T) => a
+	def  getLaTyped<T>(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+def doings(){
+	low = def () int {999 }
+	lowstr = def () String {""+999 }
+
+	myRef = MyClass<() int>.getLa&(low)//<- fully defined
+	myRef2 = MyClass<() String>.getLaTyped<() String>&(lowstr)//<- fully defined
+	
+	mc = MyClass< () int>();
+	myRef.bind(mc)
+	myRef2.bind(mc)
+	
+	"" + [myRef()(), myRef2()()]
+}
+
+~~~~~
+//##250. not perfect but good enough
+
+class MyClass<T>{
+	def  getLa(a T) => a
+	def  getLaTyped<T>(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def doings(){
+	low = def () String { "yo"}
+
+	myRef2 = MyClass<int>.getLaTyped<() String>&(low)
+	
+	mc = MyClass< () String>();
+	myRef2.bind(mc)//should fail, wrong type passed - impossible to do
+	
+	"" + myRef2()()
+}
+
+~~~~~
+//##251. nested class funcref
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	xx = Parent<int>.MyClass<String>.getLaTyped<String>&("hi")
+	
+	par = Parent<int>()
+	ins =  par.new MyClass<String>()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##252. nested class funcref - type inf 1
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	xx = Parent<int>.MyClass<String>.getLaTyped&("hi")//inf type
+	
+	par = Parent<int>()
+	ins =  par.new MyClass<String>()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##253. nested class funcref - reference inner dude
+
+class Parent<To>{
+	public class MyClass{
+		def  getLa(a String) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	xx = Parent<int>.MyClass.getLa&("hi")
+	
+	par = Parent<int>()
+	ins =  par.new MyClass()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##254. nested class funcref - reference inner dude infer types for class
+
+public class MyClass<T>{
+	def  getLa(a T) T => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+def doings(){
+	xx = MyClass.getLa&("hi")//infer type for MyClass -> getLa
+	
+	ins =  new MyClass<String>()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##255. nested class funcref - reference inner dude infer types for class x2 levels
+
+public class Parent<V>{
+	public class MyClass<T>{
+		def  getLa(a T, b V) T => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+	}
+}
+
+def doings(){
+	xx = Parent.MyClass.getLa&("hi", 12)//infer type for MyClass -> getLa
+	
+	par = new Parent<Integer>()
+	ins =  par.new MyClass<String>()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##256. super simple
+
+public class MyClass<T>{
+	def  getLa(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+def doings(){
+	xx = MyClass.getLa&("hi")
+	
+	ins =  new MyClass<String>()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##257. new is not needed on nested class creation anymore
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		~x=100
+	}
+}
+
+def doings(){
+	par = Parent<int>()
+	ins = par.MyClass<String>()
+	
+	"" + ins.x
+}
+
+~~~~~
+//##258. new is not needed on nested class creation anymore - as above but easier
+
+class Parent<To>{
+	public class MyClass{
+		def  getLa(a String) => a
+		def  getLaTyped(a String) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	par = Parent<int>()
+	ins = par.MyClass()
+	
+	"" +ins.x
+}
+
+~~~~~
+//##259. ensure args get captured correctly
+
+class Parent<To>{
+	public class MyClass(-g int){
+		def  getLa(a String) => a
+		def  getLaTyped(a String) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	par = Parent<int>()
+	pp = par.MyClass&(2)
+	
+	ins = pp()
+	
+	"" + ins.g
+}
+
+~~~~~
+//##260. create ref to nested class
+
+class ParentSup{
+	public class Parent<To>{
+		public fromP=99
+		public class MyClass{
+			def  getLa(a String) => a
+			def  getLaTyped(a String) => a
+			override equals(a Object)=>true
+			override hashCode()=>69
+			public x=100
+			def getFromP()=>fromP
+		}
+	}
+}
+
+def doings(){
+	s = ParentSup()
+	par = s.Parent<int>()
+	par.fromP=200
+	g=99
+	pp = par.MyClass&()
+	
+	ins = pp()
+	
+	"" + [ins.x, ins.getFromP()] //+ ins.x
+}
+
+~~~~~
+//##261. create ref to nested class - above but simple
+
+class Parent<To>{
+	public class MyClass{
+		def  getLa(a String) => a
+		def  getLaTyped(a String) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	par = Parent<int>()
+	pp = par.MyClass&()
+	
+	ins = pp()
+	
+	"" +ins.x
+}
+
+~~~~~
+//##262. create ref to nested class - above but simple but with args
+
+class Parent<To>{
+	public class MyClass(-g int){
+		def  getLa(a String) => a
+		def  getLaTyped(a String) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	par = new Parent<int>()
+	pp = par.MyClass&(12)
+	
+	ins = pp()
+	
+	"" +ins.x
+}
+
+~~~~~
+//##263. create ref to nested class - with generics
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		~x=100
+	}
+}
+
+def doings(){
+	par = Parent<int>()
+	refla () Parent<int>.MyClass<String> = par.MyClass<String>&()
+	ins = refla()
+	
+	"" + ins.x
+}
+
+~~~~~
+//##264. infer generics from types passed in constructor
+
+class Parent<To>{
+	public class MyClass<T>(a T){
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		~x=100
+	}
+}
+
+def doings(){
+	par = Parent<int>()
+	refla () Parent<int>.MyClass<String> = par.MyClass&("hi")
+	ins = refla()
+	
+	"" + ins.x
+}
+
+~~~~~
+//##265. used to npe no longer does
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+
+}
+
+def doings(){
+	xx = Parent<int>.MyClass.getLaTyped<String>&("gool")
+	
+	par = Parent<int>()
+	ins =  par.new MyClass<String>()
+	xx.bind(ins)
+	
+	"" + xx()
+}
+
+~~~~~
+//##266. used to npe no longer does x2
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	xx = Parent<int>.MyClass.getLa&("hi")//infer type for getLa
+	
+	par = Parent<int>()
+	ins =  par.new MyClass<String>()
+	xx.bind(ins)
+	
+	"" +xx()
+}
+
+~~~~~
+//##267. statics can be referenced
+
+def doings(){
+	"" + Math.PI
+}
+
+~~~~~
+//##268. no need to use new long version
+
+def doings(){
+	pp = java.lang.String("dave21")
+	"" +pp
+}
+
+~~~~~
+//##269. funcref to const using new
+
+def doings(){
+	pp = new String&("dave21")
+	"" + pp()
+}
+
+~~~~~
+//##270. funcref to const using new mk 2
+
+def doings(){
+	pp = new java.lang.String&("dave21")
+	"" + pp()
+}
+
+~~~~~
+//##271. use new in funcref and imply arguments
+
+public class MyClass<T>(~a T){
+	def  getLa(a T) => a
+	def  getLaTyped<T>(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+	public x=100
+}
+
+def doings(){
+	mc () MyClass<String> = new MyClass&("hi")
+	inst = mc()
+	"" + inst.a 
+}
+
+~~~~~
+//##272. create funcref use new in nested maner
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	para = new Parent<int>&()
+	par = para()
+	xx =  par.new MyClass<String>&()
+	
+	"" + xx().x
+}
+
+~~~~~
+//##273. create funcref use new in nested maner - infer type
+
+class Parent<To>{
+	public class MyClass<T>(~g T){
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	para = new Parent<int>&()
+	par = para()
+	xx =  par.new MyClass&("hi")
+	
+	"" + xx().g
+}
+
+~~~~~
+//##274. another case
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+
+}
+
+def doings(){
+	xx =  Parent<int>().MyClass<String>&()//no needs parent ref - to bind on to
+	ins = xx()
+	"" + ins.x
+}
+
+~~~~~
+//##275. complex and cool
+
+class MyClass{
+	def  getLa<XXX>(a XXX) => [a,a]
+	override toString() => "hi"
+}
+
+def taker( dower () MyClass  ){
+	dower()
+}
+
+def doings(){
+	ma ()MyClass = MyClass&()
+	ma2  = MyClass&()
+	x = taker(ma)!
+	x2 = taker(ma2)!
+	"" + [x, x2]
+}
+
+~~~~~
+//##276. another test
+
+class MyClass<T>{
+	def  getLa(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass<() String>.getLa&(dd)//<- fully defined
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + la()// [la[0](), la[1]()]
+}
+
+~~~~~
+//##277. more exmaples
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass<() String>.getLa&(dd)//<- fully defined
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + [la[0](), la[1]()]
+}
+
+~~~~~
+//##278. looks fine
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass.getLa&(dd)//<- infer
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + [la[0](), la[1]()]
+}
+
+~~~~~
+//##279. works getting boring
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass<() String>.getLa&(dd)//<- fully defined
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + [la[0](), la[1]()]
+}
+
+~~~~~
+//##280. ywarn
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+dd=def () { "hi" }
+
+def doings(){
+	mc = MyClass<() String>();
+	myRef = MyClass.getLa&(dd)//<- type can be infered?
+	myRef.bind(mc)
+	
+	la = myRef()
+	
+	"" + [la[0](), la[1]()]
+}
+
+~~~~~
+//##281. ok
+
+class MyClass<T>{
+	def  getLa(a T) => [a,a]
+	override equals(a Object)=>true
+	override hashCode()=>69
+}
+
+
+def doings(){
+	mc = MyClass<String>();
+	myRef = MyClass<String>.getLa&("hi")
+	//myRef = MyClass.getLa&("hi")//<- error on this!
+	myRef.bind(mc)
+	
+	"" + myRef()
+}
+
+~~~~~
+//##282. can create funcref to nested inner thing
+
+class Parent<To>{
+	public class MyClass<T>(~a T){
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+	
+	def getKidmaker() () MyClass<String> => new MyClass&("hi")//imply args
+	def getKidmaker2() () MyClass<String> => MyClass&("hi") //no new
+	def getKidmaker3() => MyClass&("hi") //implicit ret
+
+}
+
+def doings(){
+	par = Parent<int>()
+	
+	"" + [par.getKidmaker()().a, par.getKidmaker2()().a, par.getKidmaker3()().a]
+}
+
+~~~~~
+//##283. hard but we got there
+
+public class MyClass<T>{
+	def  getLa(a T) => [a a]
+	def  getLaTyped<T>(a T) => a
+	override equals(a Object)=>true
+	override hashCode()=>69
+	public x=100
+}
+
+def doings() {
+	dd = def () { "one"}
+
+	la () (() java.lang.String) [] = MyClass.getLa&(dd)
+	
+	la.bind(new MyClass<() String>() )
+	
+	"" + la()[0]()
+}
+
+~~~~~
+//##284. lovely now we can create parent nested refs which require binding
+
+class Parent<To>{
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+	}
+}
+
+def doings(){
+	xx =  Parent<int>.MyClass<String>&()//no needs parent ref - to bind on parent
+	xx.bind(new Parent<int>())
+	ins = xx()
+	"" + ins.x
+}
+
+~~~~~
+//##285. more complex cases
+
+class Parent<To>(tox To){
+	public class MyClass<T>{
+		def  getLa(a T) => a
+		def  getLaTyped<T>(a T) => a
+		override equals(a Object)=>true
+		override hashCode()=>69
+		public x=100
+		def doStuff() => tox
+	}
+	
+}
+
+def doings(){
+	xx =  Parent<int>.MyClass<String>&()//no needs parent ref - to bind on parent
+	xx.bind(new Parent<int>(44))
+	ins = xx()
+	"" + (ins.doStuff() + 2)
+}
+
+~~~~~
+//##286. get function via psa - with arguments
+//before this was not working
+class Theclass<T>{
+	private def getter(a String) => "hi"
+	public class Child{
+		def getMeAGetter(a String) => getter(a)//fine - via psar
+	}
+}
+
+
+def doings(){
+	cc = new Theclass<String>().new Child()
+	"" + cc.getMeAGetter("hi")
+}
+
+~~~~~
+//##287. get function via psa - with arguments from generic
+
+class Theclass<T>{
+	private def getter(a T) => a
+	public class Child{
+		def getMeAGetter(a T) => getter(a)//fine - via psar
+	}
+}
+
+
+def doings(){
+	cc = new Theclass<int>().new Child()
+	"" + cc.getMeAGetter(12)
+}
+
+~~~~~
+//##288. funcref on a psar - works
+
+class Theclass<T>{//amazing
+	private def getter(a String) => a
+	public class Child{
+		def getMeAGetter(a String) => Theclass<T>.getter&(a)//funcref psar
+		def getMeAGetterBounded(a String) => getter&(a)//funcref psar
+	}
+}
+
+
+def doings(){
+	par = new Theclass<int>();
+	cc = par.new Child()
+	thing = cc.getMeAGetter("12")
+	thing.bind(par)
+	
+	"" + [thing(), cc.getMeAGetterBounded("ok")()]
+}
+
+~~~~~
+//##289. funcref on a psar - works but with a generic
+
+class Theclass<T>{
+	private def getter(a T) => a
+	public class Child{
+		def getMeAGetter(a T) => Theclass<T>.getter&(a)//funcref psar
+		def getMeAGetterBounded(a T) => getter&(a)//funcref psar
+	}
+}
+
+
+def doings(){
+	par = new Theclass<String>();
+	cc = par.new Child()
+	thing = cc.getMeAGetter("12")
+	thing.bind(par)
+	
+	"" + [thing(), cc.getMeAGetterBounded("ok")()]
+}
+
+~~~~~
+//##290. correct use of local generics
+
+class MyClass<Ta>(a Ta) {
+	def source<P>(a P) => a	
+	def getThingy() => source&(12) //ok infer
+	
+	def source2<P>() => 99	
+	def getThingy2() => source2<String>&() //ok does nothing	
+}
+
+
+def doings(){
+	mc = MyClass(12)
+	
+	"" + [mc.getThingy()(), mc.getThingy2()()]
+}
+
+
+~~~~~
+//##291. psar created for private thing
+
+class MyClass<Ta>(a Ta) {
+	private def source<P>(a P) => a	
+	def getThingy2() => source&(12) //should be ok to access this, needs psar
+}
+
+
+def doings(){
+	mc = MyClass(12)
+	
+	"" + mc.getThingy2()()
+}
+
+~~~~~
+//##292. local generic params on lambda
+
+thefunc = def<T>(a String) { [a,a] }
+
+def doings() {
+		
+	"" + thefunc<String>("hi")
+}
+
+~~~~~
+//##293. little thing
+
+def xxx<T>(a T) { return [a,a] }
+thefunc = xxx&(? String)
+
+def doings() {
+		
+	"" + thefunc("hi")
+}
+
+~~~~~
+//##294. local generic params on lambda with infer types
+
+thefunc = def<T>(a T) { return [a,a] }
+
+def doings() {		
+	"" + [thefunc("hi"), thefunc(12)]
+}
+
+~~~~~
+//##295. was failing before
+
+thefunc  = def (a String) { [a,a] }
+
+def doings() {	
+	ff = thefunc&(? String)
+	
+	"" + ff("12")
+}
+
+~~~~~
+//##296. funcref to lambda with local generics
+
+thefunc <T>(T) T[] = def<T>(a T) { [a a] }
+
+def doings() {	
+	ff = thefunc<String>&(? String)
+	
+	"" + ff("12")
+}
+
+~~~~~
+//##297. funcref to lambda with local generics - infer type
+
+thefunc <T>(T) T[] = def<T>(a T) { [a a] }
+
+def doings() {	
+	ff = thefunc&(? String)
+	
+	"" + ff("12")
+}
+
+~~~~~
+//##298. funcref to lambda with local generics - infer type lovely
+
+thefunc <T>(T) T[] = def<T>(a T) { [a a] }
+
+def doings() {	
+	ff = thefunc&(? int)
+	
+	"" + ff(12)
+}
+
+~~~~~
+//##299. complex via class
+
+class MyClass<T>{
+	public thefunc (T) T[] = def (a T) { [a a] }
+}
+
+def doings() {
+	mc = MyClass<int>()
+	
+	ff = mc.thefunc&(? int)
+	
+	"" + ff(12)
+}
+
+~~~~~
+//##299.b complex via class - unrelated gens on type and locally
+
+class MyClass<Ta>{
+	public thefunc <T>(T) T[] = def<T>(a T) { [a a] }
+}
+
+def doings() {
+	mc = MyClass<String>()
+	
+	ff = mc.thefunc&(? int)
+	
+	"" + ff(12)
+}
+
+~~~~~
+//##300. unbounded ref to lambda function variable
+
+class MyClass(msg String){
+	public thefunc <T>(T) String = def<T>(a T) { msg + " " + [a,a] }
+}
+
+def doings() {
+	mca = MyClass("a")
+	mcb = MyClass("b")
+	
+	ff = MyClass.thefunc&(? int)
+	ff.bind(mca.thefunc)
+	
+	
+	ff2 = MyClass.thefunc&(? int)
+	ff2.bind(mcb.thefunc)
+	
+	//binding is performed onto the varibale itself
+	
+	"" + [ ff(12), ff2(12)]
+}
+
+~~~~~
+//##301. its nice when stuff just works ok
+
+class MyClass(msg String){
+	public thefunc <T>(T) String = def<T>(a T) { msg + " " + [a,a] }
+}
+
+def doings() {
+	b:=100
+	def neste<T>(a T, g String){
+		"" + [a , b++, g]
+	}
+	//the state of b does not get persisted if its not a ref, is this correct?
+	refla = neste&("hi", ? String)
+	
+	"" + [refla("cool")	, refla("cool2")	]
+}
+
+~~~~~
+//##302. this was failing before
+
+thefunc  = def (a int) { [a,a] }
+
+def doings() {	
+	ff = thefunc&(? int)
+	
+	"" + ff(12)
+}
+
+~~~~~
+//##303. classes dont need to have blocks
+
+open class Parent(public simple String)
+
+class MySimpleCaseClass(simple String) < Parent(simple)
+{}
+
+class MySimpleCaseClass2(simple String) < Parent(simple){}
+
+class MySimpleCaseClass3(simple String) < Parent(simple)//optional
+class MySimpleCaseClass4(simple String) < Parent(simple)
+class MySimpleCaseClass5(simple String) < Parent(simple)
+
+class MySimpleCaseClass6(simple String) < Parent(simple)
+
+
+def doings(){
+	s1 = MySimpleCaseClass("hi")
+	s2 = MySimpleCaseClass2("hi")
+	s3 = MySimpleCaseClass3("hi")
+	s4 = MySimpleCaseClass4("hi")
+	s5 = MySimpleCaseClass5("hi")
+	s6 = MySimpleCaseClass6("hi")
+	
+	"" + for(s in [s1, s2, s3, s4, s5, s6]) {s.simple}
+}
+
+~~~~~
+//##304. was a bug now its not
+
+class MyClass<T>{
+	def  getLa<XXX>(a XXX) => [a,a]
+}
+
+def doings(){
+	ma = new MyClass<String>&()
+	ma2 = new MyClass<String>&()
+	x = ma()
+	"" + x.getLa(1)
+}
+
+~~~~~
+//##305. this used to fail
+
+private class MyClass(x int){
+	def plus(b int) =>  x += b; x 
+}
+
+def hi() => "there"
+
+def doings(){
+	my =  MyClass(12)
+	
+	xxx = my.plus(8)!
+	my.plus(8)
+	
+	"" + [my.plus(8), xxx]
+}
+
+~~~~~
+//##306. was a bug now its not
+
+private class MyClass(x int){
+	def plus(b int) =>  x += b; x 
+}
+
+def hi() => "there"
+
+def doings(){
+	my = actor MyClass(12)
+	
+	x={my.plus(8);	g=  9; g	}!//correctly mapped now
+	my.plus(8)
+	await(x)
+	"" + my.plus(8)
+}
+
+~~~~~
+//##307. avoid accidental ref overwrite
+
+def doings(){
+	
+	d int:: //not really an int::
+	d = {g = 12:; g}!//final thing is not unreffed - thus causing ref to be overriden
+	
+	"" + d
+}
+
+~~~~~
+//##308. rhs async block with ref should not overwrite lhs
+
+def doings(){
+	d int:: = {12:}!
+	//the lhs of the above should use the ref created on the rhs
+	//i.e. we use the ref created inside the async block for d
+	g="hi"
+	"" + d
+}
+
+~~~~~
+//##309. rhs async block with ref should overwrite lhs
+
+def doings(){
+	d int:: = {{12}!}!
+	dmorecomplex int:: = {{{12}!}}!
+	//for the above, we do wish for the ref to be fully created
+	"" + [d, dmorecomplex]
+}
+
+~~~~~
+//##310. complex but ok
+
+def doings(){
+	d int::: = {{12!}:}! //mix
+	
+	//for the above, we do wish for the ref to be fully created
+	"" + d
+}
+
+~~~~~
+//##311. complex but ok expands on idea from above
+
+def doings(){
+	d int::: = {{12:}!}! //mix of fun
+	
+	//for the above, we do wish for the ref to be fully created
+	"" + d
+}
+
+~~~~~
+//##312. as above complex
+
+def doings(){
+	d1 int:: = {12:}!//fails - should be ok cos creating
+	d2 int:: = {12!}!
+	d3 int:: = {12}!
+	
+	d4 ::= {g=12:; g:}! //this should be ok
+	d5 ::= {g=12:; g:}! //this should be ok
+	
+	"" + [d1, d2, d3, d4, d5]
+	
+}
+
+~~~~~
+//##313. ensure correct toString called
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+	override def toString() => "fail"
+	override def hashCode() => 111
+	override def equals(a Object) => false
+	override def clone() => null
+	def leToString() => super.toString()//"toString on cobject hit"
+	def leHashCode() => super.hashCode()//"toString on cobject hit"
+	def leEQ(a Object) => super.equals(a)//"toString on cobject hit"
+	def leClone() => super.clone()//"toString on cobject hit"
+}
+
+def tryClone(my MyClass){
+	try{
+		"res: " + my.leClone()
+	}catch( e){
+		"cannot clone as expected" + e
+	} 
+}
+
+def doings(){
+	my =   MyClass(12)
+	"didnt crash and correct thing called: "  + [my.leToString() <> "fail", my.leHashCode() <> 11,my.leEQ(my) <> false, tryClone(my)]
+}
+
+
+~~~~~
+//##314. tostring calls hashcode by default
+
+from java.util import HashSet
+
+private class MyClass(ret int) {
+	override hashCode() => x = {ret}!; x as int //we want the fiber to be passed in here, bugfix ensures it does
+	override toString() => super.toString()
+}
+
+
+def doings(){
+	my =  MyClass(123)
+	my2 =  MyClass(123)
+	my3 =  MyClass(222)
+	
+	hs = HashSet<MyClass>()
+	hs.add(my)
+	
+	xxx = ""+my//should not fail and pause forever etc
+	
+	"" + [my==my2, my<>my3, hs.contains(my2), not(hs.contains(my3))]
+}
+
+~~~~~
+//##315. tostring calls hashcode by default
+
+from java.util import HashSet
+
+private class MyClass(ret int) {
+	override hashCode() => x = {ret}!; x as int
+	override toString() => x = {ret}!; ""+x //nice and complex
+}
+
+
+def doings(){
+	my =  MyClass(123)
+	my2 =  MyClass(123)
+	my3 =  MyClass(222)
+	
+	hs = HashSet<MyClass>()
+	hs.add(my)
+	
+	xxx = ""+my//should not fail and pause forever etc
+	
+	"" + [xxx, my==my2, my<>my3, hs.contains(my2), not(hs.contains(my3))]
+}
+
+~~~~~
+//##316. carry through the generics
+
+class MyClass<X>{
+	def doith(a X) => a
+}
+
+class MyPar<X>{
+
+	def refx(a X){
+		mc = MyClass<X>()
+		mc.doith&(a)
+	}
+}
+
+def doings() {
+	p = new MyPar<String>()
+	po = p.refx("nice when stuff works")
+	"" + po()
+}
+
+~~~~~
+//##317. carry through the generics - local gens
+
+class MyClass{
+	def doith<X>(a X) => a
+}
+
+class MyPar<X>{
+
+	def refx(a X){
+		mc = MyClass()
+		mc.doith<X>&(a)//local generics
+	}
+}
+
+def doings() {
+	p = new MyPar<String>()
+	po = p.refx("nice when stuff works")
+	"" + po()
+}
+
+~~~~~
+//##317. more def with generics this used to fail
+
+class MyClass<XXX>(a XXX){
+	def doith(a XXX) => a
+}
+
+class MyPar<X>{
+
+	def refx1(a X){
+		inst = MyClass&(a)
+		mc = inst()
+		mc.doith&(a)
+	}
+	
+	def refx2(a X){
+		inst = new MyClass&(a)
+		mc = inst()
+		mc.doith&(a)
+	}
+	
+	def refx3(a X){
+		inst = MyClass<X>&(a)
+		mc = inst()
+		mc.doith&(a)
+	}
+	
+	def refx4(a X){
+		inst = new MyClass<X>&(a)
+		mc = inst()
+		mc.doith&(a)
+	}
+	
+	def fancy<X>(a X){
+		inst = new MyClass<X>&(a)
+		mc = inst()
+		mc.doith&(a)
+	}
+}
+
+def doings() {
+	p = new MyPar<String>()
+	po1 = p.refx1("hi")
+	po2 = p.refx2("mate")
+	po3 = p.refx3("mate")
+	po4 = p.refx4("mate")
+	ff =  p.fancy(99)
+	"" + [po1(), po2(), po3(), po4(), ff()]
+}
+
+~~~~~
+//##318. we used to be unable to bind this
+
+class MyClass<X>(~x X){
+	def stuff<H>() H{
+		null
+	}
+}
+
+def asd<XX>(a XX){
+	mc = MyClass<XX>(a)
+	mc.stuff<XX>&()
+}
+
+def doings(){
+	f = asd<String>("hi")
+	"ok boys" + f()
+}
+
+~~~~~
+//##319. as above but with local generics
+//works very consistantly now
+class MyClass{
+	def doith<X>(a X) => a
+}
+
+class MyPar<X>{
+
+	mc = MyClass()
+	
+	def refx1(a X){
+		mc.doith<X>&(a)//local generics
+	}
+	
+	def refx2(a X){
+		mc.doith&(a)//local generics
+	}
+}
+
+def doings() {
+	p = new MyPar<String>()
+	po1 = p.refx1("nice when stuff works")
+	po2 = p.refx2("nice when stuff works")
+	"" + [po1(), po2()]
+}
+
+~~~~~
+//##320. works lovely
+
+class MyClass<X>(~x X){}
+
+def doings(){
+	mc = MyClass<String>("stuff")
+	
+	inst = MyClass<String>.getX&()
+	inst.bind(mc)
+	
+	f=inst()
+	
+	"ok " + f 
+}
+
+~~~~~
+//##321. only do checks above on locally bound generics
+
+class MyClass<X>(~x X){}
+
+def thingy<YYY>(a YYY){
+	mc = MyClass(a)
+	inst = mc.getX&()
+	inst()
+}
+
+def thingy2<YYY>(a YYY){
+	mc = MyClass(a)
+	inst = MyClass<YYY>.getX&()
+	inst.bind(mc)
+	
+	inst()
+
+}
+
+def doings(){
+	"ok " + [thingy("hey"), thingy2("hey")]
+}
+
+~~~~~
+//##322. this stuff where we are not doing references seems ok i guess testing could be better
+
+class MyClass<X>(~x X){
+	def stuff<H>() H{
+		null
+	}
+}
+
+def asd<XX>(a XX){
+	mc = MyClass<XX>(a)
+	mc.stuff<XX>()
+}
+
+def doings(){
+	f = asd<String>("hi")
+	"ok boys" + f
+}
+
+~~~~~
+//##323. bugfix, qualification of generic super types
+
+class Holder<XX>
+open class SuperClass<X>
+class Child<Y> < SuperClass<Holder<Y>>
+
+def doings(){
+	c = Child<String>()
+	ass SuperClass<Holder<String>> = c
+	"lovely" 
+}
+
+~~~~~
+//##324. was a bug but has an easy fix
+
+def doings(){
+	aas java.util.ArrayList<String> =  java.util.ArrayList<String>()
+	aas.add("noe")
+	ff = java.util.ArrayList<String>.toString&()
+	ff.bind(aas)//funcrefs on full paths
+	
+	"" + ff()
+}
+
+~~~~~
+//##325. forgetting to bind causes npe which used to crash
+
+class Outer<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def hithere()  =>  "from outer"
+	public class Inner<Y>{
+		def stuff() => "hi"
+		def fromOuter() => hithere()
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+class Excep < Exception{
+	this(msg String) { super(msg) }
+}
+
+def doings(){
+	\out Outer<int> = new Outer<int>()
+	iner  = Outer<int>.Inner<double>&()
+	//iner.bind(\out)
+
+	rawActor = iner()
+	
+	"" + rawActor.fromOuter()
+}//now its just noisy and uncaught
+
+~~~~~
+//##326. i forgot this could be done
+
+class Outer<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def hithere()  =>  "from outer"
+	public class Inner<Y>{
+		def stuff() => "hi"
+		def fromOuter() => hithere()
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+class Excep < Exception{
+	this(msg String) { super(msg) }
+}
+
+def doings(){
+	\out Outer<int> = new Outer<int>()
+	iner  = Outer<int>.Inner<double>&()
+	iner.bind(\out)
+
+	rawActor = iner()
+	
+	"" + rawActor.fromOuter()
+}
+
+~~~~~
+//##327. i also forgot this was doable
+
+open class Sup(a int)
+
+class Child < Sup{
+	this(a int){ super({b=a+1; b}); }
+	override toString() => ""+a
+}
+
+def doings(){
+	"" + Child(2)
+}
+
+~~~~~
+//##328. i also forgot this was doable
+
+def toList<A>(a A) => [a]
+
+def doers<A>(f (A) A[], a A) => f(a)
+
+def doings() => "" + doers(toList&(? int), 12)
+
+~~~~~
+//##329. i also forgot this was doable as well
+
+abstract class Gen<X>(~a X){}
+
+class Child<C>(a C) < Gen<C>(a){}
+
+def doings(){
+	c = Child(12)
+	"" + c.a
+}
+
+~~~~~
+//##330. default constructor added regardless unsupressable
+
+class AClass(~ax int){
+	this() => this(12)
+}
+
+def doings(){
+	ac = AClass()
+	ac2 = AClass(13)//both constructors are added, lovely
+
+	"" + for( x in [ac, ac2]) { x.ax }
+}	
+
+~~~~~
+//##331. immutable stuff is not copied
+
+class ClassWithAnId(){
+	def myID() => System.identityHashCode(this)
+}//forgot about this feature...
+
+def doings(){
+	x = ClassWithAnId()
+	x2 = x@
+	"" + [x.myID() == x2.myID()]
+}
+
+~~~~~
+//##332. mutable stuff is copied
+
+class ClassWithAnId(x int){
+	def myID() => System.identityHashCode(this)
+}
+
+def doings(){
+	x = ClassWithAnId(12)
+	x2 = x@
+	"" + [x.myID()  <> x2.myID()]
+}
+
+~~~~~
+//##333. redefinition of types where we infer types
+
+@SuppressWarnings("redefine-import")
+
+from java.util import Arrays, List, HashSet
+
+class HashSet<X>(a X){//redefinition of HashSet used to cause bug where old binding was used, now it gets reset on change
+	def overrid() => a//TODO: should add a warning for redefinitions
+}
+
+def doings(){
+	xx List<int> = Arrays.asList(1,2,3)
+	hs  = HashSet(xx)
+	
+	"" + hs.overrid()
+}
+
+
+~~~~~
+//##334. some more tricky type inference via supertype
+
+from java.util import Arrays, List, HashSet
+
+def doings(){
+	xx List<int> = Arrays.asList([Integer(1) 2 3])
+	hs  = HashSet(xx)
+	
+	"" + hs.size()
+}
+
+~~~~~
+//##335. toBoolean - easy ones
+
+class MyClass{
+	override toString() => "called toString"
+}
+
+def specific(a MyClass){
+	res = if(a){"no null"} else {"is null"}
+	res2 = "no null" if a else "is null"
+	"" + [res, res2]
+}
+
+def general(a Object){
+	res = if(a){"no null"} else {"is null"}
+	res2 = "no null" if a else "is null"
+	"" + [res, res2]
+}
+
+
+def doings(){
+	specs = for(a in [new MyClass(), null]){ specific(a) }
+	gens = for(a in [new MyClass(), null]){ general(a) }
+
+	"" + [specs, gens]
+}
+
+~~~~~
+//##336. toBoolean - faked to be on object
+
+class MyClass{
+	override toBoolean() => false
+}
+
+def specific(a MyClass){
+	res = if(a){"no null"} else {"is null"}
+	res2 = "no null" if a else "is null"
+	"" + [res, res2]
+}
+
+def general(a Object){
+	res = if(a){"no null"} else {"is null"}
+	res2 = "no null" if a else "is null"
+	"" + [res, res2]
+}
+
+
+def doings(){
+	specs = for(a in [new MyClass(), null]){ specific(a) }
+	gens = for(a in [new MyClass(), null]){ general(a) }
+
+	o Object = "1"
+	got1 = o.toBoolean()
+	got2 = "1".toBoolean()
+	//above should work as we redirect Object ref to CObject
+	"" + [specs, gens, got1, got2]
+}
+
+~~~~~
+//##337. toBoolean - on arrays
+
+class MyClass{
+	override toBoolean() => false
+}
+
+def specific(a MyClass[]){
+	res = if(a){"ok"} else {"null"}
+	res2 = "ok" if a else "null"
+	"" + [res, res2]
+}
+
+def general(a Object){
+	res = if(a){"ok"} else {"null"}
+	res2 = "ok" if a else "null"
+	"" + [res, res2]
+}
+
+
+def doings(){
+	specs = for(a in [[new MyClass()], null]){ specific(a) }
+	gens = for(a in [[new MyClass()], null]){ general(a) }
+
+	//above should work as we redirect Object ref to CObject
+	"" + [specs, gens]
+}
+
+~~~~~
+//##338. toBoolean - on list array collections etc
+
+from java.util import ArrayList, HashMap, HashSet, Collection
+
+def general(a Object){
+	res = if(a){"ok"} else {"null"}
+	res2 = "ok" if a else "null"
+	"" + [res, res2]
+}
+
+class ThingWOVer < HashMap<String, String>{
+	override toBoolean() => true
+}
+
+class CustMapBoring < HashMap<String, String>{
+}
+
+
+def doings(){
+	emptyList = new ArrayList<String>()
+	fullList = {ar = new ArrayList<String>(); ar.add("hi"); ar } 
+	
+	emptySet = new HashSet<String>()
+	fullSet =  {ar = new HashSet<String>(); ar.add("hi"); ar } 
+	
+	emptyMap =  new HashMap<String, int>()
+	fullMap  =  { {12 -> 23} }
+	
+	customMapWOEmpty =  ThingWOVer()
+	customMapWOFull = ThingWOVer()
+	
+	customMapEmpty = CustMapBoring()
+	customMapFull =  {ar = CustMapBoring(); ar.put("", ""); ar }
+
+	itemz = [emptyList, fullList, emptySet, fullSet, emptyMap, fullMap, customMapWOEmpty, customMapWOFull, customMapFull, customMapEmpty, null]
+	gens = for(a in itemz){ general(a) }
+
+	"" + [ gens]//, specs
+}
+
+~~~~~
+//##339. toBoolean - on string
+
+def general(a Object ){
+	res = if(a){"ok"} else {"null"}
+	res2 = "ok" if a else "null"
+	"" + [res, res2]
+}
+
+def specific(a String){
+	res = if(a){"ok"} else {"null"}
+	res2 = "ok" if a else "null"
+	"" + [res, res2]
+}
+
+
+def doings(){
+	itemz = ["hi", "", " ", null]
+	specs = for(a in itemz){ specific(a) }
+	gens = for(a in itemz){ general(a) }
+
+	"" + [ gens, specs]
+}
+
+~~~~~
+//##340. toBoolean - on or and not
+
+from java.util import ArrayList
+
+def doings(){
+	"" + [ "1" and "2", 
+		   "1" and "",
+		   "" and true,
+		   ArrayList<?>() and true,
+		   false or "1",
+		   ArrayList<?>() or true,
+		   true or ArrayList<?>(),
+		   not("2"), not("")
+		]
+}
+
+~~~~~
+//##341. toBoolean - primatives
+
+def doings(){
+	oks = [1 or false,
+			1L or false,
+			(1 as short )or false,
+			1.f or false,
+			1. or false,
+			(1 as byte) or false,
+			(1 as char) or false
+	 ]
+	fails = [0 or false,
+			0L or false,
+			(0 as short )or false,
+			0.f or false,
+			0. or false,
+			(0 as byte) or false,
+			(0 as char) or false
+	 ]
+	 "" + [oks, fails]
+}
+
+~~~~~
+//##342. toBoolean - assert
+
+
+def doings(){
+	x = ""
+	try{
+		assert x
+		"fail"
+	}catch(e){"ok"}
+}
+
+~~~~~
+//##343. toBoolean - while
+
+def doings(){
+	x = "1"
+	itr = 0
+	while(x){
+		itr++;
+		x=""
+	}
+	"" + itr
+}
+
+~~~~~
+//##343.b toBoolean - while
+
+def doings(){
+	x = "1"
+	y="1"
+	itr = 0
+	while(x or y){//not actually a while test like this...
+		itr++;
+		if(x){x=""; continue;}
+		y=""//make test more def like this
+	}
+	"" + itr
+}
+
+~~~~~
+//##344. toBoolean - for
+
+def doings(){
+	x = "1"
+	itr = 0
+	for(n=0; x; n++){
+		itr++;
+		x=""
+	}
+	"" + itr
+}
+
+~~~~~
+//##345. toBoolean - if elif
+
+def doings(){
+	x = if("") { "hi" }//TODO: should trigger warning re deadcode
+		 elif("1"){"k"}//almost forgot about this lol
+		 else { "fail" }
+
+	"" + x
+}
+
+~~~~~
+//##346. toBoolean - typed actor
+
+class MyClass(b bool){
+	override toBoolean() => b
+}
+
+actor MyThing of MyClass
+
+
+def doings(){
+	normFalse Object = MyThing(false)
+	normTrue Object = MyThing(true)
+	
+	x  = MyThing(false)
+	f1 = "ok" if x else "no false"
+	f2 = "ok" if x else "no false"
+	
+	x2 Object = MyThing(false)
+	f3 = x2.toBoolean()
+	
+	x  = MyThing(true)
+	t1 = "ok" if x else "no"
+	t2 = "ok" if x else "no"
+	
+	x2 = MyThing(true)
+	t3 = x2.toBoolean()
+	"" + [f1, f2, f3, t1, t2, t3, normTrue.toBoolean(), normFalse.toBoolean()]
+}
+
+~~~~~
+//##347. toBoolean - untyped actor
+
+class MyClass(b bool){
+	override toBoolean() => b
+}
+
+actor MyThing(b bool){
+	override toBoolean() => b
+}
+
+
+def doings(){
+	normFalse Object = MyThing(false)
+	normTrue Object = MyThing(true)
+	
+	x  = MyThing(false)
+	f1 = "ok" if x else "no false"
+	f2 = "ok" if x else "no false"
+	
+	x2 Object = MyThing(false)
+	f3 = x2.toBoolean()
+	
+	x  = MyThing(true)
+	t1 = "ok" if x else "no"
+	t2 = "ok" if x else "no"
+	
+	x2 = MyThing(true)
+	t3 = x2.toBoolean()
+	"" + [f1, f2, f3, t1, t2, t3, normTrue.toBoolean(), normFalse.toBoolean()]
+}
+
+~~~~~
+//##348. regex
+
+def doings(){
+	rr = r"a*b"
+	"" + rr.matcher("aaaaab").matches();
+}
+
+~~~~~
+//##349. better char
+
+def doings()  {
+	c1 = 'a'
+	c2 = 'a'
+	c3 = '\''
+	c4 = '"'
+	"" + [c1, c2, c3, c4]
+}
+
+~~~~~
+//##350. better asserts
+
+def doings(){
+	"" + try{
+		assert false "failed as expected"
+		"no"
+	}
+	catch(mm){
+		""+mm.getMessage()
+	}
+}
+
+~~~~~
+//##351. even better asserts
+
+def doings(){
+	a = 3
+	"" + try{
+		assert a>3 //this will print out the assertion that failed code
+		"no"
+	}
+	catch(mm){
+		""+mm.getMessage()
+	}
+}
+
+~~~~~
+//##352. fix not order
+
+def doings() {
+	x = not (3>8)
+	
+	"" + x
+}
+
+~~~~~
+//##353. better strings
+def doings()  {
+	"" + ["l'ov'ely", 'l"ov"ely', 'lovely', "lovely"]
+}
+
+~~~~~
+//##354. named arrays
+
+def doings()  {
+	x = new long[10]
+	"" + x
+}
+
+~~~~~
+//##355. multiline strings ugh
+
+def doings(){
+	"hi	
+	there"
+}
+
+~~~~~
+//##356. more on strings
+
+def doings(){
+	"" + ['hi \'" ', "there \"' "]
+}
+
+~~~~~
+//##357. format strings
+
+def doings(){
+	v=99
+	m=8
+	"hi {v+1} there {m}mate"
+}
+
+~~~~~
+//##358. format strings advanced
+
+def doings(){
+	one = 1
+	three = 3
+	"the\{one}:{one} hi:{three}"
+}
+
+~~~~~
+//##359. in and not in
+
+from java.util import HashSet
+
+class MyClass{
+	def contains(a String) => true 
+}
+
+class MyClassFunny{
+	def contains(a String) => "hi mum" 
+}
+
+def doings(){
+	dd = {1->10, 2->20}
+	hs = HashSet<int>()
+	hs.add(1)
+	hs.add(10)
+	
+	mc = MyClass()
+	mc2 = MyClassFunny()
+
+	"" + [ 1 in dd, 
+		   10 not in dd, 
+			"s" in "asd",
+			"d" not in 'me',//lol, not yet!
+			1 in hs,
+			5 not in hs,
+			not 1 not in hs,
+			"1" in mc,
+			"1" in mc2
+		 ]
+}
+
+~~~~~
+//##360. for incrementors on arrays
+
+thing =[1,1,2,2,3,3,4,4,5,5,10]
+
+def doings(){
+	mm=1000
+	n=8
+	x=9
+	one1 = ""+ for(x in thing) { x }
+	one2 = ""+ for(x in thing; n=100) { [n, n+x] }
+	one3 = ""+ for(x in thing; n int=200) { [n, n+x] }
+	one4 = ""+ for(x in thing; mm) { [mm, mm+x] }
+	one5 = ""+ for(x in thing; jj) { [jj, jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+
+~~~~~
+//##361. for incrementors on objects
+
+from java.util import Arrays
+
+thing = Arrays.asList([new Integer(1) 1 2 2 3 3 4 4 5 5 10])
+
+def doings(){
+	mm=1000
+	n=8
+	x=9
+	one1 = ""+ for(x in thing) { x }
+	one2 = ""+ for(x in thing; n=100) { [n  n+x] }
+	one3 = ""+ for(x in thing; n int=200) { [n  n+x] }
+	one4 = ""+ for(x in thing; mm) { [mm  mm+x] }
+	one5 = ""+ for(x in thing; jj) { [jj  jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+~~~~~
+//##362. while incrementors
+
+def doings(){
+	mm=1000;
+	x=0
+	one1 = ""+ while(x++ <10) { x }
+	x=0
+	one2 = ""+ while(x++ <10; n=100) { [n, n+x] }
+	x=0
+	one3 = ""+ while(x++ <10; n int=200) { [n, n+x] }
+	x=0
+	one4 = ""+ while(x++ <10; mm) { [mm, mm+x] }
+	x=0
+	one5 = ""+ while(x++ <10; jj) { [jj, jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+~~~~~
+//##363. while incrementors no ret
+
+def doings(){
+	mm=1000;
+	x=0
+	one1 = ""
+	while(x++ <10) { one1+=x }
+	
+	x=0
+	one2 = ""
+	while(x++ <10; n=100) { one2+=[n, n+x] }
+	
+	x=0
+	one3 = ""
+	while(x++ <10; n int=200) { one3+=[n, n+x] }
+	
+	x=0
+	one4 = ""
+	while(x++ <10; mm) { one4+=[mm, mm+x] }
+	
+	x=0
+	one5 = ""
+	while(x++ <10; jj) { one5+=[jj, jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+~~~~~
+//##364. for incrementors on objects no ret
+
+from java.util import Arrays
+
+thing = Arrays.asList([new Integer(1) 1 2 2 3 3 4 4 5 5 10])
+
+def doings(){
+	mm=1000
+	n=8
+	x=9
+	one1 = ""
+	for(x in thing) { one1+= x }
+	
+	one2 = ""
+	for(x in thing; n=100) { one2+=[n  n+x] }
+	
+	one3 = ""
+	for(x in thing; n int=200) { one3+=[n  n+x] }
+	
+	one4 = ""
+	for(x in thing; mm) { one4+=[mm  mm+x] }
+	
+	one5 = ""
+	for(x in thing; jj) { one5+=[jj  jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+~~~~~
+//##365. for incrementors on ar no ret
+
+thing =[1,1,2,2,3,3,4,4,5,5,10]
+
+def doings(){
+	mm=1000
+	n=8
+	x=9
+	one1 = ""
+	for(x in thing) { one1+= x }
+	
+	one2 = ""
+	for(x in thing; n=100) { one2+=[n, n+x] }
+	
+	one3 = ""
+	for(x in thing; n int=200) { one3+=[n, n+x] }
+	
+	one4 = ""
+	for(x in thing; mm) { one4+=[mm, mm+x] }
+	
+	one5 = ""
+	for(x in thing; jj) { one5+=[jj, jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+~~~~~
+//##366. as above for loop
+
+def doings(){
+	mm=1000;
+	x=0
+	one1 = ""
+	loop {if(x++ >==10){break;} one1+=x }
+	
+	x=0
+	one2 = ""
+	loop(n=100) {if(x++ >==10){break;} one2+=[n, n+x] }
+	
+	x=0
+	one3 = ""
+	loop( n int=200) {if(x++ >==10){break;} one3+=[n, n+x] }
+	
+	x=0
+	one4 = ""
+	loop( mm) {if(x++ >==10){break;} one4+=[mm, mm+x] }
+	
+	x=0
+	one5 = ""
+	loop( jj) {if(x++ >==10){break;} one5+=[jj, jj+x] }
+	
+	"" + [one1, '\n', one2, '\n', one3, '\n', one4, '\n', one5]
+}
+
+~~~~~
+//##367. regex matcher
+
+def doings(){//positive and negative assertion
+	cont1 = r"a*b" in "aaaaabbb" 
+	cont2 = r"a*b" not in "aaaaabbb" 
+	nocont1 = r"a*b" not in "sfsdsdf" 
+	notcont2 = r"a*b" in "sdfsdf" 
+	"" + [cont1, cont2, nocont1, notcont2]
+}
+
+~~~~~
+//##368. for else - nt
+
+from java.util import Arrays, ArrayList, List
+
+def forerunner(xxx List<int>?){
+
+	""+	for(a in xxx){
+		if(a==2){continue 555;}
+		if(a==5){break 999;}
+		a + 100	
+	}
+	else{ "no" }
+}
+
+def noret(xxx List<int>?){
+	ret = "["
+	for(a in xxx){
+		if(a==2){ret += 'x, '; continue ;}
+		if(a==5){ret += 'b, ';break ;}
+		ret += (a + 100)+', ' 	
+	}else{
+		ret = "[no"
+	}
+	
+	ret + ']'
+}
+
+la=Arrays.asList([new Integer(1) 2 3 4  5 6])
+
+def doings(){
+	ar = ArrayList<Integer>();
+	norm = forerunner(la)
+	miss = forerunner(ar)
+	missnul = forerunner(null)
+	normNR = noret(la)
+	missNR = noret(ar)
+	missNRnul = noret(null)
+
+	return "" + [norm, miss, missnul, normNR, missNR,missNRnul]
+}
+
+~~~~~
+//##369. for else - ar
+
+def forerunner(xxx int[]){
+
+	""+	for(n=0; n< xxx.length; n++){
+		a = xxx[n]
+		if(a==2){continue 555;}
+		if(a==5){break 999;}
+		a + 100	
+	}
+	else{ "no" }
+}
+
+def noret(xxx int[]){
+	ret = "["
+	for(n=0; n< xxx.length; n++){
+		a = xxx[n]
+		if(a==2){ret += 'x, '; continue ;}
+		if(a==5){ret += 'b, ';break ;}
+		ret += (a + 100)+', ' 	
+	}else{
+		ret = "no"
+	}
+	
+	ret + ']'
+}
+
+ar=[1 2 3 4  5 6]
+
+def doings(){
+	norm = forerunner(new int[0])
+	miss = forerunner(ar)
+	normNR = noret(new int[0])
+	missNR = noret(ar)
+
+	return "" + [norm, miss, normNR, missNR]
+}
+
+~~~~~
+//##370. for else - ar new style
+
+from java.util import Arrays, ArrayList, List
+
+def forerunner(xxx int[]){
+
+	""+	for(a in xxx){
+		if(a==2){continue 555;}
+		if(a==5){break 999;}
+		a + 100	
+	}
+	else{ "no" }
+}
+
+def noret(xxx int[]){
+	ret = "["
+	for(a in xxx){
+		if(a==2){ret += 'x, '; continue ;}
+		if(a==5){ret += 'b, ';break ;}
+		ret += (a + 100)+', ' 	
+	}else{
+		ret = "no"
+	}
+	
+	ret + ']'
+}
+
+ar=[1 2 3 4  5 6]
+
+def doings(){
+	norm = forerunner(new int[0])
+	miss = forerunner(ar)
+	normNR = noret(new int[0])
+	missNR = noret(ar)
+
+	return "" + [norm, miss, normNR, missNR]
+}
+
+~~~~~
+//##371. while else
+
+def forerunner(xxx int[]){
+	n=0
+	""+	while(++n < xxx.length){
+		a = xxx[n-1]
+		if(a==2){continue 555;}
+		if(a==5){break 999;}
+		a + 100	
+	}
+	else{ "no" }
+}
+
+def noret(xxx int[]){
+	ret = "["
+	n=0
+	while(++n <== xxx.length){
+		a = xxx[n-1]
+		if(a==2){ret += 'x, '; continue ;}
+		if(a==5){ret += 'b, ';break ;}
+		ret += (a + 100)+', ' 	
+	}else{
+		ret += "no"
+	}
+	
+	ret + ']'
+}
+
+ar=[1 2 3 4  5 6]
+
+def doings(){
+	norm = forerunner(new int[0])
+	miss = forerunner(ar)
+	normNR = noret(new int[0])
+	missNR = noret(ar)
+
+	return "" + [norm, miss, normNR, missNR]
+}
+
+~~~~~
+//##372. js style maps getter
+
+one=1
+hh = {"one" -> 1, "two" -> 2}
+
+def doings(){
+
+	g = hh.one 	
+	f = hh.asd 	
+
+	"" + [g, f]
+
+}
+
+~~~~~
+//##373. js style maps getter - 2 levels
+
+one=1
+hh = {"one" -> 1, "two" -> 2}
+hh2 = {"one" -> hh}
+
+def doings(){
+
+	g = hh2.one.one
+
+	"" + g
+
+}
+
+~~~~~
+//##374. js style maps setter
+
+hh = {"one" -> 1, "two" -> 2}
+
+def doings(){
+
+	hh.one  = 12
+
+	"" + [hh.one, hh.two]
+}
+
+~~~~~
+//##375. js style ensuer getter cast correct
+
+hh = {"one" -> 1:, "two" -> 2:}
+
+def doings(){
+
+	got = hh.one 
+
+	"" + got
+}
+
+~~~~~
+//##376. js style ref keys
+
+hh = {"one" -> 1:, "two" -> 2:, "three" -> 3:}
+
+def doings(){
+
+	hh.one := 12//overwrite
+	hh.two = 12 //replace value on existing
+	hh.three = 12:
+	
+	"" + hh
+}
+
+~~~~~
+//##377. hashmap ref keys and values
+
+hh = {"one" -> 1:, "two" -> 2:, "three" -> 3:, 'four' -> 4}
+//bad idea to hash on both keys and values, so dont do it!
+def doings(){
+
+	hh.one := 12//overwrite
+	hh.two = 12 //replace value on existing
+	hh.three = 12:
+	hh.four := 12:
+	
+	"" + hh
+}
+
+~~~~~
+//##378. js style hashmaps with prefix, postfix and special assigments
+
+hh = {"one" -> 1, "two" -> 2, "three" -> 3, 'four' -> 4, 'five' -> 5, 'six' -> 6}
+
+def doings(){
+
+	hh.one += 12
+	hh.two *= 12 
+	hh.three++
+	++hh.four
+	a=hh.five++
+	b=++hh.six
+	
+	"" + [hh, a, b]
+}
+
+~~~~~
+//##379. or eq and eq infix ops - simple
+
+a1 = false
+a2 = false
+a3 = true
+a4 = true
+
+t = true
+f = false
+
+def doings() {
+	a1 or= t
+	a2 and= t
+	a3 or= f
+	a4 and= f
+
+	"" + [a1,a2,a3,a4]
+}
+
+~~~~~
+//##380. or eq and eq infix ops - lhs object
+
+a1 = new Boolean(false)
+a2 = Boolean(false)
+a3 = new Boolean(true)
+a4 = Boolean(true)
+
+t = new Boolean(true)
+f = new Boolean(false)
+
+def doings() {
+	a1 or= t
+	a2 and= t
+	a3 or= f
+	a4 and= f
+
+	"" + [a1,a2,a3,a4]
+}
+
+~~~~~
+//##381. or eq and eq infix ops - lhs object rhs prim
+
+a1 = new Boolean(false)
+a2 = Boolean(false)
+a3 = new Boolean(true)
+a4 = Boolean(true)
+
+t = true
+f = false
+
+def doings() {
+	a1 or= t
+	a2 and= t
+	a3 or= f
+	a4 and= f
+
+	"" + [a1,a2,a3,a4]
+}
+
+~~~~~
+//##382. or eq and eq infix ops - lhs object rhs object
+
+a1 = new Boolean(false)
+a2 = Boolean(false)
+a3 = new Boolean(true)
+a4 = Boolean(true)
+
+t = "hi"
+f = ""
+
+def doings() {
+	a1 or= t
+	a2 and= t
+	a3 or= f
+	a4 and= f
+
+	"" + [a1,a2,a3,a4]
+}
+
+~~~~~
+//##383. or eq and eq infix ops - lhs object rhs object ref
+
+a1 = new Boolean(false)
+a2 = Boolean(false)
+a3 = new Boolean(true)
+a4 = Boolean(true)
+
+t = "hi":
+f = "":
+
+def doings() {
+	a1 or= t
+	a2 and= t
+	a3 or= f
+	a4 and= f
+
+	"" + [a1,a2,a3,a4]
+}
+
+~~~~~
+//##384. or eq and eq infix ops - lhs object rhs object ref when it resolves to a number
+
+a1 = "hi":
+a2 int: = 12:
+
+def doings() {
+	thing = true
+	thing and=a1
+	thing and=a2
+	
+	"" + thing
+}
+
+~~~~~
+//##385. or eq and eq infix ops - lhs object rhs object ref when it resolves to a number inv
+
+a1 = "hi":
+a2 int: = 0:
+
+def doings() {
+	thing = true
+	thing and=a1
+	thing and=a2
+	
+	"" + thing
+}
+
+~~~~~
+//##386. if ref is null then avoid npe when converting to boolean
+
+a1 = "hi":
+a2 int: = 12
+
+thing = true
+
+def doings() {
+	thing and=a1
+	thing and=a2
+	
+	""  + thing
+}
+
+~~~~~
+//##387. boolean to float etc conversions
+
+f=false
+t=true
+
+def doings(){
+	x1 = (f and t ) as float
+	x2 = (f or t ) as float
+
+	"" + [x1, x2]
+}
+
+~~~~~
+//##388. clean up remaining explicit primative type casts
+
+from java.util import List
+
+def doings(){
+	//TODO: warnings on loss of data
+	o = new Object[57]
+	o[0]='oops'
+	
+	ss short = 99
+	//bool -> int
+	o[1] = false as int
+	//bool -> long
+	o[2] = false as long
+	//bool -> float
+	o[3] = false as float
+	//bool -> double
+	o[4] = false as double
+	//bool -> short
+	o[5] = false as short
+	//bool -> byte
+	o[6] = false as byte
+	//bool -> char
+	o[7] = true as char
+	
+	//int -> bool
+	o[8] = 1 as bool
+	//int -> long
+	o[9] = 1 as long
+	//int -> float
+	o[10] = 2 as float
+	//int -> double
+	o[11] = 1 as double
+	//int -> short
+	o[12] = 1 as short
+	//int -> byte
+	o[13] = 1 as byte
+	//int -> char
+	o[14] = 1 as char
+	
+	//long -> bool
+	o[15] = [1L as bool  0l as bool]
+	//long -> int
+	o[16] = 1L as int
+	//long -> float
+	o[17] = 1L as float
+	//long -> double
+	o[18] = 1L as double
+	//long -> short
+	o[19] = 1L as short
+	//long -> byte
+	o[20] = 1L as byte
+	//long -> char
+	o[21] = 1L as char
+	
+	//float -> bool
+	o[22] = 1.f as bool
+	//float -> int
+	o[23] = 1.f as int
+	//float -> long
+	o[24] = 1.f as long
+	//float -> double
+	o[25] = 12.f as double
+	//float -> short
+	o[26] = 12.f as short
+	//float -> byte
+	o[27] = 12.f as byte
+	//float -> char
+	
+	o[28] = 12.f as char
+	//double -> bool
+	o[29] = 12. as bool
+	//double -> int
+	o[30] = 12. as int
+	//double -> long
+	o[31] = 12. as long
+	//double -> float
+	o[32] = 12. as float
+	//double -> short
+	o[33] = 12. as short
+	//double -> byte
+	o[34] = 12. as byte
+	//double -> char
+	
+	o[35] = 12. as char
+	//short -> bool
+	o[36] = 12. as bool
+	//short -> int
+	o[37] = 12. as int
+	//short -> long
+	o[38] = ss as int
+	//short -> float
+	o[39] = ss as float
+	//short -> double
+	o[40] = ss as double
+	//short -> byte
+	o[41] = ss as byte
+	//short -> char
+	o[42] = ss as char
+	
+	//byte -> bool
+	o[43] = 0x1a as bool
+	//byte -> int
+	o[44] = 0x1a as int
+	//byte -> long
+	o[45] = 0xCAFEBABE as long
+	//byte -> float
+	o[46] = 0b00100101 as float
+	//byte -> double
+	o[47] = 0b00100101 as double
+	//byte -> short
+	o[48] = 0b00100101 as short
+	//byte -> char
+	o[49] = 0b00100101 as char
+	
+	//char -> bool
+	o[50] = 'c' as bool	
+	//char -> int
+	o[51] = 'c' as int
+	//char -> long
+	o[52] = 'c' as long
+	//char -> float
+	o[53] = 'c' as float
+	//char -> double
+	o[54] = 'c' as double
+	//char -> short
+	o[55] = 'c' as short
+	//char -> byte
+	o[56] = 'c' as byte
+		
+	ttypes = for(a in o){ a.getClass().getSimpleName()}
+
+	zip(o, ttypes)
+}
+
+def zip(things Object[], ttypes java.util.List<java.lang.String>){
+	ret =""
+	for(n=0; n < things.length; n++){
+		ret += "{n}: {things[n]} -> {ttypes[n]}" + ("\n" if n < things.length else "")
+	}
+	ret
+}
+
+
+~~~~~
+//##402. init block
+want := 2
+
+inited = 0
+
+class One(a int){
+	init{
+		inited++
+	}
+}
+
+enum MYE(a int){
+	OP(2), NO(1)
+
+	init{
+		inited++
+	}
+	
+	init{
+		inited++
+	}
+}
+
+def doings() {
+	one = One(1)
+	
+	"" + [inited, MYE.values(), inited, want]
+}
+
+
+~~~~~
+//##403. ensure operates after initial constructor call
+inited = 0
+
+class One(a int){
+	init{
+		inited=a
+	}
+}
+
+
+def doings() {
+	b44 =inited
+	one = One(99)
+	
+	"" + [b44, inited]
+}
+
+
+~~~~~
+//##404. ensure setter doesnt trigger inf loop
+
+class MyClass{
+	private a int = 99
+	
+	def getA() => a
+	def setA(b int) { a=b;;}
+	
+	override toString() => "MyClass: a: " + a
+
+}
+
+def doings(){
+
+	mc = MyClass()
+	mc.a = 99
+
+	"" + mc
+}
+
+~~~~~
+//##405. thought this was cool
+
+class Gen<X>(~x X) {}
+
+def doings() String{
+	cls = new Gen< () String >(def () {"ok"})
+	h = cls.x()
+	"cool " + h
+}
+
+
+
+~~~~~
+//##406. define lambda as function argument
+
+answer := 0
+
+def athing(lam () String){
+	lam()
+}
+
+def doings(){
+	"works: " + athing(def () { "ok"} ) 
+}

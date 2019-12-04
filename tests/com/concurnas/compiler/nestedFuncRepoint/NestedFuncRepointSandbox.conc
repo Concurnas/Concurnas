@@ -1,0 +1,13 @@
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	inner = def (y int) int {
+		return x+7 + y + somestat + hh
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}

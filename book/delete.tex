@@ -1,0 +1,106 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Delete]{Delete}
+	
+Concurnas provides a mechanism where by a local variable can be removed from scope via the \lstinline{del} keyword. This has the additional side effect for non array Object types of invoking the delete method on them if one is defined. This is incredibly useful for performing resource management and is used in supporting the Concurnas gpu parallel computing as well as the off heap memory frameworks. Additionally Concurnas offers first class citizen support for the \lstinline{del} keyword when applied to maps and lists.
+
+\section{Removing values from maps}
+Values can be removed from a map as follows:
+\begin{lstlisting}
+mymap = {taste -> 10}
+
+del mymap['taste']//value corresponding to 'taste' is deleted
+\end{lstlisting}
+This saves us from having to write: \lstinline{mymap.remove('taste')}
+
+\section{Removing values from lists}
+Values can be removed from a list as follows:
+
+\begin{lstlisting}
+mylist = [5, 34, 2, 5, 11]
+del mylist[1]//the second value, '34', is removed from the list
+\end{lstlisting}
+This saves us from having to write: \lstinline{mylist.remove(1)}
+
+
+\section{Deleting Objects}
+Calling the delete operator on a variable in Concurnas does two things:
+\begin{enumerate}
+	\item The variable is removed from scope
+	\item The delete method is called on the object pointed to by the variable
+\end{enumerate}
+
+Here is an example of this in action:
+
+\begin{lstlisting}
+deleteCalled = false
+class DeleteMe{
+	override delete() void => deleteCalled = true
+}
+
+todel = DeleteMe()
+del todel
+//todel is now out of scope and cannot be referenced
+assert deleteCalled
+\end{lstlisting}
+
+Overriding the \lstinline{delete} method as above will allows us to implement functionality to be invoked upon the \lstinline{del} operator being applied to the object (or the \lstinline{delete} method being called directly). For instance, closing or otherwise managing resources.
+
+\section{@DeleteOnUnusedReturn Annotation}
+The \lstinline{@com.concurnas.lang.DeleteOnUnusedReturn} annotation can be used to denote that the delete method should be invoked on the return value of a method or function if it is unused by the caller (i.e. popped off the stack). This affords a degree of flexibility in API design around objects which require resource management as one does not need to worry about the caller correctly dealing with a return value which they may to be optional. This is used heavily in the support for Concurnas parallel GPU computing framework and is useful with off heap memory management. For example:
+
+\begin{lstlisting}
+from com.concurnas.lang import DeleteOnUnusedReturn
+
+@DeleteOnUnusedReturn
+class ClassWithResource{
+	def delete(){
+		//...
+	}
+}
+
+def doWorkAndGetClassWithResouce(){
+	ret = ClassWithResource()
+	//do some work here
+	ret
+}
+
+doWorkAndGetClassWithResouce()//the delete method on the returned ClassWithResource object will be called
+\end{lstlisting}
+\begin{sloppypar}
+In the above example the delete method will be called on the returned \lstinline{ClassWithResource} object as it is unused by the caller. If it were used by the caller (e.g. assigned to a value, or used in as part of a nested method or function invocation) then the delete method will not be called.
+\end{sloppypar}
+
+Notes:
+\begin{enumerate}
+	\item The delete method will not be called if the returned object is null.
+	\item If a method is decorated with \lstinline{@DeleteOnUnusedReturn} then instances in all subclasses will also inherit this decoration.
+	\item The annotation is not applied to refs to methods or functions which have been decorated with it.
+\end{enumerate}
+
+Additionally, for refs which are returned from a function or method and are immediately extracted by the caller, these will also have the delete method called on the ref if the \lstinline{@DeleteOnUnusedReturn} annotation is used. For example:
+
+\begin{lstlisting}
+from com.concurnas.lang import DeleteOnUnusedReturn
+
+@DeleteOnUnusedReturn
+class ClassWithResource{
+	def delete(){
+		//...
+	}
+}
+
+def doWorkAndGetClassWithResouce(){
+	ret = ClassWithResource()
+	//do some work here
+	ret://returned as a local ref
+}
+
+got = doWorkAndGetClassWithResouce()//the delete method on the returned Local ref holding the ClassWithResource object will be called (but not on the ClassWithResource itself)
+\end{lstlisting}
+
+
+
+\end{document}

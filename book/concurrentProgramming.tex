@@ -1,0 +1,1581 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Concurrent Programming]{Concurrent Programming}
+		
+\begin{tikzpicture}[overlay]
+\draw[anchor=north west] (8cm,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=40pt]{\strut\makebox[8cm]{}};
+
+\draw[anchor=north west,text width=9cm] (8.2cm,10.8cm) node {\begin{footnotesize}"This bridge comes to life\\
+	As our footsteps light the path that we have walked\\
+	Its thundering heartbeat roars and shakes the foundation of the sky\\
+	As she says, I command thee Daedalus awaken"\\
+	\begin{flushright}- Invictus Daedalus from Acheron [Compendium] by Mechina (2018).\end{flushright}\end{footnotesize}};
+\end{tikzpicture}
+
+Just as \hyperref[ch:ObjProviders]{object providers} allow us to separate the more interesting algorithmic work from the plumbing of an overall system, so does the concurrency model of Concurnas. With the Concurnas concurrency model we aim to eliminate the hard work and risk from building concurrent solutions, permitting the developer to focus on the more algorithmic and business relevant parts of their work and enabling that to scale.
+
+This is achieved via six principal areas: isolates, actors, refs, reactive programming, temporal computing, transactions and parfor. 
+
+The solutions in this section are typically best aligned to scaling problems which are task based in nature. For solutions to more data oriented problems, taking advantage of Concurnas' support for GPUs is advisable, for more details on this see the \hyperref[ch:gpuprogramming]{GPU/Parallel programming} chapter.
+
+Solutions created in Concurnas using the concurrency primitives described here will naturally scale in line with the maximum physical hardware provided to them. However, they can only do so within the bounds of that physical hardware. In time, scaling beyond the confounds of a single machine is necessary, and here we enter the realm of distributed computing, for more details on this see the \hyperref[ch:distComp]{Distributed computing} chapter.
+
+\section{Isolates}
+Isolates are like threads in conventional programming languages. Execution is concurrent and non deterministic. They are best suited for solving task based concurrent problems. In Concurnas they are automatically managed and mapped on to underlying hardware threads, the number of which are spawned being contingent on the underlying machine specification (usually the number of logical processor cores available). The upper bound for the number of isolates, and therefore concurrent tasks is constrained only by the amount of heap memory one has access to, as opposed to the much more restrictive limit in terms of hardware threads which can be created in conventional programming languages.
+
+One of the most beautiful aspects of the isolate model, as we shall see, is that whether you have access to one processor core, or 100, your isolates will behave in a deterministic manner. This means that you don't have to re-write all your software when upgrading from a single core machine to one with 100 cores, and in fact, with idiomatic Concurnas code with many spawned isolates, your software will normally automatically take advantage of that added n core count and operate in a $\frac{1}{n}$th of the time.
+
+The syntax to spawn an isolate is: 
+\begin{center}
+	\lstinline!{/*code to execute*/}!\lstinline{!}. 
+\end{center}
+
+Lets create some isolates now:
+\begin{lstlisting}
+def gcd(x int, y int){//greatest common divisor of two integers
+	while(y){
+		(x, y) = (y, x mod y)
+	}
+	x
+}
+
+calc1 = {gcd(8, 20)}!//run this calculation in a isolate
+calc2 = {gcd(6, 45)}!//run this calculation in a separate isolate, concurrently!
+
+calc3 = {gcd(calc1, calc2)}!//wait for the results of calc1 and calc2 before calculating calc3, also in an isolate
+\end{lstlisting}
+
+Above, we are initially creating two isolates which will execute concurrently to calculate some greatest common divisor (\lstinline{gcd}) values. When the values of these executions are known then these will be passed into a third invocation of \lstinline{gcd}, again for concurrent execution.
+
+If we have a single method to which we wish to run within an isolate, one need not use the curly brace notation: \lstinline!{/*code to execute*/}!\lstinline{!}, but may simply append the function call with the bang operator: \lstinline{!}:
+
+\begin{lstlisting}
+gcd(8, 20)!
+//is equvilent to:
+{gcd(8, 20)}!
+\end{lstlisting}
+
+Isolates are scheduled in a fair (currently non pre-emptive) manner and are able to pause execution at certain blocking points, such as in accessing a ref which does not already have a value assigned. This allows the underlying hardware processor to execute other isolates whilst whatever is blocking execution is resolved, maximising throughput!
+
+Care should be taken to avoid calling blocking io code in an isolate as this will have the effect of locking up the underlying execution thread for the duration of the blocking operation. Instead, consider using an actor dedicated for i/o or using a reactive computing pattern (made easy with the support provided by Concurnas see the \hyperref[sec:reactive]{Reactive programming} section below). Care should also be taken with actively infinitely looping code, which is generally considered poor practice in any programming language - luckily Concurnas provides us with lots of alternatives to this.
+
+
+\subsection{Isolate dependencies}
+Isolates operate within their own dedicated memory spaces. It is not possible to directly share memory between isolates, rather, isolate share state via communication: either with refs, actors or the variable tagged with the shared keyword. This makes reasoning and implementation of concurrent algorithms with Concurnas much easier than conventional programming languages which allow all state to be shared and where the developer must explicitly apply concurrency control on the subsection of shared state which is actually intentionally shared within the program.
+
+This isolation of state is achieved by Concurnas explicitly copying all the dependencies of an isolate lazily upon execution. For example:
+
+\begin{lstlisting}
+n = 10
+
+nplusone  = { n += 1; n }!//perform this calculation in an isolate
+nminusone = { n -= 1; n }!//and this
+
+assert nplusone == 10
+assert nminusone == 9
+\end{lstlisting}
+
+The above code will always provide a consistent output, despite the isolates non deterministic nature, since the \lstinline{n} variable dependency is copied into each of the isolates and is not shared between them. Thus changes made to the variable in one isolate do not affect the other. Notice how we've not had to define anything in the way of a critical section, synchronization, lock management etc.
+
+The dependency copy itself is a default copy in Concurnas, i.e. a deep copy of the isolates dependency, so for object dependencies which are very large, either making use of an actor (see the \hyperref[sec:actors]{Actors} section) or marking the dependant variable as shared (see the \hyperref[sec:shared]{Shared variables and classes} section) may be a more appropriate option.
+
+\subsubsection{Module level state}
+Variables defined outside of a function/class/actor (termed module level state) are copied in a special manner when it comes to usage within isolates. The rule is that state defined within the module spawning the isolate will be copied, but module level state defined in modules other than that spawning the isolate will be reinitialized (which means running all of the associated top level code to initialize them) within the isolate - i.e. the current state not copied.
+
+For example:
+
+\begin{lstlisting}
+//code defined in com.mycompany.library:
+def initFromLit(){
+	System out println 'initlaize fromLib'
+	100
+}
+fromLib = initFromLit()
+
+//code in seperate module defined in: com.mycompany.myApplication:
+m = 100
+
+com.mycompany.library.fromLib = 101
+m = 101
+
+res = { "fromLib={com.mycompany.library.fromLib}, m={m}" } !
+
+//com.mycompany.library.fromLib == 101
+//res == "fromLib=100, m=101":
+\end{lstlisting}
+
+Above we see that \lstinline{fromLib} has 'reverted' to it's initial state of \lstinline{100}, whereas \lstinline{m} is captured as \lstinline{101}. Furthermore, \lstinline{initFromLit()} will be executed twice (once on the initial use of fromLib and secondly on the copying into the spawned isolate) - so \lstinline{'initlaize fromLib'} will be output to the console twice.
+
+\subsection{Values returned from isolates}
+Isolates return refs (discussed in detail in the \hyperref[sec:refs]{Refs} section) which hold values of the type returned from the code within the isolate. For example:
+
+\begin{lstlisting}
+res = {"I am an Isolate"}!
+deref String = res
+\end{lstlisting}
+
+Above \lstinline{res} is of type \lstinline{String:}. We later extract the result contained within \lstinline{res} when we assign it to the \lstinline{deref} variable which itself is not a ref.
+
+In the case where our isolate does not return a value we can still assign its result to a variable as follows:
+
+\begin{lstlisting}
+def hi() void{
+	System out println "hello world"
+}
+
+res = hi()!
+await(res)
+//when we reach this point we know that hi has been executed fully
+\end{lstlisting}
+
+Above, \lstinline{res} will be assigned an object of type \lstinline{Object}. We then use the \lstinline{await} keyword in order to wait for the aforementioned value to be set to \lstinline{res} before continuing with execution. This is of course an optional step, we could just fire and forget about our \lstinline{hi() call} scheduled for concurrent execution within an isolate.
+
+\subsection{Exceptions in isolates}
+If an isolate throws an exception which it doesn't catch within its call chain/body then this will be assigned to the returning ref if there is one. Parts of the code which rely upon that returned value will then be required to handle that exception. This approach is advantageous since it ensures that if an exception has occurred within the ref it is not lost within the program. For example:
+
+
+\begin{lstlisting}
+def divOp(a int, b int) => a/b//can throw a div by zero, ArithmeticException
+
+res = divOp(12, 0)!
+
+deref int = res//ArithmeticException is thrown on the access of 'res' here!
+\end{lstlisting}
+
+\subsubsection{Default exception handler}
+In cases where an isolate does not return a value from a ref the default exception handler shall handle it. This simply prints a stack trace to the console via \lstinline{System.err} and permits execution of the program to otherwise continue uninterrupted.
+
+\begin{lstlisting}
+def divOp(a int, b int) => a/b//can throw a div by zero, ArithmeticException
+
+divOp(12, 0)! //no return value assignment!
+//any thrown ArithmeticException will be printted to the console via System.err
+\end{lstlisting}
+
+\subsection{Isolate Executors}
+In some circumstances it is appropriate to modify the way in which isolates are executed. To this end there are a number of special isolate executors available as part of the Concurnas Standard Library which can be used.
+
+The general syntax for spawning isolates within an executor is as follows:
+
+\begin{center}
+	\lstinline{isolate ! ( executor )}
+\end{center}
+
+The custom isolate executors as part of the Concurnas standard library are:
+
+\subsubsection{Dedicated Thread}
+The \lstinline{concurrent.DedicatedThread()} executor will force execution of the isolate to take place within a dedicated worker with its own thread. This is particularly useful in cases where one is calling non-Concurnas JVM code (for instance, written in Scala or Java) which blocks on io (e.g. networking) or otherwise (e.g. infinite loops). Recall that blocking code would otherwise prevent other isolates from being executed in a timely manner via the usual mechanism, so this executor is a good choice in this instance.
+
+If the called code within the isolate either directly or indirectly spawns new isolates, then these will be multiplexed as normal onto the root set of workers.
+
+This executor should be used judiciously since creating dedicated threads doesn't scale as well as isolates multiplexed onto the usual set of shared workers. Though if one is calling code which is known to block, then this is usually the only, and best, option available.
+
+Here is an example:
+
+\begin{lstlisting}
+added = {10+10}!(concurrent.DedicatedThread())
+\end{lstlisting}
+
+It is not necessary to explicitly terminate a \lstinline{concurrent.DedicatedThread()} executor since it is meant for once time use, it is automatically terminated after completion of an isolate executed via it. Note that this means that \lstinline{concurrent.DedicatedThread()} executors cannot be reused.
+
+
+\subsubsection{Dedicated Thread Worker Pool}
+The \lstinline{concurrent.DedicatedThreadWorkerPool()} executor creates a pool of workers on to which isolates may be executed via  reference to the executor instance. It is similar to the aforementioned \lstinline{concurrent.DedicatedThread()} executor in that it will force execution of the isolate to take place within a dedicated worker with its own thread. The difference here is that if the called code within the isolate either directly or indirectly spawns new isolates, then these will be multiplexed onto the new pool of dedicated workers.
+
+The number of workers created is definable by specifying the \lstinline{workerCount} default parameter of the \lstinline{concurrent.DedicatedThreadWorkerPool()} executor constructor. If unspecified this value defaults to the number of core Concurnas workers spawned by the scheduler associated with the current running isolate in which the \lstinline{concurrent.DedicatedThread()} executor is created.
+
+Unlike the \lstinline{concurrent.DedicatedThread()} executor, it is best practice to explicitly terminate the executor after one has finished using it as this will shut down the spawned worker threads which are no longer useful. This can be achieved by calling the \lstinline{terminate} method on the executor. Note that, upon garbage collection, or termination of an implicit 'parent' executor (including the root executor), the worker pool will be implicitly terminated.
+
+An example of usage:
+
+\begin{lstlisting}
+pool = new concurrent.DedicatedThreadWorkerPool()
+added = {10+10}!(pool)
+pool.terminate()
+\end{lstlisting}
+
+\subsection{Sync blocks}
+A \lstinline{sync} block will ensure that all isolates created by code executed either directly or indirectly bt its body within the context of its executing isolate, have completed execution before permitting further execution by the aforementioned isolate. For example:
+
+\begin{lstlisting}
+def gcd(x int, y int){//greatest common divisor of two integers
+	while(y){
+		(x, y) = (y, x mod y)
+	}
+	x
+}
+
+calc1 int:
+calc2 int:
+
+sync{
+	calc1 = {gcd(8, 20)}!
+	calc2 = {gcd(6, 45)}!
+}
+
+//calc1 and calc2 have now been set
+\end{lstlisting}
+
+\subsubsection{Returning values from \lstinline{sync}}
+Sync blocks may return a value:
+
+\begin{lstlisting}
+def gcd(x int, y int){//greatest common divisor of two integers
+while(y){
+(x, y) = (y, x mod y)
+}
+x
+}
+
+calc1 int:
+calc2 int:
+
+complete = sync{
+	calc1 = {gcd(8, 20)}!
+	calc2 = {gcd(6, 45)}!
+	"all done"
+}
+
+//complete == "all done" and calc1 and calc2 have now been set
+\end{lstlisting}
+
+\section{Shared variables and classes}
+\label{sec:shared}
+Isolates will make a copy of all of their non ref and non actor dependencies in order to ensure that no state is accidentally shared between instances. This default behavior is always safe but sometimes is inappropriate, for instance when making use of Java objects which have their own concurrency control, and for read only data structures (especially when they are large since the copy operation performs a deep copy). This can be overridden by making use of the /shared/ keyword.
+
+We can declare a new variable assignment as being shared and use it as normal within an isolate as follows:
+\begin{lstlisting}
+shared numbers = [1, 2, 3, 4, 5, 6]
+
+complete = {numbers += 1; true}! //vectorize add one to each element
+
+await(complete)//wait for iso to complete
+
+// numbers == [2, 3, 4, 5, 6, 7]
+\end{lstlisting}
+
+Method variables and class fields may also be tagged as shared.
+
+\subsection{Caveats}
+\textbf{Only the value of the variable is shared, the variable itself is not.} As a result, re-assigning a shared variable to a different value will not result in the new value being shared. Consequently non array primitive types may not be tagged as shared.
+
+Top level global variables, at module level, may be declared with an initial value as shared, but care should be taken when assigning them values at module level (both directly or indirectly via a function/method etc). Since, as we have previously seen, top level module code is run on import by an isolate, this has the effect of wiping out whatever was previously stored within the shared variable every time an isolate which uses any aspect of the module is executed... (thus defeating the point of the variable being shared). Here is an example of what to watch out for:
+
+\begin{lstlisting}
+//in module com.myorg.code.py
+public shared sharedvar = new Integer(0)
+
+sharedvar = 26 //top level module core assigning a value to sharedvar - dangerous
+
+//in module: com.myorg.othercode
+from com.myorg.code import sharedvar
+
+defmymethod(){
+	sharedvar = 50
+	[sharedvar {sharedvar}!]//when the iso is executed sharedvar will be 'reset' to 26 within the iso
+}
+
+defmymethod()// [50 26:]
+\end{lstlisting}
+
+Removing the \lstinline{sharedvar = 26} line will have the effect of allowing us to preserve the assigned value of \lstinline{50} within the \lstinline{defmymethod} method when the isolate: {sharedvar}! is run. i.e.
+
+\begin{lstlisting}
+//in module com.myorg.code.conc
+public shared sharedvar = new Integer(0)
+
+//in module: com.myorg.othercode
+from com.myorg.code import sharedvar
+
+defmymethod(){
+	sharedvar = 50
+	[sharedvar {sharedvar}!]
+}
+
+defmymethod()// == [50 50:]
+\end{lstlisting}
+
+The shared tag is ignored when shared variables are assigned to, or read from refs... they are still copied, though refs themselves are naturally shareable between isolates.
+
+\subsection{Shared Classes}
+Classes may be tagged as shared, this has the same effect as tagging a variable as shared but applies to all instances of objects of the shared class (including subclasses). See Shared Classes for more information.
+
+\section{Actors}
+\label{sec:actors}
+Concurnas supports concurrency through Actors. The actor model of concurrency itself has existed since the 1970's and is seeing a resurgence in recent years due to the proliferation of multicore computer architectures and the fact that, compared to the shared state model of computation, offers a simpler and more intuitive model
+
+Actors in Concurnas behave like classes in that instances of actors can be created with constructors and methods may be called upon those instances. The difference compared to classes however is that actors can be shared between isolates, they are not copied. They are able to do this because they provide concurrency control on all of their method invocations to the effect of turning execution on an actor into a single threaded operation. This makes them ideal for implementing the likes of i/o operations (especially those such as writing to disk where contention from concurrency would actually reduce throughput).
+
+Under the hood actors run within their own isolate and like isolates, actors (which run in their own dedicated isolate), will make a copy of all input arguments to any of their constructors or methods that are invoked. 
+
+One of the nice things about the way in which Actors have been implemented in Concurnas is that one does not have to give up the advantages of static typing in order to use them.
+
+Actors are defined in a very similar way to classes and have two variants, untyped actors and typed actors which we explore here.
+
+\subsection{Untyped Actors}
+Let's create an untyped actor:
+
+\begin{lstlisting}
+open actor MyActor{
+	-count = 0
+	def increment(){
+		count++
+	}
+}
+\end{lstlisting}
+
+We say this actor is 'untyped' since it does not explicitly operate upon another type, we will examine the concept of a 'typed' actor which does operate on another type in detail in the \hyperref[subsec:typedactors]{Typed Actors} section. When defining actors we may use the same syntax as classes - including generics, constructors, class definition level fields, fields, inheritance, traits etc.
+
+The actor manages its own concurrency to the extent of sequentially executing concurrent requests made of it. Method invocations seem to behave as normal from the perspective of authoring code, i.e. the caller invokes the method and a value is returned if appropriate - as normal. However, at runtime behind the scenes, execution is being requested of the actor in its own isolate, the caller isolate pauses execution until it receives a response from said actor. When the method has been executed by the actor it will notify the caller which can then can then carry on with execution as normal. This is different from normal method invocation where there is transference of stack frame control into the method and where the invoking isolate is responsible for code execution.
+
+We can create an instance of the aforedefined actor, and call some methods upon it as follows:
+
+\begin{lstlisting}
+ma = new MyActor()
+
+ma.increment()//just like normal method call will block until exeuction is complete
+
+sync{
+	{ma.increment()}!//called concurrently
+	{ma.increment()}!
+}
+
+count = ma.count//count == 3
+\end{lstlisting}
+
+The above would not be possible if were to an ordinary object in place of our actor since they do not have any concurrency control and as such must be copied into isolates in order to prevent the state of the object being \textit{accidentally} shared. Never the less as we can see above, one of the nice things about actors in Concurnas is that they can be used seamlessly like ordinary objects. 
+
+Like classes, typed actors may inherit from other actors:
+
+\begin{lstlisting}
+actor Decount < MyActor{
+	def decrement(){
+		count--
+	}
+}
+\end{lstlisting}
+
+One restriction placed upon actors is that non private fields of actors may not be accessed. Instead, getters and setters should be used (which can be easily automatically generated in Concurnas see the \hyperref[sec:setandget]{Setters and Getters} section).
+
+\subsection{Typed Actors}
+\label{subsec:typedactors}
+Typed actors enable us to create an actor which wraps around an instance of an ordinary object. This is ideal for use in cases where we're using pre existing code, perhaps from user defined libraries or the JDK, and wish to create an actor instance of them.
+
+For example let's say we have a predefined class we wish to use as an actor:
+
+\begin{lstlisting}
+class MyCounter(-count int){
+	def increment(){
+		count++
+	}
+}
+\end{lstlisting}
+
+We can now define and use our typed actor through the aid of the \textit{of} keyword as follows:
+
+\begin{lstlisting}
+actor MyActor of MyCounter(0)
+
+//let's use our new typed actor:
+ma = new MyActor()
+
+ma.increment()
+
+sync{
+	ma.increment()!
+	ma.increment()!
+}
+
+count = ma.count//count == 3
+\end{lstlisting}
+
+Our typed actor defined above, \lstinline{MyActor}, has created a stub method instance of all of the methods exposed within our ordinary class: \lstinline{MyCounter} such that they can be seamlessly called as if \lstinline{MyActor} were an instance of \lstinline{MyCounter}. As and when we come to create an instance of \lstinline{MyActor}, the typed actor will, behind the scenes, create a \lstinline{MyCounter} instance (accessible as the variable \lstinline{of} - see the \hyperref[subsubsec:ofKeyword]{The \lstinline!of! keyword} section) to which it will direct method invocations in a serial manner. It's for this reason that all the constructors defined on the wrapped \lstinline{MyCounter} instance are also callable on the \lstinline{MyActor} instance.
+
+Instances of generic classes may be created as above with generic qualification or that qualification differed to the creator of the actor:
+
+\begin{lstlisting}
+actor StringListActor of java.util.ArrayList<String>//qualified
+
+open actor ListActor<X> of java.util.ArrayList<X>//differed
+\end{lstlisting}
+
+As with untyped actors, actors may inherit from other actors or even be defined as abstract:
+
+\begin{lstlisting}
+actor ChildStringListActor < ListActor<String>
+abstract actor AbstractListActor<X Number> < ListActor<X>
+\end{lstlisting}
+
+Typed actors implement all traits defined by the class of which it's an actor of. Hence the following holds:
+
+\begin{lstlisting}
+trait MyTrait1
+trait MyTrait2
+class ChildClass ~ MyTrait1, MyTrait2
+
+actor MyActor of ChildClass
+
+//
+ma = new MyActor()
+
+assert ma is MyTrait1 //true!
+assert ma is MyTrait2 //true!
+\end{lstlisting}
+
+Typed actors may not be created of actors. So the following is not valid:
+
+\begin{lstlisting}
+actor InvalidActor of ChildStringListActor//not valid!
+\end{lstlisting}
+
+\subsubsection{The \lstinline!of! keyword}
+\label{subsubsec:ofKeyword}
+Like untyped actors, typed actors can define methods:
+
+\begin{lstlisting}
+actor MyActor of MyCounter(0){
+	def decrement(){
+		of.count--
+	}
+}
+\end{lstlisting}
+
+In the example above we can see that the \lstinline{of} keyword is used in order to refer to the object which our defined actor is referring to. Also, just like the \lstinline{this} keyword the \lstinline{of} keyword can usually be inferred. Thus it would be acceptable to write the above code as:
+
+\begin{lstlisting}
+actor MyActor of MyCounter(0){
+	def decrement(){
+		count--
+	}
+}
+\end{lstlisting}
+
+\subsubsection{Calling actor methods}
+Sometimes, we are obliged to create a method on a typed actor having the same signature as that of the class to which it is acting upon. In these circumstances when a normal method invocation is observed on the actor instance, Concurnas will infer that the actor method upon the class being acted upon should be invoked, instead of that defined on the actor itself. In order to force execution of the actor version of said method, one can use the \lstinline{:} operator as follows:
+
+\begin{lstlisting}
+actor MyActor of MyCounter(0){
+	def increment(){
+		of.increment()
+		of.increment()
+	}
+	
+}
+
+def doings(){
+	ma = new MyActor()
+	ma:increment() //call version of method defined on MyActor
+	
+	"ok " + ma.count
+}
+\end{lstlisting}
+
+
+\subsection{Default Actors}
+Another way to create a typed actor is to simply use the actor keyword in place of or in addition to the new keyword when creating an object. For example:
+
+\begin{lstlisting}
+class MyCounter(-count int){
+	def increment(){
+		count++
+	}
+}
+
+inst1 = actor MyCounter(0)      //create a new actor on MyCounter
+inst2 = new actor MyCounter(0)  //create a new actor on MyCounter
+\end{lstlisting}
+
+We can now use \lstinline{inst1} and \lstinline{inst2} as actor instances.
+
+\subsection{Instances of and casting actors}
+Typed actors may only be compared with other actors via the \lstinline{is} and \lstinline{as} keywords, but they are reified types. Thus we're able to write code such as the following:
+
+\begin{lstlisting}
+actor MyUntyped  {
+	def something() => "hi"
+}
+
+xxx = new MyUntyped()
+o Object = xxx
+
+assert o is actor //true
+assert o is MyUntyped //true
+res = (o as  MyUntyped).something() //res == "hi"
+\end{lstlisting}
+
+And when using generics this can be very helpful:
+
+\begin{lstlisting}
+class MyClass<X>(~x X)
+actor MyActor<X> of MyClass<X>
+
+xxx = new MyActor<String>('hi')
+o Object = xxx
+assert o is MyActor<String> //true
+\end{lstlisting}
+
+
+\subsection{Shared variables and classes}
+Actors will ignore the shared nature any variables which have been marked as shared when they are passed to an actor method. That is to say that they will be copied as par normal irregardless of the fact that they have been marked as shared. This is not the case for constructor invocation however, when a actor constructor is invoked and shared variables passed as arguments are treated as being shared and are not copied.
+
+The behaviour of shared classes remains unchanged, i.e. if an instance object of a class marked as shared is passed to either a actor constructor or method, it will not be copied as par usual.
+
+\subsubsection{Shared Method Parameters for Actors}
+Recall that actors operate within their own dedicated Isolate. As such, mutable state is copied into them on execution. In order to suppress this behaviour, e.g. for classes having transient fields, for a method parameter (as part of a method of an actor), mark the input parameter as being shared:
+
+\begin{lstlisting}
+actor MyActor(){
+	def callme(shared aparam WithTransientFields){
+		//... work as normal
+	}
+}
+\end{lstlisting}
+
+\subsection{Actor gotcha's}
+There are a few gotcha's which one must factor into one's design of software when using actors. 
+
+\subsubsection{Spawning isolates directly within actors}
+
+Isolates spawned directly by \textbf{Untyped actors} run within the context of the spawning actor. This has the effect of forcing the isolate, for all intents and purposes, to run non-concurrently. For example:
+
+\begin{lstlisting}
+actor MyActor{
+	-an int = 99
+	
+	def spawndoer(){
+		done := {an++; true}!//this will be run in the context of the actor
+		done:
+	}
+}
+
+
+anActor = new MyActor()
+await(anActor.spawndoer())
+got = anActor.an //returns 100 as expected
+\end{lstlisting}
+
+Isolates spawned directly by normal classes, which have been captured by typed actors are run upon the actor as normal, they are not run within the context of the spawning actor, but rather a copy of the captured class. Here is an illustration of this behaviour:
+\begin{lstlisting}
+class Myclass{//normal class
+	-an int = 99
+	
+	def spawndoer(){
+		done := {an++}!
+		await(done)	
+	}
+}
+
+anActor = actor Myclass()//normal class captured by typed actor
+anActor.spawndoer()//spawns an isolate to perform the operation
+got = anActor.an //an is still 99, not 100!
+\end{lstlisting}
+
+
+\section{Refs}
+\label{sec:refs}
+Standard thread based models of communication in most programming languages require state to be shared and for access to it to be explicitly controlled in critical sections. Generally this is implemented on a pessimistic basis, in assuming that shared data access will be contentious, by requiring the use of explicit read-write locks or synchronized blocks on our critical sections. Engineering concurrent applications wish shared memory is one of the most challenging aspects of modern software engineering.
+
+Concurnas is different. Concurnas introduces the concept of a ref. This is an entity which can be freely shared between isolates which refers to and safely manages another value. refs provide an optimistic approach towards concurrency in that they provide communication of state via message passing. Message passing is widely accepted as an easier though equally capable model of concurrency to work with as we do not need to spend time coding read-write locks or synchronized blocks, rather than time can be spent working on our core objectives.
+
+As the value of a ref can change over time this allows us to build reactive components upon them (such as \lstinline{await}, \lstinline{every} and \lstinline{onchange} explored below) which again opens up a far more natural way of programming than what most developers are used to. Concurnas provides transactions for the times when we need to change one or more refs on an atomic basis.
+
+\subsection{Creating refs}
+There are a number of ways in which refs can be created:
+
+\begin{lstlisting}
+aref1 int: //defined but unassigned local ref of type int
+aref2 = new int://defined but unassigned local ref of type int
+aref3 int := 21 //defined and assigned local ref of type int
+aref4 := 21 //assigned local ref of inferred type int
+aref5 = 21: //assigned variable of inferred type int: with the right hand side being a ref creation expression
+aref6 = {21}! //assigned variable of inferred type int: - right hand side being a ref returned from an isolate - this is the most computationally expensive variety of ref creation - if you find yourself doing this to create simple refs from expressions that don't require concurrent execution, consider using the preceding form
+\end{lstlisting}
+
+Refs can be created of any type - even refs themselves (see below \hyperref[subsec:refofref]{refs of refs})! Refs may not be of nullable types.
+
+All the refs above are of type \lstinline{int:}. As can be seen above the key when creating refs is the use of \lstinline{:} postfixed to a type or prefixed to the assignment operator \lstinline{=} - this tells the compiler that we wish to create a ref type.
+
+\subsection{Using refs}
+Just like normal variables, we can assign a value to the ref at any point during or post declaration. For example:
+
+\begin{lstlisting}
+aref1 int: //defined but unassigned local ref of type int
+aref1 = 100 //assigned just like normal!
+\end{lstlisting}
+
+When we have a method or other location where a ref is expected as an input type, and the input we have provided is of that refs component type, Concurnas will automatically create a ref to hold that value and set it as appropriate. For example:
+
+\begin{lstlisting}
+def expectsRef(a int:) int => a:get()
+
+expectsRef(12)//12 is automatically converted into a ref, i.e. expectsRef(12:)
+\end{lstlisting}
+
+
+\subsubsection{Ref variable dereferencing}
+When we wish to perform an operation on a ref variable, or pass a ref to a function which is not expecting a ref - the ref will be automatically unassigned. If no value has yet been assigned to the ref further execution will be blocked until a value has been assigned.
+
+Type wise, when unassigning a ref with type \lstinline{X:}, the type of the value returned will be \lstinline{X}. For \lstinline{int:} this is \lstinline{int}. For example:
+
+\begin{lstlisting}
+a int:
+
+{a = 99}!//execute our ref assignment in a separate isolate
+
+b int = a//a is unassigned when our isolate spawned above complete's execution
+\end{lstlisting}
+
+refs are dereferenced not just on variable assignment, but at any place where they are used. For example on function invocation:
+
+\begin{lstlisting}
+def takesInt(a int) => a
+
+res = {a = 99}!
+
+takesInt(res)//res is dereferenced
+\end{lstlisting}
+
+If we wish to prevent this unassignment we can use the \lstinline{:} operator when referencing the variable. For example:
+
+\begin{lstlisting}
+a int: = 12
+b = a:
+c := a
+
+//the &== operator tests for equality by object reference and not by object value as the == operator does
+assert b: &== a: //a and b are references to the same ref
+assert c: &== a: //a and c are references to the same ref
+\end{lstlisting}
+
+The \lstinline{:} operator may also be used in order to access methods on the ref itself. For instance the \lstinline{hasException} method will return true if an exception has been set on the ref:
+
+\begin{lstlisting}
+aref = 12:
+aref:setException(new Exception("uh oh"))
+
+hase = aref:hasException() //returns true, an exception has beenset
+\end{lstlisting}
+
+
+\subsection{Notable methods on refs}
+All refs are subtypes of the class: \lstinline{com.concurnas.bootstrap.runtime.ref.Ref}. This class exposes a number of occasionally useful methods of note that are accessible via the \lstinline{:} operator:
+
+\begin{itemize}
+	\item \lstinline{def isSet() boolean} - returns true if a ref has been closed, an initial value or an exception set (non blocking method).
+	\item \lstinline{def waitUntilSet() void} - returns when a ref has been closed, an initial value or an exception set (blocking method).
+	\item \lstinline{def close() void} - close a ref, no further values may be assigned.
+	\item \lstinline{def isClosed() boolean} - returns true if a ref has been closed (non blocking method).
+	\item \lstinline{def setException(e Throwable) boolean} - set an exception on a ref.
+	\item \lstinline{def hasException() boolean} - returns true if a ref has been closed (non blocking method).
+\end{itemize}
+
+\begin{sloppypar}
+When creating a ref via the aforementioned methods one is creating a ref of type: \lstinline{com.concurnas.runtime.ref.Local<X>} where X is the reified type of the ref. In other words:
+
+\begin{lstlisting}
+aref1 int:
+//is equvilent to:
+bref1 com.concurnas.runtime.ref.Local<int>
+\end{lstlisting}
+
+Instances of \lstinline{Local<X>} provide the following additional methods:
+\end{sloppypar}
+
+\begin{itemize}
+	\item \lstinline{set(x X) void} - set the latest value of the ref. (equivalent to assignment)
+	\item \lstinline{get() X} - get the latest value of the ref. (blocking method).
+	\item \lstinline{getNoWait() X?} - get the latest value of the ref. Value will be returned as \lstinline{null} if no initial value has been set (non blocking method).
+	\item \lstinline{get(withNoWait boolean) X?} - get the latest value of the ref. May return \lstinline{null}. (optionally blocking method).
+\end{itemize}
+
+\subsection{Arrays of refs}
+Arrays of refs may be created in the usual manner:
+
+\begin{lstlisting}
+arrayofrefs1 = [1: 2: 3:]
+arrayofrefs2 = new Integer:[10]
+arrayofrefs3 = new Integer:[2, 2](1)//with array initalizer
+\end{lstlisting}
+
+Arrays of refs are of type: \lstinline{com.concurnas.runtime.ref.LocalArray<X>} where \lstinline{X} is the ref type (\lstinline{Integer:} above).
+
+\subsection{Ref variable reassignment}
+The ref variables themselves may be reassigned by ensuring that the assignment operator is prefixed with \lstinline{:}, for example:
+
+\begin{lstlisting}
+aref int: = 100
+bref int: = 200
+assert aref <> bref  //values not equal
+assert aref: <> bref://refs not equal
+
+aref = bref //assign the value of bref to aref
+assert aref == bref  //values equal!
+assert aref: <> bref://refs not equal
+
+
+aref := bref //assign the ref itself: bref to aref
+assert aref == bref  //values equal!
+assert aref: == bref://refs equal!
+\end{lstlisting}
+
+\subsection{Refs are reified types}
+refs are reified types hence Concurnas knows what type a ref is holding at runtime. This allows us to safely write code such as the following:
+
+\begin{lstlisting}
+def checkIfIntRef(something Object) boolean => something is int:
+\end{lstlisting}
+
+\subsection{Closing refs}
+refs can be put into a closed state, after which no further values may be assigned to them, and any reactive components which use them will no longer consider them to be something to watch for changes to react to after notification.
+
+\begin{lstlisting}
+aref = 10:
+aref:close()
+assert aref:isClosed()//aref is now closed
+\end{lstlisting}
+
+Any reactive components that are registered to watch for changes to a ref will be invoked upon said ref being closed, for example:
+
+\begin{lstlisting}
+aref := 10
+
+isclosed boolean:
+onchange(aref){
+	if(aref:isClosed()){
+		isclosed = true
+	}
+}
+aref:close()
+
+await(isclosed)
+\end{lstlisting}
+
+Above, we create a ref \lstinline{isclosed} which is only set by our \lstinline{onchange} block after \lstinline{aref} has been closed.
+
+\subsection{Custom refs}
+In 99\% of situations the built in ref types are all we need to solve problems. But sometimes it can be useful to define our own custom refs (e.g the \lstinline{gpus.GPURef} ref type). To do this all we need to is subclass the \lstinline{com.concurnas.runtime.ref.Local} class. However, there are a few caveats to be remembered when building custom refs which we shall explore here. 
+
+Refs, being reified types, require an additional initial argument, of type \lstinline{Class<?>[]}, be added to all defined constructors to hold the reified type information generated seamlessly by Concurnas at compilation time. When constructing refs this extra argument does not need to be populated. For example:
+
+\begin{lstlisting}
+class CustomRef<X>(type Class<?>[], ~extraArg int) < com.concurnas.runtime.ref.Local<X>(type){
+	this(type Class<?>[]) => this(type, 99)
+}
+\end{lstlisting}
+
+
+\subsubsection{No argument constructor}
+Additionally, in order for custom refs to be implicitly creatable, they should specify a no argument constructor. Failure to do so will result in a runtime exception if an implicit creation is attempted.
+
+\begin{lstlisting}
+class CustomRef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type)
+class CustomRefWithNoArg<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+	this(type Class<?>[]) => this(type, 12)
+}
+
+def fail(a Object) Object:CustomRef{
+	return null//implicitly create a CustomRef to hold null - which will fail
+}
+def ok(a Object) Object:CustomRefWithNoArg {
+	return null//implicitly create a CustomRefWithNoArg
+}
+
+ok("123")//this will return a Object:CustomRefWithNoArg object
+fail("123")//this will throw a runtime exception because there is no no argument constructor defined for CustomRef
+\end{lstlisting}
+
+
+\subsubsection{Using custom refs}
+Custom refs may be created by appending the desired custom ref constructor (without the initial, additional, reified type array) after the \lstinline{:} operator. For example:
+
+\begin{lstlisting}
+class CustomRef<X>(type Class<?>[], ~extraArg int) < com.concurnas.runtime.ref.Local<X>(type){
+	this(type Class<?>[]) => this(type, 99)
+}
+
+inst1 = int:CustomRef(12)//insatnce of our CustomRef
+inst2 = int:CustomRef()//insatnce of our CustomRef
+\end{lstlisting}
+
+Alternatively, when we are using the declaration with assignment form of variable declaration, a custom ref may be implicitly constructed and the appropriate set method matching the assignment value called. For example:
+
+\begin{lstlisting}
+inst1 int:CustomRef = 12//insatnce of our CustomRef with implicit contruction
+
+//above is equivilent to:
+inst2 int:CustomRef; inst2 = 12
+\end{lstlisting}
+
+The above is equivalent to:
+
+\begin{lstlisting}
+inst1 int:CustomRef; 
+inst1 = 12
+\end{lstlisting}
+
+\subsubsection{RefArrays}
+Ref arrays: \lstinline{com.concurnas.runtime.ref.RefArray<X>} are a handy custom ref type included in the Concurnas runtime. RefArrays provide an efficient means of providing ref like behaviour on arrays via a fixed length array like structure.
+
+Notable methods on \lstinline{RefArray<X>} are:
+
+\begin{itemize}
+	\item \lstinline{get() X[]} - get the latest value of the ref. (blocking method).
+	\item \lstinline{get(withNoWait boolean) X[]} - get the latest value of the ref. May return \lstinline{null}. (optionally blocking method). 
+	\item \lstinline{getNoWait() X[]?} - get the latest value of the ref. \lstinline{null} if unset. (non blocking method).
+	\item \lstinline{set(x X[]) void} - set the latest value of the ref.
+	\item \lstinline{get(i int) X} - get the latest value of the ref at index i. (blocking method).
+	\item \lstinline{get(i int, withNoWait boolean) X?} - get the latest value of the ref at index i. May return \lstinline{null}. (optionally blocking method).
+	\item \lstinline{getNoWait(i int) X?} - get the latest value of the ref at index i. \lstinline{null} if unset. (non blocking method).
+	\item \lstinline{put(i int, x X) void} - set the latest value of the ref at index i. 
+	\item \lstinline{getSize() int} - Returns the size of the \lstinline{RefArray}.
+	\item \lstinline{modified() List<Integer>} - Returns a non empty list of indexes corresponding to the most recently changed elements of the \lstinline{RefArray} in a transaction only if called within the context of a reactive component: \lstinline{every}, \lstinline{onchange}, \lstinline{await}, \lstinline{async}.  	
+\end{itemize}
+
+Example usage:
+
+\begin{lstlisting}
+import com.concurnas.runtime.ref.RefArray 
+
+xx int:RefArray = [Integer(1) 2 3 4]
+xx[0] := 99
+elm = xx[3]
+	
+//xx == [99 2 3 4]
+//elm == 4
+\end{lstlisting}
+
+An alternative to RefArrays are arrays of refs.
+
+\subsection{Nested refs}
+\label{subsec:refofref}
+The Concurnas ref syntax supports nesting, i.e. refs of refs. Though this feature is of limited usability there are occasions where it can be incredibly useful. The principles are straightforward. Let's look at some examples:
+
+\begin{lstlisting}
+aref1 int:: //declare a ref of a ref
+aref2 int:: = 53 //declare and assign a value to the ref of a ref
+aref3 = 53:: //infer type as ref of ref: int::
+
+anint1 int = aref2 //extract value helf by ref of ref
+anint2 int = aref2::get() //extract value helf by ref of ref
+nestedref int: = aref2:get()//extract ref held by ref
+\end{lstlisting}
+
+Above we can see that when we declare nested refs we need only append the ref operator to the element we are nesting. In the case of a type this is: \lstinline{int::} and when calling methods on nested refs: \lstinline{aref2:get()}. Concurnas will automatically ref/unref a value to the appropriate level of nesting in cases where possible:
+
+\begin{lstlisting}
+def expectsRefOfRef(arefofref int::) => arefofref
+
+aref1 = 12:
+expectsRefOfRef(aref1)//equvilent to: aref1: (which is of type int::)
+\end{lstlisting}
+
+Refs of custom refs, and vice verse may be created and used in a similar manner:
+\begin{lstlisting}
+class CustomRef<X>(type Class<?>[], ~extraArg int) < com.concurnas.runtime.ref.Local<X>(type)
+
+custRefOfRef int::CustomRef = 16//CustomRef holding a ref of type int
+\end{lstlisting}
+
+
+
+
+\section{Reactive programming}
+\label{sec:reactive}
+Concurnas provides four major components for supporting reactive programming. The reactive elements are defined as: \lstinline{await}, \lstinline{every}, \lstinline{onchange} and \lstinline{async}. These elements allow us to write code in a natural reactive style and allows our programs to perform operations contingent upon a change to one or more monitored refs.
+
+
+\subsection{\lstinline{await}}
+The \lstinline{await} keyword takes a series of expressions evaluating to one or more references and will block execution until at least one of those references has been set. For example:
+
+\begin{lstlisting}
+complete boolean:
+{
+	//some complex calculation..
+	complete = true
+}!//spawn an isolate to execute the above concurrently.
+
+await(complete)//pause further execution until complete is set
+\end{lstlisting}
+
+\subsubsection{\lstinline{await} guards}
+An optional guard condition may be included within the \lstinline{await} statement. If so the \lstinline{await} statement behaves as before but will only return true when the guard condition resolves to true:
+
+can be declared within the \lstinline{every} or \lstinline{onchange} block
+\begin{lstlisting}
+execount int: = 0
+for(a in 1 to 10){
+	//some complex calculation..
+	execount++
+}!//spawn an isolate to execute the above concurrently.
+
+await(execount; execount==10)//pause further execution until execount == 10
+\end{lstlisting}	
+
+The execution of the \lstinline{await} statement (including guard expression) takes place within its own isolate.
+
+\subsection{\lstinline{every} and \lstinline{onchange}}
+Concurnas provides two reactive blocks which are central to most reactive programs. These are the \lstinline{every} and \lstinline{onchange} blocks. They both take a ref (or group of refs) and will monitor this ref(s) for changes. Upon a notification of a change occuring the body of the block shall be executed.
+
+Like the \lstinline{await} statement, \lstinline{every} and \lstinline{onchange} blocks persist within their own isolate, when they react to changes to refs they execute their code body within that isolate. Hence upon their successful initialization they immediately return the flow control to the invoking isolate.
+
+The difference between the \lstinline{every} and \lstinline{onchange} blocks is that the \lstinline{every} block will be initially triggered upon initialization of the block if any of the monitored refs has an initial value set. The \lstinline{onchange} block on the other and will only be triggered if a change is made to a ref post initialization.
+
+Here is an example of a \lstinline{every} and \lstinline{onchange} block:
+
+\begin{lstlisting}
+lhs int:
+rhs int:
+result1 int:
+result2 int:
+every(lhs, rhs){}
+	result = lhs + rhs
+}
+
+onchange(lhs, rhs){}
+	result2 = lhs + rhs
+}
+\end{lstlisting}
+
+\lstinline{every} and \lstinline{onchange}, just like all blocks in Concurnas, supports the single line block syntax, i.e.:
+\begin{lstlisting}
+lhs int:
+rhs int:
+result1 int:
+every(lhs, rhs){}
+	result1 = lhs + rhs
+}
+//can be written as:
+plusop2 = every(lhs, rhs) => lhs + rhs
+\end{lstlisting}	
+
+\lstinline{every} and \lstinline{onchange} blocks will be triggered every time a change is made to a monitored ref. Code executed within their body which references the ref(s) that were changed in the transaction which caused that trigger with have their values locked at the value which was written in the transaction, other refs (which may or may not be monitored) will reflect the latest state of the ref in question as normal. An example:
+
+\begin{lstlisting}
+
+aref int:
+onchange(aref){
+	System.out.println("latest value of aref: {aref:get()}")
+}
+
+aref=1
+aref=2
+aref=3
+
+//will output to System.out:
+//1
+//2
+//3
+\end{lstlisting}	
+
+
+\lstinline{every} and \lstinline{onchange} blocks will cease to monitor refs or be executable (and hence become eligible for garbage collection) when all of their monitored refs are in a closed state or are otherwise out of scope. Additionally if the block is explicitly returned from via the \lstinline{return} keyword, then it will also cease to be executable - see the \hyperref[subsubsec:returnEveryonechange]{Returning from \lstinline!every! and \lstinline!onchange!} section for more details.
+
+\subsubsection{Declarations within \lstinline{every} and \lstinline{onchange} blocks}
+It is possible to assign and declare a ref within a \lstinline{every} or \lstinline{onchange} block as follows:
+\begin{lstlisting}
+def retRef() int: => 12
+itmchanged = onchange(watch = retRef()) => watch
+\end{lstlisting}	
+
+\subsubsection{Returning from \lstinline{every} and \lstinline{onchange}}
+\label{subsubsec:returnEveryonechange}
+\lstinline{every} and \lstinline{onchange} blocks may return values, for example:
+
+\begin{lstlisting}
+lhs int:
+rhs int:
+plusop2 = every(lhs, rhs) => lhs + rhs
+\end{lstlisting}	
+
+Since \lstinline{every} and \lstinline{onchange} blocks operate within their own isolate if an exception is thrown and left uncaught within that block, the exception will be set on the return value. In the above example \lstinline{plusop2}. After this exception has occurred no further execution of the \lstinline{every} and \lstinline{onchange} block will take place. The effect is the same in cases where there is no return value, the difference being that the exception will be handled by the isolate default exception handler - which will simple output a stack trace to the \lstinline{System.err} console output stream.
+
+If the \lstinline{return} keyword is explicitly used in order to return from a \lstinline{every} or \lstinline{onchange} block then this has the additional side effect of terminating future execution of the \lstinline{every} or \lstinline{onchange} block.
+
+\subsubsection{\lstinline{every} and \lstinline{onchange} parameters}
+\lstinline{every} and \lstinline{onchange} blocks may have the following optional parameters attached to them by specifying one post \lstinline{;} after the refs to be monitored:
+
+\begin{itemize}
+	\item \lstinline{onlyclose} - \lstinline{every} and \lstinline{onchange} blocks tagged with this parameter will only react to refs being closed.
+\end{itemize}
+
+Example:
+
+\begin{lstlisting}
+lhs int:
+rhs int:
+howmanyclosed = every(lhs, rhs; onlyclose) => changed.getChanged().length
+\end{lstlisting}	
+
+\subsubsection{Implicit ref monitoring}
+Concurnas will automatically infer which refs to monitor for an \lstinline{every} or \lstinline{onchange} block if none are provided in the definition:
+\begin{lstlisting}
+x := 10
+y := 5
+
+result = onchange { x + y } //x and y will automatically be monitored for changes
+\end{lstlisting}
+
+Concurnas will monitor only those refs defined outside the scope of the onchange/every block. Refs referred to indirectly within the body of methods/functions will not be monitored. For example:
+\begin{lstlisting}
+x := 10
+def xSquared() => x ** 2
+
+result = onchange{ xSquared()}//x will NOT be automatically monitored
+\end{lstlisting}
+
+In fact, in the above example, this will not compile because no refs to monitor have been specified (nor can be inferred) in the onchange definition.
+
+\subsection{Compact \lstinline{every} and \lstinline{onchange}}
+Concurnas provides a more compact way to define \lstinline{onchange} and \lstinline{every} blocks when they are used on the right hand side of an assignment. In essence, one can replace \lstinline{onchange} with \lstinline{<-} and \lstinline{every} with \lstinline{<=}.
+
+\begin{lstlisting}
+x := 10
+y := 5
+
+res1 <-(x, y) x + y //onchange with dependencies explicitly defined
+res2 <=(x, y) x + y //every with dependencies explicitly defined
+
+res3 <- x + y //onchange with dependencies implicitly defined
+res4 <= x + y //every with dependencies implicitly defined
+\end{lstlisting}
+
+This compact syntax in particular makes performing reactive computing with refs very convenient.
+
+
+
+
+
+\subsection{Async}
+The \lstinline{async} block enables us to define a collection of related \lstinline{every} and \lstinline{onchange} blocks with an optional \lstinline{pre} and \lstinline{post} block. \lstinline{async} blocks perform execution within one dedicated isolate for all \lstinline{every} and \lstinline{onchange} blocks. Like \lstinline{every} and \lstinline{onchange} blocks, \lstinline{async} blocks will permit the initializing isolate to continue with execution post initialization.
+
+The optional \lstinline{pre} block enables us to define and initialize state which is accessible only to the \lstinline{every} and \lstinline{onchange} blocks of the \lstinline{async} block. The optional \lstinline{post} block enables us to execute code when the monitored refs of all the \lstinline{every} and \lstinline{onchange} blocks are in a closed state and the \lstinline{async} block terminated.
+
+Example:
+
+\begin{lstlisting}
+finalCount int:
+tally1 = 2:
+tally2 = 2:
+
+async{
+	pre{
+		count = 0
+	}
+	
+	every(tally1){
+		count += tally1	
+	}		
+	
+	onchange(tally2){
+		count += tally2		
+	}
+	
+	post{
+		finalCount = count
+	}
+	
+}
+
+tally1 = 9; tally1 = 10; tally1 = 10
+tally2 = 45; tally2 = 3; tally2 = 53
+
+tally1:close(); tally2:close()
+
+await(finalCount)
+
+//finalCount == 132
+\end{lstlisting}
+
+\subsubsection{Async returning values}
+Like single \lstinline{every} and \lstinline{onchange}, \lstinline{async} blocks may return values. Either all of the \lstinline{every} and \lstinline{onchange} blocks must return a value or one value must be returned from the optional \lstinline{post} block.
+
+Example of all the \lstinline{every} and \lstinline{onchange} blocks returning values:
+\begin{lstlisting}
+finalCount int:
+tally1 = 2:
+tally2 = 2:
+
+lastproc = async{
+pre{
+count = 0
+}
+
+every(tally1){
+count += tally1
+count//return this value
+}		
+
+onchange(tally2){
+count += tally2		
+count//return this value
+}
+
+post{
+finalCount = count
+}
+
+}
+
+tally1 = 9; tally1 = 10; tally1 = 10
+tally2 = 45; tally2 = 3; tally2 = 53
+
+tally1:close(); tally2:close()
+
+await(finalCount)
+
+//finalCount == 132
+\end{lstlisting}
+
+
+Example of the \lstinline{post} block returning a value:
+\begin{lstlisting}
+tally1 = 2:
+tally2 = 2:
+
+finalCount = async{
+pre{
+count = 0
+}
+
+every(tally1){
+count += tally1
+}		
+
+onchange(tally2){
+count += tally2		
+}
+
+post{
+count//return this value
+}
+
+}
+
+tally1 = 9; tally1 = 10; tally1 = 10
+tally2 = 45; tally2 = 3; tally2 = 53
+
+tally1:close(); tally2:close()
+
+await(finalCount)
+//finalCount == 132
+\end{lstlisting}
+
+
+\subsection{Reacting to multiple refs}
+In the previously examined examples of reactive programming we have only considered the case of monitoring individual refs for changes. However, Concurnas supports monitoring of multiple refs at the same time. The following groupings of refs may be monitored in any of the reactive elements: \lstinline{await}, \lstinline{every}, \lstinline{onchange} and \lstinline{async}:
+
+\begin{itemize}
+	\item \textbf{Individual refs} - Multiple individual refs may be referenced in a comma separated list:
+	\begin{lstlisting}
+	lhs int:
+	rhs int:
+	plusop = every(lhs, rhs) => lhs + rhs	
+	\end{lstlisting}
+	Multiple refs may be declared and assigned within the reactive element provided that the are in the comma seperated list, for example:
+	\begin{lstlisting}
+	lhs int:
+	rhs int:
+	plusop = every(a = lhs, b = rhs) => a + b
+	\end{lstlisting}	
+	\item \textbf{Arrays of refs} - Multiple individual refs may be referenced in a array of refs:
+	\begin{lstlisting}
+	lhs int:
+	rhs int:
+	watchAr = [lhs rhs]
+	plusop = every(watchAr) => lhs + rhs
+	\end{lstlisting}
+	The refs monitored are those present within the array upon creation of the reactive element in question. If the contents of the array changes post element creation these changes will not be included in the set of refs to be monitored. For monitoring of a dynamic set of refs, a \lstinline{ReferenceSet} object is more appropriate.
+	\item \textbf{Lists, maps or sets of refs} - Multiple individual refs may be referenced in a list or set of refs or the key set of a map:
+	\begin{lstlisting}
+	lhs int:
+	rhs int:
+	watchAr list<int:> = [lhs, rhs]
+	plusop = every(watchAr) => lhs + rhs
+	\end{lstlisting}
+	As with likes of arrays of refs, only the refs present within lists, maps or sets of refs at the point of element creation will be included for monitoring. For monitoring of a dynamic set of refs, a \lstinline{ReferenceSet} object is more appropriate.	
+	\item \textbf{ReferenceSets} - Instances of \lstinline{com.concurnas.runtime.cps.ReferenceSet} can be used in order to monitor a dynamically changeable set of refs:
+	\begin{lstlisting}
+	from com.concurnas.runtime.cps import ReferenceSet
+	lhs int:
+	rhs int:
+	
+	liveSet = new ReferenceSet()
+	liveSet.add(lhs)
+	liveSet.add(rhs)
+		
+	numChanged = every(liveSet) => changed.getChanged().length
+	
+	liveSet.remove(lhs)
+	//our every expression will continue to monitor only 'rhs' for changes...
+	\end{lstlisting}
+	Either closing or removing a ref from the monitored \lstinline{ReferenceSet} will result in it being no longer being monitored by the reactive element.	
+	\item \textbf{A mixture of the above} - Multiple instances of the aforementioned groupings of refs may be used in a reactive element provided that they are presented as a comma separated list:
+	\begin{lstlisting}
+	lhs int:
+	rhs int:
+	another1 int:
+	another2 int:
+	another3 int:
+	watchAr = [another1 another2 another3]
+	numChanged = onchange(lhs, rhs, watchAr) => changed.getChanged().length
+	\end{lstlisting}	
+\end{itemize}
+
+A reactive element listening to more than one ref will be awoken for execution if any of refs it monitors is changed. 
+
+There are some special considerations and tools to bear in mind when working with reactive elements monitoring more than one ref:
+
+\subsubsection{changed}
+The \lstinline{changed} keyword can be used in order to obtain the set of refs which have been changed as part of the transaction which has caused the reactive element to be activated. All changes to refs, even to a single ref outside of a transaction will result in a transaction being created. The changed keyword itself will return the transaction object (of type \lstinline{com.concurnas.bootstrap.runtime.transactions.Transaction}) holding the changed set of refs, accessible by calling the \lstinline{getChanged() com.concurnas.runtime.ref.LocalArray<com.concurnas.runtime.ref.Ref<?>>} method.
+
+\begin{lstlisting}
+lhs int:
+rhs int:
+numChanged = onchange(lhs, rhs) => changed.getChanged().length
+//numChanged is a ref containing the number of refs changed in a transaction causing onchange to be triggered
+\end{lstlisting}
+
+\subsubsection{Reactive Element termination}
+When a reactive element is monitoring more than one ref for changes it will be terminated when all of those refs are closed. This can be problematic when one is using a \lstinline{com.concurnas.runtime.cps.ReferenceSet} in order to dynamically react to changes in refs since when they happen to be all closed and/or removed from the monitored \lstinline{ReferenceSet} instance the reactive element will be closed for future execution. We must be mindful of this behaviour and if our use case dictates that there are cases where we must remove or close all refs being monitored in a \lstinline{ReferenceSet} then we must be careful to recreate a new reactive element if we later come to have more refs which need to be dynamically monitored.
+
+
+
+
+
+\section{Transactions}
+Concurnas supports software transactional memory via the \lstinline{trans} block keyword. This allows us to make changes to one or more refs and have those changes visible outside of our transaction on an atomic basis. \lstinline{trans} blocks behave like normal blocks in so much as they operate within the same isolate as the invoker.
+
+Recall that a reactive element listening to more than one ref will be awoken for execution if any of refs it monitors is changed in a transaction. For this reason the following code will result in our \lstinline{onchange} block being invoked twice:
+
+\begin{lstlisting}
+lhs int: = 100
+rhs int: = 100
+onchange(lhs, rhs) {//onchange will always act on the latest known value
+	System.out.println("sum: {lhs + rhs}")
+}
+
+lhs -= 10
+rhs += 10
+
+//will output:
+//sum: 200 or 190
+//sum: 200
+\end{lstlisting}
+
+Further more, there is some non determinism here in that the first value output may or may not include the change which is made to the \lstinline{rhs} ref since this may not have have occurred yet when the \lstinline{onchange} is triggered 
+
+We can change this behaviour by combining our changes to \lstinline{lhs} and \lstinline{rhs} in one transaction, in a \lstinline{trans} block:
+
+\begin{lstlisting}
+lhs int: = 100
+rhs int: = 100
+onchange(lhs, rhs) {
+	System.out.println("sum: {lhs + rhs}")
+}
+
+trans{
+	lhs -= 10
+	rhs += 10
+}
+
+//will output:
+//sum: 200
+\end{lstlisting}
+
+The above will always provide a consistent result of a single output value from our \lstinline{onchange} block.
+
+\subsection{Transaction execution}
+Transactions are guaranteed to complete execution atomically or throw an exception. Changes occurring within an exception are not visible outside of that transaction until the entire transaction has completed execution.
+
+Transactions operate on an optimistic basis in assuming that ref contention, where a ref is changed by a different entity other than the transaction, is an unlikely occurrence. Should it occur however, the transaction will internally 'roll back' all the refs which it has changed and try execution again and again until it succeeds.
+
+It's for this reason that non mutable non-ref changing operations such as i/o, calling methods on mutable objects or changing variables from outside the transaction should be avoided, since these are not rolled back should ref contention occur (and are sometimes, such as in the case of i/o, impossible to roll back anyway). If we do need to perform non-ref related operations within a transaction we need to ensure that they are idempotent operations.
+
+\subsection{Returning from transactions}
+Transactions, like any other block in Concurnas, may return a value:
+
+\begin{lstlisting}
+account1 int: = 1000
+account2 int: = 120
+
+takeoff = 10
+
+prevBal = trans{
+	prev = account1
+	account1 -= takeoff
+	account2 += takeoff
+	prev
+}
+//prevBal == 1000
+\end{lstlisting}
+
+
+\subsection{Nested Transactions}
+Transactions may be nested. Any changes to refs taking place within an inner nested transactions will be visible to any outer nesting transactions upon completion, and those changes, along with those made in any nesting transactions will also be visible outside the transaction once the outermost layer of transaction has been completed. For example:
+
+\begin{lstlisting}
+acc1 = 10000:
+acc2 = 10000:
+acc3 = 999:
+
+trans{
+	trans{
+		acc3++
+	}
+//change to acc3 is visible below but at this point not outside the trans
+	acc1 -= acc3
+	acc2 += acc3
+}
+//now all changes to acc1, acc2 and acc3 are visible
+//acc3 == 1000, acc1 == 9000, acc2 == 11000
+\end{lstlisting}
+
+\subsection{Change sets}
+As we have already seen when it comes to reactive elements, they will be triggered upon any of their monitored refs being changed. However, as a result of a transaction, from the perspective of the reactive element, it is possible for the change set to include rfs which are not monitored as part of the reactive elements group of interest. This should be borne in mind when building algorithms which inspect the \lstinline{changed} set of a reactive element. For example:
+
+
+\begin{lstlisting}
+acc1 = 10000:
+acc2 = 10000:
+
+whatchanged = onchange(acc1) => changed.getChanged().length
+
+trans{
+	acc1 -= 10
+	acc2 += 10
+}
+//whatchanged == 2
+\end{lstlisting}
+
+Above, we see that \lstinline{whatchanged} will be set to \lstinline{2}. This may seen like a bug at first because the \lstinline{onchange} block is only monitoring one element, but this is expected as the changed set includes changes to two refs within the transaction changing them.
+
+\section{Temporal Computing}
+A common pattern in concurrent systems engineering is to want to have some for of time based trigger, "wait 10 seconds then do x" or "do y every 3 seconds etc" or "perform this action at this certain time". At Concurnas we refer to this as temporal computing.
+
+Temporal computing is supported via the Pulsar library found at: \lstinline{com.concurnas.lang.pulsar}. This library allows us to schedule activities to take place in the future after a certain amount of time has elapsed. It also allows us to schedule tasks for repetition.
+
+The pulsar provides two implementations of the \lstinline{com.concurnas.lang.pulsar.Pulsar} trait which presents five methods. These all return a ref which will be updated with the current time at the point of event trigger:
+
+\begin{itemize}
+	\item \lstinline{after(after java.time.Duration) java.time.LocalDateTime:} - Fire off after the specified duration.
+	\item \lstinline{schedule(when LocalDateTime) OffsetDateTime:} - Fire off at a certain date time in the future.
+	\item \lstinline{repeat(after Duration) LocalDateTime:} - Trigger with a certain degree of frequency.
+	\item \lstinline{repeat(after Duration, until LocalDateTime) LocalDateTime:} - Trigger with a certain degree of frequency until a point in time in the future.
+	\item \lstinline{repeat(after Duration, times long) LocalDateTime:} - Trigger with a certain degree of frequency for a fixed number of times.
+	\item \lstinline{getCurrentTime() LocalDateTime} - the current time as far as the Pulsar is concerned. This may not correspond to real time for the purposes of testing etc.
+\end{itemize}
+
+It is intended that the returned ref be listened to for triggers via an \lstinline{every} block. We'd recommend using an \lstinline{every} block instead of \lstinline{onchange} to cater for the chance that event has triggered before the triggered block has yet been created for execution.
+
+Once the stream of events returned has reached a state where by it can no longer be updated the ref will be closed. This will occur after the first trigger for the \lstinline{after} and \lstinline{schedule} cases, and after the repetition conditions have been met for the \lstinline{repeat} cases. For the \lstinline{repeat} forever instance, the ref will have to be closed manually by calling \lstinline{:close()} or by going out of scope.
+
+Repetition intervals may not be negative. Events scheduled for future execution, via the \lstinline{after} and \lstinline{schedule} methods, may be in the past, in which case they will be triggered immediately.
+
+The two provided implementations of the \lstinline{com.concurnas.lang.pulsar.Pulsar} trait are as follows:
+
+\begin{itemize}
+	\item \lstinline{actor com.concurnas.lang.pulsar.RealtimePulsar} - Uses the realtime system clock upon which our program is executing for event scheduling.
+	\item \lstinline{actor com.concurnas.lang.pulsar.FrozenPulsar} - Supports injecting of time as a controllable variable. This is aimed at testing of Pulsar based solutions.
+\end{itemize}
+
+Both implementations above are actors, this is handy because they can be shared between isolates.
+
+\subsection{Developing temporal applications}
+Lets look at an example of a temporal 'hello world' application:
+
+\begin{lstlisting}
+from com.concurnas.lang.pulsar import Pulsar, RealtimePulsar
+from java.time import Duration
+
+trait TaskToDo{
+	def doTask() void
+}
+
+inject class EventScheduler(pulsar Pulsar, task TaskToDo){
+	def scheduleEvent(){
+		tigger := pulsar.after(Duration.ofSeconds(10))//schedule event for 10 seconds time...
+		every(tigger){
+			task.doTask()
+		}
+	}
+}
+
+class HelloWorldTask ~ TaskToDo{
+	def doTask(){
+		System out println "Hello world!"
+	}
+}
+
+provider Temporal{
+	provide EventScheduler
+	single Pulsar => new RealtimePulsar()//single as we wish use the same instance for all provided EventScheduler's
+	TaskToDo => new HelloWorldTask()
+}
+
+
+schduler = new Temporal().EventScheduler()
+schduler.scheduleEvent()
+
+\end{lstlisting}
+
+Above we are using the ref returned from a call to the \lstinline{after} method of our injected \lstinline{Pulsar} instance to call the \lstinline{doTask} method of our injected \lstinline{HelloWorldTask} instance. Our \lstinline{tigger} ref will have a value set to it after 10 seconds and then it will be closed. The other scheduling methods exposed by the \lstinline{Pulsar} instance may be used in a similar fashion to the above.
+
+\subsubsection{Testing temporal applications}
+Like concurrent computing, applications making use of temporal computing can be difficult to test, especially for tasks which are scheduled to occur infrequently, irregularly or a long way in the future. The naive way to test this sort of application this is to do so in real-time, and have to wait for however long is required for a scheduled event to occur in the future. With Concurnas however, we can use the \lstinline{FrozenPulsar} implementation in order to speed up this process. For example:
+
+
+\begin{lstlisting}
+from com.concurnas.lang.pulsar import Pulsar, FrozenPulsar
+from java.time import Duration
+
+trait TaskToDo{
+	def doTask() void
+}
+
+inject class EventScheduler(pulsar Pulsar, task TaskToDo){
+	def scheduleEvent(){
+		tigger := pulsar.after(Duration.ofSeconds(10))//schedule event for 10 seconds time...
+		every(tigger){
+			task.doTask()
+		}
+	}
+}
+
+class TestTask() ~ TaskToDo{
+	-taskRun boolean:
+	def doTask(){
+		taskRun = true
+	}
+}
+
+provider TemporalTest{
+	provide EventScheduler
+	single provide FrozenPulsar => new FrozenPulsar()//single as we wish use the same instance for all provided EventScheduler's
+	single provide TaskToDo => new TestTask()//single for same reasons as above
+}
+
+
+tempoTest = new TemporalTest()
+scheduler = tempoTest.EventScheduler()
+scheduler.scheduleEvent()
+task = tempoTest.TaskToDo() as TestTask
+
+pulsar = tempoTest.Pulsar() as FrozenPulsar
+
+//now we inject the current to our pulsar...
+pulsar.currentTime = pulsar.currentTime + Duration.ofSeconds(10)
+await(task.taskRun)//wait for task to be run and for this ref to be set with a value
+\end{lstlisting}
+
+Above we are progressing time by 10 seconds\footnote{We are able to use the \lstinline{+} operator as it is overloaded in the \lstinline{LocalDateTime} class which defines a method plus taking a \lstinline{Duration} object as a parameter} and injecting it into our \lstinline{FrozenPulsar} instance. We then wait for our taskRun to be set in our \lstinline{TestTask} instance as expected.
+
+A point to bear in mind when using the \lstinline{FrozenPulsar} implementation, say when testing an application making use of a repeatable event, is that progressing time to an infinite period in the future will not result in an infinite number of events being fired off, rather only one event will be triggered as a consequence of the injecting of current time once.
+
+
+
+
+
+\section{Parfor}
+Concurnas has support for parallel for loops in the form of a \lstinline{parfor} loop. These are a convenient and intuitive mechanism for performing task based operations in the context of a loop, in parallel. The syntax of the \lstinline{parfor} loop is the same as a regular \hyperref[subsec:cstylefor]{C style for} or \hyperref[subsec:IteratorStyleFor]{Iterator style for} except that the \lstinline{parfor} keyword is used. \lstinline{parfor} loop's may use \hyperref[subsec:indexVar]{index variable's} but may not use may use \hyperref[subsec:forelseblock]{else block's}. \lstinline{parfor} loop's may return values, the returned value shall be of type \lstinline{java.util.List<X:>} where \lstinline{X} is the ordinary type returned from the \lstinline{parfor} block.
+
+For example:
+
+\begin{lstlisting}
+def gcd(x int, y int){//greatest common divisor of two integers
+	while(y){
+		(x, y) = (y, x mod y)
+	}
+	x
+}
+
+res1 = parfor(b in 0 to 10){
+	gcd(b, 10-b)
+}
+
+res2 = parfor(b =0; b < 10; b++){
+	gcd(b, 10-b)
+}
+//res1 == res2 == [10:, 1:, 2:, 1:, 2:, 5:, 2:, 1:, 2:, 1:, 10:]
+\end{lstlisting}
+
+The \lstinline{parfor} loop operates by creating an isolate for each iteration upon which it's operating and adding it to a returned list of refs (if a return value is expected).
+
+\subsection{Parforsync}
+In addition to \lstinline{parfor}, Concurnas provides \lstinline{parforsync}. This is functionally the same as \lstinline{parfor} except it ensures that all spawned isolates have completed execution before returning control to the caller and permitting execution past the \lstinline{parforsync} block.
+
+\begin{lstlisting}
+res1 = parforsync(b in 0 to 10){
+	gcd(b, 10-b)
+}
+//exeuction of code below this point contingent on all isolates completed
+
+//res1 == [10:, 1:, 2:, 1:, 2:, 5:, 2:, 1:, 2:, 1:, 10:]
+\end{lstlisting}
+
+\subsection{Parfor list comprehension}
+Both \lstinline{parfor} and \lstinline{parforsync} may be used in order to perform list comprehension:
+
+\begin{lstlisting}
+res1 = gcd(b, 10-b) parfor b in 0 to 10
+res2 = gcd(b, 10-b) parforsync b in 0 to 10
+\end{lstlisting}
+
+Filter expressions may not be applied to the list comprehension expression where \lstinline{parfor} and \lstinline{parforsync} are used.
+
+More details of list comprehensions can be found in the \hyperref[ch:listComp]{List Comprehensions chapter}.
+
+\section{Which solution to use}
+Concurnas, being a language designed from the beginning for building reliable, scalable, high performance concurrent, distributed and parallel systems presents a wealth of different options regarding computation. Here we present a brief summary of the different options available in Concurnas and what sorts of problems they are best and least (where appropriate) well suited to solving.
+
+One important consideration to bear in mind with any Isolate based concurrency solution in Concurnas (parfor, isolates, actors and reactive programming) is that the cost(both in terms of programming effort and actual computational resources) of creating an isolate is non epsilon. Sometimes problems are of a degree of complexity that, even though they can be solved in a concurrent manner, they would be best suited to a single threaded solution for the cost of solving them in a concurrent manner would be greater, this is particularly acute for simple operations and/or small amounts of data. The effect is magnified when one introduces distributed computing - where we also need to consider a wider array of failure cases.
+
+\begin{itemize}
+	\item \textbf{For comprehensions}
+	
+		For comprehensions are great in instances where we need a quick one line solution for iterating over elements of an iterable object with the potential for filtering. However, for comprehensions are not concurrent operations and so do not scale with processor cores even if our input data size to iterate over is large.
+		
+	\item \textbf{Vectorization}
+	
+		Vectorization is a nice convenient way of working with array like data in a very concise manner. Vectorization does not take advantage of the multi-core nature of modern CPU's and so on its own has the same disadvantages as for comprehensions. GPU computing is often a better alternative to numerical computing with vectorization, though the programming model can be more work up front.
+		
+	\item \textbf{Java [parallel] streams}
+	
+		Java streams present a large and very capable API for working with data. They even provide a parallel computation implementation which is based on traditional Thread based execution and hence does not take advantage of the Concurnas model of concurrent execution. Again, for CPU based problems GPU computing is often a better solution.		
+		
+	\item \textbf{Parfor}
+	
+		Parfor is a great solution for when we need to implement an operation on each element of an iterable data structure and those instances do not need to interact with one another. They are a good solution for task based parallel problems - where lost of i/o, interaction with main memory, etc much take place. But for CPU based problems where much calculation is required, GPU programming is usually a better solution.
+		
+	\item \textbf{Refs}
+	
+		Refs are an integral part of, and help us utilize, other concurrent programming solutions in Concurnas. Refs are built around the concept of optimistic shared state. All writes and reads to refs are atomic, but their state is changeable and often nondeterministic. The optimistic model of computation breaks down somewhat where there is a large degree of contention on a shared ref. For this reason actors are often a better alternative where a ref is shared and contended between a number of isolates.
+		
+	\item \textbf{Isolates}
+	
+		Isolates, like refs form the basis of many of the concurrency primitives in Concurnas. On their own they are ideally suited to implementing task based solutions to problems.	
+				
+	\item \textbf{Actors}
+	
+		Actors are ideal for cases where we need to implement controlled complex shared mutable state wrapped up within an object. If ever we find ourselves needing to share an object between isolates, then an actor is our answer. Since they effectively turn all requests of them into a single threaded execution chain, if we are not careful they can become bottlenecks in our applications. They are best suited to providing task based, discrete services for instance to i/o and/or controlled access to state.
+		
+	\item \textbf{Reactive programming: await, onchange, every, async}
+	
+		The reactive programming constructs offered by Concurnas are an excellent way of working with refs in order to solve reactive and temporal logic based problems in an intuitive and natural manner. Like most of the concurrency solutions in Concurnas they can be used for both task based and CPU based computation, though are better suited to solving task based problems.		
+		
+	\item \textbf{Transactions}
+
+		Transactions enable us to modify more than one ref in an atomic fashion. Care should be taken to make transactions as simple as possible and to avoid non idempotent side effects in their execution for they can be repeated as many times as necessary in order to complete a transaction. Transactions on high contention refs should be avoided, here actors are often a better choice.
+		
+	\item \textbf{GPU computing}
+	
+		GPU computing is ideal for CPU based execution where we must perform lots of the same operations upon a large data set. Compared to single core execution (e.g. using vectorization or for comprehensions) a speed up of 100x (two orders of magnitude) is often achievable when switching execution to the GPU! Though some extra engineering work is required in order to unlock this. Considerations to bear in mind when using GPU computing are that data transference to and from the GPU can be the bottleneck of many GPU based algorithms. The setup and clean up work required in order to utilize the GPU does require some attention. GPU computing is not appropriate for task based execution.
+		
+	\item \textbf{Distributed computing}
+	
+		Distributed computing is often the final step on the scalability path for our algorithms. Distributed computing allows our programs to run across hundreds of even thousands of computers. Concurnas makes distributed computing easy by virtue of its first class citizen support for this form of computing. Distributed computing is especially useful when accessing remote or shared resources (e.g. databases, high powered GPUS etc). Some additional engineering work is required over localized computing in that the failure landscape for distributed solutions to problems is larger.
+		
+\end{itemize}
+
+\end{document}

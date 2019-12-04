@@ -1,0 +1,626 @@
+//##1. simple typedef
+from java.util import ArrayList
+
+typedef   mylist = ArrayList<String>
+
+
+def doings(){
+	ml = new mylist()
+	ml.add("hi")
+	"" + ml
+}
+
+~~~~~
+//##2. simple typedef args
+
+from java.util import ArrayList
+
+typedef   mylistQ<x> = ArrayList<x>
+
+def doings(){
+	ml  = new mylistQ<String>()
+	m2 mylistQ<String> = new mylistQ<String>()
+	ml.add("hi")
+	m2.add("hi")
+	"" + [ml, m2]
+}
+
+~~~~~
+//##3. simple used in functions
+from java.util import ArrayList
+
+typedef   mylistQ<x> = ArrayList<x>
+
+def lefunc(ma mylistQ<String>){
+	ma.add("hi")
+}
+
+def doings(){
+	ml  = new mylistQ<String>()
+	lefunc(ml)
+	"" + ml
+}
+
+~~~~~
+//##4. use in other places
+
+from java.util import ArrayList
+
+typedef  funnytype = int
+typedef  aString = String
+
+
+def doings(){
+	a Object= "hi"
+	b funnytype = 2//fine
+	ok = (a is aString)//yes
+	"" + [b, ok]
+}
+
+~~~~~
+//##5. without new keyword
+
+from java.util import ArrayList
+
+typedef  mylistQ<xxx> = ArrayList<xxx>
+
+def doings(){
+	ml  = mylistQ<int>()
+	ml.add(12)
+	"" + ml
+}
+
+~~~~~
+//##6. without new keyword 2
+
+from java.util import ArrayList
+
+typedef  mylistQ = ArrayList<int>
+
+def doings(){
+	ml  = mylistQ()
+	ml.add(12)
+	"" + ml
+}
+
+~~~~~
+//##7. typedef to typdef
+
+from java.util import ArrayList
+
+typedef   mylistQ<x> = ArrayList<x>
+typedef   qualifiedgentd = mylistQ<int>
+
+def doings(){
+	ml  = qualifiedgentd()
+	ml.add(12)
+	"" + ml
+}
+
+~~~~~
+//##8. typedef ref to typedef and differing args
+
+from java.util import ArrayList
+
+typedef   mylistQ<x> = ArrayList<x>
+typedef   mylistQ = mylistQ<int>
+
+def doings(){
+	ml mylistQ<int> = mylistQ()
+	ml.add(12)
+	"" + ml
+}
+
+~~~~~
+//##9. typedef ref to typedef and differing args rev order fwd ref
+
+from java.util import ArrayList
+
+typedef   mylistQ = mylistQ<int>
+typedef   mylistQ<x> = ArrayList<x>
+
+def doings(){
+	ml mylistQ<int> = mylistQ()
+	ml.add(12)
+	"" + ml
+}
+
+~~~~~
+//##10. typedef of non named type simple
+
+from java.util import ArrayList
+
+typedef  myfuncdef = (int, int) int
+typedef  partialfd = (int) int
+
+def doings(){
+	fd myfuncdef = def (a int, b int) { a+b}
+	par partialfd = fd&(2, ? int)
+	
+	"" + [fd(1,2), par(10)]
+}
+
+~~~~~
+//##11. resolves to nt and ignore error extract from lhs td
+
+from java.util import ArrayList
+
+typedef tdx<x> = x
+
+def doings(){
+	fd tdx<int> = 55
+	
+	"" + fd
+}
+
+~~~~~
+//##12. functype with name mapping
+
+from java.util import ArrayList
+
+typedef  myfuncdef<x> = (x, x) x
+
+def doings(){
+	fd myfuncdef<int> = def (a int, b int) { a+b}
+	
+	"" + [fd(1,2)]
+}
+
+~~~~~
+//##13. typedef passed in as argument and used within typedef
+
+from java.util import ArrayList, HashMap
+
+typedef  alist<x> = ArrayList<x>
+typedef  mymap<x> = HashMap<x, alist<x>>
+
+def doings(){
+	fd = mymap<int>()
+	fd.put(1, alist<int>())
+	
+	"" + fd
+}
+
+~~~~~
+//##14. typedef type inference
+
+class MyClass<X>(~a X)
+
+typedef  amyc = MyClass //infer type here
+
+def doings(){
+	myc = amyc(12)
+	
+	"" + myc.a
+}
+
+~~~~~
+//##15. box primatives and refer to thing on rhs
+
+typedef  amyc = Integer //no, we dont auto box anymore as it messe up multitypes
+typedef  amyb = amyc
+
+def doings(){
+	myc1 = amyc(12)
+	myc2 = amyb(13)
+	
+	"" + [myc1, myc2]
+}
+
+~~~~~
+//##16. was a bug now its ok
+
+from java.util import ArrayList, HashMap
+
+typedef myhm<x, y> = HashMap<x,y>//warning, x unused
+
+def doings(){
+	inst = myhm< Integer, String>()
+	inst[12]="ok"
+	""  + inst
+}
+
+~~~~~
+//##17. gens correctly
+
+from java.util import ArrayList, HashMap
+
+typedef myhm<x, y> = HashMap<y,x>//warning, x unused
+
+def doings(){
+	inst = myhm< String, int>()
+	inst[12] = "ok"
+	""  + inst
+}
+
+~~~~~
+//##18. nested class 
+
+class Outer{
+	class Inner{}
+}
+
+
+typedef nestical = Outer.Inner//good enough
+
+def doings(){
+	inst nestical?=null
+	""  + inst
+}
+
+~~~~~
+//##19. typedef inside function 
+
+class Outer{
+	class Inner{}
+}
+
+def myfunc(){
+	typedef nestical = Outer.Inner
+	inst nestical?=null
+	"" + inst
+}
+
+def doings(){
+	""  + myfunc()
+}
+
+~~~~~
+//##20. typdef defined in compiled class
+
+from com.concurnas.lang.precompiled.TypeDefHelper import mylistsimple
+
+def doings(){
+	alist1 = new mylistsimple()
+	alist2 = mylistsimple()
+	alist1.add("hi")
+	alist2.add("hi")
+	"" + [alist1,alist2] 
+}
+
+~~~~~
+//##21. typdef defined in compiled class takes args
+
+from com.concurnas.lang.precompiled.TypeDefHelper import tdwargs
+
+def doings(){
+	alist2 = tdwargs<String>()
+	alist2.add("hi")
+	"" + alist2
+}
+
+~~~~~
+//##22. more complex involving object arrays
+
+from com.concurnas.lang.precompiled.TypeDefHelper import tdhmintar
+
+def doings(){
+	alist2 = tdhmintar<int>()
+	alist2.put(12, [new Integer(1) 2 3])
+	"" + alist2
+}
+
+~~~~~
+//##23. ret a primative and bugfix
+
+from com.concurnas.lang.precompiled.TypeDefHelper import tdarBox
+
+def doings(){
+	xxx tdarBox = [new Integer(1) 2 3]
+	"" + xxx//was not rendering correctly before due to astredict non redirect
+}//then was failing due to typedef params not being auto boxed
+
+~~~~~
+//##24. functypes
+
+from com.concurnas.lang.precompiled.TypeDefHelper import tdAFuncref
+
+def doings(){
+	xxx tdAFuncref = def(a int, b int){a+b}
+	"" + xxx(1,2)
+}
+
+~~~~~
+//##25. use typedef the long unimported way
+
+def doings(){
+	alist1 = new com.concurnas.lang.precompiled.TypeDefHelper.mylistsimple()
+	alist2 = com.concurnas.lang.precompiled.TypeDefHelper.mylistsimple()
+	alist1.add("hi")
+	alist2.add("hi")
+	"" + [alist1, alist2]
+}
+
+~~~~~
+//##26. generics dont require qualifciation
+
+from java.util import ArrayList, HashMap
+
+public typedef mything<x,y> = x<y>
+
+def doings(){
+	ml  = new mything<ArrayList, String>()//these dont have to be qualified as they are part of a 'partial' definition+
+	ml.add("hi")
+	"" + ml
+}
+
+~~~~~
+//##27. as above but for generics of namedtype too
+
+from java.util import ArrayList, HashMap
+
+public typedef mything<x,y> = y<x>
+
+def doings(){
+	ml  = new mything<ArrayList<String>, ArrayList>()//these dont have to be qualified as they are part of a 'partial' definition+
+	
+	x = ArrayList<String>()
+	x.add("hi")
+	
+	ml.add(x)
+	"" + ml
+}
+
+~~~~~
+//##28. annotations at module level
+
+from java.util import ArrayList
+
+public typedef   mylistQ<x> = ArrayList<x>
+public typedef  myfuncdef2 = (int, int) int
+
+def printmodannotations(){
+	eles = new Exception("").getStackTrace()
+	
+	holdingCls = eles[3].getClassName()
+	Class.forName(holdingCls.substring(0,holdingCls.indexOf('$'))).getAnnotations()
+}
+
+def doings(){
+	"" + printmodannotations()
+}
+
+~~~~~
+//##29. annotations at module level to disable warnings
+
+from java.util import ArrayList
+
+@SuppressWarnings("all")
+
+typedef  mylistQ<X> = ArrayList<String>//disable warning
+
+def doings(){
+	typedef   myok<x> = ArrayList<x>
+	"nice"
+}
+
+~~~~~
+//##30. annotations at module level to disable warnings 2
+
+from java.util import ArrayList
+
+@SuppressWarnings("typedef-arg-use")
+
+typedef  mylistQ<X> = ArrayList<String>//disable warning
+
+def doings(){
+	typedef   myok<x> = ArrayList<x>
+	"nice"
+}
+
+~~~~~
+//##31. annotations at module level to disable warnings 3
+
+from java.util import ArrayList
+
+@SuppressWarnings("typedef-arg-use")
+
+def doings(){
+	typedef  mylistQ<X> = ArrayList<String>//disable warning applies from above too
+	typedef   myok<x> = ArrayList<x>
+	"nice"
+}
+
+~~~~~
+//##32. typedef arrays
+typedef X = String;
+def doings(){
+	cc X[] 
+	cc = new String[3]
+	
+	"" + cc
+}
+
+~~~~~
+//##33. typedef complex used to break
+
+typedef X = String;
+
+class MyArrayList{
+	transient trasitems X[]//didnt like operating on arrays
+	items X[]
+	highwatermark = 0
+	transient testTrans = "hi"
+	useTrans = false
+	
+	this(useTrans boolean){
+		this(10, useTrans)
+	}
+	
+	this(startsize int, useTrans boolean){
+		items = new X[startsize]
+		trasitems = new X[startsize]
+		this.useTrans = useTrans
+	}
+	
+	def add(what X){
+	
+		tms = trasitems if useTrans else items
+	
+		if(highwatermark >== tms.length){
+			newitems = new X[Math.ceil(tms.length * 1.2)as int]
+			System.arraycopy(tms, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	private def substr(){
+		what = (trasitems if useTrans else items)
+		what[0 ... highwatermark] if what  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr()
+}
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+//from java.util import ArrayList
+
+def doings(){
+	"wtrans: "+ for( withtrans in [true, false]){
+		ar = new MyArrayList(withtrans);
+		ar.add("hi")
+		ar.add("there")
+		
+		what MyArrayList? = null
+		
+		try(diskMap = new OffHeapMapDisk<String, Object>(10*1014**2)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.setRemoveOnClose(true);
+			diskMap.start();
+			
+			diskMap["k"] =  ar
+			what = diskMap["k"] as MyArrayList
+		}//bugfix, continue used to be inserted
+		
+		"{withtrans} - " + what
+	}
+}
+
+~~~~~
+//##35. typedef complex used to break 2d arr
+
+typedef X = String[];
+
+class MyArrayList{
+	transient trasitems X[]
+	items X[]
+	highwatermark = 0
+	transient testTrans = "hi"
+	useTrans = false
+	
+	this(useTrans boolean){
+		this(10, useTrans)
+	}
+	
+	this(startsize int, useTrans boolean){
+		items = new X[startsize, 1]
+		trasitems = new X[ startsize, 1]
+		this.useTrans = useTrans
+	}
+	
+	def add(what X){
+	
+		tms = trasitems if useTrans else items
+	
+		if(highwatermark >== tms.length){
+			newitems = new X[Math.ceil(tms.length * 1.2)as int, 1]
+			System.arraycopy(tms, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	private def substr(){
+		what = (trasitems if useTrans else items)
+		what[0 ... highwatermark] if what  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr()
+}
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+//from java.util import ArrayList
+
+def doings(){
+	"wtrans: "+ for( withtrans in [true, false]){
+		ar = new MyArrayList(withtrans);
+		ar.add(["hi"])
+		ar.add(["there"])
+		
+		what MyArrayList? = null
+		
+		try(diskMap = new OffHeapMapDisk<String, Object>(10*1014**2)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.setRemoveOnClose(true);
+			diskMap.start();
+			
+			diskMap["k"] =  ar
+			what = diskMap["k"] as MyArrayList
+		}//bugfix, continue used to be inserted
+		
+		"{withtrans} - " + what
+	}
+}
+
+~~~~~
+//##36. typedef recusrive 3d
+
+from java.util import ArrayList
+
+typedef mything<x, y, z> = x<y<z>>
+
+def doings(){
+	h  = new mything<ArrayList, ArrayList, String>() 
+	
+	xx = new ArrayList<String>()
+	for(x in ['hi', 'there']){
+		xx.add(x)
+	}
+	h.add(xx)
+	
+	"ok " + h
+}
+
+~~~~~
+//##37. typedef maps to type and assigment will cast to it
+
+typedef thing = int
+
+def doings(){
+	a thing = 9. as int//cast to int - was a bug before
+	"" + a
+}
+
+~~~~~
+//##38. import from bc - more than one typedef w same name
+
+from com.concurnas.lang.precompiled.MoreTypeDefs import mylistQ
+
+def doings(){
+	ml mylistQ<int> = mylistQ()
+	ml.add(12)
+	"" + ml
+}
+
+~~~~~
+//##39. tuple typedef use x args
+
+typedef myTuple<x> = (int, x)
+
+items myTuple<int>[] = a[(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	r1= a+b for (a, b) in items
+	"" + r1
+}

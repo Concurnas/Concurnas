@@ -1,0 +1,1108 @@
+//##1.1.a basic - assign existing ref
+
+def doings() {
+	a=11
+	res int:
+	//exsting ref...
+	res = { a + 4; }! //lambda goes to default worker
+		
+	"done cool " + [res, res:get()] //invokes pause probably
+}
+
+~~~~~
+//##1.1.a basic - assign existing ref x2 more complex
+
+def doings() {
+	//x = { h = {12}!; h }!
+	
+	x = { x=12; x }!
+
+	"" + x
+}
+
+~~~~~
+//##1.1.a basic - assign existing ref x2
+
+def doings() {
+	res int:
+	res3 int:
+	a=7
+	res = { 15; }! //no external vars
+	res2 = { 15; }!
+	{res3 = 15; }!
+	
+	"done cool " + [res, res2, res3] 
+}
+
+~~~~~
+//##1.1.b basic - create new ref
+
+def doings() {
+	a=11
+	//new ref...
+	res = { a + 4; }! //lambda goes to default worker
+		
+	"done cool " + res //invokes pause probably
+}
+
+~~~~~
+//##1.1.c basic - create new ref 2nd varient
+
+def doings() {
+	a=11
+	//new ref...
+	res int: = { a + 4; }! //lambda goes to default worker
+		
+	"done cool " + res //invokes pause probably
+}
+
+~~~~~
+//##1.2.a assign to passed in ref
+
+def doings() {
+	a=11
+	res int:
+	//new ref...
+	{res = a + 4; }! //lambda goes to default worker
+		
+	"done cool " + res //invokes pause probably
+}
+
+~~~~~
+//##1.2.a assign to passed in ref x2
+
+def doings() {
+	a=11
+	res int:
+	
+	x={res = a + 4; 12 }!
+		
+	"done cool " + [res, x]//why not
+}
+
+~~~~~
+//##1.3.a in class - create new ref 
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	def go() => {
+		res2 = { 14; }!
+		"" + res2
+	}
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + mc.go()
+}
+
+~~~~~
+//##1.3.b in class - create new ref - with args
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	def go() => {
+		a = 10
+		res2 = { a+ 4; }!
+		"" + res2
+	}
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + mc.go()
+}
+
+
+~~~~~
+//##1.3.c in class - all class locals access variants
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	def goNoArg() => {
+		res int:
+		res3 int:
+		
+		res = { 15; }! //no external vars
+		res2 = { 15; }!
+		{res3 = 15; }!
+		
+		[res, res2, res3] 
+	}
+	
+	def args() => {
+		res int:
+		res3 int:
+		a=11
+		res = {a+ 15; }!
+		res2 = { a+15; }!
+		{res3 = a+ 15; }!
+		
+		[res, res2, res3]
+	}
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + [mc.goNoArg(), mc.args()]
+}
+
+~~~~~
+//##1.3.d in class - all class fields access variants
+
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	t1res int:
+	t1res3 int:
+	t2res int:
+	t2res3 int:
+	
+	def goNoArg() => {
+		t1res = { 15; }! //no external vars
+		{t1res3 = 15; }!
+		
+		[t1res, t1res3] 
+	}
+	
+	def args() => {
+		a=11
+		
+		t2res = {a+ 15; }!
+		{t2res3 = a+ 15; }!
+		
+		[t2res, t2res3]
+	}
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + [mc.goNoArg(), mc.args()]
+}
+
+~~~~~
+//##1.3.e in class - all class fields get set access variants
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	~t1res int:
+	~t1res3 int:
+	~t2res int:
+	~t2res3 int:
+	
+	def goNoArg() => {
+		t1res = { 15; }! //no external vars
+		{t1res3 = 15; }!
+		
+		[t1res, t1res3] 
+	}
+	
+	def args() => {
+		a=11
+		
+		t2res = {a+ 15; }!
+		{t2res3 = a+ 15; }!
+		
+		[t2res, t2res3]
+	}
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + [mc.goNoArg(), mc.args()]
+}
+
+~~~~~
+//##1.4.a external to class - fields
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	public t1res int:
+	public t1res3 int:
+	public t2res int:
+	public t2res3 int:
+}
+
+def goNoArg(mc MyCls) => {
+	mc.t1res = { 15; }! //no external vars
+	{mc.t1res3 = 15; }!
+	
+	[mc.t1res, mc.t1res3] 
+}
+
+def args(mc MyCls) => {
+	a=11
+	
+	mc.t2res = {a+ 15; }!
+	{mc.t2res3 = a+ 15; }!
+	
+	[mc.t2res, mc.t2res3]
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + [goNoArg(mc), args(mc)]
+}
+
+~~~~~
+//##1.4.b external to class - fields - getter
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	public -t1res int:
+	public -t1res3 int:
+	public -t2res int:
+	public -t2res3 int:
+}
+
+def goNoArg(mc MyCls) => {
+	mc.t1res = { 15; }! //no external vars
+	{mc.t1res3 = 15; }!
+	
+	[mc.t1res, mc.t1res3] 
+}
+
+def args(mc MyCls) => {
+	a=11
+	
+	mc.t2res = {a+ 15; }!
+	{mc.t2res3 = a+ 15; }!
+	
+	[mc.t2res, mc.t2res3]
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + [goNoArg(mc), args(mc)]
+}
+
+~~~~~
+//##1.4.c external to class - fields - setter
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	public +t1res int:
+	public +t1res3 int:
+	public +t2res int:
+	public +t2res3 int:
+}
+
+def goNoArg(mc MyCls) => {
+	mc.t1res = { 15; }! //no external vars
+	{mc.t1res3 = 15; }!
+	
+	[mc.t1res, mc.t1res3] 
+}
+
+def args(mc MyCls) => {
+	a=11
+	
+	mc.t2res = {a+ 15; }!
+	{mc.t2res3 = a+ 15; }!
+	
+	[mc.t2res, mc.t2res3]
+}
+
+def doings() {
+	mc = new MyCls()
+			
+	"done cool " + [goNoArg(mc), args(mc)]
+}
+
+~~~~~
+//##1.5. ref creation from any expr
+
+def doings() {
+	\single = 1!
+	doubl = (1!)!
+			
+	"done cool " + [\single, doubl]
+}
+
+~~~~~
+//##1.5.b ref creation from any expr - 2
+
+def myFunc() => "hi"
+
+def doings() {
+	x := myFunc()! //a function!
+				
+	"done cool " + x
+}
+
+~~~~~
+//##1.5.c refs can be null
+
+def doings() {
+	ont int: = 23//no they cannot!
+		
+	"done cool " +ont
+}
+
+~~~~~
+//##1.5.d double check not set to anything on create
+
+class MyCls(){
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+
+	t2res3 int: //shouldnt be set to anything, not null not anything
+		
+	def args() => {
+		a=11
+		wasSetToNull = t2res3:isSet()
+		{t2res3 = a+ 15; }!
+		"" + [wasSetToNull, t2res3]
+	}
+}
+
+def doings() {
+	mc = new MyCls()
+	"done cool " + mc.args()
+}
+
+~~~~~
+//##1.5.e null ar checks
+
+def doings() {
+	ont int:
+	ar int:[]= [ont:]
+	//cool, so in above case the ref cannot be created as null
+	//the ref itself is created and instatiated with value null (which is an issue for one time set only version but anyway...]
+	
+	was = "" + ar[0]:isSet()
+	ar[0] = 8
+	now = "" + ar[0]
+		
+	"done cool " + [was, now]
+}
+
+~~~~~
+//##1.6.a simple array set
+
+
+def doings() {
+	ont int:
+	ar int:[]= [ont:]
+	
+	ar[0] = ({8}!):get() //should not create its own ref
+			
+	"done cool " + [ar[0], ont]
+}
+
+~~~~~
+//##1.6.b simple array set x2
+
+def doings() {
+	ont int:
+	ont2 int:
+	ar1 int:[]= [ont:]
+	ar2 int:[]= [ont2:]
+	
+	a=1
+	
+	ar1[0] = {a+ 15; }!
+	{ar2[0] = a+ 15; }!
+			
+	"done cool " + [ar1[0], ar2[0]]
+}
+
+~~~~~
+//##1.6.c array fields
+
+class MYCls{
+	ont int:
+	ont2 int:
+	public ar1 int:[]= [ont:]
+	public ar2 int:[]= [ont2:]
+	
+	def doIt() {
+		a=1
+		ar1[0] = {a+ 15; }!
+		{ar2[0] = a+ 15; }!
+		
+		"done cool " + [ar1[0], ar2[0]]
+	}
+}
+
+
+
+def doings() {
+	mc = new MYCls()
+	"" + mc.doIt()
+}
+
+~~~~~
+//##1.6.d array fields external acc
+
+
+class MYCls{
+	ont int:
+	ont2 int:
+	public ar1 int:[]= [ont:]
+	public ar2 int:[]= [ont2:]
+}
+
+
+def doIt(mc MYCls) {
+	mc.ar1[0] = { 16; }!
+	{mc.ar2[0] = 16; }!
+	
+	"done cool " + [mc.ar1[0], mc.ar2[0]]
+}
+
+
+def doings() {
+	mc = new MYCls()
+	"" + doIt(mc)
+}
+
+~~~~~
+//##1.6.d array fields external acc getter setter
+
+class MYCls{
+	ont int:
+	ont2 int:
+	~ar1 int:[]= [ont:]
+	~ar2 int:[]= [ont2:]
+}
+
+def doIt(mc MYCls) {
+	mc.ar1[0] = { 16; }!
+	{mc.ar2[0] = 16; }!
+	
+	"done cool " + [mc.ar1[0], mc.ar2[0]]
+}
+
+
+def doings() {
+	mc = new MYCls()
+	"" + doIt(mc)
+}
+
+~~~~~
+//##1.7. misc module level creation
+
+z={12}!//this should be createable here
+
+gla = def () int { 22 }//completeness
+
+def doings() {
+	"" + [z, gla()]
+}
+
+~~~~~
+//##1.8. nested refs
+
+def doings() {
+	x int: = { 	h int: = {12}!;	h:get()	}!
+	
+	"i got: " + x
+}
+
+~~~~~
+//##1.8.b nested refs - smaller form
+
+def doings() {
+	x := { h = {12}!; h:get() }!
+	
+	"i got: " + x
+}
+
+~~~~~
+//##1.8.c nested refs - extreme
+
+def doings() {
+	x int: = { h int = ({12}!):get(); h }!
+	
+	"i got: " + x
+}
+
+~~~~~
+//##1.9. ensure lambdas are not broken
+
+gla = def () int: { {22}! }//completeness
+
+def doings() {
+	gla2 = def () int: { {22}! }//completeness
+	"" + [gla():get(), gla2():get()]
+}
+
+~~~~~
+//##1.10. brackets implicit
+
+def doings() {
+	x int:
+	y: = x //copy ref location
+	x = 6! //this doesnt create a new ref, instead it runs an iso
+		
+	//cool, we're not accidentally overwriting the ref
+	"" + [x,y] + " no ref overwrite: " + (x: &== y:)
+}
+
+~~~~~
+//##1.10. brackets implicit - b with function
+
+def myFun() => 6
+
+def doings() {
+	x int:
+	y: = x //copy ref location
+	x = myFun()!
+		
+	//cool, we're not accidentally overwriting the ref
+	"" + [x,y] + " no ref overwrite: " + (x: &== y:)
+}
+
+~~~~~
+//##1.11. ref double level
+
+def doings() {
+	doubl = {
+			z={15}!; z
+			}::
+	"done cool " + doubl
+}
+
+~~~~~
+//##1.11.b ref double level -x2
+
+def doings() {
+	doubl = {15!}!
+			
+	"done cool " + doubl
+}
+
+~~~~~
+//##1.11.c ref doubles yeah looks alright
+
+def doings() {
+	doubl = {
+			z={{15}!}!; z
+			}!
+	
+	got = {1+5}!
+	plus = {doubl + {got+1}}!
+	plusmoi = doubl + got
+			
+	"done cool " + [doubl, plus, plusmoi]
+}
+
+~~~~~
+//##1.12 ref in lambda in ref
+
+lam1 = {
+		x=def (a int) int {  
+				b=20
+				x={a+15+b}!; 
+				x 
+			}; 
+		x(12)
+		}!
+
+
+def doings() {
+	"works " + lam1
+}
+
+~~~~~
+//##1.13. lambda in ref ref in lambda
+
+lam1 = {
+		x=def (a int) int {  
+				b=20
+				x={a+15+b}!; 
+				x 
+			}; 
+		x(12)
+		}!
+
+asyncla = { mf = def (a int) int {a+1};  mf(10)  }!
+
+def doings() {
+	"works " + [lam1, asyncla]
+}
+
+~~~~~
+//##1.14. catch exceptions - ret something
+def xxx() => true
+def retSomething() int: {
+	{ 
+		if(xxx())
+		{ 
+			throw new Exception("uh oh");
+		}else{
+			 1
+		}
+	}!
+}
+
+def doings() {
+	"got exception: " + try{ "works " + retSomething():get()} catch(e){"oops: " + e}
+}
+
+
+~~~~~
+//##1.15. catch exceptions - no ret something
+def xxx() => true
+//TODO: to be complete on this would need to write a more elaborate test case
+//which involves a callback on the exception being called
+def retSomething() int {
+	{ 
+		z=if(xxx())
+		{ 
+			throw new Exception("uh oh");
+		}else{
+			 1
+		}
+	}!
+	2
+}
+
+def doings() {
+	"got exception: " + try{ "works " + retSomething()} catch(e){"oops: " + e}
+}
+
+~~~~~
+//##1.16.a some elaborate stuff which didnt work before but is ok now
+
+def doings() {
+	a=12
+	res int:
+	res = { 
+		z=1; 
+		while(z<1000){z++}
+	a + 4; }! //lambda goes to default worker
+	
+	"done cool " + res //invokes pause probably
+}
+
+~~~~~
+//##1.16.b some elaborate stuff which didnt work before but is ok now
+
+def doings() {
+	a=11
+	res int:
+	
+	res = { 
+	a + 4; }! //lambda goes to default worker
+
+	res2 = { 
+	a + 4; }! //lambda goes to default worker
+	
+	
+	"done cool " + [res:get(), res2] //invokes pause probably
+}
+
+~~~~~
+//##1.16.c some elaborate stuff which didnt work before but is ok now - v1
+
+from java.util import List
+
+def sum(a List<int>) => {
+	r = 0
+	for(b in a){ r+=b}
+	r
+}
+
+def doings() {
+	a=12
+	res int:
+	res = { 
+		z=1; 
+		f = sum(for(h = 0; h < 10; h++){ h })
+	a + 4 + f; }! //lambda goes to default worker
+	
+	"done cool " +res //invokes pause probably
+}
+
+~~~~~
+//##1.16.c some elaborate stuff which didnt work before but is ok now - v2
+
+from java.util import List
+
+def sum(a List<int>) => {
+	r = 0
+	for(b in a){ r+=b}
+	r
+}
+
+def doings() {
+	a=12
+	res int:
+	res = { 
+		z=1; 
+		f = {sum(for(h = 0; h < 10; h++){ h })}!
+	a + 4 + f; }! //lambda goes to default worker
+	
+	"done cool " +res //invokes pause probably
+}
+
+~~~~~
+//##1.16.c some elaborate stuff which didnt work before but is ok now - v3
+
+from java.util import List
+
+def sum(a List<int>) => {
+	r = 0
+	for(b in a){ r+=b}
+	r
+}
+
+def doings() {
+	a=12
+	res int:
+	res = { 
+		z=1; 
+		f = sum(for(h = 0; h < 10; h++){ h })!
+	a + 4 + f; }! //lambda goes to default worker
+	
+	"done cool " +res //invokes pause probably
+}
+
+~~~~~
+//##1.17. ensure async block implicitly created correctly 
+
+from java.util import List
+
+def sum(a int[]) => {
+	r = 0
+	if(a <> null){
+		for(b in a){ r+=b}
+	}
+	r
+}
+
+def doings() {//two version todo the same thing
+	res = { f = {sum([1 2 3 4])}!; f }::
+	res2 = { f = sum([1 2 3 4])!; f }::
+	
+	"done cool " + [res, res2]
+}
+
+~~~~~
+//##1.18. async does return something for tracking
+
+bo int:
+
+def g() void { bo = 9 }
+
+def doings(){
+	x = g()! 
+
+	x:waitUntilSet()//signal to say that the operation is done effectivly
+
+	"it's done: " + [bo:get(true), x<>null]
+}
+
+~~~~~
+//##1.18.b async does return something for tracking
+//without the wait on return from async
+
+bo int:
+
+def g() void { bo = 9 }
+
+def doings(){
+	g()! //still works
+
+	return "it's done: " + [bo:get(false) ]
+}
+
+~~~~~
+//##1.18.c async does return something for tracking double void
+bo int:
+
+def g() void { bo = 9 }
+
+def doings(){
+	x={g()!}! 
+
+	x:waitUntilSet()
+
+	return "it's done: " + [x<>null, bo:get(false) ]
+}
+
+~~~~~
+//##1.18.d async does return something for tracking double void
+
+bo int:
+
+def g() void { bo = 9 }
+
+def doings(){
+	{g()!}! //on its own 
+
+	return "it's done: " + [bo:get(false) ]
+}
+
+~~~~~
+//##1.19. ref to lambda
+
+def g() => 50
+
+def doings(){
+	x = g&()!
+
+
+	return "it's done: " + x()
+}
+
+~~~~~
+//##1.20. ref to lambda x2
+
+def g(z int) => {50+z}!
+
+def doings(){
+	lefunc (int) int: = g&(? int)	//no funcref passed in
+	
+	asref int: = lefunc(1) //would asref get written over?
+	
+	return "it's done: " + asref:get(false)
+}
+
+~~~~~
+//##1.21. ref to lambda x2 - compact
+
+def g(z int) => {50+z}!
+
+def doings(){
+	lefunc (int) int: = g&(? int)	//no funcref passed in
+	
+	return "it's done: " + lefunc(1):get()
+}
+
+~~~~~
+//##1.22. more elaborate
+
+
+def g(z int) => {50+z}!
+
+def doings(){
+	lefunc = g&(? int)!	//no funcref passed in
+	
+	return "it's done: " + lefunc(1):get()
+}
+
+~~~~~
+//##1.22.b more elaborate alt variant
+
+def g(z int) => {50+z}:
+
+def doings(){
+	lefunc = g&(? int):	//no funcref passed in
+	
+	return "it's done: " + lefunc(1):get()
+}
+
+~~~~~
+//##1.23. return stmt blows up weird
+
+def doings(){
+	ar int[]: 
+	
+	ar = [1 2 3]!
+	
+	return "it's done: " + ar[0]
+}
+
+~~~~~
+//##1.24. also normal
+
+def doings(){
+	ar int: 
+	
+	ar = 1!
+	
+	 return "it's done: " + ar
+}
+
+~~~~~
+//##1.25. copy - locals
+
+from java.util import ArrayList
+
+def doings(){
+
+	xsy = new ArrayList<String>()
+
+	doneme = { xsy.add("hi"); ""+xsy }!
+	
+	doneme:waitUntilSet()
+	
+	//cool, so just local is bounded
+	return "it's done: " + [xsy, doneme]
+}
+
+~~~~~
+//##1.25.b copy - stuff in own class
+
+from java.util import ArrayList
+
+class MyCls{
+	xsy = new ArrayList<String>()
+	
+	def doings(){
+		doneme = { xsy.add("hi"); ""+xsy }!
+		
+		doneme:waitUntilSet()
+		
+		//cool, so just local is bounded
+		return "it's done: " + [xsy, doneme]
+	}
+}
+
+def doings(){
+	new MyCls().doings()
+}
+
+~~~~~
+//##1.25.c copy - module level
+
+from java.util import ArrayList
+
+xsy = new ArrayList<String>()
+xsy.add("added at module")	
+
+def doings(){
+	
+	xsy.add("one expect in one passed to iso")	
+	//copy it over at this point!
+	doneme = { xsy.add("hi"); ""+xsy }!
+	
+	doneme:waitUntilSet()
+	
+	//cool, so just local is bounded
+	return "it's done: " + [xsy, doneme]
+}
+
+~~~~~
+//##1.25.d copy - kids only
+
+from com.concurnas.lang.precompiled import AGlobalHolder
+
+//AGlobalHolder is not referenced within main doings, but is in children
+//thus only children should have copies
+
+def doings(){
+	x := {AGlobalHolder.theList.add("hi"); ""+AGlobalHolder.theList}!
+	
+	x2 := {""+AGlobalHolder.theList}!
+	
+	return "it's done: " + [x, x2]
+}
+
+~~~~~
+//##2.1. check that eq code gets called with fiber
+
+class MyClass(~aaaaa String:){
+	override equals(an Object){
+		an is MyClass and ((an as MyClass).aaaaa == this.aaaaa)
+		//default compares the refs directly for equality
+	}
+}
+
+def wonder(one Object, two Object) => one == two //calls Object.equals(Object)
+
+def doings() String{
+	a = [1,2]
+	mc1 = new MyClass("one")
+	mc2 = new MyClass("one")
+	
+	//if equals is being called correctly then the equalifier will be called
+	//on the String ref stored in MyClass thus correctly calling the get of the ref with
+	//the attached fiber
+	return "" + [wonder(a, a), wonder(mc1, mc2)]
+}
+
+~~~~~
+//##2.2. check that fibers call getClass from object correctly wihtout fiberization
+
+def doings() String{
+	a = ""
+	//a.finalize()
+	"hi" + [(a as Object).getClass(), a.getClass()]
+}
+
+~~~~~
+//##2.3. ensure that finalize invoked via super is done so via invokespecial not invokevirtual
+
+class Myclass{
+	public wasit = "no"
+	override finalize() { wasit="yes done"; super.finalize() }
+}
+
+def doings() String{
+	a = new Myclass()
+	a.finalize()//invoke special else you get inf loop
+	"hi " + a.wasit
+}
+
+~~~~~
+//##2.4. some ref stuff which looks alright
+
+class Klass{
+	public ~z String:
+	public ~z2 String:
+	
+	this( z String){ 
+		this.z:=z//sets the class ref to value passed in
+		this.z2=z//sets the class ref to value passed in
+	}
+	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+}
+
+
+def doings() String{
+	k = new Klass("mate")
+	k.z = "ho"
+	return  "~" + [k.z, k.z2, k.z == k.z2]
+}
+
+~~~~~
+//##2.4. correct equals gets called
+
+class MyClass(~aaaaa String:){
+	override equals(an Object){
+		an is MyClass and ((an as MyClass).aaaaa == this.aaaaa)
+		//default compares the refs directly for equality
+	}
+}
+
+def wonder(one Object, two Object) => one == two
+
+def doings() String{
+	a = [1,2]
+	mc1 = new MyClass("one")
+	mc2 = new MyClass("one")
+	mc3 = new MyClass("three")
+	
+	//if equals is being called correctly then the equalifier will be called
+	//on the String ref stored in MyClass thus correctly calling the get of the ref with
+	//the attached fiber
+	return "" + [wonder(a, a), wonder(mc1, mc2), not(wonder(mc1, mc3)) ]
+}

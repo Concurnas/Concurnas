@@ -1,0 +1,304 @@
+//##1 basic maps default takes function with one arg
+
+mmap = {1 -> 2, 3 -> 4, default -> def (a int) { a+100 } }
+
+def doings() => "hi " + mmap[100]
+
+~~~~~
+//##2 default maps check type if not type then null
+
+b=100
+vv:=3
+mmap = {1 -> 2:, vv: -> 4, default -> def (a int) { a+b } }
+
+//55 - is incorrect type below, thus we return null
+def doings() => "hi " + [mmap[vv], mmap[4:], (mmap[55]: == null)]
+
+~~~~~
+//##3 default maps convertion on input only
+
+b=100
+vv:=3
+mmap = {1 -> 2, vv: -> 4, default -> def (a int) { a+b } }
+
+def doings() => "" + [mmap[vv], mmap[4:]]
+
+~~~~~
+//##4 default maps convertion on output only
+
+b=100
+
+mmap = {1 -> 2, 2 -> 4:, default -> def (a int) { a+b } }
+
+def doings() => "" + [mmap[22], mmap[4]]
+
+~~~~~
+//##5 default maps drop arg no conv
+
+b=100
+
+mmap = {1 -> 2, 2 -> 4, default -> def () { b } }
+
+def doings() => "" + [mmap[22], mmap[4]]
+
+~~~~~
+//##6 default maps drop arg conv input
+
+b=100
+
+mmap = {1 -> 2, 2: -> 4, default -> def () { b } }
+
+def doings() => "" + [mmap[22:], mmap[4]]//second one type mismatch so this is null
+
+~~~~~
+//##7 default maps drop arg conv output
+
+b=100
+
+mmap = {1 -> 2, 2 -> 4:, default -> def () { b } }
+
+def doings() => "" + [mmap[22:]:==null, mmap[4]]//first one type incorrect so convert
+
+~~~~~
+//##8 default maps drop arg conv in and out
+
+b=100
+
+mmap = {1 -> 2, 2: -> 4:, default -> def () { b } }
+
+def doings() => "" + [mmap[22:], (mmap[4]:==null)]
+
+~~~~~
+//##9 default maps no func no conv
+
+b=100
+
+mmap = {1 -> 2, 2 -> 4, default -> 2+b }
+
+def doings() => "" + [mmap[1], mmap[4:], mmap[14]]
+
+~~~~~
+//##10 default maps no func conv both
+
+b=100
+one:=1
+mmap = {one -> 2, 2: -> 4:, default -> 2+b }
+
+def doings() => "" + [mmap[one], mmap[4]:==null, mmap[14:]]
+
+~~~~~
+//##11 default maps no func conv output
+
+b=100
+
+mmap = {1 -> 2, 2 -> 4:, default -> 2+b }
+
+def doings() => "" + [mmap[1], mmap[4:]:==null, mmap[14]]
+
+~~~~~
+//##12 default maps no func conv intput
+
+b=100
+one:=1
+mmap = {one -> 2, 2: -> 4, default -> 2+b }
+
+def doings() => "" + [mmap[one], mmap[4]==null, mmap[14:]]
+
+~~~~~
+//##13 default maps no func can explicitly return null
+
+mmap = {1 -> 2, 2 -> 4, default -> null }
+
+def doings() => "" + [mmap[1]==null, mmap[10]==null]
+
+~~~~~
+//##14 ensure invokation only called once
+
+invokeCount = 0
+
+class MyClass{
+	this(){
+		invokeCount++;
+	}
+	
+	override toString() => "hi"
+}
+
+
+mmap = {1 -> 2, 2 -> 4, default -> new MyClass() }
+
+def doings() => "" + [mmap[1], mmap[10], mmap[10], invokeCount]
+
+~~~~~
+//##15 ret to a funcref
+b=9
+mmap = {1 -> def () { 12}, default -> def () { def () {12+b} } }
+
+def doings() => "" + [mmap[1](), mmap[10]()]
+
+~~~~~
+//##16 ret to a funcref alt form
+
+b=9
+
+mmap = {1 -> def () { 12}, default -> def () () int { def () {12 + b} } }
+
+def doings() => "" + [mmap[1](), mmap[10]()]
+
+~~~~~
+//##17 generic upper bound bugfix
+
+b=99
+
+mmap = {1 -> def () { 12}, default -> def (){ def () { b} }}
+
+def doings() {
+	//prevously the array below for the in stmt was being created with the generic upper bound inplace -> thus translating array into an object arry - which is incorrect
+ 	""  + for( x in [mmap[1], mmap[19]] ){ x() }
+} // TODO: generic upper bound only really valid where type has been substituted in for a generic type - only in these cases should it really be 'active' - look at changing this
+
+~~~~~
+//##18 default map typical use
+
+mmap = { default -> def (a int) { a+100 } }
+
+mmap[10]++
+
+def doings() => "hi " + mmap
+
+~~~~~
+//##19 use map creation function
+inputdata = [1,2,4,3,2,1,2,3,4,2,2,3,4,3,2,1]
+	
+def doings(){
+	counter = map<int, int>(def (a int) { 0})
+	counter[x]++ for x in inputdata
+	
+	"" + counter
+}
+
+~~~~~
+//##20 bugfix on generic type inferrence when arg is functype
+def tocall<X, Y>(thing (X) Y){
+	"ok"
+} 
+ 
+def doings(){//qualify generic types from functype 
+	"" + tocall(def (a int) => 12)
+} 
+
+~~~~~
+//##21. infer generics for default map
+def doings(){
+	inputdata = [1,2,4,3,2,1,2,3,4,2,2,3,4,3,2,1]
+	
+	
+	counter = map(def (a int) { 0})//generics can be inffered here
+	counter[x]++ for x in inputdata
+	
+	"" + counter
+} 
+
+~~~~~
+//##22. null gotcha
+inputdata = [1,2,4,3,2,1,2,3,4,2,2,3,4,3,2,1]
+
+def doings(){
+	try{
+		counter = {default -> def (a char) { System.err.println("func got: " + a); 0}}//should be ok?
+		ere = "erik"
+		for (x in inputdata){//needs cast
+			counter[x ]++ 
+		}
+		"" + counter
+	}catch(e){
+		"" + e
+	}
+}
+
+~~~~~
+//##23. this is fine
+def doings(){
+	counter = {1->2, default -> 0}
+	"" + counter
+}
+
+~~~~~
+//##24. this is also fine
+def doings(){
+	counter = map<int, int>(a => a)
+	counter[1] = counter[1]+10
+	
+	"" + counter
+}
+
+~~~~~
+//##25. string keys
+def doings(){
+	mymap = {'one' -> 1}
+
+	""+mymap.one
+}
+
+~~~~~
+//##26. string keys
+def doings(){
+	mymap = {'another' -> {'thing' -> 'nested value'}}
+
+	mymap.another.thing
+}
+
+
+~~~~~
+//##27. refname as string
+def doings(){
+	mymap = {akey -> twelve}
+
+	what = mymap.akey
+	"" + what
+}
+
+~~~~~
+//##28. refname mixed with string
+def doings(){
+	mymap = {akey -> twelve, 'another' -> anotherOne}
+
+	what = mymap.another
+	"" + what
+}
+
+~~~~~
+//##29. gotcha maps mut key state
+class Person(-name String, ~age int)
+
+
+def doings(){
+	fred = Person('fred', 21)
+	mymap = {fred -> 9}
+	
+	res1 = mymap[fred]
+	fred.age++
+	res2 Integer? = mymap[fred]
+	
+	"" + (res1, res2)
+}
+
+~~~~~
+//##30. del on maps
+def doings(){
+	mymap = {1 -> 10, 4-> 88} 
+	del mymap[1]
+	"" + mymap
+}
+
+~~~~~
+//##31. maps with lambda inference of types default
+def doings(){
+	inputdata = [1,2,4,3,2,1,2,3,4,2,2,3,4,3,2,1]
+	
+	counter = map(a => 0)//anon lambda auto type inference
+	counter[x]++ for x in inputdata
+	
+	"" + counter
+}
+

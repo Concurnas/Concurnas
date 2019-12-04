@@ -1,0 +1,105 @@
+//##1. Simple instantiation
+def doings() String {
+	a = new String();
+	a2 String = new String("coolio");
+	
+	return "" + a + ":" + a2
+}
+
+~~~~~
+//##2. Simple imports
+import java.util.Date;
+
+def doings() String {
+	a = new Date(2013,06,12);
+	
+	return "" +  a
+}
+
+~~~~~
+//##3. generic imports
+import java.util.ArrayList;
+
+def doings() String {
+	a = new ArrayList<String>();
+	
+	return "" +  a
+}
+
+~~~~~
+//##4. Object arrays non gen
+def doings() String {
+	arr = new String[3]; 
+	arr[1] = "hi"
+	return "" +  arr
+}
+
+
+~~~~~
+//##5. Object arrays gen
+import java.util.ArrayList;
+
+def doings() String {
+	arr = new ArrayList<String>[3,3]; 
+	arr[1,2] = new ArrayList<String>();
+	
+	return "" +  arr
+}
+
+~~~~~
+//##5. Object arrays gen - with consturcotr
+import java.util.ArrayList;
+
+def doings() String {
+	zzz = new ArrayList<String>(3); //used to be a bug
+	
+	return "" +  zzz
+}
+
+~~~~~
+//##5. Object arrays declaration
+import java.util.ArrayList;
+
+def doings() String {
+	xx = [new ArrayList<String>(3) new ArrayList<String>(3)]
+	
+	return "" +  xx
+}
+
+~~~~~
+//##5. Object no casting needed
+from java.util import List, ArrayList;
+
+def doings() String {
+	xx List<String> = new ArrayList<String>(3);
+	
+	return "" +  xx
+}
+
+~~~~~
+//##5. method call - correct supersubtype method called, nice
+from java.util import List, ArrayList;
+
+def meth1(input ArrayList<String> ) int {return 6 }//direct
+def meth1vv(input ArrayList<String> )  { }//direct void ret - double test cod this supresses the pop gen by virtue of fact that it rets void
+def meth2(input List<String> ) int { return 7 }//via super
+
+def doings() String {
+	a = new ArrayList<String>();
+	sd = meth1(a)//poped off stack, naught double test
+	meth1vv(a)//poped off stack. for shtis
+	
+	return "" + sd + ": " + meth2(a);
+}
+
+~~~~~
+//##5. method call - return objects 
+from java.util import List, ArrayList;
+
+def meth1(input ArrayList<String> ) ArrayList<String> {return input }
+
+def doings() String {
+	a = new ArrayList<String>();
+	sd = meth1(a)//poped off stack, naught double test
+	return "" + a + ": " + sd;
+}

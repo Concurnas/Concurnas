@@ -1,0 +1,333 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Method References]{Method References}
+	
+Method references are an extremely useful part of functional programming which are included in Concurnas. They allow one to pass a reference to a method around one's program in the same way that one would pass data via objects or primitive types. Note that in this section we use the terms 'function' and 'method' interchangeably as for the most part function and method references behave identically. 
+
+\section{Basic Method References}
+We create a function or method reference by using the \lstinline{&} operator:
+
+\begin{lstlisting}
+def myfunction(an int, bn int) => an + bn
+
+funcRef1 (int, int) int = myfunction&(int, int)
+\end{lstlisting}
+
+Above, \lstinline{funcRef1} is a method reference type \lstinline{(int, int) int} because we have chosen to not bind either of the two input arguments to the function when making our reference. We can call the method reference, like a normal function:
+
+\begin{lstlisting}
+result = funcRef1(1, 2)
+
+//result == 3
+\end{lstlisting}
+
+We can even make method references to method references:
+
+\begin{lstlisting}
+frefTofref = funcRef1&(int, int)
+\end{lstlisting}
+
+We can choose to bind any or all of the inputs arguments to the function as follows:
+
+\begin{lstlisting}
+partial (int) int = myfunction&(int, 10)
+full () int = myfunction&(2, 2)
+
+//now lets use them...
+result = [partial(10), full()]
+
+//result == [20 4]
+\end{lstlisting}
+
+Notice how above the type returned from \lstinline{&} is contingent on which input arguments have been bound. Bounded input arguments do not show up in the method reference type.
+
+If there exists only one function matching the name of the function we're trying to make a method reference for in scope, and we wish to not bind any input arguments (if there are any), then we can forgo having to specify the types to leave unbound and simply create our method reference as follows:
+
+\begin{lstlisting}
+funcRef (int, int) int = myfunction&
+\end{lstlisting}
+
+Sometimes there is ambiguity in terms of type names and variable names. Though this is bad practice one can resolve this ambiguity by using an \lstinline{?} to indicate that we wish to leave the argument with matching typename unbounded:
+
+\begin{lstlisting}
+class MyClass()
+
+def bounce(an MyClass) => an
+def bounce(an int) => an
+
+MyClass = 99
+
+ref = bounce(? MyClass)//directed call to first version of function
+\end{lstlisting}
+
+If we hadn't used the \lstinline{?} above then the variable \lstinline{MyClass} would have attempted to have been passed to the function reference.
+
+Another neat approach we can take when defining method references (particularly for overloaded method definitions differing only in the number of arguments they have) is to simply use a comma to indicate that we wish a parameter to remain unbounded:
+
+\begin{lstlisting}
+def myFunction(a int, b int, c int) => a+b*c
+
+fref (int, int) int = myFunction&(, 45, )
+
+call = fref(1, 3)//equvilent to calling: myFunction(1, 45, 3)
+\end{lstlisting}
+
+\section{Method references for instance objects}
+Things become slightly more complex when we are dealing with method references on instance objects. We must decide if we wish to bind the method reference to a specific instance object at the point of definition of the method reference or not. We call these two forms, bounded and unbounded method references. The key difference is that only bounded method references may be invoked. Say we have the following class:
+
+\begin{lstlisting}
+class MyClass(cnt int){
+	def incMany(bywhat int){
+		cnt += bywhat
+	}
+}
+\end{lstlisting}
+
+Let's create a bounded method reference:
+
+\begin{lstlisting}
+instObj = new MyClass(10)
+boundedMethodRef = instObj.incMany&
+\end{lstlisting}
+
+\begin{sloppypar}
+We can see above that when creating \lstinline{boundedMethodRef} we are referencing an instance object \lstinline{instObj} of \lstinline{MyClass} - as such the method reference held by variable \lstinline{boundedMethodRef} is said to be bound to object \lstinline{instObj}. When we call \lstinline{boundedMethodRef} it is though we are calling \lstinline{incMany} on \lstinline{instObj}.
+\end{sloppypar}
+	
+We can create an unbounded method reference in the following way:
+
+\begin{lstlisting}
+methodRef = MyClass.incMany&
+\end{lstlisting}
+
+The above method reference \lstinline{methodRef} cannot be called by itself as it is not bound to an instance object of type \lstinline{MyClass}. Attempting to invoke \lstinline{methodRef} in its unbound state will result in an \lstinline{com.concurnas.bootstrap.lang.LambdaException} exception being thrown.
+
+In order render \lstinline{methodRef} callable, it first needs to be transformed into a bounded method reference. This is achieved by calling \lstinline{bind} on the method reference:
+
+\begin{lstlisting}
+instObj = new MyClass(10)
+methodRef.bind(instObj)
+\end{lstlisting}
+
+Now we can invoke \lstinline{methodRef}.
+
+\section{References to Constructors}
+In Concurnas, method references are not limited to just methods, but they can be applied to constructors as well. Let's take a class:
+
+\begin{lstlisting}
+class MyClass(cnt int){
+	this(an int, ab int){
+		this(an + ab)
+	}
+	def incMany(bywhat int){
+		cnt += bywhat
+	}
+	override toString() => "MyClass({cnt})"
+}
+\end{lstlisting}
+
+We can create a constructor reference, which looks very much like a method reference, in the normal manner as follows:
+
+\begin{lstlisting}
+refToCon = MyClass&(int, int)
+instanceObj MyClass = refToCon(12, 13)
+\end{lstlisting}
+
+But, what if we wish to defer the choice of constructor called to the caller of the reference? In this case we can use the following syntax in order to create a constructor reference, with special type: \lstinline{(*) X/ where /X} is the type of the instance object being created. Example:
+
+\begin{lstlisting}
+refToCon ( * ) MyClass = MyClass& //this will defer the choice of constructor to call until later
+"result: " + refToCon(12, 13)//at this point the constructor to call is determined
+\end{lstlisting}
+
+This may seem to be of little use, since in the example above one could just call \lstinline{new MyClass(12, 13)} to have the same effect. But consider the application with locally defined classes - which by nature cannot have instance objects of them created via the new operator outside of their defined scope. We can use this feature of Concurnas to create instance objects of locally defined classes outside of their defined scope:
+
+\begin{lstlisting}
+def creator(){
+	class MiniClass (a String){
+		this(a int) { this(""+a) }
+		override toString() => "MiniClass: " + a
+	}
+	
+	//MiniClass cannot be created outside of the scope of creator, unless we use a constructor reference as par below...
+	return MiniClass&
+}
+
+miniCRef = creator()
+
+istObj = miniCRef('hi')
+\end{lstlisting}
+
+\section{Lambdas}
+Lambdas are a nice feature of Concurnas from functional programming which allow us to create functions which do not have identifiers. When a lambda is created its type is that of a Method reference. Lambdas are created in the same way as functions but they have no identifier (no name). For example:
+
+\begin{lstlisting}
+plusOne (int) int = def (a int) int { return a + 1 }
+\end{lstlisting}
+
+They can be invoked just like normal method references:
+\begin{lstlisting}
+res = plusOne(2)
+
+//res == 3
+\end{lstlisting}
+
+
+We can compact the lambda definitions in the normal manner, the following are all equivalent:
+\begin{lstlisting}
+plusOne (int) int = def (a int) int { return a + 1 }
+plusOne = def (a int){ return a + 1 }
+plusOne = def (a int){ a + 1 }
+plusOne = def (a int) => a + 1
+\end{lstlisting}
+
+To see how these are useful, lets define our own map function operating on an array of integers:
+\begin{lstlisting}
+def myMap(opOn int[], func (int) int) => 	func(opOn^)
+
+data = [1 2 3 4]
+res = myMap(data, def (a int) => a+1)
+
+//res == [2 3 4 5]
+\end{lstlisting}
+
+\subsection{Zero argument lambdas}
+Concurnas has special additional support for zero argument lambdas. An expression which evaluates to the return type of a zero argument lambda may be used in place of a lambda definition. For example, this is perfectly valid code:
+
+\begin{lstlisting}
+athing () int = {5**2}
+
+res = [athing(), athing(), athing()]
+
+//res == [25, 25, 25]
+\end{lstlisting}
+
+In the above case the \lstinline{5**2} expression block will be automatically "upgraded" to a lambda, taking no arguments and returning an \lstinline{int} so as to match the left hand side assignment type. Note that the expression will be fully evaluated on every call to the lambda. To see this in action see the following example:
+
+\begin{lstlisting}
+counter = 0
+athing () int = 5**counter++	
+res = [counter, athing(), athing(), athing(), counter]
+
+//res == [0, 1, 5, 25, 3]
+\end{lstlisting}
+
+Here we see that the counter is incremented on every call.
+
+The above automatic "upgrading" may occur at any point where the zero argument lambda is required. For instance, in a function call:
+
+\begin{lstlisting}
+counter = 0
+def perform(athing () int) => [counter, athing(), athing(), athing(), counter]
+
+res = perform(5**counter++)
+
+//res == [0, 1, 5, 25, 3]
+\end{lstlisting}
+
+\section{Anonymous lambdas}
+Anonymous lambdas provide a convenient shorthand for defining lambdas. The following definitions are functionally identical:
+
+\begin{lstlisting}
+mul2v1 = def (a int) int => a*2   //expanded 'normal' lambda definition
+mul2v2 (int) int = (a int) => a*2 //compact lambda definition with return type inference
+
+mul2v3 (int) int = a => a*2       //fully compact lambda definition with return and argument type inference
+\end{lstlisting}
+
+With \lstinline{mul2v2} we see a more compact form of the same lambda definition as \lstinline{mul2v1}.
+
+The final definition \lstinline{mul2v3} is most interesting as only the input variable names to the lambda are defined. Their types, along with the return type, are left to be inferred based on the context in which the lambda is defined, which, in this case is on the right hand side of an assignment statement for a function type taking one integer and returning another. 
+
+Another common context in which anonymous lambdas are defined are in arguments to function invocations:
+\begin{lstlisting}
+class MyNumberHolder(~a int){
+	def apply(operation (int) int) => operation(a)//apply takes a lambda and applies to to the held value of a
+}
+
+mnh = MyNumberHolder(12)
+res = mnh.apply(a => a+100)//we define a lambda in compact form
+
+//res == 112
+\end{lstlisting}
+
+Note that we must be able to infer the type of the lambda in order to be able to use the compact form. The following will resolve in a compile time error since we don't know what they type of \lstinline{mul} is:
+\begin{lstlisting}
+mul = a => a.operation(5, "n")
+\end{lstlisting}
+
+\subsection{SAM types}
+SAM types, or Single Abstract Method types are traits (or interfaces if referencing Java code) which define only one single abstract method. Concurnas performs a neat trick where we can map a lambda we have created, in compact form, to an instance of a SAM type. Some alternative methods to using a lambda are to implement our solution as either an instance object, or an anonymous class, but as you will see, the lambda is the preferred approach for its compactness.
+
+\begin{lstlisting}
+mixin Operator{//This is a SAM type as there is only one method defined which is abstract 
+	def perform(arg int, arg2 int) int
+}
+
+class MyNumberHolder(~a int){
+	def apply(b int, operator Operator) => operator.perform(a, b)
+}
+
+mnh = MyNumberHolder(12)
+
+res = mnh.apply(50, a, b => a + b)// second parameter is used to generate an Operator instance
+
+//res == 62
+\end{lstlisting}
+
+In the above example, an instance of the Operator mixin is generated from the addition lambda defined in order to satisfy the second argument of the apply method. Note that we don't have to use the compact lambda form, the full form is acceptable for this purpose as well.
+
+This makes using the Java sdk stream library possible in Concurnas. For example:
+
+\begin{lstlisting}
+mylist = [1, 2, 3, 4, 5, 6, 7, 8]
+
+res = mylist.stream().map(a =>a+10).collect(java.util.stream.Collectors.toList())
+
+//res == [11, 12, 13, 14, 15, 16, 17, 18]
+\end{lstlisting}
+
+Without the compact syntax and SAM type support we would have to write code like the following:
+
+\begin{lstlisting}
+mixin Operator{//This is a SAM type as there is only one method defined which is abstract 
+	def perform(arg int, arg2 int) int
+}
+
+class MyNumberHolder(~a int){
+	def apply(b int, operator Operator) => operator.perform(a, b)
+}
+
+mnh = MyNumberHolder(12)
+
+myOperator = class ~ Operator{//define a class implementing the mixin Operator
+	def perform(arg int, arg2 int) int = >arg + arg2 
+}
+
+res = mnh.apply(50, new myOperator())
+
+//res == 62
+\end{lstlisting}
+
+The compact lambda definition is far more convenient than this alternative, and the compact form comes with no performance penalty!
+
+\subsection{SAM types with a zero argument abstract method}
+Just as with zero argument lambdas Concurnas have special additional support for SAM types whose single abstract method takes no arguments. An expression which evaluates to the return type of method can be used in place of a lambda definition as above. As such we are able to write code such as the following:
+
+\begin{lstlisting}
+trait ExeCounter{//this is a SAM type
+	counter int
+	def toexe() int//zero arg abstract method
+	public def invoke() int[] => [counter++ toexe()]
+}
+
+athing ExeCounter = 5
+res = [athing(), athing(), athing()]
+
+//res == [[0 5], [1 5], [2 5]]
+\end{lstlisting}
+
+
+\end{document}

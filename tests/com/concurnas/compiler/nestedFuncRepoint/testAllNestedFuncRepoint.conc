@@ -1,0 +1,404 @@
+//##0. zero capture case
+
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	def inner(y int) int {
+		return 7 + y + somestat
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##1. simple localvar ref
+
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	def inner(y int) int {
+		return x+7 + y + somestat + hh
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##2. simple localvar ref 2 levels
+
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	gg = 121
+	def inner(y int) int {
+			gg += 1			
+			def inner2(z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2(5)
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##3. simple localvar ref via class
+
+somestat = 9
+
+class X{
+	jk = 9
+	def funto(x int ) int {
+	  hh = 9
+	  def inner(y int) int {
+	  	return x + 7 + y + somestat + hh + jk
+	  }
+	  return inner(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)
+	return "" + b
+}
+
+~~~~~
+//##4. simple localvar ref via class - 2 levels
+
+somestat = 9
+class X{
+	jk = 9
+
+	def funto(x int ) int {
+		hh = 9
+		gg = 121
+		def inner(y int) int {
+				gg += 1			
+				def inner2(z int) int {
+					return x+7 + y + somestat + hh + z + gg + jk
+				}
+				return inner2(5)
+		}
+		return inner(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)
+	return "" + b
+}
+
+~~~~~
+//##5. simple localvar ref - funcref
+
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	def inner(y int) int {
+		return x+7 + y + somestat + hh
+	}
+	return inner&(12)
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##6. simple localvar ref 2 levels- funcref
+
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	gg = 121
+	def inner(y int) int {
+			gg += 1			
+			def inner2(z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2(5)
+	}
+	return inner&(12)
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##7. simple localvar ref via class- funcref
+
+somestat = 9
+
+class X{
+	jk = 9
+	def funto(x int ) () int {
+	  hh = 9
+	  def inner(y int) int {
+	  	return x + 7 + y + somestat + hh + jk
+	  }
+	  return inner&(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##8. simple localvar ref via class - 2 levels- funcref
+
+somestat = 9
+class X{
+	jk = 9
+
+	def funto(x int ) () int {
+		hh = 9
+		gg = 121
+		def inner(y int) int {
+				gg += 1			
+				def inner2(z int) int {
+					return x+7 + y + somestat + hh + z + gg + jk
+				}
+				return inner2(5)
+		}
+		return inner&(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##9.a - funcref of funcref nested inner
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	gg = 121
+	def inner(y int) () int {
+			gg += 1			
+			def inner2(z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2&(5)
+	}
+	return inner(12)&()
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+
+~~~~~
+//##9.b - funcref of funcref nested inner
+
+somestat = 9
+class X{
+	jk = 9
+
+	def funto(x int ) () int {
+		hh = 9
+		gg = 121
+		def inner(y int) () int {
+				gg += 1			
+				def inner2(z int) int {
+					return x+7 + y + somestat + hh + z + gg + jk
+				}
+				return inner2&(5)
+		}
+		return inner(12)&()
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##10 - funcref of funcref nested inner
+
+def ranger(func (int) int, upTo int) String{
+	ret = ""
+	
+	for(n=0; n <== upTo; n++){
+		ret+="" + func(n)
+		ret+= ", "
+	}
+
+	return ret
+}
+
+
+somestat = 9
+def funto(x int ) String {
+	h = 8
+	def fib(n int ) int 
+	{ 
+	    if(n == 0){ return 0 }
+	    elif(n == 1){ return 1 }
+	    else{ return fib(n-1) + fib(n-2)+ x + h +  somestat }
+
+	}
+	
+	return ranger(fib&(? int), 10)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##11 - nested class def -1
+
+somestat = 9
+
+class X{
+	fromouter = 99
+	public class Y{
+		jk = 9
+		def funto(x int ) int {
+		  hh = 9
+		  def inner(y int) int {
+		  	return x + 7 + y + somestat + hh + jk + fromouter
+		  }
+		  return inner(12)
+		}
+	}
+}
+def doings() String {
+	b = new X().new Y().funto(5)
+	return "" + b
+}
+
+
+
+
+~~~~~
+//##11 - nested class def -2
+somestat = 9
+
+class X{
+	fromouter = 99
+	public class Y{
+		jk = 9
+	
+		def funto(x int ) int {
+			hh = 9
+			gg = 121
+			def inner(y int) int {	
+				def inner2(xxx int) int{
+					return x+7 + y + somestat + hh  + jk + fromouter + xxx + y
+				}
+				return inner2(5)
+			}
+			return inner(12)
+		}
+	}
+}
+
+def doings() String {
+	b = new X().new Y().funto(5)
+	return "" + b
+}
+
+~~~~~
+//##12 - nested function inside rhs of field assignment
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = { def someting(a int) =>  2 + a
+		someting(89) }
+
+	override equals(a Object) => false
+	override hashCode() => 1
+		
+	def doings(){
+		"" + mc1//('hi')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##13 - nested function inside rhs of field assignment with deps
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = {fr="frank"; def someting(a int) => fr+ 2 + a
+		someting(89) }
+
+	override equals(a Object) => false
+	override hashCode() => 1
+		
+	def doings(){
+		"" + mc1//('hi')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##14. lambda gen bug on more than one nested function
+
+//fix lambda gen bug
+def lafunc(f String){
+
+	class LocalClass(a String){
+		v=99
+		override toString() {
+			g=911
+			def minime() => "ok " + g
+			rr = toref&('12')
+			rr2 =  minime&()
+			"MyClass: " + [minime(), rr()]
+		}
+		def toref(g String) => [22 g]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	LocalClass('ok ' + f)
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##15. was a bug now its fine
+
+def MyClass(a int){//these dont return anything
+	def myfunc() => a + 100
+}
+
+def doings(){
+	"cool" 
+}

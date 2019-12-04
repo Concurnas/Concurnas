@@ -1,0 +1,115 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Imports]{Imports}
+
+When writing software it is generally considered best practice to separate our code into differing physical or logical files, generally with code relating to the same sub problem in the same file or directory structure. This improves code reuse and maintenance. Then, when we wish to make use of code defined in a separate module (likely within a package) we can make use of the variants of import statement which Concurnas supports, described herein.
+
+We can import the following assets from other files: functions (including extension functions), classes, module variables (including those referring to function references), typedefs, enums and annotations.
+
+Imports are essentially referential sugar. They help us to avoid the need to type the fully qualified path of the asset we are making use of, instead being able to refer to the asset by its short name (the text after the full package name final dot) or by a name we assign at import point (via the \lstinline{as} keyword). At compile time any references to the short name we are making use of are mapped to the fully qualified path before being passed to the classloader (default or otherwise) for loading. For example, a fully qualified package name for class \lstinline{MyClass} might be: \lstinline{com.mycode.MyClass}, the short name is \lstinline{MyClass}.
+
+Since Concurnas can run on the JVM, it is compatible with all other code compiled in JVM languages such as Scala, Kotlin, Clojure etc and of course Java. All that is necessary to import other JVM compiled code is is the compiled class itself (and appropriately supporting classloader).
+
+There are three supported import statements. All but the star import may use the \lstinline{as} clause to override the short name of the imported asset. In the following examples we import a class asset, but this may just as well be a function, module variable etc:
+
+\section{Import}
+\begin{lstlisting}
+import com.mycode.MyClass //MyClass will be imported with a short name of: MyClass
+import com.mycode.MyClass as ImportedClass //using 'as' enables us to override the short name of the asset imported
+\end{lstlisting}
+
+Recall that importing an asset allows us to use it within having to refer to the fully qualified name of the asset. So the following are equivalent:
+
+\begin{lstlisting}
+import com.mycode.MyClass as ImportedClass //using as enables us to override the short name of the asset imported
+
+inst1 = new ImportedClass()//mapped to: com.mycode.MyClass behind the scences 
+inst2 = new com.mycode.MyClass()
+\end{lstlisting}
+
+\section{From Import}
+From import is particularly useful where we wish to import more than one asset from the same package path:
+\begin{lstlisting}
+from com.mycode import MyClass 
+from com.mycode import MyOtherClass, MyOtherClass2
+
+//As with conventional import we can override the short names of the imported assets:
+from com.mycode import MyClass as ImportedClass
+from com.mycode import MyOtherClass  as ImportedClass, MyOtherClass2  as ImportedClass2
+\end{lstlisting}
+
+\section{Star Import}
+If we wish to import all assets under a package name path, then we can use the star notation:
+\begin{lstlisting}
+from com.mycode import *
+import com.mycode.*
+\end{lstlisting}
+
+Import star should be used with careful consideration as it can easily cause problems with overuse as short names may conflict with one another.
+
+\section{Import sites}
+The variants of the aforementioned import statements may be used at any point in Concurnas code. They follow the normal scoping rules:
+\begin{lstlisting}
+def myfunc(){
+	from com.mycode import MyClass
+	mc = MyClass() //MyClass can now be used within the { } and any nested scopes
+	if(acondition){
+		mc2 = MyClass() //MyClass may be used here
+	}
+}
+//MyClass may not be be used from this point onwards as this is outside the imported scope
+\end{lstlisting}
+
+Most of the time however, convention dictates that imports are best placed at the top of a module code file for global usage inside said module.
+
+\section{Using imports}
+The \lstinline{import} statement is "side effect free" - that is to say that no code will be directly run at the point in which an asset is imported, instead this only takes place when the asset is used for the first time. This behaviour is in contrast to the likes of Python which, at the point where code is imported, any top level code present within the imported script will be executed.
+
+It is not essential to use import statements in one’s code, one could simply refer to the fully qualified paths of the assets of interest. For example, instead of importing \lstinline{java.util.ArrayList} for use in a new object instantiation, one could just use the fully qualified name, i.e: \lstinline{mylist = new java.utils.ArrayList<String>()}
+
+\section{Packages}
+An assets fully qualified importable package name is a function of its name within the module it’s declared within, the module name and its path relative to the root of compilation at compilation time. Note that Concurnas does not have a package keyword, instead it relies upon the directory structure relative to the root of compilation in order to determine this. So for example, using a conventional directory structure (found in almost all operating systems) when we compile our code if our root was set to \lstinline{/home/project/src} and our code within this root, in a directory structure \lstinline{./com/mycode.conc} (i.e. file \lstinline{mycode.conc} is within subdirectory \lstinline{com} containing the class definition \lstinline{MyClass}) - then the fully qualified package name of the at compilation time would be \lstinline{com.mycode.MyClass}.
+
+\section{Accessibility Modifiers}
+Accessibility Modifiers play an important role in determining what assets can and cannot be imported. The following chart shows what can be imported from where:
+
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+		\hline
+		Accessibility Modifier&Importable from\\
+		\hline
+		\lstinline!public!&public assets may be imported into anywhere\\ 
+		\lstinline!package!&\bettershortstack{package assets may be imported into modules within the\\same package/module only}\\ 
+		\lstinline!protected!&\bettershortstack{protected assets may be imported into modules within the\\same package/module only}\\ 
+		\lstinline!private!&Assets marked as private may not be imported\\
+		\hline
+	\end{tabular}
+\end{table}
+
+\section{Default imports}
+The following packages are imported by default for all Concurnas code. Thus the short names of the Classes within these paths are directly usable within Concurnas code without an explicit import being required:
+
+\begin{itemize}
+	\item \lstinline!java.lang.*!
+	\item \lstinline!com.concurnas.lang.*!
+	\item \lstinline!com.concurnas.lang.datautils.*!
+\end{itemize}
+
+
+\subsection{Prohibited imports}
+There are some Classes which one may not directly use in ones Concurnas code for various practical reasons:
+\begin{itemize}
+	\item \lstinline!java.lang.Thread!
+	\item \lstinline!com.concurnas.runtime.cps.IsoRegistrationSet!
+	\item \lstinline!com.concurnas.runtime.ConcImmutable!
+	\item \lstinline!com.concurnas.runtime.ConcurnificationTracker!
+	\item \lstinline!com.concurnas.bootstrap.runtime.cps.Fiber!
+	\item \lstinline!com.concurnas.lang.ParamName!
+	\item \lstinline!java.util.concurrent.ForkJoinWorkerThread!
+	\item \lstinline!com.concurnas.bootstrap.runtime.InitUncreatable!
+\end{itemize}
+
+\end{document}

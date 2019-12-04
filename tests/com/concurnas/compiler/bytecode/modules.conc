@@ -1,0 +1,671 @@
+//##1. basic module
+
+//##MODULE com.myorg.code
+
+class MyClass(package f int){
+	public this(g String) {}
+	public a int = 99
+	public def thing() => 77
+	override toString()=>"basic module works ok"
+	
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+//##MODULE
+
+from com.myorg.code import MyClass
+
+class Anotherclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def doings(){
+	mc = new MyClass(8)
+	"" + mc
+}
+
+~~~~~
+//##2. more complex imports
+
+//##MODULE com.myorg.code
+
+def myfunc() => "hi"
+
+typedef thing = int
+
+annotation Annot{}
+
+@Annot
+class MyClass(package f int){
+	public this(g String) {}
+	public a int = 99
+	public def thing() => 77
+}
+
+public enum MYEnum{ONE, TWO, THREE }
+
+
+//##MODULE
+
+from com.myorg.code import MYEnum, MyClass
+
+def doings(){
+	one = MYEnum.ONE
+	mc = MyClass(8)
+	h = mc.a
+	g = mc.thing()
+	"works ok"
+}
+
+~~~~~
+//##3. vars and fucns
+//##MODULE com.myorg.code2
+
+public result = 9
+public def lafunc() => "hi"
+
+//##MODULE
+
+from com.myorg.code2 import result, lafunc
+
+def doings(){
+	"" + [result, lafunc()]
+}
+
+~~~~~
+//##4. 2 levels of dependancy
+
+//##MODULE com.myorg.code1
+
+public result = 9 //private by default
+
+//##MODULE com.myorg.code2
+from com.myorg.code1 import result
+
+def lafunc() => result //public by default
+
+//##MODULE
+
+from com.myorg.code2 import lafunc
+
+def doings(){
+	"" + lafunc()
+}
+
+~~~~~
+//##5. import a typedef
+
+//##MODULE com.myorg.code
+typedef thing = int
+
+//##MODULE
+from com.myorg.code import thing
+
+def doings(){
+	a thing = 9
+	"" + a
+}
+
+~~~~~
+//##6. import things that are protected
+
+//##MODULE com.myorg.code
+
+protected def myfunc() => "hi"
+
+protected typedef thing = int
+
+protected annotation Annot{}
+
+protected avar = 99
+
+@Annot
+protected class MyClass(protected f int){
+	protected this(g String) {}
+	protected a int = 99
+	protected def thing() => 77
+}
+
+protected enum MYEnum{ONE, TWO, THREE }
+
+//##MODULE com.myorg.dd
+from com.myorg.code import MYEnum, MyClass, Annot, myfunc, thing, avar
+
+@Annot
+def cannotAnnot(){}
+
+def doingsx(){
+	h=avar
+	a thing = 3
+	nope = myfunc()
+	one = MYEnum.ONE
+	mc = MyClass(8)
+	h = mc.a
+	g = mc.thing()
+	"lovely" 
+}
+
+//##MODULE
+from com.myorg.dd import doingsx 
+
+def doings(){
+	doingsx()
+}
+
+~~~~~
+//##7. bugfix on module level variable assignment
+
+//##MODULE com.myorg.dd
+public avar = 9
+
+//##MODULE
+from com.myorg.dd import avar
+
+def doings(){
+	avar = 99//was incorrectly assinging to these and creating a new variable oops
+	
+	"ok" + [avar]
+}
+
+~~~~~
+//##8. bugfix on as imports
+
+//##MODULE com.myorg.dd
+
+public def afunc() => 'ok' 
+public avar = 9
+
+//##MODULE
+from com.myorg.dd import afunc as iafunc
+from com.myorg.dd import avar as iavar
+
+
+def doings(){
+	r=iafunc()
+	p=iavar
+	iavar = 99
+	
+	"ok" + [r, p, iavar]
+}
+
+~~~~~
+//##9. lambda defined in module
+
+//##MODULE com.myorg.dd
+public alambda = def () => "almabda"
+
+
+//##MODULE
+from com.myorg.dd import alambda// as ialambda
+
+def doings(){
+	la = alambda
+	
+	"ok" 
+}
+
+~~~~~
+//##10. lambda defined in module name redirect
+
+//##MODULE com.myorg.dd
+public alambda = def () => "almabda"
+
+
+//##MODULE
+from com.myorg.dd import alambda as ialambda
+
+def doings(){
+	la = ialambda
+	
+	"ok" 
+}
+
+~~~~~
+//##11. import a lambda
+
+//##MODULE com.myorg.dd
+public alambda = def () => "almabda"
+
+
+//##MODULE
+from com.myorg.dd import alambda// as ialambda
+
+def doings(){
+	la = alambda()
+	
+	"ok " + la 
+}
+
+~~~~~
+//##12. import a lambda redirect name
+
+//##MODULE com.myorg.dd
+public alambda = def () => "almabda"
+
+
+//##MODULE
+from com.myorg.dd import alambda as ialambda
+
+def doings(){
+	la = ialambda()
+	
+	"ok " + la 
+}
+
+~~~~~
+//##13. bugfix relating to the above
+
+//##MODULE com.myorg.dd
+public alambda = def () => "almabda"
+
+public f = alambda()
+
+//##MODULE
+from com.myorg.dd import f
+
+def doings(){
+	
+	"ok " + f
+}
+
+~~~~~
+//##14. can import all types normally as
+
+//##MODULE com.myorg.dd
+
+public def afunc() => 'ok' 
+public avar = 9
+public class Myclass
+public typedef thing = String
+public annotation Annot
+public enum aenum{ONE, TWO}
+public alambda = def () => "almabda"
+
+//##MODULE
+from com.myorg.dd import afunc as iafunc
+from com.myorg.dd import avar as iavar
+from com.myorg.dd import Myclass as iMyclass
+from com.myorg.dd import thing as ithing
+from com.myorg.dd import Annot as iAnnot
+from com.myorg.dd import aenum as iaenum
+from com.myorg.dd import alambda as ialambda
+
+@iAnnot
+class Annotee 
+
+def doings(){
+	iafunc()
+	p=iavar
+	la = ialambda()
+	mc = new iMyclass()
+	a ithing = ""
+	item iaenum = iaenum.ONE
+	
+	"ok"
+}
+
+~~~~~
+//##15. bug in lambda definition and annotation reference
+
+annotation Annot{}
+alambda = def () => "almabda"//bug here, the lambda and annotation turned into an expression list...
+@Annot
+class MyClass{}
+
+def doings(){
+	"ok " + alambda()
+}
+
+~~~~~
+//##16. protected access from module
+
+//##MODULE com.myorg.code
+
+protected def myfunc() => "hi"
+protected typedef thing = int
+protected annotation Annot{}
+protected avar = 99
+protected alambda = def () { "almabda"}
+
+@Annot
+protected class MyClass(protected f int){
+	protected this(g String) {}
+	protected a int = 99
+	protected def thing() => 77
+}
+
+protected enum MYEnum{ONE, TWO, THREE }
+
+//##MODULE com.myorg.code2
+from com.myorg.code import MYEnum, MyClass, Annot, myfunc, thing, avar, alambda
+
+//different package
+
+@Annot
+def cannotAnnot(){}
+
+def doings(){
+	h=avar
+	a thing = 3
+	nope = myfunc()
+	one = MYEnum.ONE
+	mc = MyClass(8)
+	h = mc.a
+	g = mc.thing()
+	lam = alambda()
+	"ok" 
+}
+
+//##MODULE 
+from com.myorg.code2 import doings as doingsx
+
+
+def doings(){
+	"ok" + doingsx()
+}
+
+~~~~~
+//##17. tpyedef protected ok and pkg
+
+//##MODULE com.myorg.code
+protected typedef thingProt = int
+package typedef thingPack = int
+
+//##MODULE com.myorg.dd
+from com.myorg.code import thingProt//ok protected
+from com.myorg.code import thingPack//ok protected
+
+public g=9
+
+def doings(){
+	a2 thingProt = 3 
+	a3 thingPack = 3 
+	"fail" 
+}
+
+//##MODULE
+from com.myorg.dd import g
+
+def doings(){
+	"ok " + g 
+}
+
+~~~~~
+//##18. package protected enum
+
+//##MODULE com.myorg.codexx
+
+protected enum thingProt{ONE, TWO}
+package enum thingPack{ONE, TWO}
+public enum thingPub{ONE, TWO}
+
+//##MODULE com.myorg.dd
+from com.myorg.codexx import thingProt //no
+from com.myorg.codexx import thingPack //no
+from com.myorg.codexx import thingPub  //ok
+
+def doings(){
+	a3 = thingProt.ONE
+	a4 = thingPack.ONE
+	a5 = thingPub.ONE
+	"" + [a3, a4, a5] 
+}
+
+//##MODULE
+from com.myorg.dd import doings as doingsx
+
+def doings(){
+	doingsx()
+}
+
+~~~~~
+//##19. protected ok
+
+//##MODULE com.myorg.code
+
+protected def myfunc() => "hi"
+protected typedef thing = int
+protected annotation Annot{}
+protected avar = 99
+protected alambda = def () { "almabda"}
+
+@Annot
+protected class MyClass(protected f int){
+	protected this(g String) {}
+	protected a int = 99
+	protected def thing() => 77
+}
+
+protected enum MYEnum{ONE, TWO, THREE }
+
+//##MODULE com.myorg.dd
+from com.myorg.code import MYEnum, MyClass, Annot, myfunc, thing, avar, alambda
+
+//different package
+
+@Annot //nope protected
+def cannotAnnot(){}
+
+def doings(){
+	h=avar //not accessable from outside mod
+	a thing = 3  //not accessable from outside mod
+	nope = myfunc()//not accessable from outside mod
+	one = MYEnum.ONE //nope protected
+	mc = MyClass(8) //nope protected
+	h = mc.a //not accessable from outside mod
+	g = mc.thing() //not accessable from outside mod
+	lam = alambda() //not accessable from outside mod
+	"ok" 
+}
+
+//##MODULE
+from com.myorg.dd import doings as doingsx
+
+def doings(){
+	doingsx()
+}
+
+~~~~~
+//##20. package
+
+//##MODULE com.myorg.code
+
+package def myfunc() => "hi"
+package typedef thing = int
+package annotation Annot{}
+package avar = 99
+package alambda = def () { "almabda"}
+
+@Annot
+package class MyClass(package f int){
+	package this(g String) {}
+	package a int = 99
+	package def thing() => 77
+}
+
+package enum MYEnum{ONE, TWO, THREE }
+
+//##MODULE com.myorg.dd
+from com.myorg.code import MYEnum, MyClass, Annot, myfunc, thing, avar, alambda
+
+//different package
+
+@Annot //nope package
+def cannotAnnot(){}
+
+def doings(){
+	h=avar //not accessable from outside mod
+	a thing = 3  //not accessable from outside mod
+	nope = myfunc()//not accessable from outside mod
+	one = MYEnum.ONE //nope package
+	mc = MyClass(8) //nope package
+	h = mc.a //not accessable from outside mod
+	g = mc.thing() //not accessable from outside mod
+	lam = alambda() //not accessable from outside mod
+	"ok" 
+}
+
+//##MODULE 
+from com.myorg.dd import doings as doingsx 
+
+def doings(){
+	doingsx()
+}
+
+~~~~~
+//##21. circular dependancies
+
+//##MODULE com.a
+from com.b import b 
+
+def a() => b()
+
+//##MODULE com.b
+from com.a import a
+
+cnt = 0
+
+def b() {
+	if(cnt++ > 40){
+		throw new Exception("inf loop")
+	}
+	a()
+}
+
+
+//##MODULE 
+from com.b import b 
+
+def doings(){
+	got = try{
+		b()
+		'fail'
+	}catch(e){ 'ok' }
+	"ok"
+}
+
+~~~~~
+//##22. via dot class reflection
+
+//##MODULE com.a
+
+class MyClassA{
+	override toString()=>"hi"
+}
+
+
+//##MODULE 
+
+def doings(){
+	x = com.a.MyClassA.class.newInstance()
+	"ok: " + x
+}
+
+~~~~~
+//##23. compile all modules not just those imported
+
+//##MODULE com.a
+
+class MyClassA{
+	override toString()=>"hi"
+}
+
+
+//##MODULE 
+
+def doings(){
+	from com.a import MyClassA
+	x = Class.forName('com.a$MyClassA').newInstance()
+	"ok: " + x
+}
+
+~~~~~
+//##24. was a bug now its ok
+
+package def myfunc() => "hi"
+
+package typedef thing = int
+
+public annotation Annot{}
+
+@Annot
+package class MyClass(package f int){
+	package this(g String) {}
+	package a thing = 99
+	package def thing() => 77
+}
+
+package enum MYEnum{ONE, TWO, THREE }
+
+def doings(){
+	mc = MyClass(8)
+	"fine"
+}
+
+~~~~~
+//##25. on ext func
+
+//##MODULE com.a
+
+def int plusplus(a int) => this + a + a
+
+
+//##MODULE 
+
+from com.a import plusplus
+
+def doings(){
+	got = 12\.plusplus(5)
+	"ok: " + got
+}
+
+~~~~~
+//##26. import extension function
+
+//##MODULE com.a
+
+def int plusplus(a int) => this + a + a
+
+//##MODULE 
+
+from com.a import plusplus
+from com.a import plusplus as namredir
+
+def doings(){
+	got1 = 12 plusplus 5
+	got2 = 12 namredir 5
+	"ok: " + [got1, got2]
+}
+
+~~~~~
+//##27. bugfix on function import
+
+//##MODULE com.myorg.code2
+
+public def lafunc(a int) => a + 10
+
+//##MODULE
+ar2 = [1 2 ; 3 4]
+
+def doings(){
+	"asdasd" + com.myorg.code2.lafunc(5)
+}
+
+~~~~~
+//##28. chain of three dependants
+
+//##MODULE com.myorg.code1
+
+public def another() => "hi"
+
+//##MODULE com.myorg.code2
+from com.myorg.code1 import another
+public def myfunc() => another()
+
+
+//##MODULE
+from com.myorg.code2 import myfunc
+
+def doings() => ""+myfunc()

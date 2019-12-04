@@ -1,0 +1,340 @@
+{
+private a = 99 ;
+b int = 9 ;
+g int ;
+b = 100 ;
+b = 100 ;
+longs = 1 ;
+longs = 1L ;
+longs = 1L ;
+a = 10 as short ;
+a = 10 as byte ;
+a = true ;
+a = false ;
+a = c c" x " ;
+a = c " x " ;
+a = " str " ;
+a = " str 'thing'  " ;
+a = " str "thing"  " ;
+a = r" a(b*)a " ;
+a = r" a(b*)a " ;
+public myVar int = 9 ;
+private tansient val xyz = 0.0 ;
+assert we ;
+assert we " message " ;
+delete me ;
+break ;
+continue ;
+return ;
+break thing ;
+continue thing ;
+return thing ;
+throw thing ;
+import com.my.thing as com.my.thing , com.my.com.another.one as com.another.one ;
+import com.my.thing as SomethingElse , com.my.com.another.one as myThing ;
+from com.my import thing as thing , another as Thinger ;
+a = g == 1 ;
+await ( thing ; {
+thing == 10 ;
+}
+) await ( val thing int : = 99 ; {
+thing == 10 ;
+}
+) a = g == 1 == 2 ;
+private typedef thing < x , y > = int ;
+def myfunc < X > ( var a int[] , var aa int[][] , var b int = 99 , var c = 99 , var d int ... , var wonder ( java.lang.Integer , java.lang.Integer ) void , var wonder2 < Y ,  Z > ( java.lang.Integer , java.lang.Integer ) void ) void {
+stuff = otherstuff ;
+}
+lame = def < X > ( var a int[] , var aa int[][] , var b int = 99 , var c = 99 , var d int ... , var wonder ( java.lang.Integer , java.lang.Integer ) void , var wonder2 < Y ,  Z > ( java.lang.Integer , java.lang.Integer ) void ) {
+stuff = otherstuff ;
+}
+;
+ar HashMap < String , ? > = null ;
+private class Myclass < X , Y > ( protected a int , protected b = 99 , protected c int[] , protected d ArrayList < Set < String , int > > ) extends MySuper < Integer , int > ( 1 , 2 ) ~ MyIface , AnotherOne {
+}
+@Annot ( b = 9 ) 
+private class Myclass < X , Y > ( protected a int , protected b = 99 , protected c int[] , protected d ArrayList < Set < String , int > > ) extends MySuper < Integer , int > ( 1 , 2 ) ~ MyIface , AnotherOne {
+}
+private class Myclass < X , Y > ( protected a int , protected b = 99 , protected c int[] , protected d ArrayList < Set < String , int > > ) extends MySuper < Integer , int > ( 1 , 2 ) ~ MyIface , AnotherOne {
+}
+private annotation MyAnnot ( arg1 int = 2 ) {
+}
+enum Mine1 {
+ONE , TWO 
+}
+
+enum Mine2 {
+ONE ( 1 , 2 ) , TWO ( 3 , 4 ) 
+this ( var a int , var b int ) {
+}
+
+}
+
+for ( a = 9 ; a < 10 ; ) {
+a = 1 ;
+}
+else {
+b = 2 ;
+}
+for ( a in another ) {
+f = 5 ;
+}
+else {
+t = 6 ;
+}
+for ( a in another ) {
+{
+f = 5 ;
+}
+! }
+else {
+t = 6 ;
+}
+try {
+com \. concurnas \. bootstrap \. runtime \. cps \. Fiber \. getCurrentFiber ( ) \. enterSync ( ) ;
+for ( a in another ) {
+{
+f = 5 ;
+}
+! }
+else {
+t = 6 ;
+}
+}
+finally {
+com \. concurnas \. bootstrap \. runtime \. cps \. Fiber \. getCurrentFiber ( ) \. exitsync ( ) ;
+}
+match ( a = 1 ) {
+case ( String ; a == 3 ) {
+}
+case ( a String ; a == 3 ) {
+}
+case ( String or Object ; a == 3 ) {
+}
+else {
+}
+}
+if ( true ) {
+a = 1 ;
+}
+else {
+b = 2 ;
+}
+if ( true ) {
+a = 1 ;
+}
+elif ( 2 == 3 ) {
+f = 9 ;
+}
+else {
+b = 2 ;
+}
+async {
+pre {
+b = 4 ;
+}
+a = 3 ;
+post {
+f = 9 ;
+}
+}
+while ( a == 8 ) {
+}
+else {
+g = 9 ;
+}
+while ( a == 100 ; a int = 3 ) {
+}
+while ( true ) {
+}
+while ( true ; a ) {
+}
+try ( a = 2 ) {
+}
+catch ( e Thing ) {
+}
+catch ( another M or ZZ ) {
+}
+finally {
+f = 8 ;
+}
+{
+s = d ;
+}
+! {
+s = d ;
+}
+! ( e ) with ( "  " ) {
+f = do ;
+}
+trans {
+a = 10 ;
+}
+class MyClass {
+b = 10 ;
+init {
+a int = 10 ;
+}
+}
+try {
+com \. concurnas \. bootstrap \. runtime \. cps \. Fiber \. getCurrentFiber ( ) \. enterSync ( ) ;
+a = b ;
+}
+finally {
+com \. concurnas \. bootstrap \. runtime \. cps \. Fiber \. getCurrentFiber ( ) \. exitsync ( ) ;
+}
+onchange ( a ) {
+g = 9 ;
+}
+every ( a ) {
+g = 9 ;
+}
+a = sizeof g ;
+a = b @ ;
+a = b as int ;
+a = if ( something ) {
+b ;
+}
+else {
+false ;
+}
+;
+a = not g ;
+a = b isnot Object ;
+a = b is Object ;
+a = b isnot Object ;
+a = x in thing ;
+a = x not in thing ;
+a = g ++ ;
+a = ++ g ;
+a = -- g ;
+a = g -- ;
+a = - g ;
+a = + g ;
+a = {
+a ;
+}
+! ;
+a = {
+a ;
+}
+! ( thing ) ;
+a = d ( ) ;
+a = d ( 1 , 2 ) ;
+a = d ( ) ( ) ;
+a = d & ( 1 , 2 ) ;
+a = d & ( 1 , String ) ;
+a = d & ( 1 , ? String ) ;
+a = d & ( ? int , ? String ) ;
+a = d & ( ? int , ? String ) ;
+a = b : ;
+a = b : : ;
+b = ax [ 1 ] ;
+b = ax [ 1 ... ] ;
+b = ax [ ... 10 ] ;
+b = ax [ ... 1 ,  2 ,  3 ] ;
+b = ax [ 1 ... 10 ] ;
+b = a ( ) & ( 1 , ? int ) ( 2 ) [ 2 ,  3 ] : ;
+b = a & ;
+a = " hi " ;
+a = " hi " ;
+a = " hi{aa} " ;
+a = r" hi{aa} " ;
+a = c if ( true ) {
+c" a " ;
+}
+else {
+c ;
+}
+" a " ;
+a = a \. b .. c . d ;
+a = 12L ;
+a = 23.4 ;
+a = 3.0f ;
+a = 3.0 ;
+a = null ;
+a = this . a ;
+a = of . d ;
+a = System . out . println & ( " asd " ) ( ) ;
+a = changed . stuff ( ) ;
+a = [ 1 , 2 , 3 ] ;
+a = { 1 -> 2 , 3 -> 4 } ;
+a = this . ( 1 , 2 , 3 ) ;
+a = super ( 1 , 2 , 3 , h = 7 ) ;
+a = new Thing ( 2 ) ;
+a = new com.concurnas.lang.TypedActor < Thing > ( 2 ) ;
+a = new com.concurnas.lang.TypedActor < Thing > ( 2 ) ;
+a = new int [ 2 ] [ 3 ] ;
+a = new ArrayList < String > [ 2 ] [ 3 ] ;
+a = new ( java.lang.Integer , java.lang.Integer ) java.lang.Integer [ 2 ] [ 3 ] ;
+a = ;
+a = ;
+a = String . class ;
+a = String . class . getMethods ( ) ;
+a = for ( a in [ 1 , 2 , 3 ] ) {
+a = 2 ;
+}
+;
+a = class < X , V > {
+}
+;
+a = class < X , V > {
+}
+;
+a = class < X , V > extends Other < X > ~ IFace , IFace {
+}
+;
+a = class < X , V > extends Other < X > ~ IFace , IFace {
+}
+;
+a = actor of MyClass < String > {
+}
+;
+a = def < X > ( var a X ) {
+}
+;
+a = def < X > ( var a X ) {
+a = 2 ;
+}
+;
+a = new com.concurnas.lang.TypedActor < MyClass.A.B < String > > ( 1 , 2 ) ;
+x = for ( a in [ 1 , 2 , 3 ] ) {
+a ;
+}
+: ;
+a = 2 + 1 - 9 ** 4 + 1 ;
+a = 1 + 2 * 4 mod 2 ;
+a = true or false or false ;
+a = b or c and d ;
+a = if ( t @ ) {
+b or c and d @ ;
+}
+else {
+w ;
+}
+;
+a = 12 ;
+a int : = 12 ;
+a int : LocThing = 12 ;
+a int : LocThing : [] = 12 ;
+a = new int : LocalRef ( 2 ) ;
+a = new int : LocalRef ( 2 ) ;
+a = 1 ;
+def athing ( var a int , var b int ) void {
+12 ;
+12 ;
+}
+athing ( 1 , 2 ) ;
+f = dotop . a .. b \. c ;
+12 = not . very . nice ( ) ;
+d = [ 1 , 2 , 3 ] ;
+def doings ( ) void {
+done = 9 ;
+done2 int : = 9 ;
+done2 int : RefArry = 9 ;
+}
+def sdf ( ) void {
+another ( ) ;
+;; 
+}
+}

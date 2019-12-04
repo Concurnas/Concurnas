@@ -1,0 +1,126 @@
+//prepostfixes
+a++;
+a--; 
+++a;
+--a;
+-a;
+
+//declaration
+a String;
+a String = null;
+x = 10;
+a = "hello world";
+x = -10;
+x int  = 10;
+xx = 60f;
+xx int = 60f;
+x = 60;
+x int = 60;
+x += 3;
+x mod= 7;
+
+//floats
+x = 5.;
+x = 5f;
+x = 5F;
+x=5d;
+x=5D;
+x=5.4d;
+x=5.6f;
+x=5e7d;
+x=5e7f;
+b **= 5;
+
+//arrays //
+
+//declaration
+a int[] = [1,2,3];
+a int[2] = [[1,2],[1,2]] ;
+a = new int[2][3];
+b Matrix<Integer> = a;
+
+ax[2,3] == ax[2][3]
+
+//array assignment
+ax[2] = 3;
+ax[2][2] = 3;
+ax[2][2] = [3];
+ax[func()] = 5;
+ax[2] = ax[3];
+f = func()[3];
+func()[3] = 9;
+
+//array or object lists
+d = ax[ ... 3];
+d = ax[2 ... 3];
+d = ax[3 ... ];
+d = ax[3];
+
+//dot op indirection
+a.b = 7;
+ax[2].c = 3;
+
+//maps
+map = {"1"->1, "4"->5};
+map["3"] = 66;
+map = {new Turd(2,3)->1, "4"->5}; //upcast to object
+
+//generic type instance
+a List<String>;
+a List<Number> = [1,2,3];
+a ArrayList<String>[];
+
+//news
+turds = new Doer(2);
+
+//ifexpr
+a int = 3 if true else 5;
+
+//instanceof
+a boolean = "" is String;
+a boolean = "" isnot String;
+
+//cast
+b = "ff" as String;
+
+//gt lt etc
+y = 50 > 6;
+y = 50 > 6 > 4;
+a = false == func();
+a = obj1 &== obj2;
+a = not obj1 &== obj2;
+a = obj1 &<> obj2;
+a = obj1 == obj2;
+
+//plus minus div etc
+a = 4+3-2*4.;
+a = 6 mod 3;
+
+//pow:
+f = 3e5**6;
+
+//and or
+a boolean = false and true;
+a = false or true and false;
+b = not false;
+
+//nested
+y = (4>3) and ((5+4) > 4);
+
+//this super
+this.ax[8] = 55;
+super.ax[8] = 55;
+
+import x.a.u;
+f = new x.a.u(66).ll();
+//check assign var
+ax[3] = 6;
+
+//all valid
+istrue = a is Map<?,?>
+istrue = a is Map
+istrue = a is Map.Map
+istrue = a is Map<?,?>.Map
+istrue = a is Map.Map<?,?>
+istrue = a is Map<?,?>.Map<?,?>
+

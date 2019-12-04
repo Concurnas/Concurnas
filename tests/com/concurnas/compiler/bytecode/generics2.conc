@@ -1,0 +1,382 @@
+//##1. wildcard
+class MyClass<X>{
+	~held X
+}
+
+def doings(){
+	x = new MyClass<?>()
+	x.held = 12
+	res Object = x.held
+	""+res
+}
+~~~~~
+//##2. upper bound
+class MyClass<X Number>{
+	override hashCode() => 1
+	override equals(an Object) => false
+	~held X
+}
+
+def doings(){
+	x = new MyClass<Integer>()
+	x.held = 12
+	res Number = x.held
+	""+res
+}
+
+~~~~~
+//##3. quali via subclass
+
+open class MyClass<X Number>{
+	override hashCode() => 1
+	override equals(an Object) => false
+	~held X
+}
+
+class Child < MyClass<Integer>
+	
+
+def doings(){
+	x = new Child()
+	x.held = 12
+	res Number = x.held
+	""+res
+}
+
+~~~~~
+//##4. quali via subclass with unboxed type
+
+open class MyClass<X Number>{
+	override hashCode() => 1
+	override equals(an Object) => false
+	~held X
+}
+
+class Child < MyClass<int>
+	
+def doings(){
+	x = new Child()
+	x.held = 12
+	res Number = x.held
+	""+res
+}
+
+~~~~~
+//##5. quali generic from subclass def
+
+open class MyClass<X Number>{
+	override hashCode() => 1
+	override equals(an Object) => false
+	~held X
+}
+
+class Child<XX Number> < MyClass<XX>//ok
+//class Child2<XX> < MyClass<XX>//fail
+
+
+def doings(){
+	x = new Child<Integer>()
+	x.held = 12
+	res Number = x.held
+	""+res
+}
+
+~~~~~
+//##6. field when arrray type
+
+class MyClass<Xxx Number>(~x Xxx[]){
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings() String {
+	a = new MyClass<Integer>([Integer(1) Integer(3)])
+	return "" + a.x 
+}
+
+~~~~~
+//##7. was a problem now its ok
+
+class MyClass<Xxx>(~x Xxx[]){ 
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings() String {
+	a = new MyClass([Integer(1) 3]) //const
+	a.x = [Integer(1) 3] //setter
+	return "" + a.x //getter
+}
+
+~~~~~
+//##8. this also works
+
+class MyClass<Xxx Number>(~x Xxx[]){ }
+
+def doings() String {
+	a = new MyClass<Integer>([Integer(1) 3]) //const
+	a.x = [Integer(1) 3] //setter
+	return "" + a.x //getter
+}
+
+~~~~~
+//##9. qualify local generics
+
+def myThing<X Number>(a X){
+	a
+}
+
+def doings(){
+	x = myThing(Integer 2)
+	"" + x
+}
+
+~~~~~
+//##10. local generic type implied
+
+def myThing<X Number>(a X){
+	a
+}
+
+def doings(){
+	x = myThing(2)
+	"" + x
+}
+
+~~~~~
+//##11. ensure upper bound is correctly accepted
+
+class MyClass<A Number>(a A){
+	override equals(an Object) => false
+	override hashCode() => 1
+	def getAr() => a//[a a]
+}
+
+def doings(){
+	mc = new MyClass<Integer>(33)
+	item = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##12. used in getmostgeneric
+
+class MyClass<A Number>(a A){
+	override equals(an Object) => false
+	override hashCode() => 1
+	def getAr() => [a a]
+}
+
+def doings(){
+	mc = new MyClass<Integer>(33)
+	item = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##13. used in getmostgeneric funcref
+
+class MyClass<A Number>(a A){
+	override equals(an Object) => false
+	override hashCode() => 1
+	def getAr() => [a a]
+}
+
+def doings(){
+	mcmaker = new MyClass<Integer>&(33)
+	mc = mcmaker()
+	item = mc.getAr&()
+	"" + item()
+}
+
+~~~~~
+//##14. many gens
+
+class MyClass<A Number, B Number>(a A, b B){
+	override equals(an Object) => false
+	override hashCode() => 1
+	def getAr() => [a b]
+}
+
+def doings(){
+	mc = MyClass<Integer, Integer>(23, 33)
+	item = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##15. many gens shared
+class MyClass<A Number>(a A, b A){
+	override equals(an Object) => false
+	override hashCode() => 1
+	def getAr() => [a b]
+}
+
+def doings(){
+	mc = MyClass<Integer>(23, 33)
+	item = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##16. mostgeneric of gens
+class MyClass<A, B Number>(a A, b B){
+	override equals(an Object) => false
+	override hashCode() => 1
+	def getAr() => [a b]
+}
+
+def doings(){
+	mc = MyClass<String, Integer>("hi", 33)
+	item Object[] = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##17. mostgeneric of gens imply generics
+class MyClass<A, B Number>(a A, b B){
+	def getAr() => [a b]
+}
+
+def doings(){
+	mc = MyClass("hi", 12)
+	item = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##18. mostgeneric of gens imply generics another one
+class MyClass<A Number, B Number>(a A, b B){
+	def getAr() => [a b]
+}
+
+def doings(){
+	mc = MyClass(1.2, 12)
+	item = mc.getAr()
+	"" + item
+} 
+
+~~~~~
+//##19. in out params works ok
+
+class MyClass<A, B Number>(a A, b B){
+	def getAr() => [a b]
+}
+
+def doings(){
+	mc MyClass<out Integer, out Integer> = MyClass<Integer, Integer>(2, 12)
+	item = mc.getAr()
+	"" + item
+}
+
+~~~~~
+//##20. the wildcard
+
+from java.util import ArrayList
+
+def doings(){
+	ar ArrayList<?> = new ArrayList<?>()
+	ar.add("hi")
+	ar.add(12)
+	"" + ar
+}
+
+~~~~~
+//##21. the wildcard v2
+
+from java.util import ArrayList
+
+def doings(){
+	ar ArrayList<?> = new ArrayList<Object>()
+	ar.add("hi")
+	ar.add(12)
+	"" + ar
+}
+
+~~~~~
+//##22. the wildcard v3
+
+from java.util import ArrayList
+
+@SuppressWarnings("generic-cast")
+def doings(){
+	g Object = new ArrayList<Object>()
+	ar = g as ArrayList<?>
+	ar.add("hi")
+	ar.add(12)
+	"" + ar
+}
+
+~~~~~
+//##23. binding and use of upper bounds
+
+from java.util import ArrayList
+
+class MyList<X Number> extends ArrayList<X>{
+	override toString() => super.toString()
+}
+
+//binding is only for methods defined as part of class - not superclasses
+def doings(){
+	g = new MyList<int>()
+	g.add(12)
+	any MyList<out Number> = g
+	obtained Number = any.get(0)
+	
+	"" + obtained
+}
+
+~~~~~
+//##24.qualification of question mark
+
+from java.util import ArrayList
+
+class MyList<X Number> extends ArrayList<X>{
+	override toString() => super.toString()
+}
+
+
+def doings(){
+	g = new MyList<int>()
+	g.add(12)
+	any MyList<?> = g //as if it were: out/in Number
+	obtained = any.get(0) //obtained is of type a Number
+	
+	"" + obtained
+}
+
+~~~~~
+//##25. use of bounded generic type within class
+
+class MyClass<T Number>(t T){
+	def doPlus(arg T) => t.doubleValue() + arg.doubleValue()
+}
+
+
+def doings(){
+	mc = new MyClass(12.)
+	"" + mc.doPlus(13)
+}
+
+~~~~~
+//##26. use of bounded generic type within local generics
+def doPlus<T Number>(t T, arg T) => t.doubleValue() + arg.doubleValue()
+
+def doings(){
+	"" + doPlus(12., 13)
+}
+
+~~~~~
+//##27. ext func on upper bound
+
+def Number addThing(arg Number) => this.doubleValue() + arg.doubleValue()
+
+class MyClass<T Number>(t T){
+	def doPlus(arg T) => t.addThing(arg)
+}
+
+
+def doings(){
+	mc = new MyClass(12.)
+	"" + mc.doPlus(13)
+}

@@ -1,0 +1,119 @@
+//##1.1.a clean post preops - via psar
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private a1 int = 8
+	private a2 int = 8
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def inca1() String{
+			a1++
+			
+			return "" + a1
+		}
+		
+		def inca2() String{
+			++a2
+			
+			return "" + a2
+		}
+		
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [ Inn.inca1(), Inn.inca2() ]
+}
+
+~~~~~
+//##1.1.b clean post preops - inc on str  - via psar
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private a1 int = 8
+	private a2 int = 8
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def inca1() String{
+			return "" + a1++
+		}
+		
+		def inca2() String{
+			return "" + ++a2
+		}
+		
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [ Inn.inca1(), Inn.inca2() ]
+}
+
+~~~~~
+//##1.1.c clean post preops - inc on str  - via psar - direct no intermediate
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private a1 int = 8
+	private a2 int = 8
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def inca1() => a1++
+		
+		def inca2() => ++a2
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [ Inn.inca1(), Inn.inca2() ]
+}
+
+~~~~~
+//##2. nested ref increment decrement
+
+class Outer{	
+	override equals(o Object) boolean {return true;}
+	override hashCode() int {return 6;}
+	
+	private a1 int: = 8
+	private a2 int: = 8
+
+	public class Inner{
+		override equals(o Object) boolean {return true;}
+		override hashCode() int {return 6;}
+		
+		def inca1() String{
+			a1++
+			
+			return "" + a1
+		}
+		
+		def inca2() String{
+			++a2
+			
+			return "" + a2
+		}
+	
+	}
+}
+
+def doings() String{
+	Inn = new Outer().new Inner() 
+	return "" +  [ Inn.inca1(), Inn.inca2() ]
+}

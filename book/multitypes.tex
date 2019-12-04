@@ -1,0 +1,60 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Multitypes]{Multitypes}
+	
+When writing code, it is generally best to avoid code duplication (especially copy-paste) as much as possible. However, when working with primitive types as function inputs in particular, some code duplication is normally necessary in order to support the same operation on multiple different types. In Concurnas, multitypes solve this problem meaning that you need only define said operation once.
+
+We can specify a multitype in a function, method or constructor definition by delimiting our input types or return type parameters by a \lstinline{|}. A multitype of \lstinline{int}, \lstinline{long} and \lstinline{String} would look like: \lstinline{int|long|String}.
+
+For example, let’s say that we wish to write a function which adds \lstinline{10} to each element of a matrix, in place, and that we wish to support this operation for integer and double matrices. With multitypes this code looks like:
+\begin{lstlisting}
+def add10(inp int|double) => inp+10
+\end{lstlisting}
+
+If multitypes were not an option this code would need to  use copy-paste duplication and would be written as the less readable and harder to maintain:
+\begin{lstlisting}
+def add10(inp int) => inp+10
+def add10(inp double) => inp+10
+\end{lstlisting}
+
+Multitypes are not restricted to be composed of just primitive types, but rather, any type element may be used, including typedef references and multitypes. Typedef themselves may also refer to multitypes:
+\begin{lstlisting}
+typedef numerical = short|int|long|float|double|char|byte
+
+def addTen(inp numerical|String) 
+	=> inp + 10 //multittype input parameter defined over short, int, ..., byte as well as String!
+\end{lstlisting}
+
+\begin{sloppypar}
+There are a number of commonly used multitype typedefs defined in \lstinline{com.concurnas.lang.multitype}
+\end{sloppypar}
+
+Multitypes can only be used in the definition of function, method and constructor input parameters or return parameters as well as the type qualifier for extension functions and in the bodies of these. There may be more than one multitype parameter to a function, method or constructor or extension function qualifier, but each multitype parameter must be of the same size, likewise, any referenced inside the body must also be of the same size. Multitype return parameters can only be used in conjunction with at least one multitype input parameter:
+\begin{lstlisting}
+def adderOk(a int|long|short, b int|long|short)
+	=> a+b
+	
+def adderFail(a int|long|short, b int|long)
+	=> a+b //mismatch in multitype input parameter size
+\end{lstlisting}
+
+Multitypes can be used to qualify extension functions:
+\begin{lstlisting}
+def int|double|float addTen() => this += 10
+\end{lstlisting}
+
+Any they may be used inside bodies of methods, functions and constructors like so:
+\begin{lstlisting}
+def repeater(inp int|String) {
+	ret = new int|String()
+	ret[0] = inp 
+	ret[1] = inp
+	return ret
+}
+\end{lstlisting}
+
+
+
+\end{document}

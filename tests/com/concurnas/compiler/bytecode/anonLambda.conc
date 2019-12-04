@@ -1,0 +1,1448 @@
+//##1. simple anon lambda new
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam (int) int = a => a*2
+	
+	"" + mc.takesLambda(lam)
+}
+~~~~~
+//##2. simple anon lambda new param
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	"" + mc.takesLambda(a => a*2)
+}
+
+~~~~~
+//##3. via constructor
+
+class MyClass(items int..., calc (int) int){
+
+	+res String
+
+	init{
+		res = "" + (calc(x) for x in items)
+	}
+}
+
+def doings(){
+	"" + MyClass(1, 2, 3, a => a*2).res
+}
+
+~~~~~
+//##4. funcref args
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	fella = mc.takesLambda&
+	"" + fella(a => a*2)
+}
+
+~~~~~
+//##5. funcref args v2
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	fella = mc.takesLambda&(a => a*2)
+	"" + fella()
+}
+
+~~~~~
+//##6. assign existing, simple
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam (int) int
+	lam = a => a*2
+	
+	"" + mc.takesLambda(lam)
+}
+
+~~~~~
+//##7. assign existing, lhs non refname
+
+class MyClass(items int...){
+	def takesLambda(lam ((int) int)){
+		lam(x) for x in items
+	}
+}
+
+class Holder{
+	~lam ((int) int)?
+	public lam2 ((int) int)?
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	hh = Holder()
+	hh.lam = a => a*2//getter setter
+	hh.lam2 = a => a*2//direct
+	
+	"" + mc.takesLambda(hh.lam??) + mc.takesLambda(hh.lam2??)
+}
+
+~~~~~
+//##8. assign existing, lhs array
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam = new ((int) int)[1] 
+	
+	lam[0] = a => a*2//getter setter
+	
+	"" + mc.takesLambda(lam[0])
+}
+
+~~~~~
+//##9. strange rhs - block
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam (int) int = {a => a*2}
+	
+	"" + mc.takesLambda(lam)
+}
+
+~~~~~
+//##10. strange rhs - ifstatement
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [true false]){
+		lam (int) int = (a => a*2) if x else (a => a*4)
+		mc.takesLambda(lam)
+	}
+}
+
+~~~~~
+//##11. catch block
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [true false]){
+		lam (int) int = try { 
+			if(x){ 
+				throw Exception("fail")
+			} 
+			(a => a*2)
+			}catch(e){
+				 (a => a*4) 
+			}
+		mc.takesLambda(lam)
+	}
+}
+
+~~~~~
+//##12. array simple
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	
+	lams ((int) int)[] = a[(a => a*2), (a => a*3) , (a => a*4)]
+	
+	""+mc.takesLambda(lams^)
+}
+
+~~~~~
+//##13. array complex
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	
+	lams ((int) int)[2] = [(a => a*2) ; (a => a*3) ; (a => a*4)]
+	
+	""+mc.takesLambda(lams^)
+}
+
+~~~~~
+//##14. lists
+
+from java.util import List
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	
+	lams List<(int) int> = [(a => a*2) , (a => a*3) , (a => a*4)]
+	
+	""+mc.takesLambda(lams^)
+}
+
+~~~~~
+//##15. as arg block
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	"" + mc.takesLambda({a => a*2})
+}
+
+~~~~~
+//##16. as arg ifstmt
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [ false true]){
+		mc.takesLambda((a => a*2) if x else (a => a**2))
+	}
+}
+
+~~~~~
+//##17. as arg exception
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [ false true]){
+		mc.takesLambda( try{ if(x) {throw Exception("err")} (a => a*2) }catch(e) {(a => a**2)}  )
+	}
+}
+
+~~~~~
+//##18. array def
+
+class MyClass(items int...){
+	def takesLambda(lam ((int) int)[]){
+		for(inst in lam){
+			inst(x) for x in items
+		}
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	""+mc.takesLambda(a[(a => a*1), (a => a*2), (a => a*3)])
+}
+
+~~~~~
+//##19. complex matrix
+
+class MyClass(items int...){
+	def takesLambda(lam ((int) int)[2]){
+		for(inst in lam){
+			for(d in inst){
+				d(x) for x in items
+			}
+		}
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	""+mc.takesLambda([(a => a*1); (a => a*2); (a => a*3)])
+}
+
+~~~~~
+//##20. arg on list
+
+from java.util import List
+
+class MyClass(items int...){
+	def takesLambda(lam List<(int) int>){
+		for(inst in lam){
+			inst(x) for x in items
+		}
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	""+mc.takesLambda([(a => a*1), (a => a*2), (a => a*3)])
+}
+
+~~~~~
+//##21. arg complex one
+
+from java.util import List
+
+class MyClass(items int...){
+	def takesLambda(lam List<(int) int>){
+		for(inst in lam){
+			inst(x) for x in items
+		}
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [true false]){
+		mc.takesLambda([(a => a*1) if x else (a => a*10), (a => a*2), (a => a*3)])
+	}
+	
+}
+
+~~~~~
+//##22. fancy way to define functype
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+	
+	def takesLambda2(lam Function1<int, int>){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam Function1<int, int> = a => a*2
+	
+	"" + [mc.takesLambda(lam), mc.takesLambda2(a => a*2)]
+}
+
+~~~~~
+//##23. ret type defined
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam (int) int = a int => a*2
+	
+	"" + mc.takesLambda(lam)
+}
+
+~~~~~
+//##24. shortcut rhs to lambadef
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam (int) int= (a int) int => a*2
+	
+	"" + mc.takesLambda(lam)
+}
+
+~~~~~
+//##25. shortcut rhs also fine
+
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam  = (a int)  => a*2
+	
+	"" + mc.takesLambda(lam)
+}
+
+~~~~~
+//##26. some but not all types defined
+
+class MyClass(items int...){
+	def takesLambda(lam (int, int) int){
+		lam(x, 10) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	lam (int, int) int = (a int, b) => a + b
+	
+	"" + mc.takesLambda(lam)
+}
+
+~~~~~
+//##27. simple SAM method impl
+
+from java.util.function import Consumer
+
+
+class MyClass(items int...){
+	def apply(con Consumer<int>){
+		for(i in items){
+			con.accept(i)
+			i
+		}
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + mc.apply(a => a+2)//gennerate SAM type as well
+}
+
+~~~~~
+//##28. simple SAM method impl 2
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	res = new java.util.ArrayList<int>()
+	
+	mylist.forEach(a => res.add(a+10))
+	
+	"" + res
+}
+
+~~~~~
+//##29. get continuations to work with java 8 lambda style
+
+from com.concurnas.lang.precompiled import CompiledSAMFunc
+
+def doings(){
+	"" + CompiledSAMFunc.MyClass(8).applytoSelf()
+}
+
+~~~~~
+//##30. get continuations to work with java 8 lambda style precompiled
+class MyClass(a long){}
+
+from java.util.stream import Collectors
+from java.util import List
+
+def doings(){
+	m = MyClass(12)
+	mylist = [1, 2, 3, 4, 5]
+	"" + mylist.stream().collect(Collectors.toList())//was a problem with init method missing fiber
+}
+
+~~~~~
+//##31. get continuations to work with java 8 lambda style precompiled via static
+
+from com.concurnas.lang.precompiled import CompiledSAMFunc
+
+def doings(){
+	"" + CompiledSAMFunc.runInstanceStatic(8)
+}
+
+~~~~~
+//##32. get continuations to work with java 8 lambda style precompiled via static more complex
+
+from com.concurnas.lang.precompiled import LambdaRunner
+
+def doings(){
+	inp1 = [1, 2, 3, 4]
+	res = LambdaRunner.lambdaRunner(inp1);
+	
+	"" + res
+}
+
+~~~~~
+//##33. full example
+
+from java.util.stream import Collectors
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	"" + mylist.stream().map(a => a+10).collect(Collectors.toList())
+}
+
+~~~~~
+//##34. vars from outside the thing and also binding of SAM via if statement
+
+from java.util.stream import Collectors
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	
+	little = 10
+	large = 100
+	
+	"" + for(tt in [false true]){
+		mylist.stream().map( (a => a+little ) if tt else (a => a+large) ).collect(Collectors.toList()) 
+	}
+}
+
+~~~~~
+//##35. sam type on lhs imply
+
+from com.concurnas.lang.precompiled import CompiledSAMFunc
+
+def doings(){
+	fella CompiledSAMFunc.MySAM = a => a**2
+	"" + fella.doer(10)
+}
+
+~~~~~
+//##36. sam type rhs is a proper lambda
+
+from com.concurnas.lang.precompiled import CompiledSAMFunc
+
+def doings(){
+	fella1 CompiledSAMFunc.MySAM = a int => a**2
+	fella2 CompiledSAMFunc.MySAM = def (a int) => a**2
+	"" + (x.doer(10) for x in [fella1 fella2])
+}
+
+~~~~~
+//##37. ensure infered generic type rebound when returned from argument type
+
+from java.util.stream import Collectors
+from java.util import List
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	a2 List<int> = mylist.stream().map(a int => a+10).collect(Collectors.toList())
+	
+	"" + a2
+}
+
+~~~~~
+//##38. boxed input on SAM type
+
+from com.concurnas.lang.precompiled import CompiledSAMFunc
+
+def doings(){
+	fella2 CompiledSAMFunc.MySAM = def (a Integer) => a**2
+	"" + fella2.doer(10)
+}
+
+~~~~~
+//##39. normal defined lambda within an argument which is itself a SAM type
+
+from java.util.stream import Collectors
+from java.util import List
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	a1 = mylist.stream().map( def (a int) { a+10 } ).collect(Collectors.toList())
+	a2 = mylist.stream().map( def (a Integer) { a+10 } ).collect(Collectors.toList())
+	a3 = mylist.stream().map(a int => a+10).collect(Collectors.toList())
+	a4 = mylist.stream().map(a => a+10).collect(Collectors.toList())
+	
+	"" + [a1 a2 a3 a4]
+}
+
+~~~~~
+//##40. ensure collect is correctly gernercised
+
+from java.util import List
+from java.util.stream import Collectors
+
+ar = [3, 1, 2, 4, 5]
+
+def doings(){
+	alist List<String> = ar.stream().map( a => a.toString() ).sorted().collect(Collectors.toList())
+	"" + alist
+}
+
+~~~~~
+//##41. map to int
+
+from java.util.stream import Collectors
+from java.util import List
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	"" + mylist.stream().mapToInt(a => a+1).toArray()//collect(Collectors.toList())//was a problem with init method missing fiber
+}
+
+~~~~~
+//##42. mor mapping more elaborate toString with sort here
+
+from java.util import List
+from java.util.stream import Collectors
+
+ar = [3, 1, 2, 4, 5]
+
+def doings(){
+	alist List<String> = ar.stream().map( def(a Integer) String {a + ""} ).sorted().collect(Collectors.toList())
+	"" + alist
+}
+
+~~~~~
+//##43. lhs is argless lambda convert rhs
+cnt = 0
+
+def doings(){
+	athing () int = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() cnt]
+}
+
+~~~~~
+//##44. lhs is argless lambda convert rhs - void
+
+cnt = 0
+
+def doings(){
+	athing () void = {cnt++;;}
+	
+	"" + [cnt {athing(); 1} cnt {athing(); 1} cnt]
+}
+
+~~~~~
+//##45. lhs is argless lambda convert rhs - assign existing
+cnt = 0
+
+def doings(){
+	athing () int
+	athing = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() cnt]
+}
+
+~~~~~
+//##46. lazy funcref
+
+cnt = 0
+
+def doings(){
+	lazy athing () int = def () {cnt++; 5}
+	
+	"" + [cnt athing:unassign()() cnt athing:unassign()() cnt]
+}
+
+~~~~~
+//##47. lazy funcref - auto unassign
+
+cnt = 0
+
+def doings(){
+	lazy athing () int = def () {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() cnt]
+}
+
+~~~~~
+//##48. lazy funcref - auto unassign - ae
+
+cnt = 0
+
+def doings(){
+	lazy athing () int;
+	athing = def () {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() cnt]
+}
+
+~~~~~
+//##49. lazy funcref rhs convert
+
+cnt = 0
+
+def doings(){
+	lazy athing () int = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() cnt]
+}
+
+~~~~~
+//##50. lazy funcref rhs convert ae
+
+cnt = 0
+
+def doings(){
+	lazy athing () int 
+	athing = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() cnt]
+}
+
+~~~~~
+//##51. lazy funcref from class
+
+cnt = 0
+
+class MyClass ( public lazy athing () int )
+
+def doings(){
+	mc  = new MyClass( def () int {cnt++; 5} )
+	
+	"" + [cnt mc.athing() cnt mc.athing() cnt]
+}
+
+~~~~~
+//##52. lazy funcref from class via getter
+
+cnt = 0
+
+class MyClass ( lazy ~athing () int )
+
+def doings(){
+	mc  = new MyClass( def () int {cnt++; 5} )
+	
+	"" + [cnt mc.athing() cnt mc.athing() cnt]
+}
+
+~~~~~
+//##53. obtain lazy lambda field via getter
+
+class LazyVersion( lazy ~athing () Integer )
+
+cnt = 0
+
+def doings(){
+	xx = def () int {cnt++; 5}
+	mc1  = new LazyVersion( xx )
+	
+	"" + mc1.getAthing():unassign()()
+}
+
+~~~~~
+//##54. obtain lazy lambda field via getter 2 unassign
+
+class LazyVersion( lazy ~athing () Integer )
+
+cnt = 0
+
+def doings(){
+	xx = def () int {cnt++; 5}
+	mc1  = new LazyVersion( xx )
+	
+	"" + mc1.getAthing()()
+}
+ 
+~~~~~
+//##55. lazy labda unassign
+
+from com.concurnas.tests.helpers.lambdas import LazyVersion
+
+cnt = 0
+
+def doings(){
+	xx = def () int {cnt++; 5}
+	mc1  = new LazyVersion( xx )
+	
+	"" + mc1.athing()
+}
+
+~~~~~
+//##56. use of lazy lambdas in class fields
+
+from com.concurnas.tests.helpers.lambdas import DirectField, GetSet, LazyVersion
+
+cnt = 0
+
+def doings(){
+	xx = def () int {cnt++; 5}
+	mc1  = new DirectField( xx )
+	mc2  = new GetSet( xx )
+	mc3  = new LazyVersion( xx )
+	
+	"" + [cnt mc1.athing() mc2.athing() mc3.athing() cnt]
+}
+
+
+~~~~~
+//##57. lazy lambda funcref
+
+cnt = 0
+
+def doings(){
+	lazy athing () int = def () {cnt++; 5}
+	
+	xx = athing&()
+	
+	"" + [cnt xx() cnt xx() cnt]
+}
+
+~~~~~
+//##58. convert arg to argless lambda
+
+cnt = 0
+
+def takesSam(inst () int) => inst()
+
+def doings(){
+	"" + [cnt, takesSam({cnt++; 8} ), cnt]
+}
+
+~~~~~
+//##59. convert arg to argless lambda - lazy
+
+cnt = 0
+
+def takesSam(lazy inst () int) => inst()
+
+def doings(){
+	"" + [cnt, takesSam({cnt++; 8} ), cnt]
+}
+
+~~~~~
+//##60. convert arg to argless lambda - constructor
+cnt = 0
+
+class TakesSam(~inst () int)
+
+def doings(){
+	ts = TakesSam({cnt++; 8})
+	"" + [cnt, ts.inst(), cnt]
+}
+
+~~~~~
+//##61. convert arg to argless lambda - funcref 1
+cnt = 0
+
+def takesSam(inst () int) => inst()
+
+def doings(){
+	xx = takesSam&
+	"" + [cnt, xx({cnt++; 8}), cnt]
+}
+
+~~~~~
+//##62. convert arg to argless lambda - funcref 2
+
+cnt = 0
+
+def takesSam(inst () int) => inst()
+
+def doings(){
+	xx = takesSam&({cnt++; 8})
+	"" + [cnt, xx(), cnt]
+}
+
+~~~~~
+//##63. lambda as default arg
+
+cnt = 0
+
+def takesSam(inst () int = def () int {cnt++; 8}) => inst()
+
+def doings(){
+	"" + [cnt, takesSam( ), cnt]
+}
+
+~~~~~
+//##64. lambda as default arg implicit
+
+cnt = 0
+
+def takesSam(inst () int = {cnt++; 8}) => inst()
+
+def doings(){
+	"" + [cnt, takesSam( ), cnt]
+}
+
+~~~~~
+//##65. lambda default arg implicit vararg
+
+cnt = 0
+
+def takesSam(inst () int...) => i() for i in inst
+
+def doings(){
+	"" + [cnt, takesSam({cnt++; 8}, {cnt++; 8}, def () int {9} ), cnt]
+}
+
+~~~~~
+//##66. lambda default arg implicit vararg lazy
+
+cnt = 0
+
+def takesSam(lazy inst () int...) => i() for i in inst
+
+def doings(){
+	"" + [cnt, takesSam({cnt++; 8}, {cnt++; 8}, def () int {9} ), cnt]
+}
+
+~~~~~
+//##67. auto sam function convertion
+
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 444
+}
+
+def doings(){
+	athing MySAM = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() athing.defined() cnt]
+}
+
+~~~~~
+//##68. auto sam function convertion - ae
+
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 44
+}
+
+def doings(){
+	athing MySAM
+	athing = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() athing.defined() cnt]
+}
+
+~~~~~
+//##69. auto sam function convertion - func invoke
+
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 44
+}
+
+def theCaller(athing MySAM) => "" + [cnt athing() cnt athing() athing.defined() cnt]
+
+def doings(){
+	"" + theCaller({cnt++; 5})
+}
+
+~~~~~
+//##70. auto sam function convertion - consturcotr
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 44
+}
+
+class Something(athing MySAM){
+	def invoke() => "" + [cnt athing() cnt athing() athing.defined() cnt]
+}
+
+
+def doings(){
+	s = Something({cnt++; 5})
+	"" + s()
+}
+
+~~~~~
+//##71. auto sam function convertion - funcref
+
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 44
+}
+
+def theCaller(athing MySAM) => "" + [cnt athing() cnt athing() athing.defined() cnt]
+
+def doings(){
+	a1 = theCaller&({cnt++; 5})
+	b1 = theCaller&
+	
+	"" + [a1(), b1({cnt++; 5})]
+}
+
+~~~~~
+//##72. sam vararg
+
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 444
+}
+
+def thing(athing MySAM...) => [cnt, i() for i in athing, cnt]
+
+def doings(){
+	"" + thing({cnt++; 50}, {cnt++; 5})
+}
+
+~~~~~
+//##73. auto sam function convertion - default param
+
+cnt = 0
+
+trait MySAM{
+	def invoke() int
+	def defined() => 444
+}
+
+def thing(athing MySAM = {cnt++; 50}) => [cnt, athing(), cnt]
+
+def doings(){
+	"" + thing({cnt++; 5})
+}
+
+~~~~~
+//##74. SAM function with state
+cnt=0
+
+trait NoEQHS{
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+trait MySAM with NoEQHS{
+	def invoke() int
+	def defined() => gg
+	gg int = 6969
+}
+
+def doings(){
+	athing MySAM = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() athing.defined() cnt]
+}
+
+~~~~~
+//##75. SAM function with state undefined
+
+cnt=0
+
+trait NoEQHS{
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+trait MySAM with NoEQHS{
+	def invoke() int
+	def defined() => gg
+	gg int
+}
+
+def doings(){
+	athing MySAM = {cnt++; 5}
+	
+	"" + [cnt athing() cnt athing() athing.defined() cnt]
+}
+
+~~~~~
+//##76. SAM function fun example
+
+trait ExeCounter{
+	counter int
+	def toexe() int 
+	public def invoke() int[] => [counter++ toexe()]
+}
+
+def doings(){
+	athing ExeCounter = 5
+	
+	"" + [athing(), athing(), athing()]
+}
+
+~~~~~
+//##77. neat little zero arg lambdas
+counter = 0
+
+def perform(athing () int) => [counter, athing(), athing(), athing(), counter]
+
+def doings(){
+	
+	"" + perform(5**counter++)
+}
+
+~~~~~
+//##78. expr list takes lambda
+
+cnt=0
+
+def takesZALam(exe () int[]) => [exe() exe() exe() exe()]
+
+def doings(){
+	//res = takesZALam {[5**cnt++ cnt]}
+	res = takesZALam def () {[5**cnt++ cnt]}
+	"" + [cnt, res, cnt]
+}
+
+~~~~~
+//##79. expr list takes lambda 2
+
+cnt=0
+
+def takesZALam(exe () int[]) => [exe() exe() exe() exe()]
+
+def doings(){
+	res = takesZALam {[5**cnt++ cnt]}
+	"" + [cnt, res, cnt]
+}
+
+~~~~~
+//##80. expr list takes lambda to SAM function
+
+cnt=0
+
+trait ExeCounter{
+	counter int
+	def toexe() int 
+	public def invoke() int[] => [counter++ toexe()]
+}
+
+def takesSAM(exe ExeCounter) => [exe() exe() exe()]
+
+def doings(){
+	res = takesSAM  {5**cnt++}
+	"" + [cnt, res, cnt]
+}
+
+~~~~~
+//##81. expr list takes lambda to SAM function direct lambda match
+
+cnt=0
+
+trait ExeCounter{
+	counter int
+	def toexe() int 
+	public def invoke() int[] => [counter++ toexe()]
+}
+
+def takesSAM(exe ExeCounter) => [exe() exe() exe()]
+
+def doings(){
+	res = takesSAM def () int {5**cnt++}
+	"" + [cnt, res, cnt]
+}
+
+~~~~~
+//##82. expr list lazy param
+
+cnt=0
+
+class MyClass{
+	counter int
+	def toexe() int => {5**cnt++}
+	public def invoke() int[] => [counter++ toexe()]
+}
+
+def takesSAM(lazy exe MyClass) => [exe() exe() exe()]
+
+def doings(){
+	mc = MyClass()
+	res = takesSAM mc
+	"" + [cnt, res, cnt]
+}
+
+~~~~~
+//##83. expr list lazy param lambda def
+
+def takesSAM(lazy exe () int) => [exe() exe() exe()]
+
+def doings(){
+	"" + (takesSAM def () { 33})
+}
+
+~~~~~
+//##84. expr list lazy param lambda def lazy block
+
+def takesSAM(lazy exe () int) => [exe() exe() exe()]
+
+def doings(){
+	"" + (takesSAM  { 33})
+}
+
+~~~~~
+//##85. expr list lazy param lambda def lazy block SAM
+
+cnt=0
+
+trait MyTrait{
+	def toexe() int 
+	public def invoke() int => toexe()
+}
+
+def takesSAM( exe MyTrait) => [exe() exe() exe()]
+
+def doings(){
+	"" + (takesSAM { 33} )
+}
+
+~~~~~
+//##86. expr list lazy param lambda def SAM
+
+cnt=0
+
+trait MyTrait{
+	def toexe() int 
+	public def invoke() int => toexe()
+}
+
+def takesSAM( exe MyTrait) => [exe() exe() exe()]
+
+def doings(){
+	"" + (takesSAM def () { 33} )
+}
+
+~~~~~
+//##87. expr list lazy vararg
+
+cnt=0
+
+class MyClass{
+	counter int
+	def toexe() int => {5**cnt++}
+	public def invoke() int[] => [counter++ toexe()]
+}
+
+def takesSAM(lazy exe MyClass...) => i() for i in exe
+
+def doings(){
+	mc = MyClass()
+	res = takesSAM mc mc mc
+	"" + [cnt, res, cnt]
+}
+
+~~~~~
+//##88. expr list lazy vararg expr block for lambda
+
+cnt=1
+
+def takesSAM(lazy exe () int...) => i() for i in exe
+
+def doings(){
+	res = takesSAM { 34 } def () {45} 56 {5**cnt++} {5**cnt++}//mix some non block instances
+	"" + [cnt res cnt]
+}
+
+~~~~~
+//##89. vectorized lazy lambda upgrades
+
+cnt=1
+
+trait MyTrait{
+	def toexe() int 
+	public def invoke() int => toexe()
+}
+
+
+def takesSAMNL( exe MyTrait..., an int) => cnt=1; "\n" + (i() for i in exe)
+def takesSAM(lazy exe MyTrait...) => cnt=1; "\n" + (i() for i in exe)
+
+def doings(){
+	f = new MyTrait{
+		def toexe() int  => 4
+	}
+	res = "";
+	res += takesSAM([def () { 34 }])
+	res += takesSAM([def () { 34 } def () { 34 }])
+	res += takesSAM(def () { 34 })
+	res += takesSAM({ 34 } )
+	res += takesSAM({ 34 }, { 67})
+	res += takesSAMNL(def () { 34 }, def () {45}, 45)
+	res += takesSAM(def () { 34 }, def () {45})
+	res += takesSAM(def () { 1 }, {2})
+	res += takesSAM  { 3 } {4} 5 {6**cnt++} {7**cnt++}
+	res += takesSAM  { 34 } {45} 56 {5**cnt++} {5**cnt++}
+	"" + [cnt res cnt]
+}
+
+~~~~~
+//##90. upgraded anon void
+
+res String = ""
+
+def thinger(xx() void) => xx()
+
+def doings(){
+	thinger( def() { res += "ok" })
+	thinger( { res += "ok";; })
+	thinger( { res += "ok" })
+	
+	"" + res
+}
+
+~~~~~
+//##91. upgraded anon void SAM tpye
+
+trait SAMT{
+	def thing() void
+}
+
+res String = ""
+
+def thinger(xx SAMT) => xx.thing()
+
+def doings(){
+	thinger( def() { res += "ok" })
+	thinger( { res += "ok";; })
+	thinger( { res += "ok" })
+	
+	"" + res
+}
+
+~~~~~
+//##92. bugfix on lambda def
+
+def takesSam(inst () int) => inst()
+
+def doings(){
+	a1 = takesSam(def () int { 8})
+	a2 = "" + takesSam(def () { 8})
+	a3 = "" + takesSam(def () => 8 )
+	a4 = "" + takesSam(8)
+	
+	"" + [a1 a2 a3 a4]
+}
+
+~~~~~
+//##93. imply and qualify returned lambda
+def tt() => true
+
+def thing() (int) int => (a => a)
+
+def doings(){
+	"ok" + thing()(12)
+}
+
+~~~~~
+//##94. imply and qualify returned lambda explicit return
+def tt() => true
+
+def thing() (int) int => return (a => a)
+
+def doings(){
+	"ok" + thing()(12)
+}
+
+~~~~~
+//##95. imply and qualify returned lambda nested functions
+def tt() => true
+
+def doings(){
+	
+	def thing1() (int) int => return (a => a)
+	def thing2() (int) int =>  (a => a)
+	
+	"ok" + [thing1()(12) thing2()(12)]
+}
+
+~~~~~
+//##96. imply and qualify returned lambda as lambda
+def tt() => true
+
+def doings(){
+	
+	thing1 = def () (int) int { return (a => a) }
+	thing2 = def () (int) int  { (a => a)}
+	
+	"ok" + [thing1()(12) thing2()(12)]
+}
+
+~~~~~
+//##97. imply and qualify returned lambda complex
+def tt() => true
+
+def thing1() (int) int => (a => a) if tt() else ( a => a*2)
+def thing2() (int) int { {return (a => a)} if tt() else {return (a => a*2)}}
+
+def doings(){
+	"ok" + [thing1()(12) thing2()(12)]
+}
+
+~~~~~
+//##98. imply and qualify returned lambda for SAM type
+trait SAMType{
+	def xyz(a int) int
+}
+
+def tt() => true
+
+def thing() SAMType => (a => a)
+
+def doings(){
+	"ok" + thing().xyz(12)
+}

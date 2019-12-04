@@ -1,0 +1,43 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Typedefs]{Typedefs}
+	\label{chap:typedefs}
+	
+Concurnas provides a convenient mechanism for referring to type definitions. This is particularly useful for long qualified generic types. Typedefs can be used anywhere one would normally use a type. They enable us to translate the following, very verbose code:
+\begin{lstlisting}
+ArrayList<Set<HashMap<ArrayList<String>, Set<int>>>> myDataStructureInstance = new ArrayList<Set<HashMap<ArrayList<String>, Set<int>>>>(10)
+\end{lstlisting}
+Into the following, far easier to read (but functionally identical) form:
+\begin{lstlisting}
+typedef DataStructure = ArrayList<Set<HashMap<ArrayList<String>, Set<Integer>>>>
+
+DataStructure myDataStructureInstance = new DataStructure(10)
+\end{lstlisting}
+
+This greatly improves the readability of code as well as increasing code reuse and reducing errors since less code needs to be written.
+
+Typedefs go beyond traditional macro or type macro offerings seen in earlier languages in providing quantifiable type defs, this is particularly useful when defining typedefs on generic types where we wish to defer the generic type qualification. The syntax should feel familiar to that for using generic types: 
+\begin{lstlisting}
+typedef MyHashMap<X, Y> = HashMap<X, Y>
+
+ml = new MyHashMap<int, String>()
+\end{lstlisting}
+
+Typedefs may refer to other typedefs like so:
+\begin{lstlisting}
+typedef MyList<X> = ArrayList<X>
+typedef StringList = MyList<String>
+\end{lstlisting}
+
+Typedefs may also refer to other typedefs during qualification of generic types:
+\begin{lstlisting}
+typedef MyHashMap<X, Y> = HashMap<X, Y>
+typedef MyList<X> = ArrayList<X>
+
+item = MyList<MyHashMap<int, String>>()
+\end{lstlisting}
+
+
+\end{document}

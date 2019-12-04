@@ -1,0 +1,636 @@
+//##1. expression list
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+}
+
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit 4
+	"" + res
+}
+
+~~~~~
+//##2. expression list valid expression consumed first
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+}
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit 2+2
+	"" + res
+}
+
+~~~~~
+//##3. expression list more complex example
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+	def doittwice(a int, c int) => (a+b)*c
+}
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit 4
+	res2 = mc doittwice 4 3
+	"" + [res, res2]
+}
+
+~~~~~
+//##4. expression list calling an extension function operating on a primative 
+
+def int addtwice(a int) => this + a + a
+
+def doings(){
+
+	"" + (12 addtwice 7)
+}
+
+~~~~~
+//##5. expr lists on things returning functions
+
+gu = def (a int, b int, c int) => 'gu' + [a,b,c]
+
+def fu(){
+	def (a int, b int, c int) => 'fu' + [a,b,c]
+}
+
+def fu2(first int){
+	def(b int, c int) => 'fu2' + [first, b, c]
+}
+
+def doings(){
+	viaLambdaVariable = "" + (gu 1 2 3)
+	viaReturnedLambda = "" + (fu 1 2 3)
+	viaReturnedLambda2 = "" + (fu2 1 2 3)
+	
+	"" + [viaLambdaVariable, viaReturnedLambda, viaReturnedLambda2]
+}
+
+~~~~~
+//##6. expr lists of funcrefs
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+	def doit(a int, c int) => (a+b)*3
+}
+
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit& 4
+	res2 = mc doit& 4 2
+	"" + [res(), res2()]
+}
+
+~~~~~
+//##7. expr lists constructor refs 
+
+class Myclass(b int){
+	this(a int, b int){this(12);}
+	override toString() => "lovely: " + b
+}
+
+
+def doings(){
+	mc1 = Myclass& 4
+	mc2 = new Myclass& 4
+	"" + [mc1(), mc2()]
+}
+
+~~~~~
+//##8. constrcutor invoke
+
+class Myclass(b int){
+	this(a int, b int){this(12);}
+	override toString() => "lovely: " + b
+}
+
+
+def doings(){
+	mc1 = Myclass 4
+	"" + mc1
+}
+
+~~~~~
+//##9. abigiuity overriden by normal logic rules
+
+def nn() => 9
+def myfunc(a int, b int) => a+b
+nn = 3
+
+def doings(){
+	res = myfunc nn 12
+	"" + res
+}
+
+~~~~~
+//##10. two on own
+
+xx = 0
+def my(a int) => xx+=a
+
+def doings(){
+	my 12
+	"" + xx
+}
+
+~~~~~
+//##11. three itesms
+
+xx = 0
+def my(a int) => xx+=a
+
+def thing(a int) => a + 1
+
+tt = 12
+
+def doings(){
+	my thing 12
+	"" + xx
+}
+
+~~~~~
+//##12. four itesms
+
+xx = 0
+def my(a int) => xx+=a
+
+def thing(a int, b int) => a + 1 + b
+
+tt = 12
+
+def doings(){
+	my thing 12 3
+	"" + xx
+}
+
+~~~~~
+//##13. more four
+
+xx = 0
+def my(a int) => xx+=a
+
+def thing(a int, b int) => a + 1 + b
+
+tt = 12
+
+def doings(){
+	my thing tt tt
+	"" + xx
+}
+
+~~~~~
+//##14. assign new to expr list
+
+xx = 0
+def my(a int) => xx+=a
+
+
+tt = 12
+
+def doings(){
+	my tt //convert from assignnew to expression list
+	"" + xx
+}
+
+~~~~~
+//##15. map to dot dot
+
+thing = [0,0]
+
+class MyClass{
+	def oneCall() => thing[0]=10
+	def twoCall() => thing[1]=99; 'ok'
+
+}
+
+def doings(){
+	mc = new MyClass()
+	"" + [mc oneCall twoCall, thing] // -> mc..oneCall().twoCall()
+}
+
+~~~~~
+//##16. direct dot and double dot
+
+class MyClass{
+	public answers = [0,0]
+	def oneCall() => answers[0]=10
+	def twoCall() => answers[1]=99
+
+}
+
+def doings(){
+	mc = new MyClass()
+	"" + (mc oneCall twoCall answers)
+}
+
+~~~~~
+//##17. array length
+
+xxx = [1 2 3]
+
+def doings(){
+	"" + (xxx length)
+}
+
+~~~~~
+//##18. vararg lambda
+
+gu = def (a int, b int, c int...) => 'gu' + [a b c]
+
+def doings(){
+	"" + (gu(1, 2, 3, 5))
+}
+
+~~~~~
+//##19. dot and double dot optimization
+x = 1
+class Myclass{
+	def athing() {}
+	def getX() => "x is: " + x
+}
+
+def doings(){
+	mc = Myclass()
+	
+	"" + (mc athing getX )//for result of athing ignore . version and go straigt for .. access
+	//also for last call we dont try the double dot variant, just go straight to normal dot
+}
+
+~~~~~
+//##20. operator overload of invoke
+
+class HashApply{
+	def invoke(a int) => a
+}
+
+
+def doings(){
+	ha = HashApply()
+	"" + ( ha 33) 
+}
+
+~~~~~
+//##21. vararg call
+
+class HashApply{
+	def ameth(a int..., b int) => 'varag: ' + [a,b]
+}
+
+def doings(){
+	ha = HashApply()
+	"" + ( ha ameth 33 23 24 99) 
+}
+
+~~~~~
+//##22. extension function with varargs
+
+def int ameth(a int, b int...) => 'varag: ' + [this, a,b]
+
+def doings(){
+	12 ameth 6 99 7
+}
+
+~~~~~
+//##23. funcrefs with varargs to get correctly mapped
+
+gu = def (a int, b int, c int...) => 'gu' + [a, b, c]
+
+def getit() => gu
+
+def doings(){
+	a1 = gu  1 2 8 9
+	a2 = getit  1 2 8 9
+	
+	"" + [a1, a2]
+}
+
+~~~~~
+//##24. bugfix on zero arg version
+
+def bar() => 10
+
+def foo(a int) => a
+def foo(a int, b int) => a+b
+
+
+def doings(){
+	res = foo bar 4
+	"" + res
+}
+
+~~~~~
+//##25. bugfix expr lists can be on lhs of assignment
+
+class Myclass(field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3  4 5]^)
+
+def doings() {
+	//x = A field
+	A[0] field = 99
+	"" + A //[x, A]
+}
+
+~~~~~
+//##26. expr lists on module like things
+
+def doings(){
+	tick = java.lang.System currentTimeMillis
+	 "" + (tick > 0)
+}
+
+~~~~~
+//##27. expr lists on module like things also fine
+
+def doings(){
+	tick = java.lang.System currentTimeMillis()
+	 "" + (tick > 0)
+}
+
+~~~~~
+//##28. expr lists on module like things longer def
+
+def doings(){
+	tick = java lang System currentTimeMillis
+	 "" + (tick > 0)
+}
+
+~~~~~
+//##29. expr lists on module with auto import variant
+
+def doings(){
+	tick = System currentTimeMillis
+	 "" + (tick > 0)
+}
+
+~~~~~
+//##30. expr lists on module with auto import variant v2
+
+def doings(){
+	tick = System currentTimeMillis()
+	 "" + (tick > 0)
+}
+
+~~~~~
+//##31. vars and things in call set
+
+def doings(){
+	System err println ""
+	 "fine" 
+}
+
+~~~~~
+//##32. vars and things in call set more complex 1
+
+def doings(){
+	System.err println ""
+	 "fine" 
+}
+
+~~~~~
+//##33. partial dot definition in expression list
+
+class McClass{
+	def thing(a String) => "ok: {a}"
+}
+
+def doings(){
+	//System.err.println "ok"
+	mc = McClass()
+	mc.thing 'hi'
+}
+
+~~~~~
+//##34. partial dot definition in expression list done
+
+def doings(){
+	System err println ""
+	 "fine" 
+}
+
+~~~~~
+//##35. check this works goto getter or setter
+
+class MsgBottle(~message String)
+
+def doings(){
+	m = MsgBottle "hi"
+	res = m message
+	"" + res	
+}
+
+~~~~~
+//##36. generic param binding works ok now
+
+def ok<Typex>(a Typex) Typex {
+	a
+}
+
+def doings(){
+	ok "hi" 
+}
+
+~~~~~
+//##37. generic param binding works ok now cool more clever version
+
+def ok<Typex>(a Typex, b int) Typex {
+	a
+}
+
+def doings(){//extra arg else the length call is ambigoius on string
+	""+ (ok "hi" 2 length)//respects local generic binding!
+}
+
+~~~~~
+//##38. expr takes lambda
+def thing<X>(x (X) int) => "ok"
+
+def doings(){
+	counter = thing def(a int)  {12} 
+	
+	"" + counter
+}
+
+~~~~~
+//##39. this is fine
+def thing<X>(x X) => [x x]
+
+def doings(){
+	counter = thing 12
+	
+	"ok" + counter
+}
+
+~~~~~
+//##40. expr list takes a labda
+def mymap<K, V>(deffunc (K) V) => map(deffunc)
+ 
+def doings(){
+	counter = mymap def(a Integer) { Integer(0)}
+	"ok"
+}
+
+~~~~~
+//##41. can route to auto imported functions
+def doings(){
+	counter = map def(a Integer) { Integer(0)}
+	
+	"ok"
+}
+
+~~~~~
+//##42. looks cool
+class Myclass{
+	def afunc(a int) => 10 + a
+	
+	def something(){
+		afunc 10
+	}
+}
+
+def doings(){
+	mc = Myclass()
+	"" + mc.something()
+}
+
+~~~~~
+//##43. expr list map takes anon lambda
+def doings(){
+	counter = map {a => 0}
+	"ok"
+}
+
+~~~~~
+//##44. expr list takes nice map example
+def doings(){
+	inputdata = [1,2,4,3,2,1,2,3,4,2,2,3,4,3,2,1]
+	
+	counter = map {a => 0}
+	counter[x]++ for x in inputdata
+	
+	"" + counter
+}
+
+~~~~~
+//##45. nice example
+
+from java.time import Duration, LocalDateTime
+
+enum Currency{ GBP, USD, EUR, JPY }
+enum OrderType{Buy, Sell}
+
+class CcyAmount(amount long, ccy Currency){
+	override toString() => "{amount} {ccy}"
+}
+
+abstract class Order(type OrderType, ccyamount CcyAmount){
+	when LocalDateTime?
+		
+	def after(dur Duration){
+		when = LocalDateTime.now()+ dur
+		this
+	}
+	
+	override toString() => "{type} {ccyamount} at when"
+}
+class Buy(ccyamount CcyAmount) < Order(OrderType.Buy, ccyamount)
+class Sell(ccyamount CcyAmount) < Order(OrderType.Sell, ccyamount)
+
+//extension functions
+def long gbp() => CcyAmount(this, Currency.GBP)
+def int mil() => this*1000000L
+def int seconds() => Duration.ofSeconds(this)
+
+def doings() {
+	
+	order = Buy 1 mil gbp after 10 seconds
+	
+	"" + order
+}
+
+~~~~~
+//##46. map local func nif redirect
+def doings() {
+	def int meg() => this * 1024L * 1024L
+	
+	"" + (12 meg)
+} 
+
+~~~~~
+//##47. bugix on double dot pop
+from java.time import Duration, LocalDateTime
+
+enum Currency{ GBP, USD, EUR, JPY }
+enum OrderType{Buy, Sell}
+
+class CcyAmount(amount long, ccy Currency){
+	override toString() => "{amount} {ccy}"
+}
+
+abstract class Order(type OrderType, ccyamount CcyAmount){
+	when LocalDateTime?
+		
+	def after(dur Duration){
+		when = LocalDateTime.now()+ dur
+		this
+	}
+	
+	override toString() => "{type} {ccyamount} at when"
+}
+class Buy(ccyamount CcyAmount) < Order(OrderType.Buy, ccyamount)
+class Sell(ccyamount CcyAmount) < Order(OrderType.Sell, ccyamount)
+
+//extension functions
+def int gbp() => CcyAmount(this, Currency.GBP)
+def long mil() => this*1000000L
+def int seconds() => Duration.ofSeconds(this)
+
+def doings() {
+	order = Buy 1 mil gbp after 10 seconds
+
+	"" + order
+}
+
+~~~~~
+//##48. tweak last element to return something
+from java.time import Duration, LocalDateTime
+
+enum Currency{ GBP, USD, EUR, JPY }
+enum OrderType{Buy, Sell}
+
+class CcyAmount(amount long, ccy Currency){
+	override toString() => "{amount} {ccy}"
+}
+
+abstract class Order(type OrderType, ccyamount CcyAmount){
+	when LocalDateTime?
+		
+	def after(dur Duration){
+		when = LocalDateTime.now()+ dur
+	}
+	
+	override toString() => "{type} {ccyamount} at when"
+}
+class Buy(ccyamount CcyAmount) < Order(OrderType.Buy, ccyamount)
+class Sell(ccyamount CcyAmount) < Order(OrderType.Sell, ccyamount)
+
+//extension functions
+def long gbp() => CcyAmount(this, Currency.GBP)
+def int mil() => this*1000000L
+def int seconds() => Duration.ofSeconds(this)
+
+def doings() {
+	
+	order = Buy 1 mil gbp after 10 seconds
+	
+	"" + order
+}

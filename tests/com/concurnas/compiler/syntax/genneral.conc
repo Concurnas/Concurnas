@@ -1,0 +1,328 @@
+
+import x;
+from b import x;
+from b import x,y as s,z;
+
+from java.awt import Checkbox;
+
+a int = 4;
+z boolean= false;
+g = true and false and 1 > 3;
+b int = a + 2;
+b = (a+2) - 1;
+b = 4 as long;
+
+g = new Objo();
+
+xxx Objo.Sube = g.new Sube();
+
+a String = "hello";
+basas String= "bazzas"+"qpid";
+
+def func1(a int, b int) int
+{
+	return a + b;
+}
+
+def _func2( a int,  b int, c String) String
+{
+	return (""+c)+func1(a + b);
+}
+
+MASTER_C int = func1(2,3)+func1(2, 3);
+
+class A(a int, ~y int) extends A.B with Po, Sht
+{
+
+	~g int = 77;
+	~f int= 12;
+	
+	-g=68.0;
+
+	this()
+	{ 
+	}
+
+	{//is this a static block?
+		f += f+g;
+	}
+	
+	sync{//is this a static block?
+		f += f+g;
+	}
+
+
+	def a() int
+   	{
+   		if(1==1)
+   		{
+   			 a int = 4;
+   		}
+   		n = System.getLatestTime();
+   		h int = a.s(234,true).hh();
+	    g int;
+	    ga int = this.a + super.a()!;
+	    g = ga;
+		return 23**g;
+	}
+
+	
+	def f(thing String) String
+	{
+		"funnyBusiness" + thing;
+		if(rand(1.0) > 0.5)
+		{
+			throw new String("oh noes") if 1==1 else null;
+		}
+	}
+
+
+	this(a int)
+	{
+		this(a,99);
+		s=8;
+	}
+}
+	
+
+
+
+ax[2] = 49;
+
+
+class B<T> extends A{}
+
+class C<T> extends B{}
+
+class C<T> extends B<T>{}
+
+class C<T> extends B{}
+
+object Z
+{
+	//singleton
+}
+
+ ds int = 6;
+
+def main( a String) void
+{
+	inst A = A(x,y);
+	a int= inst.a() + MASTER_C;
+	try
+	{
+	inst A = A(x,y);
+	a int= inst.a() + MASTER_C;
+		 bb int= inst.a() + MASTER_C;
+	}
+	catch(Exception e)
+	{}
+	
+	if(s>h)
+	{
+		beavers();	}
+	
+}
+
+def a() void {e=5; }
+
+{
+if(4>4)
+{}}!
+
+
+q int;
+
+if(b>55)
+{	q=4;}
+elif(b<1)
+{	q=5;}
+else
+{	q=6;}
+
+assert x < 6;
+
+while(x < 6)
+{
+	x += 5;
+	if (b == 22)
+	{
+		
+	}
+
+	//for(a int in aList)
+	//{
+	//	x += a;
+	//}
+}
+
+//single
+
+/*
+multiline
+*/
+
+a String= new String() + "3";
+
+assert true;
+
+with(new Thing())
+{
+	x int = 77;
+}
+
+
+with(func1())
+{
+	zx String = "asd";
+}
+
+a int = fuf()[1][2];
+
+o Object= (Object)(new String());
+
+zzz = new A.C(2,3);
+
+a String= new String("as");
+
+bobby List<Integer> = new List<Integer>(1);
+bobby2 List<Integer> = [1,2,3];
+
+print(("" as Object )+bobby);
+
+o Object= (new String()) as Object;
+
+a int[] = range(10);
+
+bb = ax[2 ... ];
+cc = b[ ... -3];
+dd = b[2 ... 3];
+
+zz Map<String, Integer> = {"one" -> 1, "two"-> 2};
+
+intArray int[] = [1,2,3];
+intArray2 int[] = [1,2,3] as float[];
+intArray3 int[] = (intArray) as int[];
+
+wow List<Integer> = [1,2,3]; //autoconstruct, autounbox
+
+a Object[] = [1, new String(), 56];
+
+intArray int[2]= [[1,2,3], [1,2,3], [1,2,3]];
+
+intArray List<Integer>[] = [new List([new Integer(1)])];
+
+intArray[2] = 6;
+
+//{1:2}[1] = 6;
+
+a.t = 55;
+
+a().t = 5;
+
+ a int= 9;
+
+ g int= 5 mod 2;
+
+ b int= ++a;
+
+ b int= a++;
+
+ lol int = a++;
+
+x=10;
+
+config Map<String, String> = {
+ "1" -> "one", "two" -> "2"
+};
+
+{
+	//using my.sql as sql;
+	import x.y as turds;
+	turds.print("scope");
+}
+
+
+if(4>3){return 4;}else{return 5;}
+
+
+//for lambda etc see lambda.owl
+
+
+//async stuff:
+
+//res  = func()!.func2(2)!; - doesnt like this much
+//res  = func().func2(2)!;
+//res  = (func&(? int,2))(2)!;
+res  = func(2,3)(2)!;
+
+//this is a little silly...
+res  = (func(2,3)!)(2)!;
+{a=4;}!(new Actor())
+
+f.func(2)!;
+aa.func(2)!(new Actor());
+
+//test this...
+v=((a(2,3)(2))(4)).a(3).b();
+
+v=(a(2,3)(2))(4).a(3).b();
+
+nn = a is x.y.B;
+bb boolean = false isnot boolean;
+bb = false is not boolean; //alternative form
+
+//float, double and long are fed
+
+f long =6l;
+
+d = 4.2e6;
+d = 4.2e-6;
+d = 4e6;
+
+z float = 4.2f;
+
+z float = 4.2e4;
+
+//multiline comment, nested!:-
+
+/*
+
+hi
+
+	/* there */
+
+
+*/
+
+//legal:
+
+istrue = a is Map<?,?>
+istrue = a is Map
+istrue = a is Map.Map
+istrue = a is Map<?,?>.Map
+istrue = a is Map.Map<?,?>
+istrue = a is Map<?,?>.Map<?,?>
+
+
+
+//onchange
+
+def doings() {
+	done int:
+	x int: = 9
+	progress = "started"
+	
+	onchange(x) {if(x==10){ done = 1;} }//x getter is called immediatly
+	//registration of the above must complete before progress can be made to the below
+	
+	//TODO: change to x => if(x==10){ done = 1;} when new antlr available
+		
+	x=8
+	progress += "set 8"
+	x=10
+	progress += "set 10"
+
+ 	"hi" + done
+ 
+}

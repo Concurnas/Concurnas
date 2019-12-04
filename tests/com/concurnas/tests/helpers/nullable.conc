@@ -1,0 +1,27 @@
+
+class Holder<X>(~x X, a String?){
+	override hashCode() => 1
+	override equals(an Object) => false
+	afield String? = null
+	another = "hi"
+	
+}
+
+public def conc(a String, b String?) => a + b
+
+public nullable Holder<String>? = null
+public cannotbenull Holder<String> = new Holder<String>('ok', 'ok')
+
+
+class HolderNoNull<X>(x X)
+class HodlerNullOk<X?>(x X)
+
+def HolderNoNullMeth<X>(x X) => "ok"
+def HodlerNullOkMeth<X?>(x X) => "ok"
+
+
+class ThingWithDefaultsNull(thing int = 19, a String? = null){
+	override toString() => 'Thing({thing}, {a})'
+}
+
+public nullableStringArray String?[] = ['ok' null 'asd']

@@ -1,0 +1,1199 @@
+//##1. is as basic tests
+from com.concurnas.lang.precompiled import RefHelper 
+import com.concurnas.runtime.ref.RefArray 
+
+import com.concurnas.bootstrap.runtime.ref.Ref as Ref
+
+def doings() {
+	xx int:RefArray = RefHelper.getRealRefArray(10)
+	//r = xx[0]
+		
+	o = xx: as Object
+	tt = o is int:Ref
+	tt2 = xx: is int:Ref
+		
+	"" + o + " - " +  xx:+ " T= " + [tt tt2]
+}
+
+~~~~~
+//##2. set and get - direct
+
+from com.concurnas.lang.precompiled import RefHelper 
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx int:RefArray = RefHelper.getRealRefArray(10)
+	xx:put(9, 99) //ok, basic
+	
+	xx:[2] = 12
+	xx:[3] = 10
+	xx:[3] += 1
+	
+	xx:[4] = 10
+	xx:[5] = 10
+	
+	xx:[4]++
+	++xx:[5]
+	
+	s = xx:[6]++
+	s2 = ++xx:[7]
+	
+	p=xx:[2]
+	p2 = xx:get(3)
+
+	"" + [xx:get()  s  s2  p  p2]
+}
+
+~~~~~
+//##3. set and get - indirect but resolves to ref type not held type
+
+from com.concurnas.lang.precompiled import RefHelper 
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx int:RefArray = RefHelper.getRealRefArray(10)
+	xx:put(9, 99) //ok, basic
+	
+	xx[2] = 12
+	xx[3] = 10
+	xx[3] += 1
+	
+	xx[4] = 10
+	xx[5] = 10
+	
+	xx[4]++
+	++xx[5]
+	
+	s = xx[6]++
+	s2 = ++xx[7]
+	
+	p=xx[2]
+	p2 = xx:get(3)
+
+	"" + [xx:get() s s2 p p2]
+}
+
+~~~~~
+//##4. ref methods obtained from ref itself if not on type referenced
+
+from com.concurnas.lang.precompiled import RefHelper 
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx int:RefArray = RefHelper.getRealRefArray(10)
+	xx[3] = 100
+	
+	p2 = xx.get(3)//nice, a handy little shortcut here
+
+	"" + [xx.get() p2]
+}
+
+~~~~~
+//##5. ref type constructor invokation
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = new int:RefArray(3)
+	xx2 = int:RefArray(3) //part 2
+	xx[0] = 99
+	xx2[0] = 99
+	
+	"" + [xx.get() xx2.get()]
+}
+
+~~~~~
+//##6. ref type constructor invokation - simple
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = new int:()
+	xx = 9
+	"" + xx
+}
+
+~~~~~
+//##7. small bugfix array ref conversion from generic to localarray
+
+class GenParaInOut<X>(public ~x X[]){//gets stored as Object[] - but if its an array we need to explicitly convert this into a localarray[int:]
+	override hashCode() => 69
+	override equals(a Object) => true
+	override toString() => "has: " + x
+}
+
+
+la = [1: 2:]
+la2 = [3: 4:]
+
+def doings(){
+	gp = new GenParaInOut(la)
+	
+	got =  gp.x
+	gp.x = la2
+	
+	//getset
+	"" + [got gp.x gp]
+}
+
+~~~~~
+//##8. small bugfix array ref conversion from generic to localarray - via feilds directly
+
+class GenParaInOut<X>(public x X[]){
+	override hashCode() => 69
+	override equals(a Object) => true
+	override toString() => "has: " + x
+}
+
+
+la = [1: 2:]
+la2 = [3: 4:]
+
+def doings(){
+	gp = new GenParaInOut(la)
+	
+	got =  gp.x
+	adv =  gp.x[0]
+	gp.x = la2
+	
+	//getset
+	"" + [got gp.x gp]
+}
+
+~~~~~
+//##9. works, lovely
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = new int::RefArray(2)
+	xx[0] := 9
+	"" + a[xx.get(), xx::get()]
+}
+
+~~~~~
+//##10. works, lovely some more
+
+class GenParaInOut<X>(public x X[]){
+	override hashCode() => 69
+	override equals(a Object) => true
+	override toString() => "has: " + x
+}
+
+
+la = [1: 2:]
+
+def doings(){
+	gp = new GenParaInOut(la)
+	
+	gp.x[0] += 1
+	
+	//getset
+	"" + [gp.x gp]
+}
+
+~~~~~
+//##11. implicit construction 
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = Integer:RefArray(2)
+	xx[0] = 99
+	
+	"" + xx:get()
+}
+
+~~~~~
+//##12. implicit construction - more complex
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = Integer::RefArray(2)
+	xx[0] := 99
+	
+	"" + xx::get()
+}
+
+~~~~~
+//##13. explicit construction
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = new Integer:RefArray(2)
+	xx[0] = 99
+	
+	"" + xx:get()
+}
+
+~~~~~
+//##14. do set on ref array
+
+import com.concurnas.runtime.ref.RefArray 
+
+xx Integer::RefArray = new Integer::RefArray(2)
+xx[0] = int:()
+
+def doings() {
+	xx[0] = 99
+	
+	"" + xx::get()
+}
+
+~~~~~
+//##15. do set on ref array more advanced
+
+import com.concurnas.runtime.ref.RefArray 
+
+def doings() {
+	xx = new int::RefArray(2)
+	xx[0] := 9
+	xx[0]++
+	nice  = xx[0]++
+	xx[0] += 1
+	"" + a[xx.get(), xx::get(), nice]
+}
+
+~~~~~
+//##16. multiimport
+
+import com.concurnas.runtime.ref.RefArray as ggg
+import com.concurnas.bootstrap.runtime.ref.Ref as ggg2
+//doesnt belong here but whatever
+def doings() {
+	xx = new int::ggg(2)
+	xx[0] := 9
+	xx[0]++
+	nice  = xx[0]++
+	xx[0] += 1
+	"" + a[xx.get(), xx::get(), nice]
+}
+
+~~~~~
+//##17. set and wakeup on stuff in list change
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings() {
+	xx = new int:RefArray(2)
+	
+	got = onchange(xx){
+		"" + xx:get()
+	}
+	
+	xx[0] = 9
+	
+	await(got)
+	
+	"" + a[""+xx:get(), got]
+}
+
+~~~~~
+//##18. more of above
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings() {
+	xx = new int:RefArray(2)
+	
+	got = onchange(xx){
+		"" + xx:get()
+	}
+	
+	obtain : = ""
+	
+	every(got){
+		obtain += got + ", "
+	}
+	
+	xx[0] = 9
+	
+	await(got)
+	
+	xx[1] = 89
+	
+	await(obtain ; obtain=="[9 null], [9 89], ")
+	
+	"" + [""+xx:get()  obtain  got]
+}
+
+
+~~~~~
+//##19. simple transactions
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings() {
+	xx = new int:RefArray(2)
+	
+	got = onchange(xx){
+		"" + xx:get()
+	}
+	
+	
+	trans{
+		xx[0] = 9
+	}
+	
+	await(got)
+	
+	"" + [""+xx:get() got]
+}
+
+~~~~~
+//##20. ensure transactional order preserved inside refarray
+
+import com.concurnas.runtime.ref.RefArray
+from java.util import ArrayList
+
+def doings() {
+	xx int:RefArray = [Integer(1) 1]
+	
+	entryCnt:=0
+	
+	res = actor ArrayList<String>()
+	pauser bool:
+	every(xx){
+		await(pauser)
+		trans{entryCnt++;}
+		res.add(""+xx)
+	}
+	
+	
+	trans{
+		xx[0] = 10
+	}
+	
+	trans{
+		xx[1] = 50
+	}
+	
+	trans{
+		xx[1] = 55//ensures not picked up second time
+		xx[0] = 90
+	}
+	pauser=true
+	await(entryCnt; entryCnt==4)
+	"" + res
+}
+
+~~~~~
+//##21. single writes have transactional properties
+
+def doings(ord boolean) {
+	xx := 0
+	
+	cango : =false
+
+	got := ""
+	cnt :=0
+	
+	onchange(xx){
+		await(cango)
+		got += xx + ", "
+		cnt++
+	}
+	
+	if(ord){
+		xx = 99
+		trans{ xx = 111	}
+	}
+	else{
+		trans{ xx = 111	}
+		xx = 99
+	}
+	
+	await(cnt ; cnt == 2)
+	
+	"" + got
+}
+
+def doings() {
+	"" + [doings(true), doings(false)]
+}
+
+~~~~~
+//##22. sets on arrayref work outside of transactions
+
+import com.concurnas.runtime.ref.RefArray
+from java.util import ArrayList
+
+def doings() {
+	xx = new int:RefArray(3)
+	gotproper String: = ""
+	cnt :=0
+	
+	andgo :=false
+	
+	
+	onchange(xx){
+		await(andgo)
+		trans{
+			stat = ""+xx.get(2)
+			//got.add(stat) 
+			gotproper += stat + ","
+			cnt++
+		}
+	}
+	xx[2] = 100
+	
+	andgo=true;
+	
+	await(cnt ; cnt == 1 )
+	
+	
+	"" + [gotproper]
+}
+
+~~~~~
+//##23. ensure transactions outside of trans are correctly recorded
+
+import com.concurnas.runtime.ref.RefArray
+from java.util import ArrayList
+
+def doings() {
+	xx = new int:RefArray(3)
+	
+	//got := ArrayList[String]()
+	gotproper String: = ""
+	cnt :=0
+	
+	andgo :=false
+	
+	
+	onchange(xx){
+		await(andgo)
+		trans{
+			stat = ""+xx.get()
+			//got.add(stat) 
+			gotproper += stat + ","
+			cnt++
+		}
+		//System.err.println("mom i did it, get the camera! " + cnt)
+	}
+	
+	trans{
+		xx[0] = 10
+	}
+	
+	trans{
+		xx[1] = 50
+	}
+	
+	trans{
+		xx[1] = 55//ensures not picked up second time
+		xx[0] = 90
+	}
+	
+	xx[2] = 100 //TODO: bug this is still being applied out of order at times
+	
+	andgo=true;
+	
+	await(cnt ; cnt == 4 )
+	
+	expect = "[[10 null null],[10 50 null],[90 55 null],[90 55 100],"
+	
+	"" + [gotproper, (""+gotproper)==expect]
+}
+
+~~~~~
+//##24. list thing modified
+
+import com.concurnas.runtime.ref.RefArray
+from java.util import ArrayList
+
+def doings() {
+	xx = new int:RefArray(3)
+	
+	//got := ArrayList[String]()
+	gotproper String: = ""
+	cnt :=0
+	
+	andgo :=false
+	
+	
+	onchange(xx){
+		await(andgo)
+		trans{
+			stat = ""+xx.modified()
+			//got.add(stat) 
+			gotproper += stat + ","
+			cnt++
+		}
+		//System.err.println("mom i did it, get the camera! " + cnt)
+	}
+	
+	trans{
+		xx[0] = 10
+	}
+	
+	trans{
+		xx[1] = 50
+	}
+	
+	trans{
+		xx[1] = 55//ensures not picked up second time
+		xx[0] = 90
+	}
+	
+	xx[2] = 100//TODO: doesnt like these out of order
+	
+	andgo=true;
+	
+	await(cnt ; cnt == 4 )
+	
+	
+	"" + [gotproper xx.modified()]
+}
+
+~~~~~
+//##25. doesnt belong here but i thought it was cool
+
+def doings(){
+	cnt=0
+	"" + loop{
+		if(cnt++ >== 3) { break "out"}
+		"hi"
+	}
+}
+
+~~~~~
+//##26. ensure transactions correctly captured when set to same value as before
+
+def doings(){
+	a int:=9
+	b int:=0
+	
+	cnt :=0
+	
+	onchange(a){
+		cnt++
+	}
+	
+	trans{
+		b=a
+		a=9//note here that we are setting a to value it was prevoiusly
+		//java is smart, Integer(9) actually gets cached since its immutable
+		//thus a reference to the same thing is passed in, this used to blow up
+		//and not be registered as an assignment
+	}
+		
+	await(cnt ; cnt == 1)//wait for thing to be set	
+	
+	"" + [a b]
+}
+
+~~~~~
+//##x27. if no changes in transaction for referenced ref then that no longer blows up
+
+def doings(){
+	a int:=9
+	b int:=0
+	
+	trans{
+		h=9
+	}
+		
+	"" + [a b]
+}
+
+~~~~~
+//##x28 check all things set
+
+from java.util import HashSet
+import com.concurnas.runtime.ref.RefArray
+
+def archecker(myAR Integer:RefArray){
+	len = myAR.getSize();
+	done := false
+	
+	async{	
+		pre{
+			how = new HashSet<int>();
+		}
+		
+		onchange(myAR){
+			for( n in myAR.modified()){
+				how.add(n)
+			}	
+				
+			if(len == how.size()){
+				done = true
+				return	
+			}
+		}
+	}
+	
+	done
+}
+
+
+def doings() {
+
+	xx = int:RefArray(3)
+	
+	isDone := archecker(xx)
+
+	xx[2] = 9
+	xx[1] = 9
+	xx[0] = 9
+
+	await(isDone)
+	
+	"" + xx.get()
+}
+
+~~~~~
+//##x29 parfor ensure set a
+
+from java.util import HashSet, List
+import com.concurnas.runtime.ref.RefArray
+
+def archecker(myAR List<Integer:>){
+	len = myAR.size();
+	done := false
+	
+	async{	
+		pre{
+			how = new HashSet<int>();
+		}
+		
+		onchange(myAR){
+			for( n in myAR){
+				how.add(n)
+			}	
+				
+			if(len == how.size()){
+				done = true
+				return	
+			}
+		}
+	}
+	
+	done
+}
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3 = parfor(n=0; n< ar.length; n++){
+		ar[n] + 10
+	}
+
+	done := archecker(x3)
+
+	await(done)
+
+	//x3:waitUntilSet()
+	
+	"" + x3
+}
+
+~~~~~
+//##x30 parfor ensure set b
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3 = parfor(n=0; n< ar.length; n++){
+		ar[n] + 10
+	}
+	
+	"" + (x for x in x3)
+}
+
+~~~~~
+//##x31 parforsync
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3 = parforsync(n=0; n< ar.length; n++){
+		ar[n] + 10
+	}
+
+	"" + (x for x in x3)
+}
+
+~~~~~
+//##x32 parfor on old and new for loops
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3 = parforsync(n in ar){
+		n + 10
+	}
+	
+	x3b = parfor(n in ar){
+		n + 10
+	}
+
+	"" + a[(x for x in x3), (x for x in x3b)]//tostring does auto get on second one
+}
+
+~~~~~
+//##x33 parfor returns something other than int
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+		"a"+na
+	}
+
+	"" + (x for x in x3b)
+}
+
+~~~~~
+//##x34 ref arrays of arras used to be a problem
+
+import com.concurnas.runtime.ref.RefArray
+
+xx int:RefArray = new int:RefArray(2)
+xx2 int[1]:RefArray = new int[1]:RefArray(2)
+
+def doings(){
+	
+	xx[0] = 333
+	xx2[0] = [222 99]
+
+	"" +[xx xx2:get()] 
+}
+
+~~~~~
+//##x35 ref arrays of arras used to be a problem as above but locked
+
+import com.concurnas.runtime.ref.RefArray
+
+xx2 int[1]:RefArray = new int[1]:RefArray(2)
+
+def doings(){
+	
+	xx2:[0] = [222 99]
+
+	"" +xx2:get() 
+}
+
+~~~~~
+//##x36 parfor stuff as arrays
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+		[1 2 na]
+	}
+
+	"" + (x for x in x3b)
+}
+
+~~~~~
+//##x37 nested parfor
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+		""+parforsync(n in ar){
+			n + 10
+		}
+	}
+
+	"" + x3b
+}
+
+~~~~~
+//##x38 nested parfor simple types
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+		x=parforsync(n in ar){
+			n + 10
+		}
+		x
+	}
+
+	"" + x3b
+}
+
+~~~~~
+//##x39 i thought it was neat
+
+import com.concurnas.runtime.ref.RefArray
+
+ar = [1 2 3 4]
+
+xx2 int:RefArray = new int:RefArray(ar.length)
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+		xx2[na-1] = na
+		"ok"
+	}
+
+	"" + [(x for x in x3b) xx2]
+}
+
+~~~~~
+//##x40 no return at all from par for
+
+def ff() => 12 //here just to unsettle efforts
+import com.concurnas.runtime.ref.RefArray
+
+ar = [1 2 3 4]
+
+xx2 int:RefArray = new int:RefArray(ar.length)
+
+def doings(){
+
+	parforsync(na in ar){
+		xx2[na-1] = na
+		ff()
+	}//does not return anything - this is ok
+
+	"" + [xx2:get(),]
+}
+
+~~~~~
+//##x41 i thought this was cool
+
+ar = [1 2 3 4]
+
+def doings(){
+	x3b =sync{
+		 parfor(n in ar){
+			n + 10
+		}
+	}
+	
+
+	"" + (x for x in x3b)//cool
+}
+
+~~~~~
+//##x42 ref arrays getting values out of
+
+from com.concurnas.runtime.ref import RefArray
+
+ar int[] = [1 2 3 4]
+
+def body(){
+	x3b  = parfor(n in ar){
+		n + 10
+	}
+	
+	x for x in x3b
+}
+
+
+def bodybag(){
+	x3b  = parfor(n in ar){
+		n + 10
+	}
+	
+	x for x in x3b
+}
+
+def doings(){
+	x3b = body()
+	asar = bodybag()
+	
+	a = "" + x3b
+	b = x3b//extract to existing var ok
+	c = x3b
+	d = "" + [x3b ]//to array item
+
+	"" + [a b c d asar]
+}
+
+~~~~~
+//##x43. ensure refArray operates on copy
+
+class MyClass(~ax int){
+	override toString() => "" + ax
+}
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings() String{
+	ax MyClass:RefArray = MyClass:RefArray(2)
+	x = MyClass(12)
+	ax[0] = x
+	x.ax=13
+	"" + ax
+}
+
+~~~~~
+//##x44. ensure refArray directly settable 
+
+import com.concurnas.runtime.ref.RefArray
+
+xx = [Integer(1)  2  3]
+
+def doings() String{
+	a Integer:RefArray = Integer:RefArray(3)
+	
+	a = xx
+	
+	"" + a
+}
+
+~~~~~
+//##x45. set on RefArray 
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings() String{
+	a Integer:RefArray = [Integer(1) 2 3]
+
+	v1 = "" + a
+	a = [Integer(10) 20 30]
+	v2 = "" + a
+
+	""+ [v1 v2]
+}
+
+~~~~~
+//##x46. refarray double level 
+
+from com.concurnas.runtime.ref import RefArray
+
+def doings(){
+	aa  = new java.lang.Integer::RefArray(2)
+	aa[0]=1:
+	
+	"" + aa
+}
+
+~~~~~
+//##x47. refarray double level empty 
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings(){
+	aa java.lang.Integer::RefArray
+
+	"" + aa
+}
+
+~~~~~
+//##x48. nothing 
+
+import com.concurnas.runtime.ref.RefArray
+
+def doings(){
+	aa java.lang.Integer::RefArray
+
+	""+ aa
+}
+
+~~~~~
+//##x49. nice this works
+
+import com.concurnas.runtime.ref.RefArray
+
+xx = [Integer(1): 2 3]
+
+def doings(){
+	aa java.lang.Integer::RefArray
+	
+	aa:set(xx)
+	
+	"" + aa
+}
+
+~~~~~
+//##x50. refarray double level initial assign
+
+import com.concurnas.runtime.ref.RefArray
+
+xx = [Integer(1): 2 3]
+
+def doings(){
+	aa java.lang.Integer::RefArray = xx
+	
+	//aa = xx
+	
+	"" + aa
+}
+
+~~~~~
+//##x51. refarray double level later assign
+
+import com.concurnas.runtime.ref.RefArray
+
+xx = [Integer(1): 2 3]
+
+def doings(){
+	aa java.lang.Integer::RefArray 
+	
+	aa = xx
+	
+	"" + aa
+}
+
+~~~~~
+//##x52. bug in assignment where rhs is ref but not locked as such
+
+import com.concurnas.runtime.ref.RefArray
+
+xx Integer::RefArray = new Integer::RefArray(3)
+
+ok : =2
+
+def doings(){
+	xx[0] = ok:
+	xx[1] := ok
+	xx[2] = ok
+
+	"" + xx
+}
+
+~~~~~
+//##x53. was a bug before
+
+ok = 12:
+mtay = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	what = parfor(b in mtay){
+		ok
+	}
+	
+	
+	"" + (x for x in what)
+}
+
+~~~~~
+//##x54. not a bug
+
+import com.concurnas.runtime.ref.RefArray
+
+xx int:RefArray = [Integer(1) 2 3]
+
+
+def doings(){
+	def takesIt(what int:RefArray, a int){
+		what[a]
+	}
+
+	ok = takesIt&(? int:RefArray, ? int)
+
+	"" + ok(xx:, 1)
+}
+
+~~~~~
+//##x55. parfor was playing up
+
+calls := 0
+
+x = System.err.println&(String)
+
+def doingsx()  {
+	c=trans{calls++;}//trans can return something
+	c:
+}
+
+mtay = [1 2 3 4 5 6 7 8 9 10]
+
+def suum(items java.util.List<Integer:>){
+	sum = 0;
+	for(i in items){
+		sum += i
+	}
+	sum
+}
+
+def doings(){
+	a=0
+	what = parfor(b in mtay){
+		doingsx()
+	}
+	
+	
+	await(calls; calls==10)
+	
+	"" + [suum(what), calls]
+}
+
+~~~~~
+//##x56. used to be a problem
+
+import com.concurnas.runtime.ref.RefArray
+
+xx int:RefArray = [Integer(1) 1]
+
+entryCnt:=0
+	
+def doings() {
+	res:=""
+	res = every(xx){//was a problem with mapping of state on trycatch blocks - rather, trycathc was being directed to function when really we just needeed to do the state management thing
+		trans{entryCnt++;}
+		 '12'
+	}
+	
+	xx[0] = 2
+	
+	await(res; res == '12')
+	await(entryCnt;entryCnt==2)
+	
+	"" + [ res entryCnt]
+}
+
+~~~~~
+//##x57. looks cool
+
+import com.concurnas.runtime.ref.RefArray
+
+xx int:RefArray = [Integer(1) 1]
+
+def dd() => false
+
+def doings() {
+	res:="turds"
+	
+	a1 = System.identityHashCode(res:)
+	
+	res = every(xx){'12' } if dd() else every(xx){'13' }
+	
+	xx[0] = 2
+	
+	await(res; res <> 'turds')
+	
+	a2 = System.identityHashCode(res:)
+	
+	"" + [ res a1==a2]
+}
+
+~~~~~
+//##x58. ensure iface impl of DirectlyAssignable
+from java.util import HashMap 
+
+from com.concurnas.bootstrap.runtime.ref import DirectlyAssignable 
+from com.concurnas.bootstrap.runtime.ref import Ref 
+
+
+idToOutstandingTask = new HashMap<int, Ref<?>>()
+a int:
+idToOutstandingTask[1] = a:
+	
+def doings(){
+	task = idToOutstandingTask[1]: as DirectlyAssignable<?>
+	task:set(12)
+	
+	"ok" //+ task
+}

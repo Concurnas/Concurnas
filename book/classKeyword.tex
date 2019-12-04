@@ -1,0 +1,31 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[The class keyword]{The class keyword}
+	
+
+The \lstinline{.class} keyword can be used in order to obtain a \lstinline{java.lang.Class<?>} object of a certain class. The \lstinline{.class} call is placed after the class name:
+
+\begin{lstlisting}
+classvar = String.class
+\end{lstlisting}
+
+On instances of classes, calling \lstinline{getClass()} will return a \lstinline{java.lang.Class<?>} object:
+\begin{lstlisting}
+aString = ""
+classvar1 = String.class
+classvar2 = aString.getClass()
+
+assert classvar1 == classvar2//these both point to the same Class object
+\end{lstlisting}
+
+This also works for primitive types and arrays:
+\begin{lstlisting}
+iclass = int.class
+aclass = int[].class
+\end{lstlisting}
+
+There are a number of useful methods, mostly concerning reflection, which exist on instance objects of \lstinline{java.lang.Class}. For more information see \href{https://docs.oracle.com/javase/9/docs/api/index.html?overview-summary.html}{the JDK documentation}. 
+
+
+\end{document}

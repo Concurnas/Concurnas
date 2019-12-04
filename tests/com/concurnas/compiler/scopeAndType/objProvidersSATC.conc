@@ -1,0 +1,769 @@
+//##1. circular dependancy
+inject class ClientWorker(public circle Client)
+inject class Client(public worker ClientWorker)
+
+provider ClientProvider(msgprefix String){
+	provide Client
+}
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	"fail"
+}
+
+
+~~~~~
+//##2. provider must have at least one thing it provides
+provider ClientProvider{
+	
+}
+
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##3. dep rhs must be subtype
+
+inject class Fella(a String)
+
+provider ClientProvider{
+	provide Fella
+	String => 12
+}
+
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##4. dep rhs must be subtype from class arg
+
+inject class Fella(a String){
+	override toString() => a
+}
+
+provider ClientProvider(a int){
+	provide Fella
+	String => a
+}
+
+
+def doings(){
+	cp = new ClientProvider(12)
+	"ok" + cp.Fella()
+}
+
+~~~~~
+//##5. provide rhs must be subtype
+
+inject class Fella(a String)
+
+provider ClientProvider{
+	provide String => 12
+}
+
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##6. unused provide specific dependancy
+
+from java.util import ArrayList
+
+trait Ge{
+	def getter() String
+}
+
+class Userclass ~ Ge {
+	held String
+	
+	inject this(a Integer, b String){
+		held = "{a, b}"
+	}
+	
+	def getter() => held
+}
+
+
+inject class Userclass2(held String)  ~ Ge {
+	def getter() => held
+}
+
+private provider UCProvider{
+	provide Userclass{
+		String => "ok" 
+		Integer => 12
+		Float => 3.f
+	}
+	provide Userclass2
+	String => "mighty"
+}
+
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	res2 = arp.Userclass2()
+	"nice: " + (x.getter() for x in [res1 res2])
+}
+
+~~~~~
+//##7. unused provide specific dependancy 2
+
+inject class ThingHolder(an String){
+	override toString() => an
+}
+
+
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b, an}"
+	
+	private an ThingHolder?
+	
+	inject def thingHolder(an ThingHolder){
+		this.an = an;
+	}
+}
+
+private provider UCProvider{
+	provide MyActor
+	provide ThingHolder{
+		String => "thing"
+		Float => 3.f
+	}
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyActor()
+	"nice: " + res1
+}
+
+~~~~~
+//##8. private provide
+
+inject class ThingHolder(an String){
+	override toString() => an
+}
+
+
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b, an}"
+	
+	private an ThingHolder?
+	
+	inject def thingHolder(an ThingHolder){
+		this.an = an;
+	}
+}
+
+private provider UCProvider{
+	provide MyActor
+	private provide ThingHolder{
+		String => "thing"
+	}
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyActor()
+	lething = arp.ThingHolder()
+	"nice: " + res1
+}
+
+~~~~~
+//##9. no non object provide
+
+inject class MyClass{
+	inject a String?
+	inject b int
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide int
+	provide String[]
+}
+
+def doings(){
+	"nice: "
+}
+
+~~~~~
+//##10. no provide primative ref
+
+private provider UCProvider{
+	provide int:
+}
+
+def doings(){
+	"nice: "
+}
+
+~~~~~
+//##11. injector constructors must be marked public
+
+from com.concurnas.lang.precompiled import ToInjectHelpers
+
+provider AProvider{
+	provide ToInjectHelpers.Illegal
+	provide ToInjectHelpers.ItsFine
+	String => "aString"
+}
+
+def doings(){
+	"nice: "
+}
+
+~~~~~
+//##12. no lazy mutiassign
+
+lazy s1 int = s2 int= 200
+
+def doings(){
+	ok = [s1 s2]
+	"ok"
+}
+
+~~~~~
+//##13. used to blow up
+
+avar = 88
+
+def afunc(lazy operate Integer) => [avar operate avar]
+
+def doings(){
+	"" + afunc({avar = 99; return 200})
+}
+
+~~~~~
+//##14. used to blow up - used to match on lazy
+
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+
+def doings(){
+	xx = afunc&(int)//used to match on lazy above
+	"" + xx({avar = 99; 200})
+} 
+
+~~~~~
+//##15. no vectroized lazy ref
+avar = 88
+
+def afunc( lazy operate int) => [avar operate avar]
+
+def doings(){
+	""+ afunc([1 2 3 4]^)
+}
+
+~~~~~
+//##16. missing injectable constructor
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	//String => {avar = 99; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##17. cannot inject as method param names unknown
+
+from com.concurnas.lang.precompiled.Injectables import UnNamedMethod
+
+provider MCPRovider{
+	provide UnNamedMethod
+	'Second Field' String => "String2"
+	"Third Field" String => "String3"
+}
+
+def doings(){
+	apu1 = UnNamedMethod()
+	inst1 = apu1.NamedFields()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##18. non public fields
+
+from com.concurnas.lang.precompiled.Injectables import UnNamedMethodPName
+
+provider MCPRovider{
+	provide UnNamedMethodPName
+	'an2' String => "String2"
+	"an3" String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.UnNamedMethodPName()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##19. non public method
+
+from com.concurnas.lang.precompiled.Injectables import NamedWPrivateMethod
+
+provider MCPRovider{
+	provide NamedWPrivateMethod
+	'an2' String => "String2"
+	String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.NamedWPrivateMethod()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##20. non public constructor
+//good enough errors
+from com.concurnas.lang.precompiled.Injectables import NamedWConstrcutorNamedIllegal
+
+provider MCPRovider{
+	provide NamedWConstrcutorNamedIllegal
+	'first arg' String => "String2"
+	String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.NamedWConstrcutorNamedIllegal()
+		
+	"nice: " + inst1
+}
+
+
+~~~~~
+//##21. Provide defintions must be unique
+inject class MyClass(an2 String[]){
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	provide MyClass
+	provide podl MyClass
+	provide podl MyClass
+	String[] => ["String"  "another"]
+	int[] => [33 3434]
+}
+
+def doings(){
+	"nice: " 
+}
+
+~~~~~
+//##22. only one constructor may be injected
+
+inject class MyClass(an2 String[]){
+	inject this(){}
+	
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String[] => ["String"  "another"]
+	int[] => [33 3434]
+}
+
+def doings(){
+	"nice: " 
+}
+
+~~~~~
+//##23. class level inject only
+
+inject a String
+inject def thing(an Object){
+	
+}
+
+inject class MyClass(an2 String[]){
+	
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String[] => ["String"  "another"]
+	int[] => [33 3434]
+}
+
+def doings(){
+	"nice: " 
+}
+
+~~~~~
+//##24. no inject consturctor uh oh
+class MyClass(an2 String[]){
+	
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String[] => ["String"  "another"]
+	int[] => [33 3434]
+}
+
+def doings(){
+	"nice: " 
+}
+
+~~~~~
+//##25. anon and local dont get injectables
+def ssdfsdf(){
+	thing = class{
+		inject this(){}//no
+		inject def amethod(){}//no
+		inject a String?//no
+	}
+}
+
+def doings(){
+	"nice: " 
+}
+
+~~~~~
+//##26. Provide dependancy qualifications must be unique
+
+inject class MyClass(an2 String[]){
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'x' String[] => ["String"  "another"]
+	'x' String[] => ["String"  "another"]
+	int[] => [33 3434]
+}
+
+def doings(){
+	"ok"
+}
+	
+~~~~~
+//##27. Provide dependancy qualifications must be unique 2
+inject class MyClass(an2 String[]){
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass{
+		'x' String[] => ["String"  "another"]
+		'x' String[] => ["String"  "another"]
+		int[] => [33 3434]
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##28. Expression for provide dependancy qualifications
+
+inject class MyClass(an2 String){
+	inject anInt int
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => 55
+	int => 33
+	
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##29. nothing at all with inject
+class MyClass(an2 String){
+	anInt int
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##30. has circular dependancy in chain
+
+inject class MyClass(an2 String){
+	inject anInt MyClass?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "uh oh"
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##31. Declared dependancy is not used
+
+inject class MyClass(an2 String){
+	inject anInt String?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "uh oh"
+	int => 444
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##32. Generic parameters for provide definitions
+
+inject class MyClass<X>(an2 String){
+	inject anInt String?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide <X> MyClass<String>
+	String => "uh oh"
+}
+
+def doings(){
+	"ok"
+}
+	
+~~~~~
+//##33. named dependancy unused
+inject class MyClass(an2 String){
+	inject anInt String?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "uh oh"
+	'aan' String => "uh oh"
+}
+
+def doings(){
+	"ok"
+}
+	
+~~~~~
+//##34. transient missing dependancy
+	
+inject class Another(a int){
+	override toString() => "Another {a}"
+}
+
+inject class MyClass(an2 Another){
+	inject anInt String?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "uh oh"
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##35. ensure partial type defs used
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage('proc: ' + this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => 'a message'
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor{
+		MessageSender => new MessagePrinter()
+		MessageGetter <= SimpleMG{
+			'theMessage' String => 'a message'
+			Object <= String
+		}
+		Object <= String
+	}
+	Object <= String
+}
+
+
+def doings(){
+	"err"
+}
+
+~~~~~
+//##36. partial type must be approperiate for lhs def
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage('proc: ' + this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => 'a message'
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor{
+		MessageSender => new MessagePrinter()
+		MessageGetter <= int
+	}
+}
+
+
+def doings(){
+	"err"
+}
+
+~~~~~
+//##37. Cannot specify dependancy qualification on its own
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	Bean //not permitted on its own
+}
+
+def doings(){
+	"" 
+}
+
+~~~~~
+//##38. right hand side of dependency must be specified for primative type
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(an int, -red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	single Bean
+	single int //not permitted, rhs must be provided
+}
+
+def doings(){
+	"" 
+}
+
+~~~~~
+//##39. single dependancy no elaboration no injectable thing
+class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	single Bean
+}
+
+def doings(){
+	""
+}

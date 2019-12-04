@@ -1,0 +1,3070 @@
+//##1. params get annotations
+
+class Myclass(a int){
+	def thefunction(a int, b int) => a+b
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	from java.util import Collections
+	methodz = for(m in Myclass.class.getMethods()){
+		annots = m.getParameterAnnotations()
+		if(annots){
+			m.getName() + "" + annots
+		}
+		else{ continue }
+	}
+	Collections.sort(methodz)
+	
+	conz = for(m in Myclass.class.getConstructors()){
+		m.getName() + "" + m.getParameterAnnotations()
+	}
+	
+	"" + [methodz, conz]
+}
+
+~~~~~
+//##2. simple one
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	mph = MethodPlusHelper()
+	"" + mph.afunc(2, a=5, c=9, )//this is ok
+}
+
+~~~~~
+//##3. w refs inside
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	mph = MethodPlusHelper()
+	a :=9
+	"" + mph.afunc(2, a=5, c=a, )//used to break
+}
+
+~~~~~
+//##4. locall defined non bc extracted
+
+class Myclass(a int){
+	def thefunction(a int, b int) => a-b
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	mc = Myclass(12)
+	res = mc.thefunction(a=12, b=23)
+	res2 = mc.thefunction(b=23, a=12)
+	"" + [res, res2]
+}
+
+~~~~~
+//##5. locall looked cool
+
+class Myclass(a int){
+	def thefunction(a int, b int[]){
+		for(x in b){ x + a }
+	}
+	
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	mc = Myclass(12)
+	res = mc.thefunction(1, b=[1 1 1])
+	"" + res
+}
+
+~~~~~
+//##6. method generics
+
+from java.util import ArrayList
+
+class Myclass(a int){
+	def thefunction<Z>(alist ArrayList<Z>, item Z){
+		alist.add(item)
+	}
+	
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	mc = Myclass(12)
+	sss = ArrayList<String>()
+	mc.thefunction(item="hi", alist=sss)
+	mc.thefunction(item="hi", alist=sss)
+	"" + sss
+}
+
+~~~~~
+//##7. class generics
+
+from java.util import ArrayList
+
+class Myclass<Z>(a int){
+	def thefunction(alist ArrayList<Z>, item Z){
+		alist.add(item)
+	}
+	
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	mc = Myclass<String>(12)
+	sss = ArrayList<String>()
+	mc.thefunction(item="hi", alist=sss)
+	mc.thefunction(item="hi", alist=sss)
+	"" + sss
+}
+
+~~~~~
+//##8. constructors
+
+from java.util import ArrayList
+
+class Myclass(a int, b int){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+}
+
+def doings() {
+	mc = new Myclass(b=12, a=22,)
+	"" + mc
+}
+
+~~~~~
+//##9. constructors no new keyword
+
+from java.util import ArrayList
+
+class Myclass(a int, b int){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+}
+
+def doings() {
+	mc = Myclass(b=12, a=22,)
+	"" + mc
+}
+
+~~~~~
+//##10. constructors with generic params
+
+from java.util import ArrayList
+
+class Myclass<X>(a int, b int, public f X){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+}
+
+def doings() {
+	mc = new Myclass(12, f="hi", 22)//takes no generic params
+	mc2 = Myclass(12, f="hi", 22)//takes no generic params
+	"" + [mc, mc2, mc.f, mc2.f]
+}
+
+~~~~~
+//##11. this constructor ref
+
+from java.util import ArrayList
+
+class Myclass(a int, b int){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+	
+	def this(){
+		this(b=99, a=1)	
+	}
+}
+
+def doings() {
+	mc = Myclass()
+	"" + mc
+}
+
+~~~~~
+//##12. super constructor ref
+
+from java.util import ArrayList
+
+open class Myclass(a int, b int){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+	
+	
+}
+
+class Child < Myclass{
+	def this(){
+		super(b=99, a=1)	
+	}
+}
+
+def doings() {
+	mc = Child()
+	"" + mc
+}
+
+~~~~~
+//##13. overloaded ok
+
+from java.util import ArrayList
+
+open class Myclass(a int, b int){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+	
+	def afunc(){"nope"}
+	def afunc(a int){"ok {a}"}
+}
+
+
+def doings() {
+	mc = Myclass(1,2)
+	"" + mc.afunc(a=2)
+}
+
+~~~~~
+//##14. overloaded ok specific path
+
+from java.util import ArrayList
+
+open class Myclass(a int, b int){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+	
+	def afunc(a Object){"nope"}
+	def afunc(a String){"ok {a}"}
+}
+
+
+def doings() {
+	mc = Myclass(1,2)
+	"" + mc.afunc(a="str")
+}
+
+~~~~~
+//##15. can be used on precompiled constructor
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	mph1 = MethodPlusHelper(b=3, a=2)
+	mph2 = MethodPlusHelper(2,3)
+	mph3 = MethodPlusHelper(b=3,2)
+	mph4 = MethodPlusHelper(3,a=2)
+	"" + [mph1, mph2, mph3, mph4]
+}
+
+~~~~~
+//##16. operator overloaded invoke function
+
+class Myclass{
+	override equals(a Object) => false 
+	override hashCode() => 11
+	def invoke(a int, b int, c int) => (a**b) + c 
+	 
+}
+
+def doings() {
+	mc = Myclass()
+	"" + mc(2, c=9, 4)
+}
+
+~~~~~
+//##17. nested functions
+
+def doings() {
+	def lll(a int, b int, c int) => (a**b) + c 
+	"" + lll(2, c=9, 4)
+}
+
+~~~~~
+//##18. funcrefs
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	mph = MethodPlusHelper()
+	
+	funcla = mph.afunc&(2, a=5, c=9, )//a**b + c
+	funclb = mph.afunc&(2, a=? int, c=9, )//a**b + c
+	
+	"" + [funcla(), funclb(5)]
+}
+
+~~~~~
+//##19. funcrefs local function
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	def afunc(a int, b int, c int) => (a**b)+c
+	
+	funcla = afunc&(2, a=5, c=9, )//a**b + c
+	funclb = afunc&(2, a=? int, c=9, )//a**b + c
+	norm = afunc&(5,2,9 )//a**b + c
+	
+	"" + [funcla(), funclb(5), norm()]
+}
+
+~~~~~
+//##20. funcrefs constructors
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+class Acorn(a int, b int, c int){
+	override toString() => "" + ((a**b)+c)
+}
+
+def doings() {
+	
+	funcla = Acorn&(2, a=5, c=9, )//a**b + c
+	funclb = Acorn&(2, a=? int, c=9, )//a**b + c
+	norm = Acorn&(5,2,9 )//a**b + c
+	
+	"" + [funcla(), funclb(5), norm()]
+}
+
+~~~~~
+//##21. funcrefs constructors with new
+
+class Acorn(a int, b int, c int){
+	override toString() => "" + ((a**b)+c)
+}
+
+def doings() {
+	
+	funcla = new Acorn&(2, a=5, c=9, )//a**b + c
+	funclb = new Acorn&(2, a=? int, c=9 )//a**b + c
+	//cool, bugfix above didnt used to be able to do this
+	norm = new Acorn&(5,2,9 )//a**b + c
+	
+	"" + [funcla(), funclb(5), norm()]
+}
+
+~~~~~
+//##22. funcrefs constructors with generics
+
+from java.util import ArrayList
+
+class Myclass<X>(a int, b int, public f X){
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	override toString() => "{a}-{b}"
+}
+
+def doings() {
+	mc = new Myclass&(12, f="hi", 22)
+	mc2 = Myclass&(12, f="hi", 22)
+	"" + [mc(), mc2(), mc().f, mc2().f]
+}
+
+~~~~~
+//##22. funcrefs local gens
+
+from java.util import ArrayList
+
+class Myclass(a int){
+	def thefunction<Z>(alist ArrayList<Z>, item Z){
+		alist.add(item)
+	}
+	
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	mc = Myclass(12)
+	sss = ArrayList<String>()
+	a=mc.thefunction&(item="hi", alist=? ArrayList<String>)
+	b=mc.thefunction&(item="hi", alist=sss)
+	c=mc.thefunction&(item=? String, alist=? ArrayList<String>)
+	
+	a(sss)
+	b()
+	c(sss,  "hi")//note order is contingent on origonal declaration
+	
+	"" + sss
+}
+
+~~~~~
+//##23. funcrefs class gens
+
+from java.util import ArrayList
+
+class Myclass<Z>(a int){
+	def thefunction(alist ArrayList<Z>, item Z){
+		alist.add(item)
+	}
+	
+	override equals(a Object) => false 
+	override hashCode() => 11 
+	
+}
+
+def doings() {
+	mc = Myclass<String>(12)
+	sss = ArrayList<String>()
+	a=mc.thefunction&(item="hi", alist=sss)
+	b=mc.thefunction&(item="hi", alist=sss)
+	a();b()
+	"" + sss
+}
+
+~~~~~
+//##24. calling iface function
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	mph = MethodPlusHelper.MyCls()
+	asIface MethodPlusHelper.Myface = MethodPlusHelper.MyCls()
+	
+	norm = "" + [mph.leFunction(a=1,b=2), asIface.leFunction(zv=1,zc=2)]
+	
+	fr1=mph.leFunction&(a=1,b=2)
+	fr2=asIface.leFunction&(zv=1,zc=2)
+	
+	funcrefs = "" + [fr1(), fr2()]
+	
+	"" + [norm, funcrefs]
+}
+
+~~~~~
+//##25. actor funcref with named param constructor
+
+class Acorn(a int, b int, c int){
+	override toString() => "" + ((a**b)+c)
+}
+
+def doings() {
+	
+	funcla = actor Acorn&(2, a=5, c=9, )//a**b + c
+	funclb = actor Acorn&(2, a=? int, c=9 )//a**b + c
+	//cool, bugfix above didnt used to be able to do this
+	norm = actor Acorn&(5,2,9 )//a**b + c
+	
+	"" + [funcla(), funclb(5), norm()]
+}
+
+~~~~~
+//##26. actor creation with named params normal way
+
+class Acorn(a int, b int, c int){
+	override toString() => "" + ((a**b)+c)
+}
+
+def doings() {
+	
+	funcla = actor Acorn(2, a=5, c=9, )//a**b + c
+	funclb = actor Acorn(2, a=5, c=9 )//a**b + c
+	//cool, bugfix above didnt used to be able to do this
+	norm = actor Acorn(5,2,9 )//a**b + c
+	
+	"" + [funcla, funclb, norm]
+}
+
+~~~~~
+//##27. normal actor methods
+
+class Acorn{
+	def thefunc(a int, b int, c int) => "" + ((a**b)+c)
+}
+
+def doings() {
+	actles = actor Acorn()
+	
+	a = actles.thefunc(2, a=5, c=9, )
+	c = actles.thefunc(5,2,9 )
+	
+	avr = actles.thefunc&(2, a=5, c=9, )
+	cvr = actles.thefunc&(5,2,9 )
+	
+	
+	"" + [a, c, avr(), cvr()]
+}
+
+~~~~~
+//##28. actor method norm and via funcref
+
+class Acorn{
+	def invoke(a int, b int, c int) => "" + ((a**b)+c)
+}
+
+def doings() {
+	actles = actor Acorn()
+	
+	a = actles(2, a=5, c=9, )//actor call to invoke
+	c = actles(5,2,9 )
+	
+	avr = actles&(2, a=5, c=9, )
+	cvr = actles&(5,2,9 )
+	
+	"" + [a, c, avr(), cvr()]
+}
+
+~~~~~
+//##29. thing was reffed great
+
+class Acorn{
+	def invoke(a int, b int, c int) => "" + ((a**b)+c)
+}
+
+def doings() {
+	xx = Acorn():
+	
+	"" + xx.invoke(b=2, 5, 9)
+}
+
+~~~~~
+//##30. default arguments
+
+def hasDefaults(a int = 69, b = 2) => a+b //infer type on second one
+	
+def doings() {
+	a1=hasDefaults(12, 8)
+	a2=hasDefaults(12, b=8)
+	a3=hasDefaults(12, b=8)
+	a4=hasDefaults(a=12, b=8)
+	a5=hasDefaults(b=8, a=12)
+	a6=hasDefaults(b=8, 12)
+	a7=hasDefaults(b=8)
+	a8=hasDefaults(a=8)
+	a9=hasDefaults(8)
+	a10=hasDefaults()
+	
+	"" + [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]
+}
+
+~~~~~
+//##31. default arguments more complex
+
+def hasDefaults(a = 100, b int, c = 200, d int) => [a,b,c,d]
+	
+def doings() {//call w 3 args
+	//bound left to right with priority placed on non default args
+	a1=hasDefaults(12, 8)
+	a2=hasDefaults(12, b=8)
+	a3=hasDefaults(12, b=8)
+	a4=hasDefaults(b=8, 12)//ok
+	a5=hasDefaults(1,2,3,4)//ok
+	i1 = hasDefaults(1,2)
+	i2 = hasDefaults(c=9, 1,2)
+	i3 = hasDefaults(1,2,3)
+	
+	"" + [a1, a2, a3, a4, a5, i1, i2, i3]
+}
+
+~~~~~
+//##32. func invoke on local funcdef w default params
+
+def doings() {//call w 3 args
+
+	def hasDefaults(a = 100, b int, c = 200, d int) => [a,b,c,d]
+
+	a1=hasDefaults(12, 8, 6)
+	
+	"" + a1
+}
+
+~~~~~
+//##33. constrcutor invoke on local funcdef w default params
+
+class MyClass{
+	a int
+	b int
+	c int
+	d int
+
+	this(a = 100, b int, c = 200, d int){
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+	}
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+	
+def doings() {
+	a1=MyClass(12, 8)
+	a2=MyClass(12, b=8)
+	a3=MyClass(12, b=8)
+	a4=MyClass(b=8, 12)//ok
+	a5=MyClass(1,2,3,4)//ok
+	i1 = MyClass(1,2)
+	i2 = MyClass(c=9, 1,2)
+	i3 = MyClass(1,2,3)
+	
+	"" + [a1, a2, a3, a4, a5, i1, i2, i3]
+}
+
+~~~~~
+//##34. constrcutor invoke via this
+
+class MyClass{
+	a int
+	b int
+	c int
+	d int
+
+	this(a = 100, b int, c = 200, d int){
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+	}
+	
+	this( g String){
+		this(99, 88)
+	}
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+	
+def doings() {
+	a1=MyClass("hello")
+	
+	"" + a1
+}
+
+~~~~~
+//##35. constrcutor invoke via super
+
+open class MyClass{
+	a int
+	b int
+	c int
+	d int
+
+	this(a = 100, b int, c = 200, d int){
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+	}
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+
+class ChildCls < MyClass{
+	this( g String){
+		super(99, 88)
+	}
+}
+
+def doings() {
+	a1=ChildCls("hello")
+	
+	"" + a1
+}
+
+~~~~~
+//##36. constrcutor nested class with defaults
+
+class Outer{
+	public class MyClass{
+		a int
+		b int
+		c int
+		d int
+	
+		this(a = 100, b int, c = 200, d int){
+			this.a = a
+			this.b = b
+			this.c = c
+			this.d = d
+		}
+		
+		this( g String){
+			this(99, 88)
+		}
+	
+		override toString() => "" + [a,b,c,d]
+		override hashCode() => 1
+		override equals(a Object) => false
+	}	
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+	
+def doings() {
+	ou = Outer()
+	a1 = ou.MyClass("hello")
+	
+	"" + a1
+}
+
+~~~~~
+//##37. default constructors support default args
+
+public class MyClass(a = 100, b int, c int = 200, d int){
+	
+	this( g String){
+		this(99, 88)
+	}
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+}	
+
+	
+def doings() {
+	a1 = MyClass(12, 13)
+	a2 = MyClass(12, 13, 99, 88)
+	a3 = MyClass("spooky")
+	
+	"" + [a1, a2, a3]
+}
+
+~~~~~
+//##38. calls on default actors
+
+public class MyClass(a = 100, b int, c int = 200, d int){
+	
+	this( g String){
+		this(99, 88)
+	}
+	
+	def invoke(a = 100, b=100) => a+b
+	def sumla(a = 100, b=100) => a+b
+
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+	
+def doings() {
+	an = actor MyClass(12, 13,)//constructor
+	an2 = actor MyClass("hello")//constructor
+	s1 = an.sumla(1)//normal method call
+	s2 = an(1)//overloaded operator invoke
+	"" + [an, an2, s1, s2]
+}
+
+~~~~~
+//##39. calls on non default actors
+
+public class MyClass(a = 100, b int, c int = 200, d int){
+	
+	this( g String){
+		this(99, 88)
+	}
+	
+	def invoke(a = 100, b=100) => a+b
+	def sumla(a = 100, b=100) => a+b
+
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+actor MyActor(a = 100, b int, c int = 200, d int) of MyClass(a,b,c,d){
+	this(g String){
+		this(45,466)
+	}
+	
+	def onLeActor(a = 100, b int, c=100) => [a,b,c]
+
+}
+	
+def doings() {
+	an = MyActor(12, 13,)//constructor
+	an2 = MyActor("hello")//constructor
+	s1 = an.sumla(1)//normal method call
+	s2 = an(1)//overloaded operator invoke
+	l1 = an.onLeActor(1,10)//call a method on the actor itself
+	"" + [an, an2, s1, s2, l1]
+}
+
+~~~~~
+//##40. funcref method
+
+def hasDefaults(a = 100, b int, c = 200, d int) => [a,b,c,d]
+	
+def doings() {//call w 3 args
+	//bound left to right with priority placed on non default args
+	a1=hasDefaults&(12, 8)
+	a2=hasDefaults&(12, b=8)
+	a3=hasDefaults&(12, b=8)
+	a4=hasDefaults&(b=8, 12)//ok
+	a5=hasDefaults&(1,2,3,4)//ok
+	i1 = hasDefaults&(1,2)
+	i2 = hasDefaults&(c=9, 1,2)
+	i3 = hasDefaults&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##41. funcref local method
+	
+def doings() {
+
+	def hasDefaults(a = 100, b int, c = 200, d int) => [a,b,c,d]
+
+	a1=hasDefaults&(12, 8)
+	a2=hasDefaults&(12, b=8)
+	a3=hasDefaults&(12, b=8)
+	a4=hasDefaults&(b=8, 12)//ok
+	a5=hasDefaults&(1,2,3,4)//ok
+	i1 = hasDefaults&(1,2)
+	i2 = hasDefaults&(c=9, 1,2)
+	i3 = hasDefaults&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##42. funcref constructors
+
+class MyClass{
+	a int
+	b int
+	c int
+	d int
+
+	this(a = 100, b int, c = 200, d int){
+		this.a = a
+		this.b = b
+		this.c = c
+		this.d = d
+	}
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+	
+def doings() {
+	a1=MyClass&(12, 8)
+	a2=MyClass&(12, b=8)
+	a3=new MyClass&(12, b=8)
+	a4=MyClass&(b=8, 12)//ok
+	a5=MyClass&(1,2,3,4)//ok
+	i1 = new MyClass&(1,2)
+	i2 = MyClass&(c=9, 1,2)
+	i3 = MyClass&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##43. funcref constructors classdef
+
+class MyClass(a = 100, b int, c = 200, d int){
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+	
+def doings() {
+	a1=MyClass&(12, 8)
+	a2=MyClass&(12, b=8)
+	a3=new MyClass&(12, b=8)
+	a4=MyClass&(b=8, 12)//ok
+	a5=MyClass&(1,2,3,4)//ok
+	i1 = new MyClass&(1,2)
+	i2 = MyClass&(c=9, 1,2)
+	i3 = MyClass&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##44. funcref constructors actors
+
+class MyClass(a = 100, b int, c = 200, d int){
+
+	override toString() => "" + [a,b,c,d]
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+	
+def doings() {
+	a1=actor MyClass&(12, 8)
+	a2=actor MyClass&(12, b=8)
+	a3=actor MyClass&(12, b=8)
+	a4=actor MyClass&(b=8, 12)//ok
+	a5=actor MyClass&(1,2,3,4)//ok
+	i1 = actor MyClass&(1,2)
+	i2 = actor MyClass&(c=9, 1,2)
+	i3 = actor MyClass&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##45. funcref methods actors
+
+class MyClass{
+
+	def lefunc(a = 100, b int, c = 200, d int) => [a,b,c,d]
+
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+	
+def doings() {
+	ma = actor MyClass()
+
+	a1=ma.lefunc&(12, 8)
+	a2=ma.lefunc&(12, b=8)
+	a3=ma.lefunc&(12, b=8)
+	a4=ma.lefunc&(b=8, 12)//ok
+	a5=ma.lefunc&(1,2,3,4)//ok
+	i1 = ma.lefunc&(1,2)
+	i2 = ma.lefunc&(c=9, 1,2)
+	i3 = ma.lefunc&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##46. funcref methods typed actor
+
+class MyClass{
+
+	def lefunc(a = 100, b int, c = 200, d int) => [a,b,c,d]
+
+	override hashCode() => 1
+	override equals(a Object) => false
+
+}
+
+actor MyActor of MyClass//yeah this works ok
+	
+def doings() {
+	ma = MyActor()
+
+	a1=ma.lefunc&(12, 8)
+	a2=ma.lefunc&(12, b=8)
+	a3=ma.lefunc&(12, b=8)
+	a4=ma.lefunc&(b=8, 12)//ok
+	a5=ma.lefunc&(1,2,3,4)//ok
+	i1 = ma.lefunc&(1,2)
+	i2 = ma.lefunc&(c=9, 1,2)
+	i3 = ma.lefunc&(1,2,3)
+	
+	"" + for(x in [a1, a2, a3, a4, a5, i1, i2, i3]){ x() }
+}
+
+~~~~~
+//##47. bugfix
+
+def myFunc<T>(a int = 100){ 5 }//used to blow up now ok
+	
+def doings() {
+	ok= myFunc()
+	"k"
+}
+
+
+~~~~~
+//##48. local generics ok
+
+def myFuncz<T>(a T? = null){ 5 }//ok, only case we can do this
+	
+def doings() {
+	ok= myFuncz<String>()
+	"lovely: {ok}"
+}
+
+~~~~~
+//##49. class level generics
+
+class Myclass<T>{
+	def myFuncz(a  T? = null){ 5 }//ok, only case we can do this
+}
+	
+def doings() {
+	mc = Myclass<String>()
+	ok= mc.myFuncz()
+	"lovely: {ok}"
+}
+
+~~~~~
+//##50. null on rhs
+class Myclass<T>(a T?  = null){//ok -> Object
+	override toString() => "Myclass: " + a
+}
+	
+def doings() {
+	mc = Myclass<String>("2")
+	"lovely: {mc}"
+}
+
+~~~~~
+//##51. null on rhs pt2
+
+def myFuncz<T>(a  = null){ 5 }//ok, only case we can do this
+	
+def doings() {
+	ok= myFuncz<String>()
+	"lovely: {ok}"
+}
+
+~~~~~
+//##52. spot check this is ok
+
+class Myclass<T>(a  T , b =9 ){//ok -> Object
+	override toString() => "Myclass: " + a
+}
+	
+def doings() {
+	mc = Myclass("ok")
+	"lovely: {mc}"
+}
+
+~~~~~
+//##53. null on rhs classdef
+
+class Myclass<T>(a  T? =null , b =9 ){//ok -> Object
+	override toString() => "Myclass: " + a
+}
+	
+def doings() {
+	mc = Myclass("ok")
+	"lovely: {mc}"
+}
+
+~~~~~
+//##54. type inf to object when rhs varnull
+
+def myfunc<T>(a  = null){ "hi" + a }//so tired
+	
+def doings() {
+	mc = myfunc<String>()
+	"lovely: {mc}"
+}
+
+~~~~~
+//##55. basic vararg as int[]
+
+def myMethod(a int, bs int...){//its a vararg!
+	for(bss in bs) { bss + a }
+}
+
+def doings() {
+	simple = myMethod(100, [23  24  25])
+	"" + simple
+}
+
+~~~~~
+//##56. basic vararg passed in
+
+def myMethod(a int, bs int...){
+	for(bss in bs) { bss + a }
+}
+
+
+def doings() {
+	well = myMethod(100, 1, 2, 3)//cos there is one object parameter
+	//well = myMethod(100, 23)//cos there is one object parameter
+	"" + well
+}
+
+~~~~~
+//##57. basic vararg passed in with extra arg after
+
+def myMethod(a int, bs int..., x int){
+	for(bss in bs) { bss + a + x }
+}
+
+
+def doings() {
+	well = myMethod(100, 1, 2, 3, 10)//cos there is one object parameter
+	//well = myMethod(100, 23)//cos there is one object parameter
+	"" + well
+}
+
+~~~~~
+//##58. empty array if vararg missing
+
+def myMethod(a int, bs int..., x int){
+	f = for(bss in bs) { bss + a + x }
+	f + ":{x}"
+}
+
+def doings() {
+	well = myMethod(100, 23)//vararg is empty, map left and right args
+	"" + well
+}
+
+~~~~~
+//##59. single arg to vararg
+
+def myMethod(a int, bs int...){
+	for(bss in bs) { bss + a }
+}
+
+
+def doings() {
+	well = myMethod(100, 23)//single argument to vararg
+	"" + well
+}
+
+~~~~~
+//##60. last arg is always considered vararg if its an array
+
+def myMethod(a int, bs int[]){
+	for(bss in bs) { bss + a }
+}
+
+
+def doings() {
+	well = myMethod(100, 1,2,3)
+	"" + well
+}
+
+~~~~~
+//##61. can call as direct array
+
+def myMethod(a int, bs int..., x int){
+	for(bss in bs) { bss + a + x }
+}
+def myMethod2(a int, bs int...){
+	for(bss in bs) { bss + a  }
+}
+
+
+def doings() {
+	well = myMethod(100, [1 2 3], 10)
+	well2 = myMethod2(100, [1 2 3])//its already an array
+	"" + [well, well2]
+}
+
+~~~~~
+//##62. could be ambigious but isnt
+
+def myMethod(a int, bs int..., x int){
+	for(bss in bs) { bss + a + x }
+}
+
+def myMethod(a int, bs int...){
+	for(bss in bs) { bss + a  }
+}
+
+def doings() {
+	well = myMethod(100, [1 2 3], 10)
+	well2 = myMethod(100, [1 2 3])
+	"" + [well, well2]
+}
+
+~~~~~
+//##63. could be ambigious but isnt
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList(1, 2, 3, 4, 5)
+}
+
+~~~~~
+//##64. bugfix vararg ar object etc
+
+def myMethod1(a int, bs Number...){
+	for(bss in bs) { "{bss}:{a}" }
+}
+
+def myMethod2(a int, bs Number...){
+	for(bss in bs) { "{bss}:{a}" }
+}
+
+
+def doings() {
+	well = myMethod1(100, 1,2,3)
+	well2 = myMethod2(100, 1,2,3)
+	"" + [well, well2]
+}
+
+~~~~~
+//##65. existing java code
+
+def doings() {
+	n1 = String.format("ok: %s", "hithere")
+	n2 = String.format("%s %s", 1, 2)
+	
+	"" + [n1,n2]
+}
+
+~~~~~
+//##66. with default value of different type
+
+def myMethod(a = "100.", x int, bs int...){
+	for(bss in bs) { bss + a + x  }
+}
+
+def doings() {
+	well = myMethod(1,2,3, 4, 5)
+	"" + well
+}
+
+~~~~~
+//##67. with default value of different type no intermediate item
+
+def myMethod(a = "xxx", bs int...){
+	for(bss in bs) { bss + a  }
+}
+
+def doings() {
+	well = myMethod(1,2,3, 4, 5)
+	"" + well
+}
+
+~~~~~
+//##68. with default value of different type no intermediate item at end
+
+def myMethod(bs int..., a = "xxx"){
+	for(bss in bs) { bss + a  }
+}
+
+def doings() {
+	well = myMethod(1,2,3, 4, 5)
+	"" + well
+}
+
+~~~~~
+//##69. direct call with default present
+
+def myMethod(bs int[], a = 100){//sth like that
+	for(bss in bs) { bss + a  }
+}
+
+def doings() {
+	well = myMethod([1  2  3  4  5])
+	"" + well
+}
+
+~~~~~
+//##70. direct call is ok
+
+from java.util import ArrayList, List
+
+def asList(ts int...)  {
+    result List<int> = ArrayList<int>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList([1  2  3  4  5])
+}
+
+~~~~~
+//##71. vararg immediatly follows default param
+
+def myMethod(a = 100, bs int[]){//sth like that
+	for(bss in bs) { bss + a  }
+}
+
+def doings() {
+	well = myMethod([1 2 3  4 5])
+	"" + well
+}
+
+~~~~~
+//##72. defaultp normal then vararg
+
+def myMethod(a = 100, x String, bs int[]){//sth like that
+	for(bss in bs) { bss + a + x }
+}
+
+def doings() {
+	well = myMethod('str', [1 2 3  4 5])
+	"" + well
+}
+
+~~~~~
+//##73. can use named parameter on the vararg
+
+def mymeth(b int..., g ="k") => 	for(bn in b){g+bn}
+def mymeth2(g ="k", b int...) => 	for(bn in b){g+bn}
+
+def doings() {
+	"" + [mymeth(b=[1 2 3 4 5])  mymeth2(b=[1 2 3 4 5])]
+}
+
+~~~~~
+//##74. used to blow up now ok
+
+def somer(a double, b int, g int[]) => a + b
+
+def doings() {
+	well = somer(1., 2)
+	"" + well
+}
+
+~~~~~
+//##75. bug but ok now
+
+def myMethod(a = 100, x long, bs int[]){//long used to be tagged as taking up one slot when actually it takes up two
+//bug in FrameSateTrackingMethodVisitor
+	for(bss in bs) { bss  }
+}
+
+def doings() {
+	well = myMethod(10l, [1 2 3 4 5])
+	"" + well
+}
+
+~~~~~
+//##76. constructors
+
+class Myclass(b int..., g ="k"){
+	override toString(){
+		"" + for(bn in b){g+bn}
+	}
+} 
+
+def doings() {
+	x = Myclass(b=[1 2 3 4 5])
+	x2 = Myclass(1, 2, 3, 4, 5)
+	
+	"" + [x, x2]
+}
+
+~~~~~
+//##77. this constructor
+class MyclassNo1(b int..., g = "ok", a String){
+	override toString(){
+		"" + for(bn in b){g+bn + a}
+	}
+	
+	this(){
+		this(1,2,3, "nicecat")
+	}
+	
+} 
+
+def doings() {
+	x = MyclassNo1()
+	
+	"" + x
+}
+
+~~~~~
+//##78. super constructor
+
+open class MyclassNo1(b int..., g = "ok", a String){
+	override toString(){
+		"" + for(bn in b){g+bn + a}
+	}
+	
+	this(){
+		this(1,2,3, "nicecat")
+	}
+	
+} 
+
+class ChildClass < MyclassNo1{
+	this(){
+		super(1,2,3, "nicecat")
+	}
+}
+
+def doings() {
+	x = ChildClass()
+	
+	"" + x
+}
+
+~~~~~
+//##79. agent constructor
+
+class MyclassNo1(b int..., g String){
+	override toString(){
+		"" + for(bn in b){g+bn}
+	}
+	
+	this(){
+		this(1,2,3, "lovely")
+	}
+} 
+
+
+def doings() {
+	x = actor MyclassNo1(1,2,3,4,5,6,"haha")
+	x2 = actor MyclassNo1()
+	
+	"" + [x, x2]
+}
+
+~~~~~
+//##80. agent constructor more complex
+
+class MyclassNo1(b int..., g = "ok", a String){
+	override toString(){
+		"" + for(bn in b){g+bn + a}
+	}
+	
+	this(){
+		this(1,2,3, "nicecat")
+	}
+	
+} 
+
+
+def doings() {
+	x = actor MyclassNo1(1,2,3,4,5,6, "hi")
+	
+	"" + x
+}
+
+~~~~~
+//##81. agent method calls
+
+class MyclassNo1{
+	
+	def aMethod(a int..., b = "lovely"){
+		for(aa in a){ b + a + '-' + aa }
+	}
+} 
+
+
+def doings() {
+	x = actor MyclassNo1()
+	
+	"" + x.aMethod(1,2,3,4,)
+}
+
+~~~~~
+//##82. agent method calls plus
+
+class MyclassNo1(b int..., g = "ok", a String){
+	override toString(){
+		"" + for(bn in b){g+bn + a}
+	}
+	
+	this(){
+		this(1,2,3, "nicecat")
+	}
+	
+	def aMethod(a int..., b = "lovely"){
+		for(aa in a){ b + aa }
+	}
+} 
+
+actor MyActor(b int..., g = "ok", a String) of MyclassNo1(b, g, a)
+
+def doings() {
+	x = actor MyclassNo1(1,2,3,4,5,6, "hi")
+	x2 = actor MyActor(1,2,3,4,5,6, "hi")
+	
+	a1 = x.aMethod(4,5,6,99)
+	a2 = x2.aMethod(4,5,6,99)
+	
+	"" + [x, x2, a1, a2]
+}
+
+~~~~~
+//##83. funcref of vararg
+
+def myMethod(a int, bs int...){
+	for(bss in bs) { bss + a }
+}
+
+
+def doings() {
+	well = myMethod&(100, 1, 2, 3)//cos there is one object parameter
+	well2 = myMethod&(100, 23)//cos there is one object parameter
+	"" + [well(), well2()]
+}
+
+~~~~~
+//##84. funcref of vararg constructor
+
+class MyClass(a int, bs int...){
+	override toString() => ""+for(bss in bs) { bss + a }
+}
+
+
+def doings() {
+	well = MyClass&(100, 1, 2, 3)//cos there is one object parameter
+	well2 = new MyClass&(100, 23)//cos there is one object parameter
+	"" + [well(), well2()]
+}
+
+~~~~~
+//##85. funcref of actors
+
+class MyclassNo1(b int..., g = "ok", a String){
+	override toString(){
+		"" + for(bn in b){g+bn + a}
+	}
+	
+	this(){
+		this(1,2,3, "nicecat")
+	}
+	
+	def aMethod(a int..., b = "lovely"){
+		for(aa in a){ b + aa }
+	}
+} 
+
+actor MyActor(b int..., g = "ok", a String) of MyclassNo1(b, g, a)
+
+def doings() {
+	x = actor MyclassNo1&(1,2,3,4,5,6, "hi")
+	x2 = actor MyActor&(1,2,3,4,5,6, "hi")
+	
+	i1 = x()
+	i2 = x2()
+	
+	a1 = i1.aMethod&(4,5,6,99)
+	a2 = i2.aMethod&(4,5,6,99)
+	
+	"" + [i1, i2, a1(), a2()]
+}
+
+~~~~~
+//##86. bugfix on varargs
+
+class Muc{
+	def thing(a int...){ "" + a}
+	def thing(a char...){ "" + a}
+
+	override equals(a Object)=>false
+	override hashCode()=>12
+
+}
+
+def doings(){
+	m = Muc()
+	g1 = m.thing(77,87)	
+	g2 = m.thing(77 as char, 78 as char)	
+ 	//previously used to be tagged as ambigoius, but of course its not as one match is indirect
+ 
+	"" + [g1, g2]
+}
+
+~~~~~
+//##86.b bugfix on varargs
+
+class Muc{
+	//def thing(a int...){ "" + a} - check still works even wit this removed
+	def thing(a char...){ "" + a}
+
+	override equals(a Object)=>false
+	override hashCode()=>12
+
+}
+
+def doings(){
+	m = Muc()
+	g1 = m.thing(77,87)	
+	g2 = m.thing(77 as char, 78 as char)	
+ 	//previously used to be tagged as ambigoius, but of course its not as one match is indirect
+ 
+	"" + [g1, g2]
+}
+
+~~~~~
+//##87. bugfix 2 on varargs
+
+class Muc{
+	def thing(a int...){ "" + a}
+	def thing(a int){ "" + a}
+
+	override equals(a Object)=>false
+	override hashCode()=>12
+
+}
+
+def doings(){
+	m = Muc()
+	g1 = m.thing(77)	
+	g2 = m.thing(77, 87, 87)	
+	//used to be unable to differentiate the two
+ 
+	"" + [g1, g2]
+}
+
+~~~~~
+//##87. bugfix 3 on varargs
+
+from java.math import BigDecimal
+
+def doings(){
+	bd = BigDecimal(12)
+
+	"" + bd//used to be ambigious
+}
+
+~~~~~
+//##88. no arg funcref
+
+def alovelyone() => "athena"
+def whoislovely(its String) => "lovely: " + its
+
+def doings(){
+	myRef1 = alovelyone&
+	myRef2 = whoislovely&
+	"" + [myRef1(), myRef2("hi")]
+}
+
+~~~~~
+//##89. no arg funcref cons
+
+class MyClass(a int){
+	
+	override equals(a Object) => false;
+	override hashCode() => 1
+	override toString() => "gots: " + a
+}
+
+def doings(){
+	myClsInst = new MyClass&(? int)
+	myClsInst2 = new MyClass&
+	"" + [myClsInst(12), myClsInst2(12)]
+}
+
+~~~~~
+//##90. no arg funcref cons actor
+
+class Acorn(a int){
+	def invoke(a int, b int, c int) => "" + ((a**b)+c)
+	override toString() => "i have a " + a
+}
+
+def doings(){
+	actles = new actor Acorn&//(? int)
+	"" + actles(12)
+}
+
+~~~~~
+//##91. no arg funcref cons actor method
+
+class Acorn(a int){
+	def invoke(a int, b int, c int) => "" + ((a**b)+c)
+	override toString() => "i have a " + a
+}
+
+def doings(){
+	actles = new actor Acorn&
+	got = actles(12)
+	item = got.invoke&
+	"" + item(12, 2, 1)
+}
+
+~~~~~
+//##92. generic binding on funcref
+
+from java.util import ArrayList
+
+def alovelyone<X>(an ArrayList<X>, x X) => an.add(x)
+
+def doings(){
+	ma = new ArrayList<String>()
+	ma.add("hi")
+	adder = alovelyone<String>&
+	adder(ma, "there")
+	
+	"" + ma
+}
+
+~~~~~
+//##93. generic binding on constructors
+
+from java.util import ArrayList
+
+class MyClass<X>(x X){
+	override toString() => "got: " + x
+}
+
+def doings(){
+	ma = MyClass<String>&
+	
+	"" + ma("hi")
+}
+
+~~~~~
+//##94. more generic of functypes bugfix
+
+class  MyArrayList <X> (){}
+
+a1 = def (a int) { a }
+a2 = def (a String) { a }
+
+def s() => false
+
+def doings(){
+	ww = a1 if s() else a2
+	'"ok"'// ww resolves to Object as generic qualification types must match
+}
+
+~~~~~
+//##95. basic ConstructorRef
+from java.util import ArrayList
+
+class MyClass(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	ma1 = MyClass&
+	ma2 (*) MyClass = MyClass&
+	
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma1("hi")
+	v2b = ma1(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##96. ConstructorRef generics
+
+from java.util import ArrayList
+
+class MyClass<X>(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	ma1 = MyClass<String>&
+	ma2 (*) MyClass<String> = MyClass<String>&
+	
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma1("hi")
+	v2b = ma1(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##97. ConstructorRef inner class generics bound
+
+from java.util import ArrayList
+class Outer(abs int){
+	public class MyClass<X>(x String){
+		this(a int) => this("" + a)
+		override toString() => "got: " + [x, abs]
+		override hashCode() => 1
+		override equals(a Object) => false
+	}
+}
+
+def doings(){
+	oo = Outer(99)
+	ma1 = oo.MyClass<String>&
+	ma2 (*) Outer.MyClass<String> = oo.MyClass<String>&
+	
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma1("hi")
+	v2b = ma1(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##97.b ConstructorRef inner class generics bound - non generical
+
+//classref to an inner class
+class Outer(abs int){
+	public class MyClass(x String){
+		this(a int) => this("" + a)
+		override toString() => "got: " + [x, abs]
+		override hashCode() => 1
+		override equals(a Object) => false
+	}
+}
+
+def doings(){
+	oo = Outer(99)
+	ma1 = oo.MyClass&
+	ma2 (*) Outer.MyClass = oo.MyClass&
+	
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma2("hi")
+	v2b = ma2(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##98. ConstructorRef inner class generics unbounded
+
+from java.util import ArrayList
+class Outer(abs int){
+	public class MyClass<X>(x String){
+		this(a int) => this("" + a)
+		override toString() => "got: " + [x, abs]
+		override hashCode() => 1
+		override equals(a Object) => false
+	}
+}
+
+def doings(){
+	oo = Outer(99)
+	ma1 = Outer.MyClass<String>&
+	ma2 (*) Outer.MyClass<String> = Outer.MyClass<String>&
+	
+	ma1.bind(oo)
+	ma2.bind(oo)
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma1("hi")
+	v2b = ma1(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##99. ConstructorRefbugfix 
+
+class MyClass(a int){
+	
+	override equals(a Object) => false;
+	override hashCode() => 1
+	override toString() => "gots: " + a
+}
+
+def doings(){
+	//myClsInst = new MyClass&(? int)
+	myClsInst2 = MyClass&//used to break
+	"" + myClsInst2(12)
+}
+
+~~~~~
+//##100. ConstructorRef on actor
+
+from java.util import ArrayList
+
+class MyClass(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	ma1 = actor MyClass&
+	ma2   = actor MyClass&
+	
+	//hmm () actor MyClass = new actor MyClass&("")
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma1("hi")
+	v2b = ma1(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##101. in out generics in
+
+from java.util import ArrayList
+
+class MyGen<X>{
+	public x X?
+	public def get(ank X) X{
+		return null;
+	}
+}
+
+def doings(){
+	
+	strli = new ArrayList<Number>();
+	
+	mastero ArrayList<in Integer> = strli//ok
+	
+	mastero.add(12)//ok
+	ok Object = strli.get(0)//to the upper bound
+	
+	ok2 = strli.get(0)//to the upper bound, not tagged as in type
+	//ok2 = "fine"
+	
+	mygen MyGen<in Integer> = new MyGen<Integer>()
+	mygen.x = 12//ok
+	what Object? = mygen.x //ok
+	what3 = mygen.x //ok
+	whats3=""//should be ok as object and not in Integer
+  
+	"all ok" 
+}
+
+~~~~~
+//##102. in out generics out
+
+from java.util import ArrayList
+
+class MyGen<X>{
+	public x X?
+}
+
+def doings(){
+	
+	strli = new ArrayList<String>();
+	strli.add("Hi")
+	
+	mastero ArrayList<out Object> = strli//this is ok
+	
+	ok = mastero.get(0)//this is ok
+	
+	mygen MyGen<out Integer> = new MyGen<Integer>()
+	what = mygen.x if mygen.x else 0//new param gets upper bound without out/in
+	what = 12 // ok as lhs is not tagged as an out parameter
+
+ 
+	"all ok"
+}
+
+~~~~~
+//##103. double check int to Object Number works ok
+
+from com.concurnas.lang.precompiled import InOutParams
+from java.util import ArrayList
+myAr = ArrayList<Number>();
+anotherOne = InOutParams.getNormal()
+
+def doings(){
+	myAr.add(12)
+	anotherOne.setX(12)
+ 
+	"all ok" + [myAr[0], anotherOne]
+}
+
+~~~~~
+//##104. in out imported typed correclty
+
+from com.concurnas.lang.precompiled import InOutParams
+
+
+def doings(){
+	
+	outInstnce = InOutParams.getOutInstance()// its ,out Number.
+	got = outInstnce.x
+		
+	inInstnce = InOutParams.getInInstance()// its, in Integer.
+	inInstnce.setX( 99   )//old fashioned
+	inInstnce.x = 99
+ 
+	"all ok" + [got, inInstnce]
+}
+
+~~~~~
+//##105. in out out correctly bound bugfix
+
+class MyClass<X>(x X)
+
+from java.util import ArrayList
+
+def doings(){
+	prim = new ArrayList<String>()
+	prim.add("hi") 
+	
+	nope ArrayList<out String> = prim
+	n String = nope.get(0)
+	
+	mc MyClass<String> = MyClass( n )
+	mc2 MyClass<String> = MyClass(nope.get(0) )
+	
+	"" + n
+}
+
+~~~~~
+//##106. as above bug fields
+
+class MyClass<X>(x X)
+
+class MyHolder<X>(public ~x X)
+
+
+def doings(){
+	prim = new MyHolder<String>("what")
+	prim.x = "hi" 
+	
+	nope MyHolder<out String> = prim
+	n String = nope\.x
+	
+	mc MyClass<String> = MyClass( n )
+	mc2 MyClass<String> = MyClass(nope\.x )
+	
+	"" + n
+}
+
+~~~~~
+//##107. bugfix generic in out type subtype
+
+class Holder<X>{}
+
+open class Par<X>{}
+class Child < Par<Integer> {}
+
+def doings(){
+	xxx Holder<out Par<Integer>> = new Holder<Child>()
+	"lovely"
+}
+
+~~~~~
+//##108. problem as above resolved for explicit anctor refs
+
+from java.util import ArrayList
+
+class MyClass(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	
+	hmm () actor MyClass = new actor MyClass&("ok")
+	
+	//-> () out TypedActor<MyClass> | ConstructorRef< ? extends TypedActor<MyClass> >
+	
+	v1 = hmm()
+	
+	"" + v1
+}
+
+~~~~~
+//##109. constructor refs for actors
+
+from java.util import ArrayList
+
+class MyClass<X>(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+	def hi() => "hi"
+}
+
+def doings(){
+	w="weird"
+	hmm  = actor MyClass<String>&//('ok1')
+	hmm2 (*) actor MyClass<String> = actor MyClass<String>&//('ok2')
+	
+	v1 = hmm('ok1')
+	v2 = hmm2('ok2')
+	
+	check1 = v1.hi()
+	check2 = v2.hi()
+		
+	"" + [check1, check2] + for(thing in [v1, v2]){
+		[thing,  thing:getClass().name, thing.getClass().name, thing is actor, thing is actor MyClass<String>, (thing as Object) is not actor MyClass<int>]
+	}
+}
+
+~~~~~
+//##110. class ref and constructor refs for actors
+
+from java.util import ArrayList
+
+class MyClass<X>(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+	def hi() => "hi"
+}
+
+def doings(){
+	w="weird"
+	hmm  = actor MyClass<String>&//class reference
+	hmm2 = actor MyClass<String>&(66)//constructor reference
+	
+	v1 = hmm('ok1')
+	v2 = hmm2()
+	
+	check1 = v1.hi()
+	check2 = v2.hi()
+		
+	"" + [check1, check2] + for(thing in [v1, v2]){
+		[thing,   thing:getClass().name, thing.getClass().name, thing is actor, thing is actor MyClass<String>, (thing as Object) is not actor MyClass<int>]
+	}
+}
+
+~~~~~
+//##111. class ref and constructor refs for untyped actors
+
+from java.util import ArrayList
+
+actor MyClass<X>(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+	def hi() => "hi"
+}
+
+def doings(){
+	w="weird"
+	hmm  = MyClass<String>&//class reference
+	hmm2 = new MyClass<String>&(66)//constructor reference
+	
+	v1 = hmm('ok1')
+	v2 = hmm2()
+	
+	check1 = v1.hi()
+	check2 = v2.hi()
+		
+	"" + [check1, check2] + for(thing in [v1, v2]){
+		[thing,  thing.getClass().name, thing is actor, thing is MyClass<String>, (thing as Object) is not MyClass<int>]
+	}
+}
+
+~~~~~
+//##112. class ref and constructor refs for untyped actors bugfix
+
+from java.util import ArrayList
+
+actor MyClass<X>(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+	def hi() => "hi"
+}
+
+def doings(){
+	w="weird"
+	hmm  = new  MyClass<String>&('ok1')//constructor reference
+	hmm2 = MyClass<String>&('66')//constructor reference to actor didnt use to like this
+	
+	
+	v1 = hmm()
+	v2 = hmm2()
+	
+	check1 = v1.hi()
+	check2 = v2.hi()
+		
+	"" + [check1, check2] + for(thing in [v1, v2]){
+		[thing,  thing.getClass().name, thing is actor, thing is MyClass<String>, (thing as Object) is not MyClass<int>]
+	}
+}
+
+~~~~~
+//##113. not sure what this proves but works ok
+
+from java.util import ArrayList
+
+class MyClass(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	ma1 = actor MyClass&
+	ma2  (*) actor MyClass = actor MyClass&
+	
+	v1 = ma1("hi")
+	v2 = ma1(12)
+	
+	v1b = ma1("hi")
+	v2b = ma1(12)
+	
+	"" + [v1, v2, v1b, v2b]
+}
+
+~~~~~
+//##114. improved funcrefs 2 auto create from refname
+
+def foo1(){
+	def fong() { 
+		"hi"
+	}
+	
+	fong&
+}
+
+def foo2(){
+	def fong() { 
+		"hi"
+	}
+	
+	fong//translates to fong&
+}
+
+
+def doings(){
+	"ok " + [foo1()(), foo2()()] 
+}
+
+~~~~~
+//##115.b improved funcrefs 2 auto create from refname
+
+def fong() => "hi"
+
+def foo1(){
+	
+	fong&
+}
+
+def foo2(){
+	fong//translates to fong& automatically
+}
+
+
+def doings(){
+	"ok " + [foo1()(), foo2()()] 
+}
+
+~~~~~
+//##116. new class constructor
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+
+def doings(){
+	mc = MyClass&
+	
+	inst = new mc(33)
+	
+	"" + inst
+}
+
+~~~~~
+//##117. introduce ClassRefIface to deal with casting etc
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def getme() (*) MyClass => MyClass&
+
+def doings(){
+	mc  = MyClass&
+	mc2 Object = mc
+	
+	got = (mc as (*) MyClass )
+	got2 = (mc2 as (*) MyClass )
+	
+	"" + [got(12), got2('cool')]
+}
+
+~~~~~
+//##118. ClassRefIface on FuncRefInvoke
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def doings(){
+	mc Object = MyClass&
+	got = (mc as (*) MyClass ) (12)
+	
+	"" + got
+}
+
+~~~~~
+//##119. ClassRefIface on normal java classes
+
+def fella(lala (*)String) => lala
+
+def doings(){
+	mc  = String&
+	mc2 = fella(mc)
+	
+	"" + mc2('13')
+}
+
+~~~~~
+//##120. pass lambda to java and back again
+
+from com.concurnas.lang.precompiled import ClassRefPasser
+
+def doings(){
+	mc2 = def (a int) { "it: " + a }
+	
+	pased = ClassRefPasser.passALambda(mc2)
+	
+	"" + pased(13)
+}
+
+~~~~~
+//##121. ClassRef pass through normal code and from java
+
+from com.concurnas.lang.precompiled import ClassRefPasser
+
+def fella(lala (*)String) => lala
+
+def doings(){
+	mc  = String&
+	passed1 = fella(mc)//regular
+	passed2  = ClassRefPasser.pass(mc)//via java
+	
+	"" + [passed1('12'), passed2('13')]
+}
+
+~~~~~
+//##122. ref to ClassRef 
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	
+	this(g String, a Integer){
+		this(g + "" + a)
+	}
+	 
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def doings(){
+	mc  = (MyClass&) as (*) MyClass
+	got = mc&(12)
+	got2 = mc&('15')
+	got3 = mc&("j", 88)
+	
+	"" + [got(), got2(), got3()]
+}
+
+~~~~~
+//##123. more ref to ClassRef
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def doings(){
+	mc  = MyClass&
+	got = mc&(? int)(12)
+	
+	"" + got
+}
+
+~~~~~
+//##124. more ref to ClassRef cool
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def doings(){
+	mc  = MyClass&
+	got = mc&(? int)
+	got2 = mc&(? int)(12)
+	
+	"" + [got(12), got2]
+}
+
+~~~~~
+//##125. total use of classrefs
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def reciever(calledon Function0<MyClass> ) => calledon()
+def reciever2(calledon () MyClass ) => calledon()
+
+def caller( thing (*) MyClass ){
+	one = "" + reciever(thing&(12))//passes a Function0
+	two = ""+ reciever2(thing&(12))//passes a Function0
+	"{one}, {two}"
+}
+
+def doings(){
+	mc = MyClass&
+	"" + caller(mc)
+}
+
+~~~~~
+//##126. actors of classrefs
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+def doings(){
+	mc = MyClass&
+	
+	inst = actor mc(33)
+	inst2 = new actor mc(33)
+	
+	"" + [inst, inst2] 
+}
+
+~~~~~
+//##127. field and module level classref
+
+cc=String&
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = cc
+	
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	def thingy(){
+		"" + mc1('hi2') + " " + cc("hisad")
+	}
+}
+
+def doings(){
+	MyClass().thingy()
+}
+
+~~~~~
+//##128. field and module level classref 2
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = String&
+	
+	def doings(){
+		"" + mc1('hi2')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##129. field and module level classref 3
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = {String&}
+	
+	def doings(){
+		"" + mc1('hi2')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##130. field level block
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = { x= 991;
+	 x}
+	
+	def doings(){
+		"" +mc1
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##131. field level block 2
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = { x= 99;
+	 String&}
+	
+	def doings(){
+		"" + mc1('hi2')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##132. check block def works ok
+
+def doings(){
+
+	mc1 = { class MMM(a String){
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+		}
+		MMM&}
+
+	""+mc1("hi")
+}
+
+~~~~~
+//##133. bugfix on vararg ambiguity
+
+def ambigola(){ "cool" }
+def ambigola(a int[]){  "cool" + a }
+
+
+def doings(){
+	""+[ambigola(), ambigola(1,2,3)]
+}
+
+~~~~~
+//##134. underscore is optional on funcrefs
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo&(String, 12, 23)
+
+	"" + ln("ok")
+}
+
+~~~~~
+//##135. underscore is optional works on inner nested classes now
+
+class Outer{
+	class Inner{}
+}
+
+
+def foo(a Outer.Inner?, b int, c int) => ""+ [a, b, c]
+
+
+def doings(){
+	ln = foo&(Outer.Inner?, 12, 23)
+
+	"" + ln(null)
+}
+
+~~~~~
+//##136. this didnt use to work
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo&( String, 12,  int)//map this to a funcref
+
+	"" + ln("ok", 99)
+}
+
+~~~~~
+//##137. map function invokation to funcref if approperiate
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo(String, 12, 33)//map this to a funcref
+
+	"" + ln("ok")
+}
+
+~~~~~
+//##138. map func invokation to funcref automatically if primative or lambda passed in
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo(String, 12, int)//map this to a funcref
+
+	"" + ln("ok", 44)
+}
+
+~~~~~
+//##139. no underscore needed on name map either
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo&(12, 45, a=String)//map this to a funcref
+
+	"" + ln("ok")
+}
+
+~~~~~
+//##140. no underscore on name map for primatives
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo&(String, 12, b= int)//map this to a funcref
+
+	"" + ln("ok", 69)
+}
+
+~~~~~
+//##141. no underscore on name map and auto convert to funcref
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo(12, 45, a=String)//map this to a funcref
+
+	"" + ln("ok")
+}
+
+~~~~~
+//##142. no underscore on name map and auto convert to funcref for primatives
+
+def foo(a String, b int, c int) => ""+ [a, b, c]
+
+def doings(){
+	ln = foo(String, 12, b= int)//map this to a funcref
+
+	"" + ln("ok", 69)
+}
+
+~~~~~
+//##143. bugfix cast from Object to int etc
+
+def doings(){
+	ok Object = Integer(12)
+
+	res1 = ok as Integer
+	res2 = ok as int
+	
+	"" + [res1, res2]
+}
+
+~~~~~
+//##144. Object to int array Integer array
+
+def doings(){
+	ok1 Object = [Integer(12) 12 34 5]
+	ok2 Object = [12 12 34 5]
+
+	res = ""
+	
+	n=1
+	
+	res+='res{n++}: ' + try{  ok1 as int[] } catch(e java.lang.ClassCastException){'as expected'} + "\n"
+	res+='res{n++}: ' + try{  ok1 as Integer[] } catch(e java.lang.ClassCastException){e}+ "\n"
+	res+='res{n++}: ' + try{  ok2 as int[] } catch(e java.lang.ClassCastException){e}+ "\n"
+	res+='res{n++}: ' + try{  ok2 as Integer[] } catch(e java.lang.ClassCastException){'as expected'}+ "\n"
+	
+	res
+}
+
+~~~~~
+//##145. bugfix used to end up in inf loop
+
+class MyClass{
+	public myVar = 100
+	
+	def getMyVar(){
+		return this.myVar
+	}
+
+	def setMyVar(a int){
+		this.myVar = a
+	}
+}
+
+def doings(){
+	mc = MyClass()
+	""+mc.getMyVar()
+}	
+
+~~~~~
+//##146. convert from new to constructor ref when types provided in place of varnames
+
+class MyGenClass(x String, y String){
+	override toString() => "MyGenClass " + [x,y]
+}
+
+def doings(){
+	 g = new MyGenClass(String, "77")
+	 "" + g('easy enough')
+}
+
+~~~~~
+//##146.b convert from new to constructor ref when types provided in place of varnames
+
+class MyGenClass(x String, y String){
+	override toString() => "MyGenClass " + [x,y]
+}
+
+def doings(){
+	 g1 = new MyGenClass(String, "77")
+	 g2 = MyGenClass(String, "77")
+	 "" + [g1('easy enough'), g2('easy enough')]
+	 //g2 = MyGenClass<String>(String, "77")//this is broken - needs fix
+	 //ff = MyLocal<String>(Integer)//not permitted as generics mismatch - needs fix
+}
+
+~~~~~
+//##147. funcref on varargs
+
+def thingy(a int, b int, stuff Object..., c int, d int){
+	"" + [a, b, stuff, c, d]
+}
+
+
+def doings(){
+	xx = thingy&(1,2, "hi", String, 3, 4)//2-3 inclusive are for varargs
+	
+	"" + xx('there')//ref to thing with varargs
+}
+
+~~~~~
+//##148. var args for funcrefinvoke
+gu = def (a int, b int, c int...) => 'gu' + [a, b, c]
+
+def getit() => gu
+
+def doings(){
+	//"" + (gu 1 2 8)
+	"" + getit()(1, 2, 8, 9)
+}
+
+~~~~~
+//##149. named params for funcrefinvoke
+
+//var args for funcrefinvoke
+gu = def (a int, b int, c int...) => 'gu' + [a, b, c]
+
+def getit() => gu
+
+def doings(){
+	"" + getit()(1, 8, 9, b=2,)
+}
+
+~~~~~
+//##150. double check this works ok
+
+def doings() {
+	vaa  =null
+	"" + vaa
+}
+
+~~~~~
+//##151. its fine its how we do it
+
+def String joinx(delim String, items Object...){
+	this.join(delim, ""+x for x in items)
+}
+
+e1 = [1]
+e2 = a[1]
+e3 = "hi"
+
+def doings(){
+	"".joinx(",", e1, e2, e3)
+}
+
+~~~~~
+//##152. nice it works
+
+def String joinx(delim String, items Object...){
+	this.join(delim, ""+x for x in items)
+}
+
+def doings(){
+	e1 = [1]
+	e2 = a[1]
+	e3 = 'hi'
+
+	"" joinx ', ' e1 e2 e3
+}
+
+~~~~~
+//##153. varargs which are ref types were failing
+def exe(kernal String, globalWorkSize long[], localWorkSize long[]?,  more String:...) {
+	"ok"
+}
+
+
+def doings(){
+	exe("kernel", [1L], null, "hi":, "there":)
+}
+
+~~~~~
+//##154. varargs which are ref types were failing pt 2
+
+def exe( more String:...) {
+	"ok {more.length}"
+}
+
+aaa : ="hi"
+
+def doings(){
+	r1 = exe(aaa, aaa)
+	r2 = exe("hi", "there")
+	r3 = exe("hi", "there":)
+	r4 = exe( "hi":, "there":)
+	
+	"" + [r1 r2 r3 r4]
+}
+
+~~~~~
+//##155. vararg then default
+
+def myThing(b String..., c int =12){
+	"" + [ b, c]
+}
+def doings(){
+	r1 = ""+myThing("hi")
+	r2 = ""+myThing("hi", "there")
+	r3 = ""+myThing("hi", 7)
+	r4 = ""+myThing("hi", "there", 7)
+	"" + String.join("\n", [r1, r2, r3, r4])
+}
+
+~~~~~
+//##156. vararg after some defaults
+
+def myThing(a String, b int[], c int[]? = null, d String...){
+	""+[a, b, c, d]
+}
+
+def doings(){
+	myThing("hi",  [1 2], "hi there")
+} 
+
+~~~~~
+//##157. import precompiled
+
+def exe(a String, b int[], c int[]? = null, d String...){
+	"" + [a, b, c, d]
+}
+
+from com.concurnas.lang.precompiled import DefaultAndVarargHolder
+
+def doings(){
+	"" + DefaultAndVarargHolder.exe("a", [12 13])
+}
+
+~~~~~
+//##158. mixed default args and varargs
+
+def myFunc(a String, b int[], c int[]? = null, d String...){
+	"" + [a, b, c, d]
+}
+
+def doings(){
+	r1=myFunc("a", [1 2], [3 4])
+	r2 = myFunc("a", [1 2], null)
+	"{r1}\n{r2}"
+}
+
+~~~~~
+//##159. another mixed variant
+
+def myThing(a String, b int[], c int[] = [999 888], d String...){
+	""+[a, b, c, d]
+}
+
+def doings(){
+	myThing("hi",  [1 2], "hi there")
+} 
+
+~~~~~
+//##160. mixed default args and varargs more
+
+def myFunc(a String, b int[], c int[]? = null, d String...){
+	"" + [a, b, c, d]
+}
+
+def doings(){
+	myFunc("a", [1 2], [3 4], 'ok')
+}
+
+~~~~~
+//##161. mixed default args and varargs more complete 
+
+def myFunc(a String, b int[], c int[]? = null, d String...){
+	"" + [a, b, c, d]
+}
+
+def doings(){
+	r1 = myFunc("a", [1 2], [3 4])
+	r2 = myFunc("a", [1 2], [3 4], 'ok', 'then')
+	r3 = myFunc("a", [1 2], 'ok', 'then')
+	r4 = myFunc("a", [1 2], [3 4], 'ok')
+	String.join("\n", [r1, r2, r3, r4])
+}
+
+
+~~~~~
+//##162. bugfix on default params missing from extension function
+
+def int to(another Integer = null) {
+	"{another} {this}"
+} 
+
+def doings(){
+	z = 0\.to()//z = 0\.to()
+	z
+}
+
+~~~~~
+//##163. more calls on non typed actors with default constructors
+
+DEFAULT_CONC_PORT = 42000
+
+actor MyClass(~thing int = DEFAULT_CONC_PORT){//}, dlx = defaultLoggerProvider){
+	override hashCode() => 1
+	override equals(an Object) => false
+	def dave(asd = 99) => asd
+}
+
+def doings(){
+	mc = new MyClass()
+	""+mc.thing
+}
+
+~~~~~
+//##164. default param can also be vararg
+
+class MyClass{
+	def myDefaultThing(ab byte[]? = null){
+		"ok"
+	}
+}
+
+def doings(){
+	mc = MyClass()
+	"" + mc.myDefaultThing()//the default parameter trumps the vararg
+}
+
+~~~~~
+//##165. bridge methods for public methods of non public classes whic are used as superclasses
+//##MODULE com.myorg.code2
+private abstract class Master{
+	public def thecall() => 12
+}
+
+class Child < Master{
+	//public methods from Master need to be exposed - since Master is not public class
+	def callThecall() => thecall()
+}
+
+
+//##MODULE
+def doings(){
+	c = new com.myorg.code2.Child()
+	asfuncref = c.thecall&()
+	"" + [c thecall, asfuncref(), c callThecall ]
+}
+
+~~~~~
+//##166. bridge methods for as above maps for compiled classes correctly now
+def doings(){
+	t1 = String.class, "hi"
+	t2 = String.class, "hi"
+	
+	"" + [t1.getType() == t2.getType()]//, t1.hashCode(), t2 hashCode] 
+}
+
+~~~~~
+//##167. in param
+def doings(){
+	strList list<in String> = list<String>()//strList may only have elements added to it 
+	objList list<Object> = strList
+	
+	objList.add(1)
+	
+	"" + objList
+}

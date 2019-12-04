@@ -1,0 +1,53 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Expression lists]{Expression lists}
+	\label{ch:exprLists}
+
+Concurnas provides expression lists, this is a neat feature which enables a more natural way of writing expression related code that would otherwise have to be written as a set of chained together calls using the dot operator and/or function invocation brackets. Example:
+\begin{lstlisting}
+class Myclass(b int){
+	def resolve(a int) => (a+b)*2
+}
+
+res = Myclass 4 resolve 4 //expression list
+//res now resolves to 16
+\end{lstlisting}
+
+Concurnas interprets \lstinline{mc doit 4} to resolve to \lstinline{mc.dotit(4)}. Without expression lists the above would look like: \lstinline{mc.dotit(4)}. Concurnas will evaluate all possible interpretations of the defined expression list. If more than one valid interpretation is possible then this will be flagged up as an ambiguous compilation error which will require disambiguation (e.g. explicitly using the dot operator or function invocation arguments).
+
+Combined with extension functions this affords us some very concise and powerful domain specific syntax.
+\begin{lstlisting}
+def int min() = this*60*60
+
+10 min//resolves to 3600 - which is the number of seconds in 10 minutes.
+\end{lstlisting}
+
+\section{Double dot and direct dot Operator}
+Concurnas is able to interpret expression lists to make use of the double dot \lstinline{..} and direct dot \lstinline{\.} operators in addition to the single dot \lstinline{.}:
+\begin{lstlisting}
+class MyClass{
+	public answers = [0,0]
+	def oneCall() = answers[0]=10
+	def twoCall() = answers[1]=99
+	
+}
+
+mc = new MyClass()
+mc oneCall twoCall answers //equvilent to: 'mc..oneCall()..twoCall()\.answers'. Resolves to: [10, 99]
+\end{lstlisting}
+
+\subsection{Element Precedence}
+The elements of the expression list are themselves expected to be valid expressions. E.g. The below resolves to \lstinline{16} and not \lstinline{14} as the plus operator defined in the \lstinline{2+2} expression is valid and takes precedence over the expression list.
+\begin{lstlisting}
+class Myclass(b int){
+	def doit(a int) = (a+b)*2
+}
+
+mc = Myclass(4)
+res = mc doit 2+2
+//res is now 16
+\end{lstlisting}
+
+\end{document}

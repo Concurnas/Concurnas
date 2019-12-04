@@ -1,0 +1,606 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Operators]{Operators}
+	\label{ch:Operators}
+
+
+Operators are an integral part of modern programming, Concurnas dedicates much of its syntax to supporting operators. Most of these operators are 'universal' and widely used outside of conventional programming, such as those concerning arithmetic and basic mathematics, some are more specific to programming in general such as bit shift related operators and some are unique to modern programming languages such as the null safety related operators.
+
+Concurnas also dedicates much support to operator overloading, this helps facilitate the construction of domain specific languages within Concurnas.
+
+\section{Supported Operators}
+	
+Concurnas supports the following extensive set of operators:
+
+{\fontsize{3.5pt}{0pt}\selectfont
+\begin{longtable}[hbt!]{| l | l | l | l | l | l | l | l |}
+	
+	\hline
+	Class&Operator&Token&Description&Example&Input types&Return type&Associativity\\
+	\hline
+	\endhead
+	
+	\hline
+	\endfoot
+Sizeof&Sizeof&sizeof&Calculate the off heap size of the operand&sizeof "myString" => 128&Object&Long&Left to right\\ \hline
+Contains& In& in, not in& Check if the left hand operand is in the right hand operand& 1 in [1 2 3 4 5] => true& Any Array or Collection of Component type& Boolean& Left to right\\ \hline
+Not& Not& not& Flips boolean value of right hand operand& not true => false& Boolean& Boolean& Right to left\\ \hline
+Postfix& Increment& ++& Increments operand by 1& expr++& Integral& Integral& Left to right\\ 
+& Decremement& --& Decrements operand by 1& expr--& Integral& Integral& Left to right\\ \hline
+Prefix& Increment& ++& Increments operand by 1& ++epxr& Integral& Integral& Right to left\\
+& Decremement& --& Decrements operand by 1& --expr& Integral& Integral& Right to left\\
+& Positive& +& Positive value of operand& +10 => 10& Integral& Integral& Right to left\\
+& Negative& -& Negative value of operand& -10 => -10& Integral& Integral& Right to left\\ \hline
+Multiplicative& Multiplication& *& Multiplies left and right hand side operands& 2*2 => 4& Integral& Integral& Left to right\\
+& Power& **& Raises left operand to the power of right operand& 3**2 => 9& Integral& Integral& Right to left\\
+& Division& /& Divides left hand operand by right hand operand& 10/3 => 3& Integral& Integral& Left to right\\
+& Modulus& mod& The remainder of the division operator applied to the operands as above& 10 mod 3 => 1& Integral& Integral& Left to right\\ \hline
+Additive& Addition& +& Adds the left and right hand side operands& 2 + 2 => 4, "hi" + "there" => "hi there"& Integral or String& Integral or String& Left to right\\
+& Subtraction& -& Subtracts the right hand operand from the left hand operand& 2 - 4 => -2& Integral& Integral& Left to right\\ \hline
+Bitshift& Left shift& <<& The left operands value is moved left by the number of bits specified by the right operand.& 0b001 << 2 => 4 (0b100)& Integral& Integral& Left to right\\
+& Right Shift& >>& The left operands value is moved right by the number of bits specified by the right operand.& 0b100 >> 2 => 7 (0b111)& Integral& Integral& Left to right\\
+& Unsigned right shift& >>>& As above but shifted values are filled with zeros& 0b100 >> 2 => 1 (0b001)& Integral& Integral& Left to right\\ 
+& Complement& comp& Complement of a single expression& comp 0b0001 => 14 (0b1110)& Integral& Integral& Right to left\\ \hline
+Relational& Less than& <& Check if the left hand operand is less than the right hand operand& 2 < 4 => true& Integral& Integral& Left to right\\
+& Greater than& >& Check if the left hand operand is greater than the right hand operand& 2 > 4 => false& Integral& Integral& Left to right\\
+& Less than or equal& <==& Check if the left hand operand is less than or equal to the right hand operand& 2 <== 2 => true& Integral& Integral& Left to right\\
+& Greater than or equal& >==& Check if the left hand operand is greater than or equal to the right hand operand& 2 >== 2 => true& Integral& Integral& Left to right\\ \hline
+
+Instance of& Instance of& is, isnot, is not& Check if the left handoperand is (or is not) a subtype of the right hand type operand& expr is not Object => false& Object, Type& Boolean& Left to right\\ \hline
+
+Cast& Cast& as& Cast left operand to be type of right hand type operand& expr as MyClass => expr is now of type MyClass& Object, Type& Object& Left to right\\ \hline
+Equality& Structurally equal& ==& Check if the value of the left and right hand operands are equal& 10 == 10 => true& Any& Boolean& Left to right\\
+& Structurally not equal& <>& Check if the value of the left and right hand operands are not equal& 10 <> 9 => true& Any& Boolean& Left to right\\
+& Referential equality& \&==& Check if the object on the left and right hand operands are the same& Integer(1) \&== Integer(1) => false& Any& Boolean& Left to right\\
+& Referentially not equal& \&<>& Check if the object on the left and right hand operands are not the same& Integer(1) \&<> Integer(1) => true& Any& Boolean& Left to right\\ \hline
+Bitwise& Bitwise and& band& Compares each bit of the operands and returns 1 for each if they are both 1& 0b110 band 0b101 => 0b100& Integral& Integral& Left to right\\
+& Bitwise or& bor& Compares each bit of the operands and returns 1 for each if either equals 1& 0b110 bor 0b101 => 0b111& Integral& Integral& Left to right\\
+& Bitwise exclusive or& bxor& Compares each bit of the operands and returns 1 for each if either but not both equals 1& 0b110 bxor 0b101 => 0b011& Integral& Integral& Left to right\\ \hline
+Logical and& and& and& Check if the left and right hand operands both resolve to true& true and false => false& Boolean& Boolean& Left to right\\ \hline
+Logical or& or& or& Check if either the left and right hand operands both resolve to true& true or false => true& Boolean& Boolean& Left to right\\ \hline
+
+Ternary& If expression& x if y else z& Return x operand if y operand resolves to true otherwise return z operand& 8 if true else 9 => 8& Any, Boolean, Any& Any& Left to right\\ \hline
+
+Invoke& Invoke& obj(args?) & Call the invoke method on object with provided methods&afunc(); afunc2(1, 'arg2')& Object& Any& Left to right\\ \hline
+
+Null Safety&Not null assertion&??&Throws a Null Pointer Exception if left hand side is null, otherwise returns no null type&maybeNull??&Object?&Object& Left to right\\
+&Elvis operator\footnote{So called as the token looks like the emoticon for Elvis Presley}&?:&Returns left hand side if it is not null, otherwise the right hand side expression will be evaluated and returned&maybeNull?:otherwise&Object?&Object& Left to right\\ \hline
+
+Assignment& Assignment& =& Vanilla assignment& a = 10& Integral& Integral& Right to left\\ \hline
+
+Compound Assignment& Addition Assign& +=& Apply addition operator to left and right operands and set value to left operand& a += 10& Integral or String& Integral or String& Right to left\\
+& Subtract Assign& -=& As above but subtraction& a -= 10& Integral& Integral& Right to left\\
+& Mutliply Assign& *=& As above but multiplication& a *= 2& Integral& Integral& Right to left\\
+& Divide Assign& /=& As above but division& a /= 13& Integral& Integral& Right to left\\
+& Power Assign& **=& As above but power& a **= 2& Integral& Integral& Right to left\\
+& Mod Assign& mod=& As above but mod& a mod= 15& Integral& Integral& Right to left\\
+& Bitwise And Assign& band=& As above but bitwise and& a bor= 16& Integral& Integral& Right to left\\
+& Bitwise Or Assign& bor=& As above but bitwise or& a bor= 17& Integral& Integral& Right to left\\
+& Bitwise Xor Assign& bxor=& As above but bitwise xor& a bxor= 17& Integral& Integral& Right to left\\
+& Complement Assign& comp=& As above but complement& a comp= 19& Integral& Integral& Right to left\\
+& Left shift Assign& <<=& As above but left shift& a <<= 20& Integral& Integral& Right to left\\
+& Right Shift Assign& >>=& As above but right shift& a >>= 21& Integral& Integral& Right to left\\
+& Unsigned right shift Assign& >>>=& As above but unsigned right shift& a >>>= 22& Integral& Integral& Right to left\\
+\end{longtable}
+}
+
+The majority of these operators operate upon primitive or boxed primitive types. The integral (or ‘numerical’) types are defined as: \lstinline{int}, \lstinline{long}, \lstinline{short}, \lstinline{char} and \lstinline{byte} and their equivalent boxed object variants: \lstinline{Integer}, \lstinline{Long}, \lstinline{Short}, \lstinline{Character} and \lstinline{Byte} respectfully.
+
+\subsection{Sizeof}
+The \lstinline{sizeof} operator is designed for working with off heap memory. It provides us an indication of the size in bytes that any object (including arrays) will consume when serialized into a byte format as par the scheme referenced within its optional qualifier. For example, when working on the gpu we can use a qualifier as follows:
+
+\begin{lstlisting}
+leAr = [1 2 3 4 5 6 7 8 9 10]
+gpusize = sizeof<gpus.gpusizeof> leAr//size of leAr on the gpu
+\end{lstlisting}
+
+If no qualifier is provided then the default off heap serialization built into Concurnas is used:
+
+\begin{lstlisting}
+leAr = [1 2 3 4 5 6 7 8 9 10]
+gpusize = sizeof leAr//size of leAr as par default scheme
+\end{lstlisting}
+
+\subsubsection{Defining a sizeof qualifier}
+If we were to design a customized object serialization scheme, it can be beneficial to implement a sizeof qualifier such that clients of our custom scheme are able to know the size in bytes that objects will consume if serialized via our scheme. This can be easily achieved by defining a function taking a single Object as input and returning a value of type \lstinline{int}. For example:
+
+\begin{lstlisting}
+def sizeofCustomScheme(some Object) int{
+	//some logic...
+	return 1//in this example every object is 1 byte large
+}
+\end{lstlisting}
+
+This can then be used via qualification of the sizeof operator as par above.
+
+\subsection{Contains}
+The contains class of operator consists of two variants, \lstinline{in} and \lstinline{not in}. \lstinline{in} can be used with common data collection structures including: lists, sets and arrays to test to see if a value on its left hand side is within the expression of one of the aforementioned data structures on the right hand side. If it's present a \lstinline{boolean} value of \lstinline{true} is returned, otherwise \lstinline{false}. \lstinline{not in} returns \lstinline{true} if the value on the left is not present within the data structure.
+
+\begin{lstlisting}
+alist = [1,2,3,4,5]
+within = 2 in alist
+\end{lstlisting}
+
+\lstinline{in} may be used in a similar way with maps in order to examine whether a key is present within the map. For example:
+
+\begin{lstlisting}
+amap = {2 -> 23, 3 -> 67. 1 -> 55}
+within = 2 in amap
+\end{lstlisting}
+
+The \lstinline{in} keyword has special meaning when used within the context of an iterator style for loop, this is documented in the \hyperref[subsec:IteratorStyleFor]{Iterator style for} section.
+
+\subsubsection{Supporting contains}
+Any class may support the operator \lstinline{in} by providing a contains method, this is discussed in more detail in the \hyperref[sec:OperatorOverloading]{operator overloading section}.
+
+\subsection{Not}
+The \lstinline{not} keyword simply flips the booleanarity of a value of \lstinline{boolean} type. \lstinline{true} becomes \lstinline{false} and vice versa.
+
+\subsection{Postfix}
+Concurnas supports the usual set of postfix operators one would expect from a modern programming language. Namely the increment \lstinline{++} and decrement \lstinline{--} operators appearing on the right hand side of an integral expression consisting of a variable, list or array reference. These operators are applied in place. The operators may be used in a place where a value is expected to be returned from it, in which case the previous value of the variable prior to the increment or decrement operator being applied will be returned:
+
+\begin{lstlisting}
+avar = 10
+anarray = [1 2 3 4 5]
+
+avar++
+anarray[0]--
+
+prevvar = avar++
+prevarray = anarray[0]--
+\end{lstlisting}
+
+\subsection{Prefix}
+The prefix operators behave in a similar manner as the postfix operators though with the addition of the negation: \lstinline{-} operator. Unlike the others, the negation: \lstinline{-} operator is not applied in place and will always return a value. The operators may be used in a place where a value is expected to be returned from it, in which case the value of the variable post operator application will be returned:
+
+\begin{lstlisting}
+avar = 10
+anarray = [1 2 3 4 5]
+
+++avar
+--anarray[0]
+
+newvar = ++avar
+newarray = --anarray[0]
+
+anothervar = 10
+negative = -anothervar//negative == -10
+\end{lstlisting}
+
+\subsection{Multiplicative}
+Concurnas supports the standard set of multiplicative operators which can act upon two, potentially differing, integral types, multiplication: \lstinline{*}, division: \lstinline{/}, power: \lstinline{**} and modulus: \lstinline{mod}. For example:
+
+\begin{lstlisting}
+mul = 3*2 //==6
+div = 12/2 //==6
+pow = 3**2 //==9
+pow = 9**-2 //square root
+modu = 10 mod 4 //==2
+\end{lstlisting}
+
+Attempting to divide by zero with two non floating point (either \lstinline{float} or \lstinline{double}) values will result in an exception of type \lstinline{java.lang.ArithmeticException} being thrown. Attempting to divide by zero with at least one floating point value will result in: \lstinline{Infinity} being returned. \lstinline{0./0.} will resolve to \lstinline{NaN}.
+
+In situations where the left and right types of the multiplicative operator differ, the more general type shall be used for the return type. For example:
+
+\begin{lstlisting}
+div1 = 13/2f //==6.5 (float)
+div2 = 13/2. //==6.5 (double)
+div3 = 13f/2. //==6.5 (double)
+mulong = 100*10L //1000L (long)
+mulong = 100L*10. //1000. (double)
+\end{lstlisting}
+
+\subsubsection{Division and power gotacha}
+Often new and even experienced programmers will come across the following sort of problem:
+\begin{lstlisting}
+assert 13/2 == 6.5 //fails!
+\end{lstlisting}
+
+The above fails because \lstinline{13/2} for integers resolves to \lstinline{6} and not \lstinline{6.5}. Perhaps this is the answer desired, but to obtain the 'correct answer' of \lstinline{6.5}, what we are looking for is a floating point calculation and this can be achieved by casting either of the arguments to the division operator to a floating point type, either float or double:
+
+\begin{lstlisting}
+assert 13./2 == 6.5 //expected asnwer
+\end{lstlisting}
+
+\subsection{Additive}
+Concurnas supports addition: \lstinline{+} and subtraction \lstinline{-}. These are straightforward and the rules concerning generalization of numerical types as par the multiplicative operators above apply. Examples:
+
+\begin{lstlisting}
+addition = 1+1
+subtraction = 1-1
+\end{lstlisting}
+
+Additionally, the addition operator \lstinline{+} can be used for String concatenation. This is described in more detail in the \hyperref[subsec:StringConcat]{The String concatenation operator \lstinline!+!} section.
+
+\subsection{Bitshift}
+Concurnas supports bit shift operators for integral types. They operate on a bit pattern, given by the left hand operand and a number of positions to shift by the right hand operand.
+
+\begin{itemize}
+	\item \lstinline{<<} - Left shift. Shifts a bit pattern to the left.
+	\item \lstinline{>>>} - Unsigned right shift. Shifts a bit pattern to the right. Shifts a zero to the leftmost position.
+	\item \lstinline{>>} - Right shift. Shifts a bit pattern to the right. Leftmost bit is shifted contingent on sign extension.
+\end{itemize}
+
+Example:
+\begin{lstlisting}
+def shifty(){
+	a = 17
+	x1 = a << 2
+	x2 = a >> 2
+	x3 = a >>> 2
+	[x1, x2, x3]
+}
+
+shifty() //resolves to => [68, 4, 4]
+\end{lstlisting}
+
+\subsection{Relational}
+The main relational operators in Concurnas are less than: \lstinline{<}, greater than: \lstinline{>}, less than or equal:\lstinline{<==} and greater than or equal: \lstinline{>==}. These operate upon two integral types. And return a \lstinline{boolean} type. Examples:
+
+\begin{lstlisting}
+lt = 1 < 2
+gt = 3 > 2
+lteq = 1 <== 2
+gteq = 3 ==> 2
+\end{lstlisting}
+
+\subsection{Instance of and Cast}
+The instance of or cast operators may not be overloaded. They are covered in more detail in the\hyperref[ch:castAndcheck]{Casting and Checking Types} chapter.
+
+\subsection{Equality}
+Concurnas supports two variants of equality, structural equality (as: equal: \lstinline{==} and not equal: \lstinline{<>}) and referential equality (denoted by prefixing the equality operator with an ampersand: \lstinline{&}). The structural equality operators may operate upon any type, whereas the referential quality operators may only operate upon Objects. For all operator variants, they return a boolean value indicating equality. Let's look at some examples of structural equality:
+
+\begin{lstlisting}
+eq = 10 == 10 //true
+eq2 = 10 <> 12 //true
+eq3 (1>3) == false //resolves to true
+\end{lstlisting}
+
+When it comes to structural equality for objects this is achieved by calling the equals method on the left hand side object and passing it the object on the right hand side as an argument. Note that in Concurnas this equality method is automatically created for all Objects and it resolves to provide structural equality, this behaviour can be user overridden to provide different behaviour. More details of this can be found in the \hyperref[autoGeneqAndHash]{Automatically generated equals and hashcode methods} section. Examples:
+
+
+\begin{lstlisting}
+class Person(name String)
+
+d1 = Person('dave')
+d2 = Person('dave')
+f3 = Person('freddy')
+
+assert d1 == d2 //struturally equal
+assert d1 <> f3 //struturally not equal
+assert d1 &== d1 //object is referentially equal to itself!
+assert d1 &<> d2 //d1 and d2 though structurally equal (above) are not referentially equal
+\end{lstlisting}
+
+\subsection{Bitwise operators}
+The major bitwise operators take two integral types as input. The following operators are supported:
+\begin{itemize}
+	\item \lstinline{band} - bitwise and
+	\item \lstinline{bor} - bitwse or
+	\item \lstinline{bxor} - bitwise exclusive or
+\end{itemize}
+
+These operators are commonly used in order to apply masks. Example:
+
+\begin{lstlisting}
+def pprint(xx int) => '0x' + String.format("%8s", Integer.toBinaryString((xx+256) % 256)).replace(" ", "0")
+
+value = 0b00010101
+bitmask = 0b00000001
+
+pprint(value band bitmask) // -> 0x00000001
+pprint(value bor bitmask)// -> 0x00010101
+pprint(value bxor bitmask)// -> 0x00010100
+\end{lstlisting}
+
+\subsubsection{Complement}
+The \lstinline{comp} operator can be used on an integral type in order to derive the complement of a single expression. Every \lstinline{0} is flipped to a \lstinline{1} and vice versa. Example:
+
+\begin{lstlisting}
+orig byte = 0b00000011
+complement= comp orig
+
+Integer.toBinaryString((complement+256) % 256) // resolves to: '11111100' - which is the complement of the input byte.
+\end{lstlisting}
+
+\subsection{Logical and/or}
+Concurnas supports the logical \lstinline{and} and \lstinline{or} operators which can be used in order to chain together \lstinline{boolean} expressions. Naturally, both arguments to these operators must be of \lstinline{boolean} type. More then one \lstinline{and} or \lstinline{or} may be chained together. The operators both return \lstinline{boolean} values. Examples:
+
+\begin{lstlisting}
+orand1 = 2 == 3 or 3>1
+orand2 = 2 == 3 or 3>1 or 22>1 or 3 < 9
+orand3 = 2>1 and 4>1
+\end{lstlisting}
+
+\subsubsection{Short circuiting}
+Short circuiting is a logical optimization in which the second argument to an operator is executed or evaluated only if the first argument does not suffice to determine the value of the expression. This sometimes catches people out when they expect all arguments of an operator to be evaluated.
+
+For a chain of \lstinline{or} operators, evaluated left to right, as soon as one argument evaluates to \lstinline{true}, the value \lstinline{true} is returned (otherwise \lstinline{false}), similarly for the \lstinline{and} operator, evaluated left to right, as soon as an argument evaluates to \lstinline{false}, \lstinline{false} is returned (otherwise \lstinline{true}).
+
+\begin{lstlisting}
+def eval1(toRet boolean) => toRet
+def eval2(toRet boolean) => toRet
+def toCall(toRet boolean) => toRet
+
+shortcir = eval1(false) or eval1(true) or toCall(true)//toCall will never be called!
+shortcir = eval1(true) and eval1(false) and toCall(true)//toCall will never be called!
+\end{lstlisting}
+
+\subsection{Ternary}
+The Ternary operator \lstinline{x if test else z} can be thought of as a handy shorthand for the slightly more verbose: \lstinline!if(test){ x }else{ z }! (in fact, under the hoot the Ternary operator is translated into this more verbose form). \lstinline{x} and \lstinline{z} must both return a value (of any type) and \lstinline{test} must resolve to a value of \lstinline{boolean} type. Example:
+
+\begin{lstlisting}
+def test() => true
+
+result = 12 if test() else 99
+\end{lstlisting}
+
+\subsection{Invoke}
+Concurnas allows an \lstinline{invoke} method to be defined for all objects, this permits the following syntax to be used in order to call this \lstinline{invoke} method as an operator, with optional arguments:
+
+\begin{lstlisting}
+class FormatPlus{
+	def invoke(a int, b int) => "{a} + {b}"
+}
+
+fmt = FormatPlus()
+fmt(12, 13)//returns: "12 + 13"
+\end{lstlisting}
+
+This can occasionally be useful tool to use when defining domain specific languages.
+
+\subsection{Null safety}
+The null safety operators are documented in detail in the \hyperref[ch:nullsafe]{Null Safety} section.
+
+\section{Assignment}
+Variable assignment is covered in detail in the \hyperref[ch:assignment]{Variable assignment} chapter. The assignment operator may be overloaded, this is described in the \hyperref[subsec:overloadassignmentop]{Overloading the assignment operator} section, in the case of an overloaded assignment operator being defined for a type, the escaped assign of: \lstinline{\\=} will suppress this behaviour when a value is assigned.
+
+\section{Compound assignment}
+Here we concern ourselves with compound assignment applied to a variable which has already been defined. These are: \lstinline{+=}, \lstinline{-=}, \lstinline{*=}, \lstinline{/=}, \lstinline{**=}, \lstinline{mod=}, \lstinline{or=}, \lstinline{and=}, \lstinline{<<=}, \lstinline{>>=}, \lstinline{>>>=}, \lstinline{band=}, \lstinline{bor=}, \lstinline{bxor=}. Taking the addition assignment operator, \lstinline{+=} as an example, the following two statements are functionally identical:
+
+\begin{lstlisting}
+a1 = a2 = 10
+
+a1 += 1
+a2 = a2 + 1
+
+assert a1 == a2
+\end{lstlisting}
+
+That is to say, \lstinline{a1 += 1} is essentially shorthand for: \lstinline{a1 = a1 + 1}.
+
+The compound assignment operators may be applied to array reference operations as follows:
+
+\begin{lstlisting}
+a1 = [1 2 3]
+
+a1[0] += 1
+
+assert a1 == [2 2 3]
+\end{lstlisting}
+
+Again, \lstinline{a1[0] += 1} is essentially shorthand for: \lstinline{a1[0] = a1[0] + 1}.
+
+\subsection{Parentheses}
+In Concurnas, parentheses can be used or order disambiguate expressions composed of multiple operators. They may also be used in a "no operation" capacity in order to make code easier to read. For example:
+
+\begin{lstlisting}
+orand4 = not (2>1 and 4>1)
+\end{lstlisting}
+
+\section{Operator Overloading}
+\label{sec:OperatorOverloading}
+Concurnas provides a mechanism by which the aforementioned operators can be supported for object types in addition to the primitives (and boxed versions thereof) above. This functionality can be extremely useful when implementing Domain Specific Languages. The following operators can be overloaded:
+
+{\tiny
+	\begin{longtable}[hbt!]{| l | l | l | l | l | l | l | }
+		
+		\hline
+		Class&Operator&Normal Token&Method name&Alt Name&Type overloaded&Notes\\
+		\hline
+		\endhead
+		
+		
+		\hline
+		
+		\endfoot
+		Assign&Assignment&=&assign&=&Left&\bettershortstack{Use \= variant of assign\\to avoid calling\\overloaded operator}\\
+		&Unassign& &unassign& &Left&\bettershortstack{Where variable of type x implements\\ unassign, use x: to avoid calling unassign operator}\\ \hline
+		Compound Assign&Addition Assign&+=&plusAssign&+=&Left&\\
+		&Negation Assign&-=&minusAssign&-=&Left&\\
+		&Multiply Assign&*=&mulAssign&*=&Left&\\
+		&Divide Assign&/=&divAssign&/=&Left&\\
+		&Power Assign&**=&powAssign&**=&Left&\\
+		&mod Assign&mod=&modAssign&mod=&Left&\\
+		&or Assign&or=&orAssign&or=&Left&\\
+		&and Assign&and=&andAssign&and=&Left&\\
+		&left shift Assign&<<=&leftShiftAssign&<<=&Left&\\
+		&right shift Assign&>>=&rightShiftAssign&>>=&Left&\\
+		&unsigned right shift Assign&>>>=&rightShiftU&>>>=&Left&\\
+		&bitwise and Assign&band=&bandAssign&band=&Left&\\
+		&bitwise or Assign&bor=&borAssign&bor=&Left&\\
+		&bitwise xor Assign&bxor=&bxorAssign&bxor=&Left&\\ \hline
+		Not&Not&not&not& &Unary&\\ \hline
+		Postfix&Increment&++&inc&++&Unary&\\
+		&Decremement&--&dec&--&Unary&\\ \hline
+		Prefix&Increment&++&inc&++&Unary&\\
+		&Decremement&--&dec&--&Unary&\\
+		&Positive&+&plus&+&Unary&No arguments specified\\
+		&Negative&-&neg&-&Unary&No arguments specified\\
+		&Complement&comp&comp& &Unary&\\ \hline
+		Multiplicative&Multiplication&*&mul&*&Left&\\
+		&Power&**&pow&**&Left&\\
+		&Division&/&div&/&Left&\\
+		&Modulus&mod&mod& &Left&\\ \hline
+		Additive&Addition&+&plus&+&Left&\\
+		&Subtraction&-&minus&-&Left&\\ \hline
+		Bitshift&Left shift&<<&leftShift&<<&Left&\\
+		&Right Shift&>>&rightShift&>>&Left&\\
+		&Unsigned right shift&>>>&rightShiftU&>>>&Left&\\ \hline
+		Relational&Less than&<&compareTo& &Left&a.compareTo(b) < 0\\
+		&Greater than&>&compareTo& &Left&a.compareTo(b) > 0\\
+		&Less than or equal&<==&compareTo& &Left&a.compareTo(b) <== 0\\
+		&Greater than or equal&>==&compareTo& &Left&a.compareTo(b) >== 0\\ \hline
+		Equality&Structurally equal&==&equals& &Left&a.equals(b)\\
+		&Structurally not equal&<>&equals& &Left&not a.equals(b)\\ \hline
+		Bitwise&Bitwise and&band&band& &Left&\\
+		&Bitwise or&bor&or& &Left&\\
+		&Bitwise exclusive or&bxor&bxor& &Left&\\ \hline
+		Logical and&and&and&and& &Left&\\ \hline
+		Logical or&or&or&or& &Left&\\ \hline
+		Invoke&Invoke&a()&invoke& &Left&Any number of arguments may be specified\\ \hline
+		Lists, Arrays, Maps&Get&a[y]&get& &Left&\\
+		&Put&a[y] = z&put& &Left&\\
+		&Sublist&a[y1 ... y2]&sub& &Left&a.sub(y1, y2)\\
+		&Sublist from&a[y1 ...]&subfrom& &Left&a.subfrom(y1)\\
+		&Sublist to&a[... y2]&subto& &Left&a.subto(y2)\\
+		&Put sublist&a[y1 ... y2] = z&subAssign& &Left&a.subAssign(y1, y2, z)\\
+		&Put sublist from&a[y1 ...] = z&subfromAssign& &Left&a.subfromAssign(y1, z)\\
+		&Put sublist to&a[... y2] = z&subtoAssign& &Left&a.subtoAssign(y2, z)\\
+		&In&in&contains& &Right&b.contains(a)\\
+		&Not in&not in&contains& &Right&not b.contains(a)
+		
+		
+	\end{longtable}
+}
+
+
+
+\subsection{Implementing and using overloaded operators}
+Overloaded operators operate upon the left hand element of an expression unless it is unary where there is only one expression the operator is being applied to, or for the \lstinline{int} and \lstinline{not in} operators where the right hand expression must have the relevant method implemented. The left hand element must support the operator being invoked. For non alphanumerical named operators (e.g. \lstinline{+}, \lstinline{**} etc) the raw alphanumerical operator token may be defined as a method name, or it's alternative longhand name may be used (\lstinline{plus} for \lstinline{+}, \lstinline{mul} for \lstinline{*} etc).
+
+\begin{lstlisting}
+class Complex(real double, imag double){
+	def +(other Complex) => new Complex(this.real + other.real, this.imag + other.imag)
+	def +(other double) => new Complex(this.real + other, this.imag)
+	def +=(other Complex) => this.real += other.real;  this.imag += other.imag
+	def +=(other double) => this.real += other
+	override toString() => "Complex({real}, {imag})"
+}
+
+c1 = Complex(2, 3)
+c2 = c1@
+c3 = c1@
+c4 = Complex(3, 4)
+
+result1 = c1 + c4
+result2 = c1 + 10.
+c2 += c4 //compound plus assignment
+c3 += 10.//compound plus assignment
+
+//result1 == Complex(5.0, 7.0)
+//result2 == Complex(12.0, 3.0)
+//c2 == Complex(5.0, 7.0)
+//c3 == Complex(12.0, 3.0)
+\end{lstlisting}
+
+Above we see the plus and compound plus assignment operator have been overloaded for the object class: Complex. Note that operator overloading methods themselves may be overloaded with differing argument types(just like regular methods).
+
+\subsection{Operator overloading via extension functions}
+It’s possible to implement operator overloading via use of extension functions. this is documented in the \hyperref[sec:extfunAsOpOver]{Extension functions as operator overloaders} section.
+
+\subsection{Overloading the assignment operator}
+\label{subsec:overloadassignmentop}
+The assignment operator, \lstinline{=} can be overloaded. Example:
+\begin{lstlisting}
+class AssignOPOverload(value int){
+	def =(a int){ value = a; }
+	
+	override toString() => "AssignOPOverload: {value}"
+}
+
+obj= new AssignOPOverload(100)
+obj= 66
+//thing == AssignOPOverload: 66
+\end{lstlisting}
+
+If the overloaded assign method returns a value then this will be ignored. If you wish to suppress invoking the assign operator then using the escaped assign of: \lstinline{\\=} will suppress this behaviour, and will cause the assignment to behave a normal, assigning whatever is on the right hand side to the variable expressed on the left hand side:
+\begin{lstlisting}
+class AssignOPOverload(value int){	
+	def =(a AssignOPOverload){ value = a.value + 10000; }
+	
+	override toString() => "AssignOPOverload: {value}"
+}
+
+inst1 = new AssignOPOverload(100)
+inst2 = new AssignOPOverload(100)
+
+inst1 = new AssignOPOverload(22)
+inst2 \= new AssignOPOverload(22) //bypass overloaded = operator
+/
+inst1  => AssignOPOverload: 10022
+inst2  => AssignOPOverload: 22
+\end{lstlisting}
+
+Overloading of the assignment operator is used to great effect with off heap memory and gpu memory interaction.
+
+\subsection{Unassign}
+Just as we can overload the assignment operator, so too can be implicitly overload the ‘unassignment operator’, consisting of a zero argument method named \lstinline{unassign} returning any non void type. This is best illustrated with an example:
+\begin{lstlisting}
+class MyUnassignable{
+	myvar int
+	def assign(anint int) => myvar = anint;;
+	def unassign() => myvar
+}
+
+inst = MyUnassignable()
+inst  = 56
+res = inst 
+/
+res => 56
+\end{lstlisting}
+
+If we wish to suppress the unassignment operation this can be achieved by using the \lstinline{:} operator as follows:
+
+\begin{lstlisting}
+class MyUnassignable{
+	myvar int
+	def assign(anint int) => myvar = anint;;
+	def unassign() => myvar
+	override toString() => 'MyUnassignable {myvar}'
+}
+
+inst = MyUnassignable()
+inst  = 56
+res1 = ''+ inst 
+res2 = '' + inst: //suppress calling of unassign()
+res3 = inst:tostring() //suppress calling of unassign()
+/
+res1 => '56'
+res2 => 'MyUnassignable 56'
+res3 => 'MyUnassignable 56'
+\end{lstlisting}
+
+If we wish to create a ref to a variable of type implementing the \lstinline{unassign()} method, and we wish to avoid ‘unassigning’ it then we must use an extra \lstinline{:}.
+
+\begin{lstlisting}
+class MyUnassignable{
+	myvar int
+	def assign(anint int) => myvar = anint;;
+	def unassign() => myvar
+	override toString() => 'MyUnassignable {myvar}'
+}
+
+inst = MyUnassignable()
+inst  = 56
+
+ref MyUnassignable: = inst:: //ordinarily we'd just use 'inst:' to create a ref
+\end{lstlisting}
+
+Overloading of unassignment is used to great effect with lazy variables.
+
+\subsection{Assignment operators}
+If there is an object returned from an overloaded assignment operator which happens to be a ref type, then Concurnas will await for the assignment on the ref type to take place before continuing with execution. similarly, if the operator overload method being invoked is tagged with the \lstinline{@com.concurnas.lang.DeleteOnUnusedReturn} annotation, then delete will be called on the object returned before continuing with execution.
+
+This applies to the following assignment operators: 
+\begin{itemize}
+	\item \textbf{The assignment operator:} \lstinline{=}
+	\item \textbf{The in place assignment operators:} \lstinline{+=, -=, *=, /=, **=, mod=, band=, bor=, bxor=, comp=, <<=, >>=, >>>=}
+	\item \textbf{The sublist assignment operators:} \lstinline{[a ... b ] = z, [a ... ] = z, [ ... b ] = z}
+\end{itemize}
+
+The escaped assignment operator: \lstinline{\=} is excluded from this behaviour.
+
+\end{document}

@@ -1,0 +1,6 @@
+
+class DirectField( public athing () int )
+
+class GetSet( ~athing () int )
+
+class LazyVersion( lazy ~athing () Integer )

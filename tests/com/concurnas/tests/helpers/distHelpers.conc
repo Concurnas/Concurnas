@@ -1,0 +1,45 @@
+from com.concurnas.lang.dist import LoggerProvider
+from java.io import PrintStream
+from com.concurnas.runtime import ConcurnasClassLoader
+
+private shared dateLog = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS Z");
+shared class LogCapture(noisy PrintStream? = null) ~ LoggerProvider{
+	captured = ""
+	def provideLoggerFor(theClass Class<?>) (String) void{
+		className String = theClass getSimpleName
+		def (msg String){
+			if(noisy){
+				noisy.println("{dateLog.format(new java.util.Date())} {className} {msg}")
+			}
+			captured += msg + "\n"
+		}
+	}
+	
+	override toString() => captured
+	
+	def \in(what String){
+		what in captured
+	}
+}
+
+private def getModuleName(){
+	fullname = com.concurnas.lang.CallerContext.getInstnce().getCallerStack()[4].getName()
+	fullname.substring(0, fullname.indexOf("$"))
+}
+
+class EverythingToParentButClassLoader(except String = getModuleName()) < ConcurnasClassLoader{
+	parent ConcurnasClassLoader
+	init{
+		parent = EverythingToParentButClassLoader.class.getClassLoader() as ConcurnasClassLoader
+	}
+	
+	def epcParent() => parent
+		
+	override getBytecode(name String) byte[]{//check parent first
+		null if name.startsWith(except) else parent.getBytecode(name)
+	}
+	
+	override loadClass(name String) Class<?> {
+		null if name.startsWith(except) else parent.loadClass(name)
+	} 
+}

@@ -1,0 +1,1560 @@
+//##1. basic try with resources
+
+public closeCount = 0
+closed class Closer(throwExcp boolean){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		 a = new Closer(closerEx)
+	 ){
+		excepThrower(excepEx)
+	}
+	
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx)
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount]
+}
+
+~~~~~
+//##2. basic but always throws
+public closeCount = 0
+closed class Closer(throwExcp boolean){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+
+def subject(closerEx boolean){
+	try(
+		 a = new Closer(closerEx)
+	 ){
+		throw new Exception("excep")
+	}
+}
+
+def caller(closerEx boolean){
+	b='T' if closerEx else 'F'
+	"{b}:" + try{
+		subject(closerEx)
+		""
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(false),
+		caller(true),
+	 closeCount]
+}
+
+~~~~~
+//##3. more than one to close
+public closeCount = 0
+closed class Closer(throwExcp boolean, id int){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser{id}")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+
+
+def subject(excepEx boolean, closerEx1 boolean, closerEx2 bool){
+	try(
+		 a = new Closer(closerEx1, 1);
+		 b = new Closer(closerEx2, 2)
+	 ){
+		excepThrower(excepEx)
+	}
+	
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx1 bool, closerEx2 bool){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx1 else 'F'
+	c='T' if closerEx2 else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, closerEx1, closerEx2)
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+['\n',caller(true, true, false),'\n',
+		caller(true, true, true),'\n',
+		caller(true, false, true),'\n',
+		caller(true, false, false),'\n',
+		caller(false, true, false),'\n',
+		caller(false, true, true),'\n',
+		caller(false, false, true),'\n',
+		caller(false, false, false),'\n',
+	 closeCount]
+}
+
+~~~~~
+//##4. use of stuff to close inside the block itself
+
+public closeCount = 0
+closed class Closer(throwExcp boolean, id int){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser{id}")
+		}
+	}
+	
+	override toString() => "Closer:{id}"
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+def subject(excepEx boolean, closerEx1 boolean, closerEx2 bool){
+    b Closer//null is created for this because its not been instatiated
+    something String=""
+	try(
+		 a Closer = new Closer(closerEx1, 1);
+		 b = new Closer(closerEx2, 2)
+	 ){
+		excepThrower(excepEx)
+		something += "{a},{b}"
+	}
+	
+	"ok " + something
+}
+
+def caller(excepEx boolean, closerEx1 bool, closerEx2 bool){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx1 else 'F'
+	c='T' if closerEx2 else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, closerEx1, closerEx2)
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+['\n',caller(true, true, false),'\n',
+		caller(true, true, true),'\n',
+		caller(true, false, true),'\n',
+		caller(true, false, false),'\n',
+		caller(false, true, false),'\n',
+		caller(false, true, true),'\n',
+		caller(false, false, true),'\n',
+		caller(false, false, false),'\n',
+	 closeCount]
+}
+
+~~~~~
+//##5. try w resources returns stuff itself
+
+public closeCount = 0
+closed class Closer(throwExcp boolean, id int){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser{id}")
+		}
+	}
+	
+	override toString() => "Closer:{id}"
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+
+
+def subject(excepEx boolean, closerEx1 boolean, closerEx2 bool){
+    b Closer//null is created for this because its not been instatiated
+	try(
+		 a Closer = new Closer(closerEx1, 1);
+		 b = new Closer(closerEx2, 2)
+	 ){
+		excepThrower(excepEx)
+		"{a},{b}"//and we are testing to see if we can use a and b inside the block, which we can
+		
+	}
+}
+
+def caller(excepEx boolean, closerEx1 bool, closerEx2 bool){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx1 else 'F'
+	c='T' if closerEx2 else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, closerEx1, closerEx2)
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+['\n',caller(true, true, false),'\n',
+		caller(true, true, true),'\n',
+		caller(true, false, true),'\n',
+		caller(true, false, false),'\n',
+		caller(false, true, false),'\n',
+		caller(false, true, true),'\n',
+		caller(false, false, true),'\n',
+		caller(false, false, false),'\n',
+	 closeCount]
+}
+
+~~~~~
+//##6. new things declared are respected as new
+
+public closeCount = 0
+closed class Closer(throwExcp boolean, id int){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser{id}")
+		}
+	}
+	
+	override toString() => "Closer:{id}"
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+
+
+def subject(excepEx boolean, closerEx1 boolean, closerEx2 bool){
+    b Closer?=null
+    c Closer?=null
+	try(
+		 a Closer = new Closer(closerEx1, 1);
+		 var b = new Closer(closerEx2, 2);
+		 val c = new Closer(closerEx2, 3)
+	 ){
+		excepThrower(excepEx)
+		//"{a},{b}"
+	}
+	""+[b, c]
+}
+
+def caller(excepEx boolean, closerEx1 bool, closerEx2 bool){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx1 else 'F'
+	c='T' if closerEx2 else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, closerEx1, closerEx2)
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+['\n',caller(true, true, false),'\n',
+		caller(true, true, true),'\n',
+		caller(true, false, true),'\n',
+		caller(true, false, false),'\n',
+		caller(false, true, false),'\n',
+		caller(false, true, true),'\n',
+		caller(false, false, true),'\n',
+		caller(false, false, false),'\n',
+	 closeCount]
+}
+
+~~~~~
+//##7. try w resources on non assign operations
+
+public closeCount = 0
+closed class Closer(throwExcp boolean){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		 new Closer(closerEx)
+	 ){
+		excepThrower(excepEx)
+	}
+	
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount]
+}
+
+~~~~~
+//##8. try w resources on non assign operations x2
+
+public closeCount = 0
+closed class Closer(throwExcp boolean){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		 new Closer(closerEx);
+		 new Closer(closerEx)
+	 ){
+		excepThrower(excepEx)
+	}
+	
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount]
+}
+
+~~~~~
+//##9. thing by itself
+
+public closeCount = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+class MyClass
+
+def subject(excepEx boolean, closerEx boolean){
+	x=Closer(closerEx, 1)
+	try(
+		 x
+	 ){
+		excepThrower(excepEx)
+	}
+	
+	"ok"+x
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount]
+}
+
+~~~~~
+//##10. works on refs
+
+public closeCount = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+class MyClass
+
+def subject(excepEx boolean, closerEx boolean){
+	x:=Closer(closerEx, 1)
+	try(
+		 x:
+	 ){
+		excepThrower(excepEx)
+	}
+	
+	"ok"+x
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount]
+}
+
+~~~~~
+//##11. twr has catch block
+
+public closeCount = 0
+public closeCountx2 = 0
+public closeCountx3 = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new MyExcep("excepThrower")
+	}
+}
+
+class MyExcep(a String) extends Throwable(a)
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		  Closer(closerEx, 1)
+	 ){
+		excepThrower(excepEx)
+	}
+	catch(a MyExcep){
+		closeCountx2 += 1
+	}
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount, closeCountx2, closeCountx3]
+}
+
+~~~~~
+//##12. twr has finally block
+
+public closeCount = 0
+public closeCountx2 = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		  Closer(closerEx, 1)
+	 ){
+		excepThrower(excepEx)
+	}
+	finally{
+		closeCountx2 += 1
+	}
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount, closeCountx2]
+}
+
+~~~~~
+//##13. twr has finally block not catching exception
+
+public closeCount = 0
+public closeCountx2 = 0
+public closeCountx3 = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+class MyExcep(a String) extends Throwable(a)
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		  Closer(closerEx, 1)
+	 ){
+		excepThrower(excepEx)
+	}
+	catch(a MyExcep){
+		closeCountx2 += 1
+	}
+	finally{closeCountx3+=1}
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount, closeCountx2, closeCountx3]
+}
+
+~~~~~
+//##14. twr has finally block catching exception
+
+public closeCount = 0
+public closeCountx2 = 0
+public closeCountx3 = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new MyExcep("excepThrower")
+	}
+}
+
+class MyExcep(a String) extends Throwable(a)
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try(
+		  Closer(closerEx, 1)
+	 ){
+		excepThrower(excepEx)
+	}
+	catch(a MyExcep){
+		closeCountx2 += 1
+	}
+	finally{closeCountx3+=1}
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount, closeCountx2, closeCountx3]
+}
+
+~~~~~
+//##15. nesting works thank god
+
+public closeCount = 0
+public closeCountx2 = 0
+public closeCountx3 = 0
+public callcount = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+class MyExcep(a String) extends Throwable(a)
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try{
+		try(
+			  Closer(closerEx, 1)
+		 ){
+			excepThrower(excepEx)
+		}
+		catch(a MyExcep){
+			closeCountx2 += 1
+		}
+		finally{closeCountx3+=1}
+		"ok"
+	} finally{
+		callcount += 1
+	}
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount, closeCountx2, closeCountx3, callcount]
+}
+
+~~~~~
+//##16. nesting works thank god no ret
+
+public closeCount = 0
+public closeCountx2 = 0
+public closeCountx3 = 0
+public callcount = 0
+closed class Closer(throwExcp boolean, idx int){
+	closedx = false
+	def close(){
+		closedx=true
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Closer({throwExcp}, {idx}):{"closed" if closedx else "open"}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+class MyExcep(a String) extends Throwable(a)
+
+
+def subject(excepEx boolean, closerEx boolean){
+	try{
+		try(
+			  Closer(closerEx, 1)
+		 ){
+			excepThrower(excepEx)
+		}
+		catch(a MyExcep){
+			closeCountx2 += 1
+		}
+		finally{closeCountx3+=1}
+	} finally{
+		callcount += 1
+	}
+	"ok"
+}
+
+def caller(excepEx boolean, closerEx boolean){
+	a='T' if excepEx else 'F'
+	b='T' if closerEx else 'F'
+	"{a}{b}:" + try{
+		subject(excepEx, closerEx); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, false),
+		caller(true, true),
+		caller(false, true),//uninteresting
+		caller(false, false),//uninteresting
+	 closeCount, closeCountx2, closeCountx3, callcount]
+}
+
+~~~~~
+//##17. basic with block
+
+public closeCount = 0
+public callcount = 0
+closed class Brexiter(throwExcp1 boolean, throwExcp2 boolean, idx int){
+	entered = false
+	exited = false
+	def enter(){
+		callcount++
+		entered=true
+		if(throwExcp1){
+			throw new Exception("onenter")
+		}
+	}
+	
+	def close(){
+		exited=true
+		closeCount++//returns but we throw that away
+		if(throwExcp2){
+			throw new Exception("onexit")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Brexiter({throwExcp1}{throwExcp2}, {idx}):{[entered, exited]}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+def subject(excepEx bool, eopen bool, eclose bool){
+	//try{
+		try(Brexiter(eopen, eclose, 1)){
+			excepThrower(excepEx)
+			"ok"	
+		}
+		
+	//} finally{
+	//	callcount += 1
+	//}
+}
+
+def caller(excepEx bool, eopen bool, eclose bool){
+	a='T' if excepEx else 'F'
+	b='T' if eopen else 'F'
+	c='T' if eclose else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, eopen, eclose); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, true, false),
+		caller(true, true, true),
+		caller(true, false, true),
+		caller(true, false, false),
+		caller(false, true, false),
+		caller(false, true, true),
+		caller(false, false, true),
+		caller(false, false, false),
+	 closeCount, callcount]
+}
+
+~~~~~
+//##18. nested with returns
+
+public closeCount = 0
+public callcount = 0
+public subcallcnt=0
+closed class Brexiter(throwExcp1 boolean, throwExcp2 boolean, idx int){
+	entered = false
+	exited = false
+	def enter(){
+		callcount++
+		entered=true
+		if(throwExcp1){
+			throw new Exception("onenter")
+		}
+	}
+	
+	def close(){
+		exited=true
+		closeCount++//returns but we throw that away
+		if(throwExcp2){
+			throw new Exception("onexit")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Brexiter({throwExcp1}{throwExcp2}, {idx}):{[entered, exited]}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+def subject(excepEx bool, eopen bool, eclose bool){
+	try{
+		try(Brexiter(eopen, eclose, 1)){
+			excepThrower(excepEx)
+			"ok"	
+		}//it was a one liner to fix this bug lol
+	} finally{
+		subcallcnt += 1
+	}
+}
+
+def caller(excepEx bool, eopen bool, eclose bool){
+	a='T' if excepEx else 'F'
+	b='T' if eopen else 'F'
+	c='T' if eclose else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, eopen, eclose); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, true, false),
+		caller(true, true, true),
+		caller(true, false, true),
+		caller(true, false, false),
+		caller(false, true, false),
+		caller(false, true, true),
+		caller(false, false, true),
+		caller(false, false, false),
+	 closeCount, callcount, subcallcnt]
+}
+
+~~~~~
+//##19. nested with does not return
+
+public closeCount = 0
+public callcount = 0
+public subcallcnt=0
+closed class Brexiter(throwExcp1 boolean, throwExcp2 boolean, idx int){
+	entered = false
+	exited = false
+	def enter(){
+		callcount++
+		entered=true
+		if(throwExcp1){
+			throw new Exception("onenter")
+		}
+	}
+	
+	def close(){
+		exited=true
+		closeCount++//returns but we throw that away
+		if(throwExcp2){
+			throw new Exception("onexit")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+	override toString() => 'Brexiter({throwExcp1}{throwExcp2}, {idx}):{[entered, exited]}'
+}
+
+def excepThrower(throwExcp boolean){
+	if(throwExcp){
+		throw new Exception("excepThrower")
+	}
+}
+
+def subject(excepEx bool, eopen bool, eclose bool){
+	try{
+		try(Brexiter(eopen, eclose, 1)){
+			excepThrower(excepEx)
+		}//it was a one liner to fix this bug lol
+	} finally{
+		subcallcnt += 1
+	}
+	"ok"	
+}
+
+def caller(excepEx bool, eopen bool, eclose bool){
+	a='T' if excepEx else 'F'
+	b='T' if eopen else 'F'
+	c='T' if eclose else 'F'
+	"{a}{b}{c}:" + try{
+		subject(excepEx, eopen, eclose); 
+	}
+	catch(e){
+		sup = e.getSuppressed()
+		"{[" + e.getMessage() + "] sup: {sup.length}:" + for(a in sup){ a.getMessage() } + "}" 
+	}
+}
+
+def doings(){
+	""+[caller(true, true, false),
+		caller(true, true, true),
+		caller(true, false, true),
+		caller(true, false, false),
+		caller(false, true, false),
+		caller(false, true, true),
+		caller(false, false, true),
+		caller(false, false, false),
+	 closeCount, callcount, subcallcnt]
+}
+
+~~~~~
+//##20. normal non multi catch
+
+open class MasterException(g String) < RuntimeException(g){
+	def getG() {super.getMessage()}
+}
+
+class Excep1(a String) < MasterException(a)
+
+class Excep2(a String) < MasterException(a)
+
+enum ThrowsWhat(public excep MasterException){
+	ONE( Excep1("e1") ), TWO( Excep2("e2")), THREE( MasterException("xxx"))
+}
+
+def thrower(thing ThrowsWhat){
+	throw thing.excep
+}
+
+def multicatch(thing ThrowsWhat){
+	try{
+		thrower(thing)
+		"ok"
+	}
+	catch(a Excep1){
+		"got expceted: " + a.getG()
+	}
+	catch(b Excep2){
+		"got expceted: " + b.getG()
+	}
+	catch(a){
+		"mystery exception: " +  a.getMessage()
+	}
+}
+
+def doings(){
+	"" + for(x in ThrowsWhat.values()){multicatch(x)}
+}
+
+~~~~~
+//##21. multi catch
+
+open class MasterException(g String) < RuntimeException(g){
+	def getG() {super.getMessage()}
+}
+
+class Excep1(a String) < MasterException(a)
+
+class Excep2(a String) < MasterException(a)
+
+enum ThrowsWhat(public excep MasterException){
+	ONE( Excep1("e1") ), TWO( Excep2("e2")), THREE( MasterException("xxx"))
+}
+
+def thrower(thing ThrowsWhat){
+	throw thing.excep
+}
+
+def multicatch(thing ThrowsWhat){
+	try{
+		thrower(thing)
+		"ok"
+	}
+	catch(a Excep1 or Excep2){
+		"got expceted: " + a.getG()
+	}
+	catch(a){
+		"mystery exception: " +  a.getMessage()
+	}
+}
+
+def doings(){
+	"" + for(x in ThrowsWhat.values()){multicatch(x)}
+}
+
+~~~~~
+//##22. bugfix on finaly used to wipe out return type on last thing of ret
+
+public closeCount = 0
+public callcount = 0
+
+
+def subject(excepEx bool, eopen bool, eclose bool){
+	try{
+		try{
+			//excepThrower(excepEx)
+			a="ok"	
+		}
+		finally{closeCount +=1; }
+		
+		for( a=1; a <== 10; a++){ a }
+	} finally{
+		callcount += 1
+	}
+}
+
+def doings(){
+	""+subject(true, true, false)
+}
+
+~~~~~
+//##23. while bugfix 1 norm
+
+callcount=0
+
+def subject(excepEx boolean, closerEx boolean){
+	try{
+		
+		a=2; 
+		while(a++<==5){x="ok"}else{x="nope"}//no ret
+		66
+	} finally{
+		callcount += 1
+	}
+}
+
+
+def doings(){
+	"" + subject(false, false)
+}
+
+~~~~~
+//##24. while bugfix wrong label previously
+
+callcount=0
+
+def subject(excepEx boolean, closerEx boolean, a int){
+	try{
+		while(a++<==5; idx){"ok{idx}"}else{"nope"}
+	} finally{
+		callcount += 1
+	}
+}
+
+
+def doings(){
+	"" + [subject(false, false, 2), subject(false, false, 20)]
+}
+
+~~~~~
+//##25. was a bug now ok
+
+public closeCount = 0
+closed class Closer(throwExcp boolean){
+	
+	def close(){
+		closeCount++//returns but we throw that away
+		if(throwExcp){
+			throw new Exception("excepCloser")
+		}
+	}
+	
+	override equals(a Object) => false;
+	override hashCode()=>1
+}
+
+def somethingelse() => "hi"
+
+def testical(at Throwable, a Closer){
+	try{
+		somethingelse()
+		
+		try{
+			a.close()}
+		catch(e){
+			at.addSuppressed(e)
+		}
+		
+	}
+	finally{
+		s=""
+	}
+}
+
+
+def doings(){
+	e = RuntimeException("ok")
+	a = Closer(true)
+	testical(e, a)
+	"" + e.getSuppressed()[0].getMessage()
+}
+
+~~~~~
+//##26. many instanceof capture on same line
+
+a Object = "12"
+
+def doings() {
+	isit1 = a is Integer or String
+	isit2 = a is String or Integer
+	isit3 = a is String
+	isit4 = a is not Integer
+	isit5 = a is not String
+	isit6 = a is Integer
+	isit7 = a is not String or Integer
+	isit8 = a is not Integer or String
+	
+	"" + [isit1, isit2, isit3, isit4, not isit5, not isit6, not isit7, not isit8]
+}
+
+~~~~~
+//##27. double dot
+
+rscalled = 0
+doublea = 0
+
+class Myclass{
+	var a int 
+	var b int
+	 
+	def afunction(a int){ this.a = a}
+	def bfunction(b int){this.b = b}
+	override toString() => "{a}-{b}"
+	
+	def retSopmething() {
+		rscalled +=1
+		"ignore"
+	}
+	def retDouble() => {doublea+=1; 2.}
+	
+	def chimp() => "hi"
+}
+
+def doings() {
+	mc = Myclass()
+	mc..afunction(12).bfunction(33)
+	
+	what =mc..retSopmething()..retDouble().chimp()
+	what2 =mc..retSopmething()..retDouble()..chimp()
+
+
+	"" + [mc, what, what2, rscalled, doublea]
+}
+
+~~~~~
+//##28. double dot weird useage
+
+rscalled = 0
+doublea = 0
+
+class Myclass{
+	public var a =[1,2,3]
+	public b=0
+	public ~ba=0
+	public ~c=0
+}
+
+def doings() {
+	mc = Myclass()
+	mc..ba=12//this is ok as setter is called
+	mc..getC().c=99//its ok
+	
+	"" + [mc.ba, mc.c]
+}
+
+~~~~~
+//##29. bugfix on try catch inside block
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+11_meg = 11*1024*1024
+
+def afun() => "hi"
+
+ss = false
+
+def doings(){
+	
+	res = "lovely"
+		
+	res += "cool"+{ try{
+		afun()
+	}finally{} }
+	
+	res
+}
+
+~~~~~
+//##30. bugfix on try catch inside block more advanced
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+11_meg = 11*1024*1024
+
+def afun() => "hi"
+
+ss = false
+
+def doings(){
+	
+	res = "lovely"
+	a=9
+	
+	res += "cool"+try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		afun()
+	}
+	
+	res
+}
+
+~~~~~
+//##31. used to blow up
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+11_meg = 11*1024*1024
+
+def afun() => 66
+
+ss = false
+
+def doings(){
+	
+	res =  try{
+		afun()
+	}finally{}  + 44
+	
+	""+res
+}
+
+~~~~~
+//##32. bug with state restoration before
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+11_meg = 11*1024*1024
+
+def afun() => "hi"
+
+ss = false
+
+def doings(){
+	res = "cool"+ if(ss){ 'no' } 
+					else{try{
+							"hi"
+						 }catch(e){ throw e}
+					 } 
+	
+	res
+}
+
+~~~~~
+//##33. more bug with state restoration before
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+11_meg = 11*1024*1024
+
+def afun() => "hi"
+
+ss = false
+
+def doings(){
+	
+	res = "lovely"
+	
+	res += "cool"+ if(ss){ 'no' }  else{try{
+		afun()
+	}finally{}} 
+	
+	res
+}
+
+~~~~~
+//##34. more bug with state restoration before x2
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+
+11_meg = 11*1024*1024
+
+def afun() => "hi"
+
+ss = false
+
+def doings(){
+	
+	res = "lovely"
+	
+	res += "cool"+ {if(ss){ 'no' }  else{try{
+		afun()
+	}finally{}} }
+	
+	res
+}

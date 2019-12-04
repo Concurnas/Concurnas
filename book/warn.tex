@@ -1,0 +1,39 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Compiler Warnings]{Compiler Warnings}
+
+Like most good compilers, Concurnas supports error reporting. Concurnas also supports warnings in the form of a large number of compiler facets designed to help you build 'better' - less buggy, easier to read and maintain software. These warnings are for cases where the outlined problem is not so severe as to warrant compilation failure (an error), but still deserves attention for its likely pathology.
+
+
+\section{Disabling warnings}
+Warnings can be disabled by using the \lstinline{@SuppressWarnings()} annotation. For example, say we have a redefine import warning:
+
+\begin{lstlisting}
+class String(a int)//redefines the default imported class: String
+\end{lstlisting}
+
+We can disable this warning by attaching the \lstinline{@SuppressWarnings()} annotation to the method or class/actor/trait encapsulating the code triggering the warning:
+
+\begin{lstlisting}
+@SuppressWarnings("redefine-import")
+class String(a int)//no longer triggers a warning
+\end{lstlisting}
+
+\subsection{Disabling multiple warnings}
+Multiple warnings may be disabled by passing an array of warnings to disable to the \lstinline{@SuppressWarnings()} annotation. For example: \lstinline{@SuppressWarnings("all")}. Though this is not recommended best practice.
+
+\subsection{Disabling all warnings}
+All warnings may be disabled by using the annotation: \lstinline{@SuppressWarnings(["all"])}.
+
+\section{Available Warnings}
+Concurnas offers the following list of warnings. The below strings can be used in conjunction with the aforedescribed \lstinline{@SuppressWarnings()} annotation in order to disable them:
+
+\begin{itemize}
+	\item \textbf{enum-match-non-exhaustive} - Match statement on enum is missing entry for enum element.
+	\item \textbf{typedef-arg-use} - Argument has been defined in a typedef but omitted from the right hand side declaration.
+	\item \textbf{generic-cast} - Attempted object cast to generic type.
+	\item \textbf{redefine-import} - Defined class name redefines existing imported class name (including auto imported).
+\end{itemize}
+
+\end{document}

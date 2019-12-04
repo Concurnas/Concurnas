@@ -1,0 +1,2083 @@
+//##1. simple additive
+A = [1 2; 3 4]
+
+def doings(){
+	r1 = A + 10
+	r2 = 10 + A
+	r3 = A + 1
+	r4 = A + A
+	r5 = A + A +100
+	partial = A + A^ +100//someone half did this
+
+	res = [r1, r2, r3, r4, r5, partial]
+
+	String.join("\n", x + "" for x in res)
+}
+
+~~~~~
+//##2. simple additive on list
+from java.util import ArrayList
+
+Aa = ArrayList<Integer>()
+Aa.add(1)
+Aa.add(2)
+Ab = ArrayList<Integer>()
+Ab.add(3)
+Ab.add(4)
+
+A = new ArrayList<ArrayList<Integer>>()
+A.add(Aa)
+A.add(Ab)
+
+def doings(){
+	r1 = A + 10
+	r2 = 10 + A
+	r3 = A + 1
+	r4 = A + A
+	r5 = A + A +100
+	partial = A + A^ +100//someone half did this
+
+	res = [r1, r2, r3, r4, r5, partial]
+
+	String.join("\n", x + "" for x in res)
+}
+
+~~~~~
+//##3. simple additive avoid on op overload object
+class MyOPOverloaded{
+	def plus(what int[]) => "ok"
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+}
+
+A = [1 2]
+
+def doings(){
+	inst = MyOPOverloaded()
+	got = inst + A//we dont expect this to be auto vectorizable
+
+	"" + got
+}
+
+~~~~~
+//##4. simple multiplacitative
+
+A = [1 2; 3 4]
+
+def doings(){
+	r1 = A * 10
+	r2 = 10 * A
+	r3 = A * 2
+	r4 = A * A
+	r5 = A * A * 100
+	partial = A * A^ * 10//someone half did this
+
+	res = [r1, r2, r3, r4, r5, partial]
+
+	String.join("\n", x + "" for x in res)
+}
+
+~~~~~
+//##5. simple pow 
+
+A = [1l 2; 3 4l]
+
+def doings(){
+	r1 = A ** 10
+	r2 = 10 ** A
+	r3 = A ** 2
+	r4 = A ** A
+	r5 = A ** A ** 2
+	partial = A ** A^ ** 2//someone half did this
+
+	res = [r1, r2, r3, r4, r5, partial]
+
+	String.join("\n", x + "" for x in res)
+}
+
+~~~~~
+//##6. relational
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	r1 = A > 5 
+	r2 = 5 < A
+	r3 = A > 2
+	r4 = A >== A
+	r5 = A < A 
+	partial = A < A^
+
+	res = [r1, r2, r3, r4, r5, partial]
+
+	String.join("\n", x + "" for x in res)
+}
+
+~~~~~
+//##7. eq neq etc
+
+class MyClas(avar String)
+
+A = [1 2 3 4 5 6 7 8 9 10]
+someObjects = [MyClas("hi"), MyClas("there")]
+
+def doings(){
+	r1 = A == 5 
+	r2 = 5 == A
+	r3 = A == 2
+	r4 = A == A
+	r5 = A == A 
+	partial = A == A^
+	ss1 = someObjects ==  MyClas("there")
+	ss2 = MyClas("there") == someObjects
+	
+	res = [r1, r2, r3, r4, r5, partial, ss1, ss2]
+
+	String.join("\n", x + "" for x in res)
+}
+
+~~~~~
+//##8. supress auto vect for this case
+
+class MyClas(avar int){
+	def compareTo(a int[]) => a.length - avar
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9) >== A
+	ss2 = MyClas(11) >== A
+	
+	"" + [ss1, ss2]
+}
+
+~~~~~
+//##9. but we do want auto vectorization here as operates on int type of A
+
+class MyClas(avar int){
+	def compareTo(a int) => a - avar
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9) >== A
+	ss2 = MyClas(11) >== A
+	
+	"" + [ss1, ss2]
+}
+
+~~~~~
+//##10. was broken before
+
+class MyClas(avar int){
+	def plus(a int) => a + avar
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9).plus(A^)
+	
+	"" + ss1
+}
+
+~~~~~
+//##11. vectorize object op override
+
+class MyClas(avar int){
+	def plus(a int) => a + avar
+	override equals(an Object) => false
+	override hashCode() => 11
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9)  + A^
+	
+	"" + ss1
+}
+
+~~~~~
+//##12. auto vectorize object op override
+
+class MyClas(avar int){
+	def plus(a int) => a + avar
+	override equals(an Object) => false
+	override hashCode() => 11
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9)  + A
+	
+	"" + ss1
+}
+
+~~~~~
+//##13. dont auto vect op override
+
+class MyClas(avar int){
+	def plus(a int[]) => 'cool' + a + avar
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9) + A //dont support this
+	
+	"" + ss1
+}
+
+~~~~~
+//##14. list of thing haveing operator overloaded 
+
+class MyClas(avar int){
+	def plus(a int) => a + avar
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+A = [MyClas(1) MyClas(2) MyClas(3)]
+
+def doings(){
+	ss1 = A + 10
+	"" + ss1
+}
+
+
+~~~~~
+//##15. list of thing haveing operator overloaded return an array type BASIC
+
+class MyClas(avar int){
+	def plus(a int[]) => a + avar
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+A = [MyClas(1) MyClas(2) MyClas(3)]
+
+def doings(){
+	ss1 = A^ + [10 20 30] //already vect A
+	"" + ss1
+}
+
+~~~~~
+//##16. list of thing haveing operator overloaded return an array type
+
+class MyClas(avar int){
+	def plus(a int[]) => a + avar
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+A = [MyClas(1) MyClas(2) MyClas(3)]
+
+def doings(){
+	ss1 = A + [10 20 30]
+	"" + ss1
+}
+
+~~~~~
+//##17. pl this works now
+
+class MyClas(avar int){
+	def compareTo(a int) => a - avar
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(9) >== A
+	ss2 = MyClas(11) >== A
+	
+	"" + [ss1, ss2]
+}
+
+~~~~~
+//##18. bitshift norm and oo
+
+class MyClas(avar int){
+	def <<(a int) => avar<<a
+}
+
+A = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	ss1 = MyClas(4) << A
+	ss2 = A << 2
+	
+	"" + [ss1 ; ss2]
+}
+
+~~~~~
+//##19. is
+//CANNOT DO THIS AUTO AS AMBIGOUS
+A = ["hi" Object() Object() "hi"]
+
+def doings(){
+	ss1 = A^ is String
+	ss2 = not (A^ is String)^//fun
+	ss3 = A^ is not String
+	ss4 = not (A^ is not String)^//fun
+	
+	"" + [ss1 ; ss2; ss3; ss4]
+}
+
+~~~~~
+//##20. just works
+
+A = ["hi" Object() Object() "hi"]
+
+def doings(){
+	ss1 = A as Object
+	
+	"fine"
+}
+
+~~~~~
+//##21. bitwise norm and oo
+
+class MyClas(mask int){
+	def band(a int) => a band mask
+}
+
+A = [0b001 0b0010 0b0011] //1 2 3
+
+def doings(){
+	ss1 = A band 0b010
+	ss2 = MyClas(0b010) band A
+	
+	"" + [ss1 ; ss2]
+}
+
+~~~~~
+//##22. thought id try this
+
+class MyClas(thing int){
+	def inc() => thing++; this@
+	override toString () => "MyClas {thing}"
+}
+
+
+def doings(){
+	a = MyClas(10)
+	b=a
+	a++
+	
+	"" + [a b a &<> b]
+}
+
+~~~~~
+//##23. prefix norm and oo
+
+class MyClas(thing int){
+	def inc() => thing++; this@
+	override toString () => "MyClas {thing}"
+}
+
+objs = [MyClas(10) MyClas(6) MyClas(7)]
+A = [ 1 2 3 4 5 ]
+
+def doings(){
+	inced1 = ++A
+	inced2 = ++objs
+	
+	"" + [A inced1 inced2]
+}
+
+~~~~~
+//##24. postfix norm and oo
+
+class MyClas(thing int){
+	def inc() => thing++; this@
+	override toString () => "MyClas {thing}"
+}
+
+objs = [MyClas(10) MyClas(6) MyClas(7)]
+A = [ 1 2 3 4 5 ]
+
+def doings(){
+	inced1 = A++
+	inced2 = objs++
+	
+	"" + [A inced1 inced2]
+}
+
+~~~~~
+//##25. prefix neg norm and oo
+
+class MyClas(thing int){
+	def neg() => thing=-thing; this@
+	override toString () => "MyClas {thing}"
+}
+
+objs = [MyClas(10) MyClas(6) MyClas(7)]
+A = [ 1 2 3 4 5 ]
+
+def doings(){
+	inced1 = -A
+	inced2 = -objs
+	
+	"" + [A inced1 inced2]
+}
+
+~~~~~
+//##26. assign existing norm and oo
+
+class MyClas(thing int){
+	def +=(a int) => thing+=a; this@
+	override toString () => "MyClas {thing}"
+}
+
+objs = [MyClas(10) MyClas(6) MyClas(7)]
+A = [ 1 2 3 4 5 ]
+
+def doings(){
+	A += 10
+	objs += 10
+	
+	"" + [A objs]
+}
+
+~~~~~
+//##27. with extension func defined
+
+class MyClas(public thing int){
+	override toString () => "MyClas {thing}"
+}
+
+def MyClas +=(a int) => this.thing+=a; this@
+def MyClas +(a int) => this.thing+=a; this@
+
+objs1 = [MyClas(10) MyClas(6) MyClas(7)]
+objs2 = [MyClas(10) MyClas(6) MyClas(7)]
+
+def doings(){
+	objs1 += 10
+	objs2 = objs2 + 100 
+	
+	"" + [objs1 ; objs2]
+}
+
+~~~~~
+//##28. bugfix for missing this in ext fucntions on lhs of assignment
+
+class MyClas(public thing int){
+	override toString () => "MyClas {thing}"
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def MyClas +=(a int) {
+ thing =  thing+a; 
+ thing += a; 
+ this@
+}
+
+objs1 = [MyClas(10) MyClas(6) MyClas(7)]
+
+def doings(){
+	objs1 += 10
+	
+	"" + objs1
+}
+
+~~~~~
+//##29. bugfix for missing this in ext fucntions on lhs of assignment 2
+
+class MyClas(public thing int[]){
+	override toString () => "MyClas {thing}"
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def MyClas +=(a int) {
+ thing[0] =  thing[0]+a; 
+ thing[0] += a; 
+ this@
+}
+
+objs1 = [MyClas([10]) MyClas([6]) MyClas([7])]
+
+def doings(){
+	objs1 += 10
+	
+	"" + objs1
+}
+
+~~~~~
+//##30. bugfix on object array copy 
+
+class MyClas(public thing int){
+	override toString () => "MyClas {thing}"
+}
+
+objs1 = [MyClas(10) MyClas(6) MyClas(7)]
+objs2 = objs1@
+
+def doings(){
+	"" + [objs1 ; objs2]
+}
+
+~~~~~
+//##31. vect on thing with default arg
+
+def fella(a int =100 ) => a + 10
+
+ok = [1 2 3]
+
+def doings(){
+	"" +fella(ok^)
+}
+
+~~~~~
+//##32. auto vect on thing with default arg
+
+def fella(a int =100 ) => a + 10
+
+ok = [1 2 3]
+
+def doings(){//ironically easier to figure out logic here
+	"" +fella(ok)
+}
+
+~~~~~
+//##33. auto vect on thing with no default arg
+
+def fella(a int ) => a + 10
+
+ok = [1 2 3]
+
+def doings(){
+	"" +fella(ok)
+}
+
+~~~~~
+//##34. basic funcref invoke
+
+def fella(a int ) => a + 10
+
+ok = [1 2 3]
+
+def doings(){
+	thing = fella&
+	"" + thing(ok^)
+}
+
+~~~~~
+//##35. basic funcref invoke auto
+
+def fella(a int ) => a + 10
+
+ok = [1 2 3]
+
+def doings(){
+	thing = fella&
+	"" + thing(ok)
+}
+
+~~~~~
+//##36. bugfix on equiv stringrep
+
+class MyClas(avar String)
+
+A = [1 2 3 4 5 6 7 8 9 10]
+someObjects = [MyClas("hi"), MyClas("there")]
+
+def gefres(){
+	r1 = A == 5 
+	r2 = 5 == A
+	r3 = A == 2
+	r4 = A == A
+	r5 = A == A 
+	partial = A == A^
+	ss1 = someObjects ==  MyClas("there")
+	ss2 = MyClas("there") == someObjects
+	
+	res = [r1, r2, r3, r4, r5, partial, ss1, ss2]
+	res
+}
+
+def doings(){
+	res = gefres()
+	a = x + "" for x in res
+	b = "" + x for x in res
+	
+	"" + [a == b]//bugfix on string rep, prevsouly these were not equal
+}
+
+~~~~~
+//##37. funcref invoke
+
+def getFunc(){
+	def (a int) => a + 100
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+
+myAr1 = [1 2 3 4] 
+myAr2 = intList(1, 2, 3, 4)
+
+def doings(){
+	xx1 = getFunc()(myAr1)
+	xx2 = getFunc()(myAr2)
+	"" + [xx1, xx2]
+}
+
+~~~~~
+//##38. out param used to breka this
+
+def getFunc(){
+	def (a int) => Integer(a + 100)
+}
+
+from com.concurnas.lang.precompiled.ListMaker import intList
+
+myAr1 = [1 2 3 4] 
+myAr2 = intList(1, 2, 3, 4)
+
+def doings(){
+	xx1 = getFunc()(myAr1^)
+	xx2 = getFunc()(myAr2^)
+	"" + [xx1, xx2]
+}
+
+~~~~~
+//##39. auto vect new
+
+A = [1 2 3 4 5]
+
+class MyClass(a int){
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = new MyClass(A)
+	res2 = MyClass(A)
+	"" + [res1 ; res2]
+}
+
+~~~~~
+//##40. auto vect funcref class and constructor
+A = [1 2 3 ]
+
+class MyClass(a int){
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = new MyClass&
+	res2 =  MyClass&
+	res3 = new MyClass&(? int)
+	res4 =  MyClass&(? int)
+	"" + [res1(A) ; res2(A) ; res3(A) ; res4(A)]
+}
+
+~~~~~
+//##41. auto vect of funcrefs
+
+A = [1 2 3 ]
+
+class MyClass(a int){
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = new MyClass&(A)
+	res2 =  MyClass&(A)
+	"" + [(x() for x in res1) , (x() for x in res2)]
+}
+
+~~~~~
+//##42. auto vect of actor calls
+
+A = [1 2 3 ]
+
+class MyClass(a int){
+	def myFunc(b int) => "hi:" + [a b]
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = new actor MyClass(11)
+	a = res1.myFunc(A)
+	b = res1.myFunc&(A)
+	"" + [a, ('&' + p() for p in b)]
+}
+
+~~~~~
+//##43. auto vect of new actor
+
+A = [1 2 3 ]
+
+class MyClass(a int){
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = actor MyClass(A)
+	res2 = actor MyClass&(A)
+	"" + [res1 , (x() for x in res2)]
+}
+
+~~~~~
+//##44. auto vect of new actor when actor itself 
+A = [1 2 3 ]
+
+actor MyClass(a int){
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = new MyClass(A)
+	res2 = new MyClass&(A)
+	res3 =  MyClass(A)
+	res4 =  MyClass&(A)
+	"" + [res1 , (x() for x in res2), res3 , (x() for x in res4)]
+}
+
+~~~~~
+//##45. auto vect of calls on actor when actor itself 
+A = [1 2 3 ]
+
+actor MyClass(a int){
+	def myFunc(b int) => "hi:" + [a b]
+	override toString() => "MC: " + a
+}
+
+def doings(){
+	res1 = new actor MyClass(11)
+	a = res1.myFunc(A)
+	b = res1.myFunc&(A)
+	"" + [a, ('&' + p() for p in b)]
+}
+
+~~~~~
+//##46. auto vect expression lists
+
+A = [1 2 3 4 5]
+
+def myFunc(a int)=> a+100
+
+def doings(){
+	res1 = myFunc A^
+	res2 = myFunc A
+	"" + [res1 ; res2]
+}
+
+~~~~~
+//##47. auto vect expression lists class
+
+A = [1 2 3]
+
+class myClass(a int){
+	override toString() => "myCls {a}"
+}
+
+def doings(){
+	res1 = myClass A^
+	res2 = myClass A
+	"" + [res1 ; res2]
+}
+
+~~~~~
+//##48. auto vect arrayref operations
+
+origArray = [1 2 3 4 5 6 7 8 9]
+A = [ 3 5 6]
+
+def doings(){
+	res = origArray[A ... A+2]//kid of cool
+	"" + res
+}
+
+~~~~~
+//##49. auto vect arrayref operations op overload
+
+class MyClass{
+	origArray = [1 2 3 4 5 6 7 8 9]
+	def sub(a int, b int) => 'cool {origArray[a ... b]}'
+}
+
+A = [ 3 5 6]
+
+def doings(){
+	mc = MyClass()
+	res = mc[A ... A+2]
+	"" + res
+}
+
+~~~~~
+//##50. mkt tmp var when no nested vectees 
+
+A = [1 2 3 4]
+def ff() => A 
+
+def doings() {
+	f = ff()^+1
+	"" + [A, f]
+}
+
+~~~~~
+//##51. mkt tmp var when no nested vectees AUTO 
+
+A = [1 2 3 4]
+def ff() => A 
+
+def doings() {
+	f = ff()^+1
+	"" + [A, f]
+}
+
+~~~~~
+//##52. this thing works
+
+def doings() {
+	ax = [1 2 3 4 5 6 7 8 9]
+	f = (ax[2 ... 4])^+1 
+	"" + f
+}
+
+~~~~~
+//##53. this thing works AUTO
+
+def doings() {
+	ax = [1 2 3 4 5 6 7 8 9]
+	f = ax[2 ... 4]+1 
+	"" + f
+}
+
+~~~~~
+//##54. this thing works AUTO
+
+def doings() {
+	ax = [1 2 3 4 5 6 7 8 9]
+	f = ++ax[2 ... 4] 
+	"" + f
+}
+
+~~~~~
+//##55. vectorized in expression
+
+A = [ 1 2 3 4 5 ]
+ele = [2 10 4]
+
+def doings() {
+	res = ele^ in A
+	"" + res
+}
+
+~~~~~
+//##56. vectorized in expression matr
+
+A = [ 1 2 3 4 5 ]
+elea = [ 4 10 2]
+ele = [elea;elea]
+
+def doings() {
+	res = ele^ in A
+	"" + res
+}
+
+~~~~~
+//##57. vectorized in expression op overload
+
+class Myclass{
+	def \in(a int){
+		a >== 2 and a < 10
+	}
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+elea = [1 2 35 4]
+ele = [elea;elea]
+
+A = Myclass()
+
+def doings() {
+	res = ele^ in A
+	"" + res
+}
+
+~~~~~
+//##58. choose correct op overload bug
+class Myclass{
+	def what(a int) => a >== 2 and a < 10
+	def what(ax int[]) => 'hi: {ax[0]==1}'
+	
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+
+elea = [1 2 35 4]
+ele = [elea;elea]
+
+A = Myclass()
+
+def doings() {
+	res = A.what(ele^)
+	"" + res
+}
+
+~~~~~
+//##59. bugfix on calling of vect funct
+
+class Myclass{
+	def \in(a int) => a >== 2 and a < 10
+	def \in(ax int[]) => 'hi: {ax[0]==1}'
+	
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+elea = [1 2 35 4]
+ele = [elea;elea]
+
+A = Myclass()
+
+def doings() {
+	res = A.contains(ele^)
+	"" + res
+}
+
+~~~~~
+//##60. vectorized in expression op overload when choices
+
+class Myclass{
+	def \in(a int) => a >== 2 and a < 10
+	def \in(ax int[]) => 'hi: {ax[0]==1}'
+	
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+elea = [1 2 35 4]
+ele = [elea;elea]
+
+A = Myclass()
+
+def doings() {
+	res = ele^ in A
+	"" + res
+}
+
+~~~~~
+//##61. vectorized in expression op overload when choices EXT function
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+elea = [1 2 35 4]
+ele = [elea;elea]
+
+A = Myclass()
+
+def doings() {
+	res = ele^ in A
+	"" + res
+}
+
+~~~~~
+//##62. vectorized in expression rhs is vect with oo
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+
+A = [[Myclass() Myclass() Myclass()],]
+
+def doings() {
+	//res = 6 in A^
+	res1 = A^contains(6)
+	res2 = not A^contains(6)^
+	"" + [res1, res2]
+}
+
+~~~~~
+//##63. vectorized in expression rhs is vect with oo as above but implicit
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+A = [[Myclass() Myclass() Myclass()],]
+
+def doings() {
+	res1 = 6 in A^
+	res2 = 6 not in A^
+	"" + [res1, res2]
+}
+
+~~~~~
+//##64. vectorized in expression list of
+
+class Myclass{
+	def \in(a int) => a >== 2 and a < 10
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+A = [[Myclass() Myclass() Myclass()],]
+
+def doings() {
+	res1 = 6 in A^
+	res2 = 6 not in A^
+	"" + [res1, res2]
+}
+
+~~~~~
+//##65. auto vectoriz in rhs
+
+class Myclass{
+	def \in(a int) => a >== 2 and a < 10
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+A = [[Myclass() Myclass() Myclass()],]
+
+def doings() {
+	res1 = 6 in A
+	res2 = 6 not in A
+	"" + [res1, res2]
+}
+
+~~~~~
+//##66. auto vectoriz in lhs
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+elea = [1 2 35 4]
+ele = [elea;elea]
+
+A = Myclass()
+
+def doings() {
+	res = ele in A
+	"" + res
+}
+
+~~~~~
+//##67. field access hat
+
+class Myclass(field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([12 13 14 15]^) 
+
+def doings() {
+	"" + (A^field)
+}
+
+~~~~~
+//##68. field access hat 2d and goes to getter
+
+class Myclass(field int){
+	def getField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([[12 13 14 15] ; [1 2 3]]^) 
+
+def doings() {
+	"" + (A^field)
+}
+
+~~~~~
+//##69. field access hat 2d and goes to getter via overriden getter
+
+class Myclass(private field int){
+	def getField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([[12 13 14 15] ; [1 2 3]]^) 
+
+def doings() {
+	"" + (A^field)
+}
+
+~~~~~
+//##70. via getter but this didnt used to work very well
+
+class Myclass(private ~field int){
+	def getField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([[12 13 14 15] ; [1 2 3]]^) 
+
+def doings() {
+	"" + (A^field)
+}
+
+~~~~~
+//##71. is field
+
+class Myclass(private field boolean){
+	def isField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([true true]^) 
+
+def doings() {
+	"" + (A^field)
+}
+
+~~~~~
+//##72. field and subfield
+
+class FieldCls(valu int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'FieldCls: {valu}'
+}
+
+class Myclass(field FieldCls){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass( [FieldCls(1) FieldCls(2) ; FieldCls(3) FieldCls(4)]^) 
+
+def doings() {
+	x = A^field^valu 
+
+	"hi" + x
+}
+
+~~~~~
+//##73. assign to vectfield ref
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass( [1 2  1 2 3 4 5 6]^) 
+
+def doings() {
+	h=A^field + 10
+	//
+	A^field = 99
+	"" + [h ; A]
+}
+
+~~~~~
+//##74. bugfix on lhs and rhs assign
+
+B = [1 2 3]
+
+def doings() {
+	B^ =  B^+10
+	"" + B
+}
+
+~~~~~
+//##75. bugfix on lhs and rhs assign ext 2
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+B = [1 2  1 2 3 4 5 6]
+A = Myclass( B^) 
+
+def doings() {
+	A^field = A^field + 100
+	"" + A
+}
+
+~~~~~
+//##76. field ref pre post
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+A = [Myclass( 1) Myclass( 2) Myclass( 3) ]
+
+def doings() {
+	A^field++
+	"" + A
+}
+
+~~~~~
+//##77. field ref in place
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+A = [Myclass( 1) Myclass( 2) Myclass( 3) ]
+
+def doings() {
+	A^field^^ + 100
+	"" + A
+}
+
+~~~~~
+//##78. in place assigmnet
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+A = [Myclass( 1) Myclass( 2) Myclass( 3) ]
+
+def doings() {
+	A^field += 100
+
+	"" + A
+}
+
+~~~~~
+//##79. vect field ref long chain
+
+class FieldCls(valu int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'FieldCls: {valu}'
+}
+
+class Myclass(field FieldCls){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass( [FieldCls(1) FieldCls(2) ; FieldCls(3) FieldCls(4)]^) 
+B = A@
+
+def doings() {
+	A^field^valu = 10
+	B^field^valu += 100
+	x = B^field^valu
+
+	"lovely: " + [A ; B; x]
+}
+
+~~~~~
+//##80. no arg funcref
+
+class MyClass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+	def anOperation() => 'result!'
+}
+
+myAr = [MyClass() MyClass()]
+
+
+def doings() {
+	res = myAr^anOperation&//create a funcref to anOperation
+	 "" + (x() for x in res)
+}
+
+~~~~~
+//##81. vect called each time for assignment not just once
+
+cnt = 0
+
+def cnter() => cnt++
+
+stuff = [1 2 3 4]
+
+def doings() {
+	stuff^ = cnter()
+
+	'ok' + [stuff, cnt]
+}
+
+~~~~~
+//##82. auto vect field access
+
+class Myclass(public field int){
+	def isField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 4 5]^) 
+
+def doings() {
+	x = A.field
+	"" + x
+}
+
+~~~~~
+//##83. auto vect field assignment
+
+class Myclass(public field int){
+	def isField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 4 5]^) 
+
+def doings() {
+	A.field = 69
+	"" + A
+}
+
+~~~~~
+//##84. auto vect field inc
+
+class Myclass(public field int){
+	def isField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 4 5]^) 
+
+def doings() {
+	A.field++
+	"" + A
+}
+
+~~~~~
+//##85. auto vect in place ops
+
+class Myclass(public field int){
+	def isField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 4 5]^) 
+B = A@
+
+def doings() {
+	A.field += 66
+	B.field^^+99
+	"" + [A ; B]
+}
+
+~~~~~
+//##86. auto vect manual in place ops
+
+class Myclass(public field int){
+	def isField() => "hi: " + field//go via getter
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 4 5]^) 
+
+def doings() {
+	A.field = A.field + 66
+	"" + A
+}
+
+~~~~~
+//##87. auto vect ops nested etc complex
+
+class FieldCls(valu int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'FieldCls: {valu}'
+}
+
+class Myclass(field FieldCls){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass( [FieldCls(1) FieldCls(2) ; FieldCls(3) FieldCls(4)]^) 
+B = A@
+
+def doings() {
+	A.field.valu = 10
+	B.field.valu += 100
+	x = B.field.valu
+
+	"lovely: " + [A ; B; x]
+}
+
+~~~~~
+//##88. acuto vect func invoke
+
+class Myclass(a int){
+
+	def afunc() => "hi: {a}"
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^) 
+
+def doings() {
+	x = A.afunc()
+	"" + x
+}
+
+~~~~~
+//##89. acuto vect func ref
+
+class Myclass(a int){
+
+	def afunc() => "hi: {a}"
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+def doings() {
+	xxx = A.afunc&
+	"" + (x() for x in xxx)
+}
+
+~~~~~
+//##90. inner class init
+
+class Myclass(a int){
+	public class SubClass(b int){
+		override hashCode()=>1
+		override equals(an Object)=>false
+		override toString() => 'SubClass: {a, b}'
+	}
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+def doings() {
+	xxx = A^SubClass(8)
+	"" + xxx
+}
+
+~~~~~
+//##91. inner class init auto vect
+
+class Myclass(a int){
+	public class SubClass(b int){
+		override hashCode()=>1
+		override equals(an Object)=>false
+		override toString() => 'SubClass: {a, b}'
+	}
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+def doings() {
+	xxx = A.SubClass(8)
+	"" + xxx
+}
+
+~~~~~
+//##92. cnt called for each iteration
+
+class Myclass(){
+	def myMeth(a int) => 'ok: {a}'
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+cc=0
+def cnt() => cc++
+
+A = [Myclass() Myclass() Myclass()]
+
+def doings(){
+	"" + A^myMeth(cnt())
+}
+
+~~~~~
+//##93. new nested class
+
+class Myclass(a int){
+	public class SubClass(public b int){
+		override hashCode()=>1
+		override equals(an Object)=>false
+		override toString() => 'SubClass: {a}, {b}'
+	}
+
+	def fu(a int) => a
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'FAIL Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+cc=0
+def cnt() => cc++
+
+def doings() {
+	xxx = A^new SubClass(cnt())
+	"" + [xxx, cc]
+}
+
+~~~~~
+//##94. new nested class implicit
+
+class Myclass(a int){
+	public class SubClass(b int){
+		override hashCode()=>1
+		override equals(an Object)=>false
+		override toString() => 'SubClass: {a}, {b}'
+	}
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+def doings() {
+	xxx = A^SubClass(8)//nope
+	"" + xxx
+}
+
+~~~~~
+//##95. new nested class auto vect
+
+class Myclass(a int){
+	public class SubClass(public b int){
+		override hashCode()=>1
+		override equals(an Object)=>false
+		override toString() => 'SubClass: {a}, {b}'
+	}
+
+	def fu(a int) => a
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'FAIL Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+cc=0
+def cnt() => cc++
+
+def doings() {
+	xxx = A.new SubClass(cnt())
+	"" + [xxx, cc]
+}
+
+~~~~~
+//##96. new nested class auto vect op overload
+
+class Myclass(a int){
+	def \new(what String, b int){
+		'new: {what} {a} {b}'
+	}
+	
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+def doings() {
+	xxx = A.new HiThere(8)
+	"" + xxx
+}
+
+~~~~~
+//##97. ext function on ar type plus auto vect
+
+class Myclass(a int){
+
+	def afunc() => "hi: {a}"
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3 ; 4 5]^)
+
+
+def Myclass[1] afunc(){
+	'ok' + this
+}
+
+def doings() {
+	x = A.afunc()
+	"" + x
+}
+
+~~~~~
+//##98. expression lists func invoke ref
+
+class Myclass(a int){
+
+	def afunc() => "hi: {a}"
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {a}'
+}
+
+A = Myclass([1 2 3  4 5]^)
+
+def doings() {
+	x = A afunc
+	xxx = A afunc&
+	"" + [x, (d() for d in xxx)]
+}
+
+~~~~~
+//##99. expression lists field assignment
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 ]^)
+
+def doings() {
+	A field = 100
+	x=A field 
+	"" + [A, x] 
+}
+
+~~~~~
+//##100. expression lists field assignment in place ops
+
+class Myclass(public field int){
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass([1 2 3 ]^)
+
+def doings() {
+	A field += 100
+	"" + A 
+}
+
+~~~~~
+//##101. vectorize dneste class new via expr list
+
+class Myclass(a int){
+	public class SubClass(public b int){
+		override hashCode()=>1
+		override equals(an Object)=>false
+		override toString() => 'SubClass: {a}, {b}'
+	}
+
+	def fu(a int) => a
+
+	override hashCode()=>1
+	override equals(an Object)=>false
+	override toString() => 'FAIL Myclass: {a}'
+}
+
+A = Myclass([1 2 3 4 5]^)
+
+cc=0
+def cnt() => cc++
+
+def doings() {
+	xxx = A new SubClass(cnt())
+	"" + [xxx, cc]
+}
+
+~~~~~
+//##102. this thing works ok
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+A = [Myclass() Myclass() ; Myclass()]
+
+def doings() {
+	res = not y for y in (x for x in A^contains(6))
+	"" + res
+}
+
+~~~~~
+//##103. in on lists directed to underlying correctly
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+
+A = [Myclass(), Myclass(), Myclass()]
+
+def doings() {
+	res1 = A^contains(6)
+	res2 = 6 in A^//on rawClass mYclass
+	res3 = 6 in A//op on list
+	"" + [res1 res2 res3]
+}
+
+~~~~~
+//##104. in on lists directed to underlying correctly - advanced
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+
+A = [[Myclass(), Myclass(), Myclass()],]
+
+def doings() {
+	res = 6 in A^
+	res1 = A^contains(6)
+	"" +[res res1]
+}
+
+~~~~~
+//##105. set and get of the array of list of int array
+
+from java.util import ArrayList
+
+h1 = [ new ArrayList<int[]>(0) new ArrayList<int[]>(0) new ArrayList<int[]>(0) new ArrayList<int[]>(0)]
+
+def doings(){
+	
+	h1^add( [1] ) 
+	//try auto above
+	
+	shoulderr = x[0] for x in h1^get(0)
+
+	"" + [h1,  shoulderr]
+}
+
+~~~~~
+//##106. array ref element vectorized
+
+a = [ 2 3 4 5; 4 5 6 7 8 ; 7 8 9 10 11]
+
+def doings(){
+	what1 = a^[0]
+	what2 = a^[0 ... 2]
+	"" + [what1, what2]
+}
+
+~~~~~
+//##107. array ref assign
+
+B int[] = [1 2 3 4 5 6 7 8 9 10]
+ext int[] = [ 5 6 7]
+
+def doings(){
+	B[ext^] = 99
+	
+	"" + B
+}
+
+~~~~~
+//##108. array ref assign AUTO vect version
+
+B int[] = [1 2 3 4 5 6 7 8 9 10]
+ext int[] = [ 5 6 7]
+
+def doings(){
+	B[ext] = 99
+	
+	"" + B
+}
+
+~~~~~
+//##109. inc array ref and auto
+
+B int[] = [1 2 3 4 5 6 7 8 9 10]
+ext int[] = [ 5 6 7]
+
+def doings(){
+	B[ext^]++
+	B[ext]++
+	//B[ext] += 99
+	
+	"" + B
+}
+
+~~~~~
+//##110. cool
+
+B int[] = [1 2 3 4 5 6 7 8 9 10]
+ext int[] = [ 5 6 7]
+
+def doings(){
+
+	B[ext^^] + 100
+	
+	"" + ext
+}
+
+~~~~~
+//##111. this is fine
+
+B int[] = [1 2 3 4 5 6 7 8 9 10]
+ext int[] = [ 5 6 7]
+
+def doings(){
+	k=B[ext^]^ + 100
+	
+	"" + k
+}
+
+~~~~~
+//##112. assignment of ar
+
+B int[] = [1 2 3 4 5 6 7 8 9 10]
+ext int[] = [ 5 6 7]
+
+def doings(){
+	B[ext^] += 100
+	B[ext] += 100
+	
+	"" + B
+}
+
+~~~~~
+//##113. assignment of ar with arg vect
+
+a int[2] = [ 2 3 4 5; 4 5 6 7 8 ; 7 8 9 10 11]
+
+
+def doings(){
+	a^[0] = 5
+
+	"" + a
+}
+
+~~~~~
+//##114. cool i guess
+
+ax int[2] = [ 2 3 4 5; 4 5 6 7 8 ; 7 8 9 10 11]
+
+def doings(){
+	w = ax[(x for x in 0 to ax.length-1)^, 0]
+	"" + w
+}
+
+~~~~~
+//##115. cool i guess AUTO
+
+ax int[2] = [ 2 3 4 5; 4 5 6 7 8 ; 7 8 9 10 11]
+
+def doings(){
+	w = ax[(x for x in 0 to ax.length-1), 0]
+	"" + w
+}
+
+~~~~~
+//##116. bugfix correctly operates on vect type now
+
+ax int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+
+def doings(){
+	ll = ax.length
+	ax[(x for x in 0 to 2)^, 0]++
+	
+	"" + ax
+}
+
+~~~~~
+//##117. ar vect postfix op
+
+ax int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+
+def doings(){
+	w = ax^[0]++
+
+	"" + [w , ax]
+}
+
+~~~~~
+//##118. ar vect assign
+
+ax int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+
+def doings(){
+	ax^[0]=10
+
+	"" + ax
+}
+
+~~~~~
+//##119. ar in place
+
+ax int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+
+def doings(){
+	ax^[0] += 100
+
+	"" + ax
+}
+
+~~~~~
+//##120. great it works
+
+from java.util import ArrayList
+
+h1 = [ new ArrayList<int[]>(0) new ArrayList<int[]>(0) new ArrayList<int[]>(0) new ArrayList<int[]>(0)]
+
+def doings(){
+	h1^add( [1] ) 
+	shoulderr = h1^get(0)^[0]
+	"" + [h1,  shoulderr]
+}
+
+~~~~~
+//##121. lhs of vect ar invoke only once
+
+ax1 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+cnt=0
+def myFellta(){
+	cnt++;
+	ax1
+}
+
+def doings(){
+	myFellta()[0, [0 2 ]^ ] +=1
+
+	"" + [cnt, ax1]
+}
+
+~~~~~
+//##122. lhs of vect ar arg vect invoke only once
+
+ax1 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+cnt=0
+def myFellta(){
+	cnt++;
+	ax1
+}
+
+def doings(){
+	myFellta()^[0] +=1
+
+	"" + [cnt, ax1]
+}
+
+~~~~~
+//##123. ar ops on element and subs
+
+ax1 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+ax2 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+ax3 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+ax4 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+
+def doings(){
+	got = ax1^[ [0 1 2]^ ]
+	ax2^[ [0 1 2]^ ] = 999
+	ax3^[ [0 1 2]^ ] ++
+	ax4^[ [0 1 2]^ ] += 100
+
+	"" + [got, ax1, ax2, ax3, ax4]
+}
+
+~~~~~
+//##124. bugfix return correct type on vect func ref with args also vect
+
+class Myclass{
+	override hashCode()=>1
+	override equals(an Object)=>false
+}
+
+def Myclass \in(a int) => a >== 2 and a < 10
+
+
+A = [Myclass() Myclass() Myclass()]
+
+def doings() {
+	res2 =  A^contains([1 2 3]^)
+	"" + res2
+}
+
+~~~~~
+//##125. bugfix on non eq assingment special method dup calls on lhs
+
+ax4 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+ax5 int[2] = [ 1 1 1 ; 1 1 1; 1 1 1]
+
+cnt = 0
+cnt2 = 0
+def getThing() => cnt++; [0 1 2]
+def getThing2() => cnt2++; [0 1 2]
+
+def doings(){
+	ax4^[ getThing()^ ] += 100//we expect 1 calls to getThing
+	ax5^[ getThing2()^ ] = ax5^[ getThing2()^ ] + 100//we expect 2 calls to getThing2
+
+	"" + [ax4, cnt, ax5, cnt2]
+}

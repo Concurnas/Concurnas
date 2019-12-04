@@ -1,0 +1,422 @@
+//##1. normal copy
+class MyClass(a int, b int, c String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c)}"
+	}
+}
+
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+~~~~~
+//##2. override field
+class MyClass(a int, b int, c String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c)}"
+	}
+}
+
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@(a=99)
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##3. override more than one
+
+class MyClass(a int, b int, c String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c)}"
+	}
+}
+
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@(c='cool', a=92)//do an object field and a primative type
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##4. normal copy on fast type
+
+class MyClass(a int, b int, c String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c)}"
+	}
+}
+
+
+def doings(){
+	mc = [MyClass(12, 14, "hi there"),]
+	sdf="fred"
+	mc2 = mc@
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##5. copy with explicit include
+
+class MyClass(a int, b int, c String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c)}"
+	}
+}
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@(a)
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##6. copy with explicit exclude
+
+class MyClass(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+def doings(){
+	mc = MyClass(12, 14, "hi there", "friend")
+	mc2 = mc@(<b>)
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##7. exclude item
+
+class MyClass(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Holder(h int, held MyClass){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{h} | {held}"
+	}
+	
+}
+
+def doings(){
+	hh = Holder(23, MyClass(12, 14, "hi there", "friend"))
+	hh2 = hh@(<held>)
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##8. nested copier
+
+class MyClass(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Holder(h int, held MyClass){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{h} | {held}"
+	}
+}
+
+def doings(){
+	hh = Holder(23, MyClass(12, 14, "hi there", "friend"))
+	hh2 = hh@(held@(a, c))
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##9. super copier
+
+open class Parent(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Child(a int, b int, c String, d String, e int, f int) < Parent(a, b, c, d){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{super.toString()} | {(e, f)}"
+	}
+}
+
+def doings(){
+	hh = Child(1, 2, "three", "four", 5, 6)
+	hh2 = hh@(super@(<b>))
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##10. unchecked copier with super
+open class Parent(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Child(a int, b int, c String, d String, e int, f int) < Parent(a, b, c, d){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{super.toString()} | {(e, f)}"
+	}
+}
+
+def doings(){
+	hh Object = Child(1, 2, "three", "four", 5, 6)
+	hh2 = hh@(f, super@(<b>; unchecked); unchecked)
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##11. unchecked copier without super
+
+open class Parent(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Child(a int, b int, c String, d String, e int, f int) < Parent(a, b, c, d){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{super.toString()} | {(e, f)}"
+	}
+}
+
+def doings(){
+	hh Object = Child(1, 2, "three", "four", 5, 6)
+	hh2 = hh@(f ; unchecked)
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##12. copy none
+
+class MyClass(a int, b int, c String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c)}"
+	}
+}
+
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@()
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##13. copy none field
+
+class MyClass(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Holder(held1 MyClass, held2 MyClass){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{held1} | {held2}"
+	}
+	
+}
+
+def doings(){
+	hh = Holder(MyClass(12, 14, "hi there", "friend"), MyClass(12, 14, "hi there", "friend"))
+	hh2 = hh@(held1@() )
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##14. copy none super
+
+open class Parent(a int, b int, c String, d String){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, d)}"
+	}
+}
+
+class Child(a int, b int, c String, d String, e int, f int) < Parent(a, b, c, d){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{super.toString()} | {(e, f)}"
+	}
+}
+
+def doings(){
+	hh = Child(1, 2, "three", "four", 5, 6)
+	hh2 = hh@(super@())
+	"" + String.join("\n" , "" + x for x in [hh, hh2])
+}
+
+~~~~~
+//##15. default values
+
+open class Sup(thing int = 99){}
+
+class MyClass(a int=24, b int=25, c String="default") < Sup(9){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, super.thing)}"
+	}
+}
+
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@()
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##16. defaults on super
+
+open class Sup(thing int = 99){}
+
+class MyClass(a int=24, b int=25, c String="default") < Sup(9){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, super.thing)}"
+	}
+}
+
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@(super@())
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##17. defaults on super via copier unchecked
+
+open class Sup(thing int = 99){}
+
+class MyClass(a int=24, b int=25, c String="default") < Sup(9){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, super.thing)}"
+	}
+}
+
+
+def doings(){
+	mc Object = MyClass(12, 14, "hi there")
+	mc2 = mc@(super@(); unchecked)
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##18.no defaults
+
+open class Sup(thing int = 99){}
+
+class MyClass(a int=24, b int=25, c String="default") < Sup(9){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, super.thing)}"
+	}
+}
+
+def doings(){
+	mc = MyClass(12, 14, "hi there")
+	mc2 = mc@(; nodefault)//turn off defaulting behvaour
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+~~~~~
+//##19. no defaults via unchecked
+
+open class Sup(thing int = 99){}
+
+class MyClass(a int=24, b int=25, c String="default") < Sup(9){
+	override hashCode()=>1
+	override equals(an Object) => false
+	
+	override toString(){
+		"{(a, b, c, super.thing)}"
+	}
+}
+
+def doings(){
+	mc Object = MyClass(12, 14, "hi there")
+	mc2 = mc@(; nodefault)
+	"" + String.join("\n" , "" + x for x in [mc, mc2])
+}
+
+

@@ -1,0 +1,462 @@
+//##1. simple tuple creation
+def tupRet() {
+	return "friday", 13	
+}
+
+def doings() => ""+ tupRet()
+
+~~~~~
+//##2. simple tuple create no ret 
+
+def tupRet() {
+	"friday", 13	
+}
+
+
+def doings() => ""+ tupRet()
+
+~~~~~
+//##3. tuples as auto include type
+
+def tupRet() Tuple2<int, int>{
+	12, 13
+}
+
+def doings() => ""+ tupRet()
+
+~~~~~
+//##4. tuples in compact form
+
+def tupRet() (int, int) {
+	12, 13
+}
+
+def doings() => ""+ tupRet()
+
+~~~~~
+//##5. decl tuple para
+
+def tupRet() (int, int) {
+	(12, 13)
+}
+
+def doings() => ""+ tupRet()
+
+~~~~~
+//##6. tuple arg
+
+def takesTuple(a (int, int)){
+	"" + a
+}
+
+def doings(){
+	takesTuple((12, 13))
+}
+
+~~~~~
+//##7. a normal declaration
+
+def doings(){
+	x (int, int) = 12, 13
+	
+	"" + x
+} 
+
+~~~~~
+//##8. is
+
+def doings(){
+	x (int, int) = 12, 13
+	y (String, String) = "hi", "there"
+	
+	anx Object = x as Object
+	any Object = y as Object
+	
+	isit = anx is (int, int)
+	isisnt = any is (int, int)
+	isisnt2 = any is not (int, int)
+	
+	"" + [isit, isisnt, isisnt2]//+ [isit, isisnt, x2, nope]
+}
+
+~~~~~
+//##9. as
+
+def doings(){
+	x (int, int) = 12, 13
+	y (String, String) = "hi", "there"
+	
+	anx Object = x as Object
+	any Object = y as Object
+	
+	
+	x2 = anx as (int, int)
+	nope = try{
+		fail = any as (int, int)
+		'fail'
+	}catch(e){
+		e getMessage
+	}
+	
+	"" + [x2, nope]
+}
+
+~~~~~
+//##10. is alt type def 
+
+def doings(){
+	x Tuple2<int, int> = 12, 13
+	y Tuple2<String, String> = "hi", "there"
+	
+	anx Object = x as Object
+	any Object = y as Object
+	
+	isit = anx is Tuple2<int, int>
+	isisnt = any is Tuple2<int, int>
+	isisnt2 = any is not Tuple2<int, int>
+	
+	"" + [isit, isisnt, isisnt2]//+ [isit, isisnt, x2, nope]
+}
+
+~~~~~
+//##11. as alt type def 
+
+def doings(){
+	x Tuple2<int, int> = 12, 13
+	y (String, String) = "hi", "there"
+	
+	anx Object = x as Object
+	any Object = y as Object
+	
+	
+	x2 = anx as Tuple2<int, int>
+	nope = try{
+		fail = any as Tuple2<int, int>
+		'fail'
+	}catch(e){
+		e getMessage
+	}
+	
+	"" + [x2, nope]
+}
+
+~~~~~
+//##12. iteration
+
+def doings(){
+	x Tuple2<int, int> = 12, 13
+	
+	"" + ("el: " + e for e in x)
+}
+
+~~~~~
+//##13. pull out items
+
+def doings(){
+	x = 12, 13
+	//(a, b) = x
+	a = x.f0
+	b = x.f1
+	
+	"" + [a b]
+}
+
+~~~~~
+//##14. simple decomposition
+
+def doings(){
+	x = 12, 13
+	(a, b) = x
+		
+	"" + [a b]
+}
+
+~~~~~
+//##15. simple decomposition rhs ref
+
+def doings(){
+	x := 12, 13
+	(a, b) = x
+		
+	"" + [a b]
+}
+
+~~~~~
+//##16. simple decomposition rhs ref contained
+
+x = 12:, 13
+
+def doings(){
+	(a, b) = x
+		
+	"" + [a b]
+}
+
+~~~~~
+//##17. decomposition some new
+
+x = 12, 13
+
+def doings(){
+	(a int, b) = x
+		
+	"" + [a b]
+}
+
+~~~~~
+//##18. decomposition assign existing
+
+x = 12, 13
+
+def doings(){
+	a = b = 100
+	(a, b) += x
+		
+	"" + [a b]
+}
+
+~~~~~
+//##19. decomposition multi assign
+
+def doings(){
+	(a, b) = (c, d) = 1, 2
+		
+	"" + [a b c d]
+}
+
+~~~~~
+//##20. decomposition skips
+
+x = 1,2,3
+
+def doings(){
+	(a, ,c) = x
+		
+	"" + [a c]
+}
+
+~~~~~
+//##21. equal check
+
+x = 1,2,3
+
+def doings(){
+	x2 = x.f0, x.f1, x.f2
+		
+	"" + (x == x2)
+}
+
+~~~~~
+//##22. code gennerator
+
+def gen(){
+	n=1;
+	while(n++ < 24){
+		genInst(n)
+	}
+}
+
+def genInst(n int){
+	sb = StringBuilder('class Tuple{n}<')
+	sb.append(String.join(", ", ('F{m}' for m in (0 to n-1) )))
+	sb.append(">(public val type Class<?>[], ")
+	sb.append(String.join(", ", ('val -f{m} F{m}' for m in (0 to n-1) )))
+	sb.append(") < Tuple(type, ")
+	sb.append(String.join(", ", ('f{m}' for m in (0 to n-1) )))
+	sb.append(")\{override equals(an Object) => super.equals(an)}")
+	sb.toString()
+}
+
+
+def doings(){
+	x = String.join("\n", gen())
+	"" + (x <> null)
+}
+
+~~~~~
+//##23. long ones
+
+def doings(){
+	x = 1,2,3,4,5,6
+	"" + x
+}
+
+~~~~~
+//##24. this was broken before
+
+f (int, String) = 12, "hi"
+
+def doings()=> ""+f
+
+~~~~~
+//##25. tuple in for loop
+
+items = [(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	r1= for( (f, b) in items ){
+		f + b
+	}
+	"" + r1
+}
+
+~~~~~
+//##26. tuple in for loop with types
+
+items = [(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	r1= for( (f int, b ) in items ){
+		f + b
+	}
+	"" + r1
+}
+
+~~~~~
+//##27. tuple in for loop missing items
+
+items = [(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	r1= for( (f int,  ) in items ){
+		f + f
+	}
+	"" + r1
+}
+
+~~~~~
+//##28. tuple in for loop if thing is an array
+
+items = a[(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	r1= for( (a, b) in items ){
+		a+b
+	}
+	"" + r1
+}
+
+
+~~~~~
+//##29. tuple in list comprehension
+items = a[(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	r1= a+b for (a, b) in items
+	"" + r1
+}
+
+~~~~~
+//##30. tuples is refied type
+
+dd Object = (1, 2)
+
+def doings(){
+	if(dd is (Object, Object)){
+		"ok"
+	}else{"fail"}
+}
+
+~~~~~
+//##31. tuple FizzBuzz
+
+import java.util.stream.Collectors;
+
+def doings(){
+	ret = (1 to 15).stream().map(a  => match( (a mod 3, a mod 5) ) {
+		(0,0) => "FizzBuzz"
+		(0,) => "Fizz"
+		(,0) => "Buzz"
+		else =>  a
+	}).collect(Collectors.toList())
+	
+	"" + ret 
+}
+
+~~~~~
+//##32. bugfix defined in str
+def doings(){
+	"ok {1, 2}" 
+}
+
+~~~~~
+//##33. tuples of arrays
+
+def thing() (int[], int[]){
+	return (a[1,2,3], a[4,5,6])
+}
+
+def doings()=> "ok" + thing()
+
+~~~~~
+//##34. shared trait makes implementors also shared
+shared trait MyTrait
+
+class ParentClass ~ MyTrait{
+	~a =9
+}
+
+def doings(){
+	mc = ParentClass()
+	x = {mc.a=10}!
+	
+	await(x)
+	
+	"ok" + mc.a
+}
+
+~~~~~
+//##35. color in type for null where expected
+def tt() => true
+
+def check(){
+	xx (int, int) = (1, null) //if tt() else (1, 2)
+	xx
+}
+
+def doings(){
+	"ok" + check()
+}
+
+~~~~~
+//##36. tuples with choice resolving to null
+def tt() => true
+
+def check(){
+	xx (int, int) = (1, null) if tt() else (1, 2)
+	xx
+}
+
+def doings(){
+	"ok" + check()
+}
+
+~~~~~
+//##37. tuples with choice resolving to null on return
+def tt() => true
+
+def thing1() (int, int) => (12, null)
+def thing2() (int, int) => return (12, null)
+
+def doings(){
+	"ok" + [thing1() thing2()]
+}
+
+~~~~~
+//##38. tuple equality
+def doings(){
+	t1 = String.class, "hi"
+	t2 = String.class, "hi"
+	
+	"" + (t1 == t2) 
+}
+
+~~~~~
+//##39. tuple creation when assigned to a ref
+ar = new java.util.ArrayList<String>()
+
+def doings(){
+	tuple := "", ar//was not correctly creating the type array
+		
+	"ok"
+}

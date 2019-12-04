@@ -1,0 +1,2247 @@
+//##1 basic boiler plate and baic convertion test
+/*
+some of the cool things covere here:
+
+LOAD
+remove field - DONE
+add field - DONE
+remove and add - DONE
+repeat above with arrays - DONE 
+
+modify:
+primatives/boxed:
+	int -> float - DONE
+	int -> Integer - DONE
+	int -> Double - DONE
+	Integer -> int - DONE
+	Integer -> float - DONE
+	Double -> Float- DONE
+
+anything to boolean  - DONE 
+anything to Boolean (boxed) - DONE 
+
+boxed is null -> Boolean - DONE
+boxed is null -> boolean- DONE
+Boolean boxed is null -> boolean- DONE 
+Boolean boxed is null -> Boolean- DONE 
+
+boxed is null -> int- DONE 
+boxed is null -> Float- DONE 
+
+object is null -> boolean- DONE 
+object is null -> Boolean- DONE 
+
+
+prim to String - DONE 
+boxed to String  - DONE 
+Object to String - DONE 
+
+null object to String - DONE 
+boxed null to String  - DONE 
+
+subclass to superclass or iface[not other way around]  - DONE 
+
+Arrays:
+int[2] -> float[2] - DONE
+Integer[] -> float[]  - DONE 
+Integer[2] -> float[2] - DONE 
+
+
+Integer[] -> Double[] - DONE 
+int[] -> Double[]- DONE 
+float[2] -> Integer[2]- DONE 
+Double[2] -> Integer[2] - DONE 
+
+int[] -> String[]- DONE 
+int[2] -> String[2]- DONE 
+
+Integer[] -> String[]- DONE 
+Integer[2] -> String[2]- DONE 
+
+STORE - in our encoder
+add field, - DONE
+remove,- DONE
+mix of above- DONE 
+repeat above with arrays- DONE
+new version to store has default fields- DONE
+change type...- DONE
+
+missing classdef in classloader - DONE
+
+enum classes - DONE
+test with fieldless class- DONE
+
+convert k-v pair impl- DONE 
+
+upgrade keys/values to new schema? - scan through and update - IGNORE
+
+optional: update on classloader change - DONE
+
+externalizable/zerialixable things - load, store conv fail- DONE 
+
+define own tobinary, frombinary...- DONE 
+
+mark dma managers as being non dma able [transient]- DONE
+^ - put in place single iso solution
+
+DMA => Off Heap - DONE
+*/
+
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+
+11_meg = 11*1024*1024
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	useAsMapping  = new HashMap<String, String>()
+	
+	def useas(fromx String, useas String){
+		useAsMapping[useas] = fromx
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in useAsMapping){
+			from com.concurnas.lang.precompiled import ClassNameRemapper
+			fromNamex = useAsMapping[name]
+			bytez = normalClassLoader.getBytecode(fromNamex)
+			bytez = ClassNameRemapper.remapClass(bytez, fromNamex, name)
+			super.defineClass(name, bytez)
+		}
+		else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+}
+
+class MyClass2(x String, ay String){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	mycl = MyClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.Classloader = mycl
+		engine.setPath( path)
+		engine.start()
+		got = engine.get('one'); 
+		
+		""+got
+	}	
+}
+
+~~~~~
+//##2 as above, more compact
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+
+11_meg = 11*1024*1024
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+}
+
+class MyClass2(x String, ay String){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.Classloader = mycl
+		engine.setPath( path)
+		engine.start()
+		got = engine.get('one'); 
+		
+		""+got
+	}	
+}
+
+~~~~~
+//##3 bugfix on maps with fields
+//that have setters and getters that don't match up with field name exactly
+import java.util.AbstractMap;
+
+class MyMap<K,V> < AbstractMap<K,V>{
+	private myfieldx String?
+	
+	def setMyfield(x String){ myfieldx=x ;}
+	def getMyfield() => myfieldx
+	
+	def entrySet() java.util.Set<java.util.Map.Entry<K, V>> => null 
+}
+
+
+mm = MyMap<String, Object>()
+
+def doings(){
+	mm.myfield = 'hi'//used to blow up since ignored the setter
+	ff = mm.myfield
+
+	"{ff}"
+}
+
+~~~~~
+//##4 remove object field
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b String, c String, d String, e String, f String) < Parent{
+	override toString() => "MyClass "  + [a,b,c, d,e,f]
+}
+
+class MyClass2(a String, d String, f String) < Parent{
+	override toString() => "MyClass2 " + [a,d, f]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass("a", "b", "c", "d", "e", "f")
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	older String=""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+		
+		older = ""+dmaObj.get()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, older, got]
+}
+
+~~~~~
+//##5 remove object field different types
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, c float, d String, e String, f long) < Parent{
+	override toString() => "MyClass "  + [a,b,c, d,e,f]
+}
+
+class MyClass2(a String, d String,  f long) < Parent{
+	override toString() => "MyClass2 " + [a,d, f]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass("a", 12, 99.f, "d", "e", 100l)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	older String=""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+		
+		older = ""+dmaObj.get()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, older, got]
+}
+
+~~~~~
+//##6 add field ensure defualt used
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,z]
+}
+
+class MyClass2(a String, b int, c String='new fella', d String, e int, z float) < Parent{
+	override toString() => "MyClass2 "  + [a,b,c,d, e, z]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass("a", 12, 998.1f)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	older String=""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+		
+		older = ""+dmaObj.get()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, older, got]
+}
+
+~~~~~
+//##7 remove first bug
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,z]
+}
+
+class MyClass2(b int, z float) < Parent{
+	override toString() => "MyClass2 "  + ["",b, z]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass("a", 12, 998.1f)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	older String=""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+		
+		older = ""+dmaObj.get()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, older, got]
+}
+
+~~~~~
+//##8 added and removed 1
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,z]
+}
+
+class MyClass2(b int, c String='new fella', d String, e int, z float) < Parent{
+	override toString() => "MyClass2 "  + [b,c,d, e, z]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass('first', 12, 998.1f)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	older String=''
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+		
+		older = ""+dmaObj.get()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, older, got]
+}
+
+~~~~~
+//##9 added and removed 2
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, f double, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,f, z]
+}
+
+class MyClass2(b int, c String='new fella', d String, e int, z float) < Parent{
+	override toString() => "MyClass2 "  + [b,c,d, e, z]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass('first', 12, 123., 998.1f)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	older String=''
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+		
+		older = ""+dmaObj.get()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, older, got]
+}
+
+~~~~~
+//##10 arrays 1
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, f double, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,f, z]
+}
+
+class MyClass2(b int, c String='new fella', d String, e int, z float) < Parent{
+	override toString() => "MyClass2 "  + [b,c,d, e, z]
+}
+
+def doings(){
+	
+	myObj Parent = MyClass('first', 12, 123., 998.1f)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent[]>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put([myObj]);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()[0]
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##11 held class
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, f double, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,f, z]
+}
+
+class MyClass2(b int, c String='new fella', d String, e int, z float) < Parent{
+	override toString() => "MyClass2 "  + [b,c,d, e, z]
+}
+
+class Holder(mc Parent){
+	override toString() => "Holder: " + mc
+}
+	
+
+def doings(){
+	
+	myObj = Holder(MyClass('first', 12, 123., 998.1f))
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got  = try(offHeapDisk = new OffHeapDisk<Holder>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##12 arrays 2
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b int, f double, z float) < Parent{
+	override toString() => "MyClass "  + [a,b,f, z]
+}
+
+class MyClass2(b int, c String='new fella', d String, e int, z float) < Parent{
+	override toString() => "MyClass2 "  + [b,c,d, e, z]
+}
+
+class Holder(mc Parent[]){
+	override toString() => "Holder: " + mc
+}
+	
+
+def doings(){
+	
+	myObj = Holder([MyClass('first', 12, 123., 998.1f)])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got  = try(offHeapDisk = new OffHeapDisk<Holder>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##13 convert primatives and boxed variants of
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(m1 int, m2 int, m3 Integer, m4 Integer, m5 int, m6 int, m7 Double) < Parent{
+	override toString() => "MyClass "  + ["-", m1, m2, m3, m4, m5, m6, m7]
+}
+
+class MyClass2(m1 float, m2 float, m3 int, m4 short, m5 Integer, m6 Double, m7 Float) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1, m2, m3, m4, m5, m6, m7]
+}
+
+def doings(){
+	
+	myObj = MyClass(101, 89, 45, 8, 843, 945, 5656.22)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##14 convert anything to boolean
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+ar = ArrayList<int>()
+ar2 = ArrayList<int>()
+ar2.add(23)
+
+class MyClass(m1 ArrayList<int>, m2 ArrayList<int>) < Parent{
+	override toString() => "MyClass "  + ["-", m1, m2]
+}
+
+class MyClass2(m1 boolean, m2 boolean) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1, m2]
+}
+
+def doings(){
+	
+	myObj = MyClass(ar, ar2)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##15 convert anything to Boolean - boxed
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+ar = ArrayList<int>()
+ar2 = ArrayList<int>()
+ar2.add(23)
+
+class MyClass(m1 ArrayList<int>, m2 ArrayList<int>) < Parent{
+	override toString() => "MyClass "  + ["-", m1, m2]
+}
+
+class MyClass2(m1 Boolean, m2 Boolean) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1, m2]
+}
+
+def doings(){
+	
+	myObj = MyClass(ar, ar2)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##16 boxed to boolean is null
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(m1 Integer?) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 boolean) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass(null)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##17 nulls
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(m1 Integer?, m2 Integer?, m3 Boolean?, m4 Boolean?, m5 Integer?, m6 Integer?, m7 ArrayList<String>?, m8 ArrayList<String>?) < Parent{
+	override toString() => "MyClass "  + ["-", m1, m2, m3, m4, m5, m6, m7, m8]
+}
+
+class MyClass2(m1 Boolean, m2 boolean, m3 Boolean, m4 boolean, m5 int, m6 float, m7 bool, m8 Boolean) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1, m2, m3, m4, m5, m6, m7, m8]
+}
+
+def doings(){
+	
+	myObj = MyClass(null, null, null, null, null, null, null, null)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##18 anything toString
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 int, m2 Integer, m3 Parent, m4 Parent?, m5 Integer?) < Parent{
+	override toString() => "MyClass "  + ["-", m1, m2, m3, m4, m5]
+}
+
+class MyClass2(m1 String, m2 String, m3 String, m4 String, m5 String) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1, m2, m3, m4, m5]
+}
+
+def doings(){
+	
+	myObj = MyClass(567, 456456, Parent(), null, null)
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##19 subclass to superclass or superinterface
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class P{
+	override toString() => "P or subclass of P: " + this.getClass().simpleName
+}
+
+class C < P ~ AnInterface
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 C, m2 C, m3 P) < Parent{
+	override toString() => "MyClass "  + ["-", m1, m2, m3]
+}
+
+class MyClass2(m1 P, m2 AnInterface, m3 C) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1, m2, m3]
+}
+
+def doings(){
+	
+	myObj = MyClass(C(), C(), P())
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##20 simple array casts
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 int[2]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 float[2]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([123 235 456546 ; 1 2 3])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##21 ar convert - Integer 1 -> float 1 
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 Integer[]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 float[]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([Integer(123) 235 456546])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##22 ar convert - Integer 2 -> float 2 
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 Integer[2]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 float[2]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([Integer(123) 235 456546 ; 1 2 Integer(3)])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##23 ar convert - Integer 1 -> Float 1 
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 Integer[]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 Double[]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([Integer(1) 2 3])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##24 ar convert - int 1 -> Double 1
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 int[]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 Double[]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([1 2 3])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##25 ar convert - float 2 -> Integer 2
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 float[2]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 Integer[2]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([1.99f 2 3 ; 12 24.f 53])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##26 ar convert - Double 2 -> Integer 2 
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(m1 Integer[2]) < Parent{
+	override toString() => "MyClass "  + ["-", m1]
+}
+
+class MyClass2(m1 Double[2]) < Parent{
+	override toString() => "MyClass2 "  + ["-", m1]
+}
+
+def doings(){
+	
+	myObj = MyClass([Integer(1) 2 3 ; Integer(12) 24 53])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##27 ar convert - arrays to String arrays 
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList, Map
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.lang.precompiled import AnInterface
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{
+	override toString() => "Parent toString"
+}
+
+class MyClass(a1 int[], m1 int[2], n1 Integer[], o1 Integer[2]) < Parent{
+	override toString() => "MyClass "  + ["-", a1, m1, n1, o1]
+}
+
+class MyClass2(a1 String[], m1 int[2], n1 String[], o1 String[2]) < Parent{
+	override toString() => "MyClass2 "  + ["-", a1, m1, n1, o1]
+}
+
+def doings(){
+	
+	myObj = MyClass([99 100], [1 2 3 ; 5 6 7], [Integer(99)  56  46], [Integer(199)  156  146 ; Integer(1299)  1256  1246])
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(myObj);
+				
+		offHeapDisk.classloader = mycl
+		dmaObj.get()
+	}
+	
+	"" + [myObj, got]
+}
+
+~~~~~
+//##28 encoder store new version - missing fields 
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b String, c String, d String, e String, f String) < Parent{
+	override toString() => "MyClass "  + [a,b,c, d,e,f]
+}
+
+class MyClass2(a String, d String, f String) < Parent{
+	override toString() => "MyClass2 " + [a,d, f]
+}
+
+def doings(){
+	
+	orig Parent = MyClass("a", "b", "c", "d", "e", "f")
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		offHeapDisk.classloader = mycl//persist in 'new' format
+		dmaObj = offHeapDisk.put(orig);
+				
+		dmaObj.get()//load back in old format
+	}
+	
+	"" + [orig, got]
+}
+
+~~~~~
+//##29 encoder store new version - missing fields vid count
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b String, c String, d String, e String, f String) < Parent{
+	override toString() => "MyClass "  + [a,b,c, d,e,f]
+}
+
+class MyClass2(a String, d String, f String) < Parent{
+	override toString() => "MyClass2 " + [a,d, f]
+}
+
+def doings(){
+	
+	orig Parent = MyClass("a", "b", "c", "d", "e", "f")
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		offHeapDisk.classloader = mycl//persist in 'new' format
+		dmaObj = offHeapDisk.put(orig);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()//registered just once
+				
+		dmaObj.get()//load back in old format
+	}
+	
+	"" + [orig, got, usea]
+}
+
+~~~~~
+//##30 encoder more than one of same type encoded
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a String, b String, c String, d String, e String, f String) < Parent{
+	override toString() => "MyClass "  + [a,b,c, d,e,f]
+}
+
+class MyClass2(a String, d String, f String) < Parent{
+	override toString() => "MyClass2 " + [a,d, f]
+}
+
+def doings(){
+	
+	orig1 Parent = MyClass('a1', 'b1', 'c1', 'd1', 'e1', 'f1')
+	orig2 Parent = MyClass('a2', 'b2', 'c2', 'd2', 'e2', 'f2')
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	usea =""
+	got Parent[] = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj1 = offHeapDisk.put(orig1);//persist in old format
+		first = dmaObj1.get()
+		offHeapDisk.classloader = mycl//persist in 'new' format
+		dmaObj2 = offHeapDisk.put(orig2);
+		
+		first2 = dmaObj1.get()//pullout in new format
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()//registered just once
+				
+		[first first2 dmaObj2.get()]
+	}
+	
+	"" + [[orig1, orig2], got, usea]
+}
+
+~~~~~
+//##31 decoder self type reference as converted field
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a MyClass?, b String, c String) < Parent{
+	override toString() => "MyClass "  + [a,b,c]
+}
+
+class MyClass2(a MyClass, c String) < Parent{
+	override toString() => "MyClass2 " + [a,c]
+}
+
+def doings(){
+	
+	kid = MyClass(null, 'kid b1', 'kid c1')
+	
+	orig1 Parent = MyClass(kid, 'b1', 'c1')
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj1 = offHeapDisk.put(orig1);
+		
+		offHeapDisk.classloader = mycl
+		
+		dmaObj1.get()//pullout in new format
+	}
+	
+	"" + [orig1, got]
+}
+
+~~~~~
+//##32 encoder, nested reference to same type plus correct vids
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent{}
+
+class MyClass(a float, aa MyClass?, b String, c String) < Parent{
+	override toString() => a + " MyClass "  + [aa,b,c]
+}
+
+class MyClass2(a float, aa MyClass, c String) < Parent{
+	override toString() => a + " MyClass2 " + [aa,c]
+}
+
+def doings(){
+	
+	kid = MyClass(2, null, 'kid b2', 'kid c2')
+	
+	orig1 Parent = MyClass(1, kid, 'parent b1', 'parent c1')
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.classloader = mycl//bug previously as not started
+		offHeapDisk.start();
+		dmaObj1 = offHeapDisk.put(orig1);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		dmaObj1.get()//pullout in new format
+	}
+	
+	"" + [orig1, "|||\n", got, usea]
+}
+
+~~~~~
+//##32 parent class has convertion changes
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent(public aa float)
+
+class MyClass(a float, b String, c String) < Parent(23.f){
+	override toString() => a + " MyClass "  + [b,c]
+}
+
+class MyClass2(a float, b String,  c String) < Parent(25.f){
+	override toString() => a + " MyClass2 " + [c]
+}
+
+def doings(){
+		
+	myInst Parent  = MyClass(1, 'main b1', 'main c1')
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj1 = offHeapDisk.put(myInst);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj1.get()//pullout in new format
+	}
+	
+	"" + [myInst, got, usea]
+}
+
+~~~~~
+//##33 parent class has convertion changes - more complex
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent
+
+open class Middle(public aa float) < Parent{
+	override toString() => "Middle: " + aa
+}
+
+open class Middle2(public aa String, g String = "default str") < Parent{
+	override toString() => "Middle2: " + [aa, g]
+}
+
+class MyClass(a float, b String, c String) < Middle(23.f){
+	override toString() => a + " MyClass "  + [b,c, super.toString()]
+}
+
+class MyClass2(a float, b String,  c String) < Middle2('lovely', ''){
+	override toString() => a + " MyClass2 " + [c, super.toString()]
+}
+
+def doings(){
+		
+	myInst Parent  = MyClass(1, 'main b1', 'main c1')
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	//mycl.useas(Middle2.class.name, Middle.class.name) - not needed as 'forced' to use the new defition
+	
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj1 = offHeapDisk.put(myInst);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		offHeapDisk.classloader = mycl
+		dmaObj1.get()//pullout in new format
+	}
+	
+	"" + [myInst, got, usea]
+}
+
+~~~~~
+//##34. loops self reference
+
+//this was hard work, the solution in the end was to encode the entire object graph and then if there were any anomolies,
+//go back and re-encode the graph
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent(public aa Parent?)
+
+class MyClass(a String, aa MyClass?, b String, c String) < Parent(aa){
+	override toString() => "MyClass "  + [a, aa<>null, b,c]
+}
+
+class MyClass2(a String, aa MyClass, c String) < Parent(aa){
+	override toString() => "MyClass2 " + [a, aa<>null, c]
+}
+
+def doings(){
+	
+	a1 = MyClass("A", null, 'Ab', 'Ac')
+	
+	b1 Parent = MyClass("B", a1, 'Bb', 'Bc')
+
+	a1.aa = b1
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		//dmaObj1 = offHeapDisk.put(b1);
+		offHeapDisk.classloader = mycl
+		
+		dmaObj1 = offHeapDisk.put(b1);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		dmaObj1.get()//pullout in new format
+	}
+	
+	"{b1} -> " + [got, got.aa, got.aa?.aa, got.aa?.aa?.aa, usea]
+}
+
+~~~~~
+//##35. more than one version of class persisted
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent(public aa Parent?)
+
+class MyClass(a String, aa MyClass?, b String, c String) < Parent(aa){
+	override toString() => "MyClass "  + [a, aa<>null, b,c]
+}
+
+class MyClass2(a String, aa MyClass, c String) < Parent(aa){
+	override toString() => "MyClass2 " + [a, aa<>null, c]
+}
+
+def doings(){
+	
+	a1 = MyClass("A", null, 'Ab', 'Ac')
+	
+	b1 Parent = MyClass("B", a1, 'Bb', 'Bc')
+
+	a1.aa = b1
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj2 = offHeapDisk.put(b1);
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		offHeapDisk.classloader = mycl
+		
+		dmaObj1 = offHeapDisk.put(b1);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		dmaObj1.get()//pullout in new format
+		
+	}
+	
+	"{b1} -> " + [got, got.aa, got.aa?.aa, got.aa?.aa?.aa, usea]
+}
+
+~~~~~
+//##36. change classloader ensure this is picked up
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent(public aa Parent?)
+
+class MyClass(a String, aa MyClass?, b String, c String) < Parent(aa){
+	override toString() => "MyClass "  + [a, aa<>null, b,c]
+}
+
+class MyClass2(a String, aa MyClass, c String) < Parent(aa){
+	override toString() => "MyClass2 " + [a, aa<>null, c]
+}
+
+def doings(){
+	
+	a1 = MyClass("A", null, 'Ab', 'Ac')
+	
+	b1 Parent = MyClass("B", a1, 'Bb', 'Bc')
+
+	a1.aa = b1
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	usea =""
+	gots Parent[] = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj2 = offHeapDisk.put(b1);
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		offHeapDisk.classloader = mycl
+		
+		dmaObj1 = offHeapDisk.put(b1);
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		[dmaObj1.get() dmaObj2.get()] //pullout in new format
+	}
+	
+	got = gots[0]
+	got2 = gots[1]
+	
+	"{b1} -> \n" + [got, got.aa, got.aa?.aa, got.aa?.aa?.aa, usea] + '\n' + [got2, got2.aa, got2.aa?.aa, got2.aa?.aa?.aa, usea]
+}
+
+~~~~~
+//##37. classloader missing defs
+
+@SuppressWarnings("all")
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent(public aa Parent?)
+
+class MyClass(a String, aa MyClass?, b String, c String) < Parent(aa){
+	override toString() => "MyClass "  + [a, aa<>null, b,c]
+}
+
+class MyClass2(a String, aa MyClass, c String) < Parent(aa){
+	override toString() => "MyClass2 " + [a, aa<>null, c]
+}
+
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	~doommode = false
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	useAsMapping  = new HashMap<String, String>()
+	defAlready  = new HashMap<String, Class<?>>()
+	
+	def useas(fromx String, useas String){
+		useAsMapping[useas] = fromx
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in defAlready){
+			if(doommode){
+				throw  ClassNotFoundException("uh oh")
+			}
+			return defAlready[name]
+		}
+		
+		if(name in useAsMapping){
+			if(doommode){
+				throw  ClassNotFoundException("uh oh")
+			}
+		
+			from com.concurnas.lang.precompiled import ClassNameRemapper
+			fromNamex = useAsMapping[name]
+			bytez = normalClassLoader.getBytecode(fromNamex)
+			bytez = ClassNameRemapper.remapClass(bytez, fromNamex, name)
+			//super.defineClass(name, bytez)
+			defAlready[name] = super.defineClass(name, bytez)
+			
+			
+			defAlready[name] as Class<?>
+		}
+		else{
+			normalClassLoader.loadClass(name)as Class<?>
+		}
+	}
+}
+
+
+def doings(){
+	
+	a1 = MyClass("A", null, 'Ab', 'Ac')
+	
+	b1 Parent = MyClass("B", a1, 'Bb', 'Bc')
+
+	a1.aa = b1
+	mycl = MyClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	res1 = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.classloader = mycl
+		mycl.doommode = true
+		offHeapDisk.start();
+		offHeapDisk.put(b1);
+	}catch(e){
+		e
+	}finally{
+		mycl.doommode = false
+	}
+	
+	res2 = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.classloader = mycl
+		offHeapDisk.start();
+		what = offHeapDisk.put(b1);
+		mycl.doommode = true
+		what.get()
+	}catch(e){
+		e.printStackTrace()
+		e
+	}
+	
+	
+	"" + [res1, res2]	//classder not needed for second one we have the meta already
+}
+
+~~~~~
+//##38. bugfix on class ? vs class ? lt object
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent(public aa Parent)
+
+class MyClass(a String, aa MyClass, b String, c String) < Parent(aa){
+	override toString() => "MyClass "  + [a, aa<>null, b,c]
+}
+
+class MyClass2(a String, aa MyClass, c String) < Parent(aa){
+	override toString() => "MyClass2 " + [a, aa<>null, c]
+}
+
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	useAsMapping  = new HashMap<String, String>()
+	defAlready  = new HashMap<String, Class<?>>()
+	
+	def useas(fromx String, useas String){
+		useAsMapping[useas] = fromx
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in defAlready){
+			return defAlready[name]
+		}
+		
+		if(name in useAsMapping){
+			from com.concurnas.lang.precompiled import ClassNameRemapper
+			fromNamex = useAsMapping[name]
+			bytez = normalClassLoader.getBytecode(fromNamex)
+			bytez = ClassNameRemapper.remapClass(bytez, fromNamex, name)
+			defAlready[name] = super.defineClass(name, bytez)
+			defAlready[name] //->Class<?>
+		}
+		else{
+			normalClassLoader.loadClass(name)//->Class<? < Object>
+			//would blow up
+		}
+	}
+}
+
+
+def doings(){
+	"fine"
+}
+
+~~~~~
+//##39. enums are not affected by all this
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+
+enum MyEnum(public a String, public b int){
+	ONE("one", 1), TWO("two", 2)
+	override toString() => 'MyEnum' + [a, b]
+}
+
+enum MyEnum2(public b int){
+	ONE(1), TWO(2)
+	override toString() => 'MyEnum2' + [b]
+}
+
+class Processor(a OffHeapObject<MyEnum>){
+	override toString() => "" + a.get()
+}
+
+def doings(){
+	myEnu = MyEnum.ONE
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyEnum2.class.name, MyEnum.class.name)
+	mycl.useas(Processor.class.name, Processor.class.name)
+	
+	usea =""
+	gots = try(offHeapDisk = new OffHeapDisk<MyEnum>(11_meg)){
+		offHeapDisk.start();
+		theObj OffHeapObject<MyEnum> = offHeapDisk.put(myEnu);
+		offHeapDisk.classloader = mycl
+		
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		""+ mycl.new Processor(theObj)
+	}
+	
+	
+	"{myEnu} -> " + [gots, usea]
+}
+
+~~~~~
+//##40. fieldless class
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+import java.io.File
+
+11_meg = 11*1024*1024
+
+open class Parent()
+
+class MyClass() < Parent(){
+	override toString() => "MyClass"
+}
+
+class MyClass2 < Parent{
+	override toString() => "MyClass2"
+}
+
+def doings(){
+	a1 = MyClass()
+
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	usea =""
+	got Parent = try(offHeapDisk = new OffHeapDisk<Parent>(11_meg)){
+		offHeapDisk.start();
+		dmaObj = offHeapDisk.put(a1);
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		offHeapDisk.classloader = mycl
+		usea += offHeapDisk.getStoredNonPrimativeObjectUsage().values()
+		
+		dmaObj.get()//pullout in new format
+	}
+	
+	"{a1} -> " + [got, usea]
+}
+
+~~~~~
+//##41. basic map change value
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+
+11_meg = 11*1024*1024
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+}
+
+class MyClass2(x String, ay String='def'){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+		
+	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.classloader = mycl
+		engine.setPath( path)
+		engine.start()
+		got = engine.get('one'); 
+		
+		""+got
+	}	
+}
+
+~~~~~
+//##42. basic map change key
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+
+11_meg = 11*1024*1024
+
+open class X
+
+class X1 < X
+
+class MyClass(x String, y long, z X1?){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+}
+
+class MyClass2(x String, y long, z X){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,y]
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 69, null)
+	//+ non trivial key, this didnt use to work...
+	path = try(engine = new OffHeapMapDisk<Object, String>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine[myObj]='one'
+		engine.getPath()
+	}
+	
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+
+	res = "" + [myObj.hashCode()]
+	
+	try(engine = new OffHeapMapDisk<Object, String>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.classloader = mycl
+		engine.setPath( path)
+		engine.start()
+		got = engine.get(myObj);
+		res+= for( x in engine.keySet()){x.hashCode()}
+		res+= engine.keySet()
+		res += got
+	}
+	
+	res
+}
+
+~~~~~
+//##43. ensure that change to classloader is picked up
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+
+11_meg = 11*1024*1024
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+}
+
+class MyClass2(x String, ay String='def'){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+		
+	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.setPath( path)
+		engine.start()
+		got = engine.get('one'); 
+		engine.classloader = mycl
+		got = engine.get('one'); 
+		
+		""+got
+	}	
+}
+
+~~~~~
+//##44. if you define your own tobinary frombinary your on your own
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+from com.concurnas.bootstrap.lang.offheap import Encoder, Decoder
+
+11_meg = 11*1024*1024
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+	
+	override toBinary(enc Encoder){
+		enc.put(x)
+		enc.put(y)
+		;;
+	}
+	
+	override fromBinary(dec Decoder){
+		x = dec.getObject() as String
+		y = dec.getObject() as String
+	}
+}
+
+class MyClass2(x String, ay String='def'){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
+}
+class MyClass3(x String, ay String='def'){
+	override toString() => "MyClass3 " + super.getClass().name + ' '  + [x,ay]
+	
+	override toBinary(enc Encoder){
+		enc.put(x)
+		enc.put(ay)
+		;;
+	}
+	
+	override fromBinary(dec Decoder){
+		x = dec.getObject() as String
+		ay = dec.getObject() as String
+	}
+	
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	mycl2 = UseasClassLoader()
+	mycl2.useas(MyClass3.class.name, MyClass.class.name)
+	
+	got = ""
+	
+	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.setPath( path)
+		engine.start()
+		got += engine.get('one'); 
+		engine.classloader = mycl
+		got += engine.get('one') 
+		engine.classloader = mycl2
+		got += engine.get('one') 
+	}
+	got	
+}
+
+~~~~~
+//##45. off heap cannot be shared across isos
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.bootstrap.lang.offheap import Encoder, Decoder
+
+11_meg = 11*1024*1024
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+	
+	override toBinary(enc Encoder){
+		enc.put(x)
+		enc.put(y)
+		;;
+	}
+	
+	override fromBinary(dec Decoder){
+		x = dec.getObject() as String
+		y = dec.getObject() as String
+	}
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	engine = new OffHeapMapDisk<String, Object>(11_meg)
+	res = "{(engine@)} "
+	
+	res += try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.setPath( path)
+		engine.start()
+	
+		xx={
+			if(null == engine){
+				'engine is null'
+			}else{
+				got = ""
+				got += engine.get('one'); 
+				got
+			}
+		}!
+		
+		xx.get()
+	}
+	res
+}

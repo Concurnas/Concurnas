@@ -1,0 +1,484 @@
+/**
+ * Built in gpu functions
+ * See also: https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/
+ * Concunas.inc
+ * 
+ * Documetnation text: Copyright © 2007-2011 The Khronos Group Inc. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and/or associated documentation files (the "Materials"), to deal in the Materials without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Materials, and to permit persons to whom the Materials are furnished to do so, subject to the condition that this copyright notice and permission notice shall be included in all copies or substantial portions of the Materials.
+ */
+from com.concurnas.lang import GPUStubFunction
+ 
+typedef fpgentype = float|double
+typedef igentype = char|int|long|short
+typedef gentype = char|int|long|short|float|double
+
+/*
+ ****************************************************************************************************************************
+ * Work-Item Functions
+ ****************************************************************************************************************************
+*/
+ 
+ /**
+  * This is the value given to the work_dim argument specified in the root clEnqueueNDRangeKernel call initialising the executing chain.
+  */
+@GPUStubFunction gpudef get_work_dim() int
+ 
+/**
+ * The global work-item ID specifies the work-item ID based on the number of global work-items specified to execute the kernel. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values of dimindx, get_global_id() returns 0.
+ */
+@GPUStubFunction gpudef get_global_id(dim int) size_t
+
+/**
+ * This value is given by the global_work_size argument to clEnqueueNDRangeKernel. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values of dimindx, get_global_size() returns 1.
+ */
+@GPUStubFunction gpudef get_global_size(dim int) size_t
+
+/**
+ * Returns the number of local work-items specified in dimension identified by dimindx. 
+ * This value is given by the local_work_size argument to clEnqueueNDRangeKernel if local_work_size is not NULL; otherwise the OpenCL implementation chooses an appropriate local_work_size value which is returned by this function. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values of dimindx, get_local_size() returns 1.
+ */
+@GPUStubFunction gpudef get_local_size(dim int) size_t 
+
+/**
+ * Returns the unique local work-item ID, i.e. a work-item within a specific work-group for dimension identified by dimindx. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values of dimindx, get_local_id() returns 0.
+ */
+@GPUStubFunction gpudef get_local_id(dim int) size_t
+
+
+/**
+ * Returns the number of work-groups that will execute a kernel for dimension identified by dimindx. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values of dimindx, get_num_groups() returns 1.
+ */
+@GPUStubFunction gpudef get_num_groups(dim int) size_t 
+
+/**
+ * Returns the work-group ID which is a number from 0 .. get_num_groups(dimindx) - 1. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values of dimindx, get_group_id() returns 0.
+ */
+@GPUStubFunction gpudef get_group_id(dim int) size_t 
+
+/**
+ * Returns the offset values specified in global_work_offset argument to clEnqueueNDRangeKernel. 
+ * Valid values of dimindx are 0 to get_work_dim() - 1. For other values, get_global_offset() returns 0.
+ */
+@GPUStubFunction gpudef get_global_offset (dim int) int
+
+
+
+
+/*
+ ****************************************************************************************************************************
+ * Math Built-In Functions
+ ****************************************************************************************************************************
+*/
+
+/** the arc cosine function. */
+@GPUStubFunction gpudef acos(x fpgentype) fpgentype
+/** the inverse hyperbolic cosine function. */
+@GPUStubFunction gpudef acosh(x fpgentype) fpgentype
+/** acos (x) / pi. */
+@GPUStubFunction gpudef acospi(x fpgentype) fpgentype
+
+/** the arc sine function. */
+@GPUStubFunction gpudef asin(x fpgentype) fpgentype
+/** the inverse hyperbolic sine function. */
+@GPUStubFunction gpudef asinh(x fpgentype) fpgentype
+/** asin (x) / pi. */
+@GPUStubFunction gpudef asinpi(x fpgentype) fpgentype
+
+/** the arc tangent function. */
+@GPUStubFunction gpudef atan (y_over_x fpgentype) fpgentype
+/** the arc tangent of y / x. */
+@GPUStubFunction gpudef atan2 (y fpgentype, x fpgentype) fpgentype
+/** the hyperbolic arc tangent function. */
+@GPUStubFunction gpudef atanh (x fpgentype) fpgentype
+/** atan (x) / pi. */
+@GPUStubFunction gpudef atanpi (x fpgentype) fpgentype
+/** atan2 (y, x) / pi. */
+@GPUStubFunction gpudef atan2pi (y fpgentype, x fpgentype) fpgentype
+
+/** computes the cube-root. */
+@GPUStubFunction gpudef cbrt (x fpgentype) fpgentype
+
+/** rounds to integral value using the round to +ve infinity */
+@GPUStubFunction gpudef ceil (x fpgentype) fpgentype
+
+/** Returns x with its sign changed to match the sign of y. */
+@GPUStubFunction gpudef copysign (x fpgentype, y fpgentype) fpgentype
+
+
+/** the cosine function. */
+@GPUStubFunction gpudef cos (x fpgentype) fpgentype
+/** the hyperbolic cosine function. */
+@GPUStubFunction gpudef cosh (x fpgentype) fpgentype
+/** computes cos (x * pi). */
+@GPUStubFunction gpudef cospi (x fpgentype) fpgentype
+/** half_cos computes cosine. x must be in the range -216... +216. This function is implemented with a minimum of 10-bits of accuracy i.e. an ULP value less than or equal to 8192 ulp. */
+@GPUStubFunction gpudef half_cos (x fpgentype) fpgentype
+/** native_cos computes cosine over an implementation-defined range. The maximum error is implementation-defined. Functions with the native__ prefix may map to one or more native device instructions and will typically have better performance compared to the corresponding functions (without the native__ prefix). The accuracy (and in some cases the input range(s)) of these functions is implementation-defined. */
+@GPUStubFunction gpudef native_cos (x fpgentype) fpgentype
+
+/** the error function encountered in integrating the normal distribution. */
+@GPUStubFunction gpudef erf (x fpgentype) fpgentype
+/** the complementary error function. */
+@GPUStubFunction gpudef erfc (x fpgentype) fpgentype
+
+/** computes the base- e exponential of x. */
+@GPUStubFunction gpudef exp (x fpgentype) fpgentype
+/** the exponential base 2 function. */
+@GPUStubFunction gpudef exp2 (x fpgentype) fpgentype
+/** the exponential base 10 function. */
+@GPUStubFunction gpudef exp10 (x fpgentype) fpgentype
+/** computes ex - 1.0. */
+@GPUStubFunction gpudef expm1 (x fpgentype) fpgentype
+/** computes the base- e exponential of x. */
+@GPUStubFunction gpudef half_exp (x fpgentype) fpgentype
+/** computes the base- 2 exponential of x. */
+@GPUStubFunction gpudef half_exp2 (x fpgentype) fpgentype
+/** computes the base- 10 exponential of x. */
+@GPUStubFunction gpudef half_exp10 (x fpgentype) fpgentype
+/** computes the base- e exponential of x over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_exp (x fpgentype) fpgentype
+/** computes the base- 2 exponential of x over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_exp2 (x fpgentype) fpgentype
+/** computes the base- 10 exponential of x over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_exp10 (x fpgentype) fpgentype
+
+/** computes the absolute value of a floating-point number. */
+@GPUStubFunction gpudef fabs (x fpgentype) fpgentype
+
+/** computes x - y if x is greater than y, +0 if x is less than or equal to y. */
+@GPUStubFunction gpudef fdim (x fpgentype, y fpgentype) fpgentype
+
+/** rounds to integral value using the round to -ve infinity. */
+@GPUStubFunction gpudef floor (x fpgentype) fpgentype
+
+/** Returns the correctly rounded floating-point representation of the sum of c with the infinitely precise product of a and b. Rounding of intermediate products shall not occur. Edge case behavior is per the IEEE 754-2008 standard. */
+@GPUStubFunction gpudef fma (a fpgentype, b fpgentype, c fpgentype) fpgentype
+
+/** Returns the greater of either x or y. */
+@GPUStubFunction gpudef fmax (x fpgentype, y fpgentype) fpgentype
+
+/** Returns the lesser of either x or y. */
+@GPUStubFunction gpudef fmin (x fpgentype, y fpgentype) fpgentype
+
+/** Modulus. Returns x - y * trunc (x/y). */
+@GPUStubFunction gpudef fmod (x fpgentype, y fpgentype) fpgentype
+
+/** Fractional value in x. - Returns fmin( x - floor(x), 0x1.fffffep-1f ). floor(x) is returned in iptr. */
+@GPUStubFunction gpudef fract (x fpgentype, global itpr fpgentype) void
+/** Fractional value in x. - Returns fmin( x - floor(x), 0x1.fffffep-1f ). floor(x) is returned in iptr. */
+@GPUStubFunction gpudef fract (x fpgentype, local itpr fpgentype) void
+/** Fractional value in x. - Returns fmin( x - floor(x), 0x1.fffffep-1f ). floor(x) is returned in iptr. */
+@GPUStubFunction gpudef fract (x fpgentype, itpr fpgentype) void
+
+/** Extract mantissa and exponent from x. For each component the mantissa returned is a float with magnitude in the interval [1/2, 1) or 0. Each component of x equals mantissa returned * 2exp. */
+@GPUStubFunction gpudef frexp (	x fpgentype, global exp int) fpgentype
+/** Extract mantissa and exponent from x. For each component the mantissa returned is a float with magnitude in the interval [1/2, 1) or 0. Each component of x equals mantissa returned * 2exp. */
+@GPUStubFunction gpudef frexp (	x fpgentype, local exp int) fpgentype
+/** Extract mantissa and exponent from x. For each component the mantissa returned is a float with magnitude in the interval [1/2, 1) or 0. Each component of x equals mantissa returned * 2exp. */
+@GPUStubFunction gpudef frexp (	x fpgentype, exp int) fpgentype
+
+/** Computes the value of the square root of x**2 + y**2 without undue overflow or underflow. */
+@GPUStubFunction gpudef hypot (x fpgentype, y fpgentype) fpgentype
+
+/*Returns the exponent as an integer value. */
+@GPUStubFunction gpudef ilogb (x fpgentype) int
+
+/** Multiply x by 2 to the power k. */
+@GPUStubFunction gpudef ldexp (x fpgentype, k int) fpgentype
+
+/**Returns the natural logarithm of the absolute value of the gamma function */
+@GPUStubFunction gpudef lgamma (x fpgentype) fpgentype
+
+/** computes natural logarithm. */
+@GPUStubFunction gpudef log (x fpgentype ) fpgentype
+/** computes a base 2 logarithm. */
+@GPUStubFunction gpudef log2 (x fpgentype ) fpgentype
+/** computes a base 10 logarithm. */
+@GPUStubFunction gpudef log10 (x fpgentype ) fpgentype
+/** computes loge(1.0 + x). */
+@GPUStubFunction gpudef log1p (x fpgentype ) fpgentype
+/** computes the exponent of x, which is the integral part of logr |x|. */
+@GPUStubFunction gpudef logb (x fpgentype ) fpgentype
+/** computes natural logarithm. */
+@GPUStubFunction gpudef half_log (x fpgentype ) fpgentype
+/** computes a base 2 logarithm. */
+@GPUStubFunction gpudef half_log2 (x fpgentype ) fpgentype
+/** computes a base 10 logarithm. */
+@GPUStubFunction gpudef half_log10 (x fpgentype ) fpgentype
+/** computes natural logarithm over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_log (x fpgentype ) fpgentype
+/** computes a base 2 logarithm over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_log2 (x fpgentype ) fpgentype
+/** computes a base 10 logarithm over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_log10 (x fpgentype ) fpgentype
+
+/** mad approximates a * b + c. Whether or how the product of a * b is rounded and how supernormal or subnormal intermediate products are handled is not defined. mad is intended to be used where speed is preferred over accuracy. */
+@GPUStubFunction gpudef mad (a fpgentype, b fpgentype, c fpgentype) fpgentype
+
+/** Returns x if | x| > |y|, or y if |y| > |x|, otherwise fmax(x, y). */ 
+@GPUStubFunction gpudef maxmag (x fpgentype, y fpgentype) fpgentype
+/** Returns x if |x| < |y|, or y if |y| < |x|, otherwise fmin(x, y). */ 
+@GPUStubFunction gpudef minmag (x fpgentype, y fpgentype) fpgentype
+
+/**nan returns a quiet NaN. The nancode may be placed in the significand of the resulting NaN. */
+@GPUStubFunction gpudef nan (nancode int) float
+/**nan returns a quiet NaN. The nancode may be placed in the significand of the resulting NaN. */
+@GPUStubFunction gpudef nan (nancode long) double
+
+/**Computes the next representable single-precision floating-point value following x in the direction of y. Thus, if y is less than x, nextafter() returns the largest representable floating-point number less than x. */
+@GPUStubFunction gpudef nextafter (x fpgentype, y fpgentype) fpgentype
+
+/**Computes x to the power of y. */
+@GPUStubFunction gpudef pow (x fpgentype, y fpgentype) fpgentype
+/**Computes x to the power of y, where y is an integer. */
+@GPUStubFunction gpudef pown (	x fpgentype, y int) fpgentype
+/**Computes x to the power of y, where x is >==  0. */
+@GPUStubFunction gpudef powr (x fpgentype, y fpgentype) fpgentype
+/** Computes x to the power of y, where x is >== 0. */
+@GPUStubFunction gpudef half_powr (x fpgentype, y fpgentype) fpgentype
+/** Computes x to the power of y, where x is >==  0. The range of x and y are implementation-defined. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_powr (x fpgentype, y fpgentype) fpgentype
+
+/**Computes the value r such that r = x - n*y, where n is the integer nearest the exact value of x/y. If there are two integers closest to x/y, n shall be the even one. If r is zero, it is given the same sign as x. */
+@GPUStubFunction gpudef remainder (x fpgentype, y fpgentype) fpgentype
+
+/** Round to integral value (using round to nearest even rounding mode) in floating-point format. */
+@GPUStubFunction gpudef rint (x fpgentype) fpgentype
+
+/** Compute x to the power 1/y. */
+@GPUStubFunction gpudef rootn ( x fpgentype, y int) fpgentype
+
+/** Return the integral value nearest to x rounding halfway cases away from zero, regardless of the current rounding direction. */
+@GPUStubFunction gpudef round (x fpgentype) fpgentype
+
+/** computes square root. */
+@GPUStubFunction gpudef sqrt ( x fpgentype ) fpgentype
+/** computes square root. */
+@GPUStubFunction gpudef half_sqrt (	x fpgentype) fpgentype
+/** computes square root over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_sqrt (x fpgentype) fpgentype
+/** computes inverse square root. */
+@GPUStubFunction gpudef rsqrt ( x fpgentype ) fpgentype
+/** computes inverse square root. */
+@GPUStubFunction gpudef half_rsqrt ( x fpgentype) fpgentype
+/** computes inverse square root over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_rsqrt ( x fpgentype) fpgentype
+
+/** computes the sine. */
+@GPUStubFunction gpudef sin ( x fpgentype) fpgentype
+/** computes the hyperbolic sine. */
+@GPUStubFunction gpudef sinh ( x fpgentype) fpgentype
+/** computes sin (pi * x). */
+@GPUStubFunction gpudef sinpi ( x fpgentype) fpgentype
+/** computes sine. x must be in the range -216... +216. */
+@GPUStubFunction gpudef half_sin ( x fpgentype) fpgentype
+/** computes sine over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_sin ( x fpgentype) fpgentype
+
+/** computes the tangent. */
+@GPUStubFunction gpudef tan ( x fpgentype) fpgentype
+/** computes the hyperbolic tangent. */
+@GPUStubFunction gpudef tanh ( x fpgentype) fpgentype
+/** computes tan(pi * x). */
+@GPUStubFunction gpudef tanpi ( x fpgentype) fpgentype
+/** computes tangent. x must be in the range -216... +216. */
+@GPUStubFunction gpudef half_tan ( x fpgentype) fpgentype
+/** computes tangent over an implementation-defined range. The maximum error is implementation-defined. */
+@GPUStubFunction gpudef native_tan ( x fpgentype) fpgentype
+
+/** tgamma computes the gamma. */
+@GPUStubFunction gpudef tgamma ( x fpgentype) fpgentype
+
+/** Round to integer toward zero. */
+@GPUStubFunction gpudef trunc ( x fpgentype) fpgentype
+
+
+
+/*
+ ****************************************************************************************************************************
+ * Integer Built-In Functions
+ ****************************************************************************************************************************
+*/
+
+/** returns |x|. */
+@GPUStubFunction gpudef  abs (	x igentype) igentype
+/** returns |x-y| without modulo overflow. */
+@GPUStubFunction gpudef  abs_diff (	x igentype, y igentype ) igentype
+
+/** returns x+y and saturates result. */
+@GPUStubFunction gpudef  add_sat (	x igentype, y igentype ) igentype
+
+/**returns (x+y) >> 1. The intermediate sum does not modulo overflow. */
+@GPUStubFunction gpudef  hadd (	x igentype, y igentype ) igentype
+/**returns (x+y+1) >> 1. The intermediate sum does not modulo overflow. */
+@GPUStubFunction gpudef  rhadd (	x igentype, y igentype ) igentype
+
+/**returns the number of leading 0-bits in x, starting at the most significant bit position. */
+@GPUStubFunction gpudef  clz (	x igentype) igentype
+
+/**clamp returns min (min( x, minval), maxval). Results are undefined if minval > maxval. */
+@GPUStubFunction gpudef  clamp ( x igentype, minval igentype, maxval igentype ) igentype
+
+/**returns mul_hi(a, b) + c. */
+@GPUStubFunction gpudef  mad_hi ( a igentype, b igentype, c igentype ) igentype
+
+/**multiplies two 24-bit integer values x and y and adds the 32-bit integer result to the 32-bit integer z. See mul24 to see how the 24-bit integer multiplication is performed. */
+@GPUStubFunction gpudef  mad24 ( x igentype, y igentype, z igentype ) igentype
+
+/**returns a*b+c and saturates the result. */
+@GPUStubFunction gpudef  mad_sat ( a igentype, b igentype, c igentype ) igentype
+
+/**min returns the lesser of x or y. */
+@GPUStubFunction gpudef  min (	x igentype, y igentype ) igentype
+/**max returns the greater of x or y. */
+@GPUStubFunction gpudef  max (	x igentype, y igentype ) igentype
+	
+/**computes x * y and returns the high half of the product of x and y. */
+@GPUStubFunction gpudef  mul_hi (	x igentype, y igentype ) igentype
+
+/**multiplies two 24-bit integer values x and y. x and y are 32-bit integers but only the low 24-bits are used to perform the multiplication. mul24 should only be used when values in x and y are in the range [-223, 223-1] if x and y are signed integers and in the range [0, 224-1] if x and y are unsigned integers. If x and y are not in this range, the multiplication result is implementation-defined. */
+@GPUStubFunction gpudef  mul24 (	x igentype, y igentype ) igentype
+
+/**For each element in v, the bits are shifted left by the number of bits given by the corresponding element in i (subject to usual shift modulo rules). Bits shifted off the left side of the element are shifted back in from the right. */
+@GPUStubFunction gpudef  rotate (	v igentype, i igentype ) igentype
+
+/**returns x - y and saturates the result. */
+@GPUStubFunction gpudef  sub_sat (	x igentype, y igentype ) igentype
+
+/**returns the number of non-zero bits in x. */
+@GPUStubFunction gpudef  popcount (	x igentype ) igentype
+
+/*
+ ****************************************************************************************************************************
+ * Common Built-In Functions
+ ****************************************************************************************************************************
+*/
+
+/**Converts radians to degrees, i.e. (180 / pi) * radians. */
+@GPUStubFunction gpudef degrees ( radians fpgentype ) fpgentype
+
+/**Returns the linear blend of x and y implemented as:
+x + (y - x) * a
+a must be a value in the range 0.0 ... 1.0. If a is not in the range 0.0 ... 1.0, the return values are undefined. */
+@GPUStubFunction gpudef  mix (	x fpgentype, y fpgentype, a fpgentype) 
+
+/**Converts degrees to radians, i.e. (pi / 180) * degrees. */
+@GPUStubFunction gpudef radians ( degrees fpgentype) fpgentype
+
+/**Returns 1.0 if x > 0, -0.0 if x = -0.0, +0.0 if x = +0.0, or -1.0 if x < 0. Returns 0.0 if x is a NaN. */
+@GPUStubFunction gpudef  sign ( x fpgentype) fpgentype
+
+/**Returns 0.0 if x <== edge0 and 1.0 if x >== edge1 and performs smooth Hermite interpolation between 0 and 1 when edge0 < x < edge1. This is useful in cases where you would want a threshold function with a smooth transition.
+
+This is equivalent to:
+
+          gentype t;
+          t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+          return t * t * (3 - 2 * t);
+Results are undefined if edge0 >== edge1 or if x, edge0 or edge1 is a NaN. */
+@GPUStubFunction gpudef smoothstep (edge0 fpgentype, edge1 fpgentype, 	x fpgentype) fpgentype
+
+/**Returns 0.0 if x < edge, else 1.0. */
+@GPUStubFunction gpudef step ( edge fpgentype,  x fpgentype) fpgentype
+
+/*
+ ****************************************************************************************************************************
+ * Relational Built-In Functions
+ ****************************************************************************************************************************
+*/
+
+/** Returns x == y. */
+@GPUStubFunction gpudef isequal (x fpgentype, y fpgentype) int
+
+/** Returns x <> y. */
+@GPUStubFunction gpudef isnotequal (x fpgentype, y fpgentype) int
+
+/** Returns  x > y. */
+@GPUStubFunction gpudef isgreater (x fpgentype, y fpgentype) int
+
+/** Returns x >== y. */
+@GPUStubFunction gpudef isgreaterequal (x fpgentype, y fpgentype) int
+
+/** Returns  x < y. */
+@GPUStubFunction gpudef isless (x fpgentype, y fpgentype) int
+
+/** Returns x <== y. */
+@GPUStubFunction gpudef islessequal (x fpgentype, y fpgentype) int
+
+/** Returns (x < y) || (x > y). */
+@GPUStubFunction gpudef islessgreater (x fpgentype, y fpgentype) int
+
+/** Test for finite value. */
+@GPUStubFunction gpudef isfinite(x fpgentype) int
+
+/** Test for infinity value (positive or negative). */
+@GPUStubFunction gpudef isinf(x fpgentype) int
+
+/** Test for NaN. */
+@GPUStubFunction gpudef isnan(x fpgentype) int
+
+/** Test for a normal value. */
+@GPUStubFunction gpudef isnormal(x fpgentype) int
+
+/** Test if arguments are ordered. */
+@GPUStubFunction gpudef isordered (x fpgentype, y fpgentype) int
+
+/** Test if arguments are isunordered. */
+@GPUStubFunction gpudef isunordered (x fpgentype, y fpgentype) int
+
+/** The built-in function signbit tests for sign bit. The scalar version of the function returns a 1 if the sign bit in the float is set else returns 0. The vector version of the function returns the following for each component in floatn: -1 (i.e. all bits set) if the sign bit in the float is set else returns 0. */
+@GPUStubFunction gpudef signbit(x fpgentype) int
+
+/** returns 1 if the most significant bit in any component of x is set; otherwise returns 0. */
+@GPUStubFunction gpudef any(x igentype) int
+
+/** returns 1 if the most significant bit in all components of x is set; otherwise returns 0. */
+@GPUStubFunction gpudef all(x igentype) int
+
+/**Each bit of result is corresponding bit of a if corresponding bit of c is 0. Otherwise it is the corresponding bit of b. */
+@GPUStubFunction gpudef bitselect (a gentype, b gentype, c gentype) gentype
+
+/**For each component of a vector type, result[i] = if MSB of c[i] is set ? b[i] : a[i].
+For scalar type, result = c ? b : a.
+igentype and ugentype must have the same number of elements and bits as gentype. */
+@GPUStubFunction gpudef select (a gentype, b gentype, c int) gentype
+/**For each component of a vector type, result[i] = if MSB of c[i] is set ? b[i] : a[i].
+
+For scalar type, result = c ? b : a.
+
+igentype and ugentype must have the same number of elements and bits as gentype. */
+@GPUStubFunction gpudef select (a gentype, b gentype, c long) gentype
+/**For each component of a vector type, result[i] = if MSB of c[i] is set ? b[i] : a[i].
+
+For scalar type, result = c ? b : a.
+
+igentype and ugentype must have the same number of elements and bits as gentype. */
+@GPUStubFunction gpudef select (a gentype, b gentype, c short) gentype
+/**For each component of a vector type, result[i] = if MSB of c[i] is set ? b[i] : a[i].
+
+For scalar type, result = c ? b : a.
+
+igentype and ugentype must have the same number of elements and bits as gentype. */
+@GPUStubFunction gpudef select (a gentype, b gentype, c char) gentype
+
+
+/*
+ ****************************************************************************************************************************
+ * Barriers
+ ****************************************************************************************************************************
+*/
+
+/**All work-items in a work-group executing a kernel on a processing element complete execution of this function before 
+any are allowed to continue execution beyond the barrier.
+islocal:
+	- true : The barrier function will either flush any variables stored in local memory or queue a memory fence to ensure correct ordering of memory operations to local memory.
+	- false: The barrier function will queue a memory fence to ensure correct ordering of memory operations to global memory. This can be useful when work-items, for example, write to buffer and then want to read the updated data.
+*/
+@GPUStubFunction(source = "void barrier(boolean islocal){ if(isLocal) { barrier(CLK_LOCAL_MEM_FENCE); } else{ barrier(CLK_GLOBAL_MEM_FENCE); } }")
+gpudef barrier(isLocal bool) void
+

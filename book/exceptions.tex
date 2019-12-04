@@ -1,0 +1,222 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Exceptions]{Exceptions}
+
+
+\begin{tikzpicture}[overlay]
+\draw[anchor=north west] (9cm,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=45pt]{\strut\makebox[6cm]{}};
+
+\draw[anchor=north west,text width=8cm] (9.2cm,10.8cm) node {\begin{footnotesize}"And now we're stuck on rewind\\
+	Let's follow the cops back home\\
+	Follow the cops back home\\
+	Lets follow the cops back home\\
+	And rob their houses"\\
+	\begin{flushright} - Follow the Cops Back Home from Meds by Placebo (2006).\end{flushright}\end{footnotesize}};
+\end{tikzpicture}
+
+Exceptions allow us to interrupt the ordinary flow of control of our application, and fail up the call stack until we arrive at code designed to catch said exception and perform some action in response to it. 
+
+All exceptions in Concurnas are considered Runtime exceptions. i.e. it's not required that one have to explicitly decorate one's method or function, which has the capability to throw an exception, with details of that exception. The rational being that exceptions are meant to be 'exceptional' - i.e. not an ordinary part of structured programming. If one is relying upon them in order to pass the flow of control around a program, then one may wish to reconsider the design of one's software. In fact, many successful programming languages don't have the concept of Exceptions at all, but rather, error state is managed via return values. With Concurnas we feel that we've achieved the best of both worlds; exceptions are there if you need them, but they don't get in the way.
+
+\section{Throwing Exceptions}
+Exceptions are objects which are subtypes of \lstinline{java.lang.Throwable}, only these objects may be thrown. Objects which are not subtypes of \lstinline{Throwable} cannot be thrown.
+
+Exceptions are objects, are created as objects, and can be thrown via use of the /throw/ keyword:
+\begin{lstlisting}
+class MyException(msg String) < Exception(msg)
+
+def carefulOperation(a double){
+	if(a <== 0.){
+		throw new MyException("Input: {a} to 'carefulOperation' must be greater than zero")
+	}
+	100*a
+}
+\end{lstlisting}
+
+It's recommended that one specialize one's range of exceptions thrown, by defining an appropriate exception hierarchy, as par above. This is a better approach than using a catch all exception and throwing this every time one encounters an exceptional situation, or just throwing \lstinline{java.lang.Exception} (with or without an appropriate message) - because it makes the job of catching exceptions, and differentiating the reaction to those exceptions easier as we shall see next...
+
+\section{Catching Exceptions}
+We can catch exceptions thrown within the bounds of a try block by using series of one or more catch blocks. A catch block specifies the type of exception it will catch and a variable to assign the exception to which is bound to the scope of the attached catch block. An exception is handled by a catch block if it's type is equal to or a subtype of the one specified. If no type is specified then the type \lstinline{Throwable} (i.e. to catch any exception) will be used. From our previous example:
+
+\begin{lstlisting}
+try{
+	carefulOperation(-1.)
+	//some more code here...
+}catch(e MyException){
+	System.out.println("operation failed: " + e.getMessage())
+}catch(e Exception){
+	//special logic here to handle this
+}catch(e){//catch everything else
+	System.out.println("operation failed for unexpected reason: " + e.getMessage())
+}
+\end{lstlisting}
+
+Note that an exception can only be caught and handled by at most one catch block (or non at all if there isn't one for the type of the exception thrown).
+
+If there is no catch block defined for the exception type then the exception will be thrown by the method/function containing the try block - and passed up the call stack for catching by an appropriate catch block (if defined).
+
+We must order our exceptions so as to avoid a superclass of an exception specified in a later catch block being defined before it - as this would mask the latter defined exception. But fear not, the compiler is on our side, because if we do this then it will result in a compilation error, thus bringing the problem to our attention.
+
+\section{Returning values}
+Try catch blocks, like control statements, may return values. For example:
+
+\begin{lstlisting}
+def runAndtry(an double) double {
+	result double = try{
+		carefulOperation(an)
+	}catch(e MyException){
+		System.out.println("operation failed: " + e.getMessage())
+		-1.
+	}
+	return result
+}
+\end{lstlisting}
+
+The above form can only be used if the try block and all the specified catch blocks return something. In the case where the try block and catch blocks return values of differing type, the most specific common superclass amongst the specified types will be returned.
+
+\section{Multi-catch}
+Often one needs to catch multiple exceptions, but does not want to catch the superclass of those exceptions. Normally one would need to define a catch block per exception type and duplicate the code to handle the exception multiple times for each type within each of the corresponding catch blocks. But we can instead use a multi-catch block as par below:
+
+\begin{lstlisting}
+open class MasterException(msg String) < Exception(msg)
+
+class Excep1(a String) < MasterException(a)
+class Excep2(a String) < MasterException(a)
+
+def thrower(an int) void{
+	match(an){
+		1 => throw new Excep1("value was 1")
+		2 => throw new Excep2("value was 2")
+		3 => throw new Exception("another exception")
+	}
+}
+
+def multicatch(an int) String{
+	try{
+		thrower(an)
+		"execution ok"
+	}
+	catch(a Excep1 or Excep2){//here is our multicatch
+		"Exception thrown: " + a.getMessage()
+	}
+	catch(e){//catch everything else
+		"mystery exception: " +  e.getMessage()
+	}
+}
+\end{lstlisting}
+
+\section{Finally blocks}
+In the situation where there is no appropriate handler for an exception thrown within a try block, the exception will be passed up the callstack. Often we need to ensure that a piece of code is run after a try block has regardless of whether an exception has been thrown/catched (for instance, to clean up/close resources used prior to and within the try block). To this end we can use a finally block to guarantee the code is run regardless of whether our try block has run normally or thrown any exceptions (which have been caught or not caught and rethrown):
+
+\begin{lstlisting}
+class Resource(){
+	def open(){
+		//code to open resource
+	}
+	
+	def close(){
+		//clean up code
+	}
+	
+	def use(){
+		//use resource in some way
+	}
+}
+
+class AnException < Exception("An exception thrown")
+
+def myFinallyMethod(){
+	r = Resource()
+	try{
+		r.open()
+		//code here using the resource which may throw an exception
+	}catch(e AnException){
+		//handle exception
+	}finally{//code is always run regardless of whether exception is thrown, not caught and rethrown, caught or not thrown at all 
+		r.close()
+	}
+}
+\end{lstlisting}
+
+In fact, we may omit the use of any catch blocks and just have a \lstinline{try} \lstinline{finally} pair:
+
+\begin{lstlisting}
+def myFinallyMethod(){
+	r = Resource()
+	try{
+		r.open()
+		//code here using the resource which may throw an exception
+	}finally{//code is always run regardless of whether exception is thrown, not caught and rethrown, caught or not thrown at all 
+		r.close()
+	}
+}
+\end{lstlisting}
+
+Note that specifically for the case above of resource management it can often be beneficial to use a try with resources block form, discussed later.
+
+Finally blocks may not return values, either explicitly or implicitly. If Concurnas where to permit this then it would make reasoning about what value is returned from a try catch block with finally difficult for the author of the code and anyone who reviews it.
+
+\section{Dealing with finally blocks that throw Exceptions...}
+If the code within a finally block can throw an exception, then the exception thrown by the code within the main try block (if any) will be suppressed by this new exception originating from the finally block. In instances such as this, the suppressed exception can be access by calling the \lstinline{getSuppressed()} method on the exception thrown.
+
+Through generally speaking it's not a good idea to allow code within a finally block to throw an exception, for the above reason of suppression and also for the sake of reasoning about said exception further up the callstack.
+
+\section{The Default Isolate Exception Handler}
+All code in Concurnas runs within isolates. If an exception boils up the callstack, uncaught and reaches the top level of an isolate, then the default isolate exception handler will be invoked. The default handler simply outputs a description of the exception to the console.
+
+%The default isolate exception handler can be overridden for an isolate as follows:
+
+%\begin{lstlisting}
+
+%TODO: override the default isolate exception handler
+
+%\end{lstlisting}
+
+
+Generally speaking, if exceptions are reaching the top level, uncaught then there is probably something very wrong about the design of the software being executed, or the exceptions are not interesting and ignorable - which is strange in and of itself since they really ought not to be thrown in the first place if this is the case.
+
+\section{Try With Resources}
+Often when we are working with managed resources (files, database connections , hardware interfaces etc), we must remember to explicitly close the resource after we have finished using it, so as to avoid a resource leak. To aid this process Concurnas implements try-with-resources. For example:
+\begin{lstlisting}
+def readFirst(path String) {
+	fr = new java.io.FileReader(path)
+	br = new java.io.BufferedReader(fr)
+	try (br) {
+		br.readLine()
+	}
+}
+\end{lstlisting}
+
+In the above instance we do not need to remember to explicitly call the close method on the br object as the close method on the \lstinline{BufferedReader} object will be called at the end of the try block of code. In fact, even if our try block throw an exception, the close method will still be called.
+
+We can assign the object to be closed to a variable for closing within our try with resources expression, and make use of that variable within the try block:
+\begin{lstlisting}
+def readFirst(path String) {
+	fr = new java.io.FileReader(path)
+	try(br = new java.io.BufferedReader(fr)) {
+		br.readLine()
+	}
+}
+\end{lstlisting}
+
+This is a nice design pattern since we avoid the risk of accidentally using the br variable outside the try block once it has been closed.
+
+We can assign multiple variables as part of the try with resources expression by delimiting them with \lstinline{;}:
+\begin{lstlisting}
+def readFirstTwo(path1 String, path2 String) {
+	try(br1 = new java.io.BufferedReader(new java.io.FileReader(path1)); br2 = new java.io.BufferedReader(new java.io.FileReader(path2))) {
+		br1.readLine() + br2.readLine()
+	}
+}
+\end{lstlisting}
+
+In order to make a class compatible with try with resources one must implement a zero argument close method returning void like the following:
+\begin{lstlisting}
+def close() void { /* closing code */ }
+\end{lstlisting}
+
+
+
+\end{document}

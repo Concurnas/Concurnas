@@ -1,0 +1,466 @@
+//##1. shared local variable
+def doings(){
+	
+	shared myList = [1,2, 3, 4, 5, 6, 7]
+	
+	
+	done := { myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + myList
+}
+
+
+~~~~~
+//##2. shared class
+shared class MyListHolder{
+	public myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+def doings(){
+	mlh = new MyListHolder()
+	
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+~~~~~
+//##3. shared func param
+
+from java.util import List
+
+def doer(shared myList List<int>){
+	done := { myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + myList
+}
+
+def doings(){
+	doer([1, 2, 3, 4, 5, 6, 7])
+}
+
+~~~~~
+//##4. shared class as param
+from java.util import List
+
+shared class MyListHolder{
+	public myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+def doer(mlh MyListHolder){
+	
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+
+def doings(){
+	doer(new MyListHolder())
+}
+
+~~~~~
+//##5. shared module level
+	
+shared myList = [1,2, 3, 4, 5, 6, 7]
+
+def doings(){
+	done := { myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + myList
+}
+
+~~~~~
+//##6. shared module level class type is shared
+
+shared class MyListHolder{
+	public myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+mlh = new MyListHolder()
+
+def doings(){
+	
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+~~~~~
+//##7. shared at class level
+
+class MyListHolder{
+	public shared myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+
+def doings(){
+	mlh = new MyListHolder()
+
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+~~~~~
+//##8. module level class shared variable
+
+//##MODULE com.myorg.code2
+class MyListHolder{
+	public shared myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+
+//##MODULE
+from com.myorg.code2 import MyListHolder 
+
+def doings(){
+	mlh = new MyListHolder()
+
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+~~~~~
+//##9. module level shared class
+
+//##MODULE com.myorg.code2
+shared class MyListHolder{
+	public myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+
+//##MODULE
+from com.myorg.code2 import MyListHolder 
+
+def doings(){
+	mlh = new MyListHolder()
+
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+~~~~~
+//##10. module level variable can share
+//##MODULE com.myorg.code2
+public shared myList = [1, 2, 3, 4, 5, 6, 7]
+
+//##MODULE
+from com.myorg.code2 import myList 
+
+def doings(){
+	done := { myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + myList
+}
+
+~~~~~
+//##11. class level params
+
+from java.util import List
+
+//dont do this!
+class DoerClass{
+	res = ""
+	this(shared myList List<int>){
+		done := { myList[0] = 99; true }!
+	
+		await(done)
+		res += myList
+	}
+	override toString() => res
+}
+
+
+def doings(){
+	"" + DoerClass([1, 2, 3, 4, 5, 6, 7])
+}
+
+~~~~~
+//##12. class level params shared class
+
+from java.util import List
+
+shared class MyListHolder{
+	public myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+//dont do this!
+class DoerClass{
+	res = ""
+	this(mlh MyListHolder){
+		done := { mlh.myList[0] = 99; true }!
+	
+		await(done)
+		res += mlh.myList
+	}
+	override toString() => res
+}
+
+
+def doings(){
+	"" + DoerClass(MyListHolder())
+}
+
+~~~~~
+//##13. shared class applies to child class too
+
+//##MODULE com.myorg.code2
+private open class MyListHolder{
+}
+
+shared class Child < MyListHolder{
+	public myList = [1, 2, 3, 4, 5, 6, 7]
+}
+
+
+//##MODULE
+from com.myorg.code2 import Child 
+
+def doings(){
+	mlh = new Child()
+
+	done := { mlh.myList[0] = 99; true }!
+	
+	await(done)
+	
+	"" + mlh.myList
+}
+
+~~~~~
+//##14. shared class variable done properly
+
+from java.util import List
+
+//dont do this!
+class DoerClass(shared myList List<int>){
+	res = ""
+	def doIt(){
+		done := { myList[0] = 99; true }!
+	
+		await(done)
+		res += myList
+	}
+	override toString() => res
+}
+
+
+def doings(){
+	"" + DoerClass([1, 2, 3, 4, 5, 6, 7])..doIt()
+} 
+
+~~~~~
+//##15. shared module level variables
+
+//##MODULE com.myorg.code2
+public dependancy = 99
+public shared thevalue Integer = 100 +  dependancy
+public shared another = new Integer(888)
+
+//##MODULE
+def doings(){
+	orig = com.myorg.code2.thevalue
+	ignore = com.myorg.code2.another
+	com.myorg.code2.thevalue = 23//overwrite shared
+	
+	"ok" + [orig [{com.myorg.code2.thevalue}! {com.myorg.code2.thevalue}!]]//should have the shared version
+}
+
+~~~~~
+//##16. shared module level var always set
+
+//##MODULE com.myorg.code2
+public dependancy = 99
+public shared thevalue Integer = 100 +  dependancy
+public shared another = new Integer(888)
+
+thevalue=111//always resets on module load - so wipes out value - so dont do this if you really want to use shared
+
+//##MODULE
+def doings(){
+	orig = com.myorg.code2.thevalue
+	ignore = com.myorg.code2.another
+	com.myorg.code2.thevalue = 23
+	
+	"ok" + [orig [{com.myorg.code2.thevalue}! {com.myorg.code2.thevalue}!]]
+}
+
+~~~~~
+//##17. shared gotcha
+
+//##MODULE com.myorg.code2
+public shared sharedvar = new Integer(0)
+
+sharedvar = 26
+
+//##MODULE
+from com.myorg.code2 import sharedvar
+
+def doings(){
+	sharedvar = 500
+	
+	"ok" + [sharedvar {sharedvar}!]
+}
+
+~~~~~
+//##18. shared class
+
+//##MODULE com.myorg.code2
+
+shared class Holder(~a int)
+
+public abba Holder = Holder(100)
+
+//##MODULE
+orig = com.myorg.code2.abba.a
+com.myorg.code2.abba.a = 23
+now = com.myorg.code2.abba.a
+
+def doings(){
+	"ok" + [orig now {com.myorg.code2.abba.a}! {com.myorg.code2.abba.a}!]
+}
+
+~~~~~
+//##19. shared class ae
+
+//##MODULE com.myorg.code2
+
+shared class Holder(~a int)
+
+public abba = Holder(100)
+
+//##MODULE
+orig = com.myorg.code2.abba.a
+com.myorg.code2.abba.a = 23
+now = com.myorg.code2.abba.a
+
+def doings(){
+	"ok" + [orig now {com.myorg.code2.abba.a}! {com.myorg.code2.abba.a}!]
+}
+
+~~~~~
+//##20. shared class gotcha
+
+//##MODULE com.myorg.code
+
+//in module com.myorg.code.py
+shared class Holder<X>(~x X)
+
+public shared sharedvar = new Holder("initial value")//initial top level declaration
+
+sharedvar = new Holder("old value") //top level module core re-assigning a value to sharedvar - dangerous
+
+
+//##MODULE
+//in module: com.myorg.othercode
+from com.myorg.code import sharedvar, Holder
+
+def doings(){
+	sharedvar = new Holder("new Value")
+	"" + [sharedvar.getX() {sharedvar.x}!]//when the iso is executed sharedvar will be ‘reset’ to 26
+}
+
+~~~~~
+//##21. shared multi assignment
+
+//##MODULE com.myorg.code
+public shared var1 = public shared var2 =  "ok" 
+
+ var1 = "resset"
+
+//##MODULE
+//in module: com.myorg.othercode
+from com.myorg.code import var1, var2
+
+def doings(){
+	var1 = "ok"
+	"ok" + [var1 var2 {var1}!]
+}
+
+~~~~~
+//##22. shared ref pointless
+
+//##MODULE com.myorg.code
+public shared var1 := "initial" 
+
+var1 = "resset"
+
+//##MODULE
+//in module: com.myorg.othercode
+from com.myorg.code import var1
+
+def doings(){
+	var1 = "ok"
+	"ok" + [var1 {var1}!]
+}
+
+~~~~~
+//##23. shared class def level variable
+trait NoEQHashCode{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class Myclass(a int) ~ NoEQHashCode
+
+shared theMyClass Myclass
+shared matches Boolean? = null;
+
+actor TakesAnMyclass(what Myclass) ~ NoEQHashCode{
+	init{
+		matches = theMyClass &== what
+	}
+}
+
+class AnActor(shared mc Myclass) ~ NoEQHashCode{
+	init{
+		TakesAnMyclass(mc)//Myclass instance should not be copied as its shared
+	}
+}
+
+def doings(){
+	mc = Myclass(9)
+	theMyClass = mc
+	act = new AnActor(mc)
+	
+	"" + matches
+}
+
+~~~~~
+//##24. shared fields are volatile
+trait NoEQHashCode{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class Myclass(a int) ~ NoEQHashCode
+
+class AUsingClass(shared mc Myclass) ~ NoEQHashCode{
+	
+}
+
+def doings(){
+	"" + java.lang.reflect.Modifier.isVolatile(AUsingClass.class.getDeclaredField("mc").getModifiers())
+}

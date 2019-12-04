@@ -1,0 +1,4 @@
+simple = {1->2, 3->4};
+hard HashMap<String, String> = {"a"->"", "b"->""};
+
+a Object = null;

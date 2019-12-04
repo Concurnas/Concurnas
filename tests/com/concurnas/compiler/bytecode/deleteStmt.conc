@@ -1,0 +1,567 @@
+//##1. DeleteOnUnusedReturn simple case
+
+delCalled = 0
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+	override delete(){
+		delCalled++;;
+	}
+}
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce(){
+	ClassWithResource()
+}
+
+def doings(){
+	doWorkAndGetClassWithResouce()//call delete on pop - implicit
+	x=doWorkAndGetClassWithResouce()//no del call
+	"" + delCalled
+}
+
+~~~~~
+//##2. DeleteOnUnusedReturn simple case subclass
+delCalled = 0
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+	override delete(){
+		delCalled++;;
+	}
+}
+
+open class Getter{
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def doWorkAndGetClassWithResouce(a int) ClassWithResource{
+		ClassWithResource()
+	}
+}
+
+class ChildGetter < Getter{
+	override doWorkAndGetClassWithResouce(a int) ClassWithResource{
+		super.doWorkAndGetClassWithResouce(a)
+	}
+}
+
+def doings(){
+	g = ChildGetter()
+	g.doWorkAndGetClassWithResouce(22)//call delete on pop- implicit
+	x=g.doWorkAndGetClassWithResouce(22)//no del call
+	"" + delCalled
+}
+
+~~~~~
+//##3. DeleteOnUnusedReturn simple case subclass
+delCalled = 0
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+	override delete(){
+		delCalled++;;
+	}
+}
+
+open class Getter{
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def doWorkAndGetClassWithResouce(a int) ClassWithResource{
+		ClassWithResource()
+	}
+}
+
+class ChildGetter < Getter{
+	override doWorkAndGetClassWithResouce(a int) ClassWithResource{
+		super.doWorkAndGetClassWithResouce(a)
+	}
+}
+
+def doings(){
+	g = ChildGetter()
+	g.doWorkAndGetClassWithResouce(22)//call delete on pop- implicit
+	x=g.doWorkAndGetClassWithResouce(22)//no del call
+	"" + delCalled
+}
+~~~~~
+//##4. DeleteOnUnusedReturn predefined 
+
+from com.concurnas.lang.precompiled import ClassNeedingDeleteOnUnused
+
+def doings(){
+	prov = ClassNeedingDeleteOnUnused.Provider()
+	prov.getClassHavingDelete()//call delete on pop
+	x=prov.getClassHavingDelete()
+	"" + ClassNeedingDeleteOnUnused.delCount
+}
+
+
+~~~~~
+//##5. DeleteOnUnusedReturn predefined subclass 
+
+from com.concurnas.lang.precompiled import ClassNeedingDeleteOnUnused
+
+
+def doings(){
+	prov = ClassNeedingDeleteOnUnused.ChildProvider()
+	prov.getClassHavingDelete()//call delete on pop
+	x=prov.getClassHavingDelete()
+	"" + ClassNeedingDeleteOnUnused.delCount
+}
+
+~~~~~
+//##6. DeleteOnUnusedReturn no call if null
+
+delCalled = 0
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+	override delete(){
+		delCalled++;;
+	}
+}
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce(retNull bool){
+	null if retNull else ClassWithResource()
+}
+
+def doings(){
+	doWorkAndGetClassWithResouce(true)//call delete on pop - implicit
+	x1=doWorkAndGetClassWithResouce(true)//no del call
+	doWorkAndGetClassWithResouce(false)//call delete on pop - implicit
+	x2=doWorkAndGetClassWithResouce(false)//no del call
+	"" + delCalled
+}
+
+~~~~~
+//##7. DeleteOnUnusedReturn on ref when unused
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce() ClassWithResource:CustRef {
+	x ClassWithResource:CustRef = new ClassWithResource()
+	x:
+}
+
+def xx() => false
+
+def doings(){
+	doWorkAndGetClassWithResouce()//call delete on pop - implicit
+	x = doWorkAndGetClassWithResouce() //call delete on extract - implicit as extracted
+	"" + delCalled
+}
+
+~~~~~
+//##8. DeleteOnUnusedReturn on ref when unused if expr
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+}
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce() ClassWithResource:CustRef {
+	x ClassWithResource:CustRef = new ClassWithResource()
+	x:
+}
+
+def xx() => true
+
+def doings(){
+	x = doWorkAndGetClassWithResouce() if xx() else new ClassWithResource()
+	"" + delCalled
+}
+
+~~~~~
+//##9. DeleteOnUnusedReturn on ref when unused - via arraydef
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+class ClassWithResource{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+}
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce() ClassWithResource:CustRef {
+	x ClassWithResource:CustRef = new ClassWithResource()
+	x:
+}
+
+def xx() => true
+
+def doings(){
+	x = [doWorkAndGetClassWithResouce() ] 
+	"" + delCalled
+}
+
+~~~~~
+//##10. DeleteOnUnusedReturn on ref when unused - plus minus stmt
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce() int:CustRef {
+	x int:CustRef = 55
+	x:
+}
+
+def doings(){
+	x = doWorkAndGetClassWithResouce() + doWorkAndGetClassWithResouce()
+	"" + delCalled
+}
+
+~~~~~
+//##11. DeleteOnUnusedReturn on ref when unused - in funcinvokes
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce() int:CustRef {
+	x int:CustRef = 55
+	x:
+}
+
+def dontCallMe(inp int){
+	12
+}
+
+def dontCallMeFrominput(inp int:CustRef){
+	12:
+}
+
+def doCallMe(inp int){
+	12:
+}
+
+def doings(){
+	x =dontCallMe( doWorkAndGetClassWithResouce() )//yes
+	x =doCallMe( doWorkAndGetClassWithResouce() )//yes
+	x =dontCallMeFrominput( doWorkAndGetClassWithResouce() )//no as thing handles it
+	"" + delCalled
+}
+
+~~~~~
+//##12. DeleteOnUnusedReturn on ref when unused - calls extracting from ref
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+@com.concurnas.lang.DeleteOnUnusedReturn
+def doWorkAndGetClassWithResouce() int:CustRef {
+	x int:CustRef = 55
+	x:
+}
+
+def doings(){
+	x1 = doWorkAndGetClassWithResouce()://no call
+	x2 = doWorkAndGetClassWithResouce():get()//needs call
+	x3 = doWorkAndGetClassWithResouce().get()//needs call
+	x4 = doWorkAndGetClassWithResouce()..get()//doesnt needs call
+	"" + delCalled
+}
+
+~~~~~
+//##13. custom refs should not share their internal state
+
+from java.util import ArrayList
+
+class CustRef<X>(type Class<?>[], public inst ArrayList<String>) < com.concurnas.runtime.ref.Local<X>(type){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => 'CustRef: contents: {inst}'
+}
+
+def doings(){
+	mc = ArrayList<String>()
+	mc.add("hi")
+	a = int:CustRef(mc)
+	sepIso = {"" + [a:]}!
+	mine = "" + [a:]
+	
+	sepIsoComp = {System.identityHashCode(a:inst)}!
+	mineComp = System.identityHashCode(a:inst)
+	
+	expectDiff = sepIsoComp <> mineComp
+		
+	"" + [expectDiff, mine, sepIso]//different id but cloned contents
+}
+
+~~~~~
+//##14. custom refs should not share their internal state - use fast copier if available
+
+class MyClass<X>{
+	thing X?
+	
+	def add(a X){
+		thing = a
+	}
+	
+	override toString(){
+		"[{thing}]"
+	}
+}
+
+class CustRef<X>(type Class<?>[], public inst MyClass<String>) < com.concurnas.runtime.ref.Local<X>(type){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => 'CustRef: contents: {inst}'
+}
+
+def doings(){
+	mc = MyClass<String>()
+	mc.add("hi")
+	a = int:CustRef(mc)
+	sepIso = {"" + [a:]}!
+	mine = "" + [a:]
+	
+	sepIsoComp = {System.identityHashCode(a:inst)}!
+	mineComp = System.identityHashCode(a:inst)
+	
+	expectDiff = sepIsoComp <> mineComp
+		
+	"" + [expectDiff, mine, sepIso]//different id but cloned contents
+}
+
+~~~~~
+//##15. custom refs should not share their internal state - onchange every etc
+
+from java.util import ArrayList
+
+class CustRef<X>(type Class<?>[], public inst ArrayList<String>) < com.concurnas.runtime.ref.Local<X>(type){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => 'CustRef: contents: {inst}'
+}
+
+def doings(){
+	mc = ArrayList<String>()
+	mc.add("hi")
+	a = int:CustRef(mc)
+		
+	x := 1
+	
+	sepIso <=(x) ""+System.identityHashCode(a:inst)
+	mine = "" + System.identityHashCode(a:inst)
+	
+	
+	sepIsoCont <=(x) ""+a:inst
+	mineCont = "" + a:inst
+	
+	expectDiff = sepIso <> mine
+		
+	"" + [expectDiff, mineCont, sepIsoCont]//different id but cloned contents
+}
+
+~~~~~
+//##16. custom refs should not share their internal state - primative types
+
+from java.util import ArrayList
+
+class CustRef<X>(type Class<?>[], public inst int) < com.concurnas.runtime.ref.Local<X>(type){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => 'CustRef: contents: {inst}'
+}
+
+def doings(){
+	a = int:CustRef(100)
+	sepIso = {a:inst = 99; a:inst}!
+	await(sepIso)
+	
+	"" + [a:inst sepIso]//different id but cloned contents
+}
+
+~~~~~
+//##17. bugfix used to be unable to combine custom refs in arrays
+
+from java.util import ArrayList
+
+class CustRef<X>(type Class<?>[], inst ArrayList<String>) < com.concurnas.runtime.ref.Local<X>(type){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => 'CustRef: contents: {inst}'
+}
+
+def doings(){
+	mc = ArrayList<String>()
+	mc.add("hi")
+	a = int:CustRef(mc)
+	
+	"" + [a:, a:]
+}
+
+~~~~~
+//##18. bugfix used to not copy objects shared in trees correctly 
+
+class Held(a int){
+	override toString() => "Held: {a}, {System.identityHashCode(this)}"	
+}
+
+class Holder(inst Held){
+	override toString() => "Holder: {inst}"	
+}
+
+def doings(){
+	h = Held(12)
+	holder1 = Holder(h)
+	holder2 = Holder(h)
+	
+	norm = { holder1.toString() == holder2.toString()}
+	asAsync = { holder1.toString() == holder2.toString()}!
+	//pretty major bug, we'd expect the nested held object of holder1 and holder2 to be the same
+	"{norm}, {asAsync}"
+}
+
+~~~~~
+//##19. bugfix used to not copy objects shared in trees correctly - ensure that implicit globals are caputred correctly 
+
+from com.concurnas.lang.precompiled import HoldingAStaticVarWithNonFinal
+
+class LeGetter{
+	def getter(){
+		HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2
+	}	
+}
+
+
+def doings(){
+	HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2=900
+	lg = LeGetter()
+	done = {got = lg.getter(); got}!
+	"" + [HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2, done]
+}
+
+~~~~~
+//##20. delete should be called on refs twice here as called via dot operator
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class MyClass{
+	
+	override hashCode() => 1
+	override equals(an Object) => false
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def doWorkAndGetClassWithResouce() int:CustRef {
+		x int:CustRef = 55
+		x:
+	}
+}
+
+def doings(){
+	inst = MyClass()
+	inst.doWorkAndGetClassWithResouce()//yes cos called on obj via dot operator
+	x = inst.doWorkAndGetClassWithResouce()
+	x2 := inst.doWorkAndGetClassWithResouce()//no
+	"" + delCalled
+}
+
+~~~~~
+//##21. delete should be called on refs twice here
+
+delCalled = 0
+
+class CustRef<X>(type Class<?>[]) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		delCalled++;;
+	}
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+open class MyClass{
+	
+	override hashCode() => 1
+	override equals(an Object) => false
+	@com.concurnas.lang.DeleteOnUnusedReturn
+	def doWorkAndGetClassWithResouce() int:CustRef {
+		x int:CustRef = 55
+		x:
+	}
+}
+
+class Child < MyClass{
+	override doWorkAndGetClassWithResouce() int:CustRef => super.doWorkAndGetClassWithResouce():
+}
+
+def doings(){
+	inst = Child()
+	inst.doWorkAndGetClassWithResouce()
+	x = inst.doWorkAndGetClassWithResouce()
+	x2 := inst.doWorkAndGetClassWithResouce()//no
+	"" + delCalled
+}

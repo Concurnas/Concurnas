@@ -1,0 +1,43 @@
+//d = "";
+//e = new String();
+//f = "" + 6;
+//g Object = e;
+
+//gf List = g //wrong!
+
+//ff=7
+
+//fow Object = null; // wrong
+
+//fowwer String = new Object();
+//new Object()
+//new Object("")
+//g = new String("")
+
+//from java.util import List
+///import java.util.List
+//import java.util.List as LOOPER
+
+//import java.util.ArrayList
+
+//a LOOPER = new LOOPER()
+//b java.util.List ;
+
+//c String = null
+//g String
+
+
+//ok
+
+
+from java.util import List, ArrayList
+
+a List = new ArrayList()
+
+
+
+
+//oops very wrong because you've not included the generic types when calling new
+//and declaring the type
+
+//wrong

@@ -1,0 +1,210 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Annotations]{Annotations}
+
+\begin{tikzpicture}[overlay]
+\draw[anchor=north west] (9cm,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=45pt]{\strut\makebox[6cm]{}};
+
+\draw[anchor=north west,text width=8cm] (9.2cm,10.8cm) node {\begin{footnotesize}"The Rhyming Rabbit was sitting with his family in a grassy field.\\
+	All the other rabbits were eating the grass but the Rhyming Rabbit was making up a poem about it"\\
+	\begin{flushright}- Donaldson, Julia and Monks, Lydia. (2011). The Rhyming Rabbit. Macmillan Publishers Limited.\end{flushright}\end{footnotesize}};
+\end{tikzpicture}
+
+Concurnas has support for annotations. They are a handy mechanism by which metadata can be attached to code to be interpreted either at compilation time or at runtime (or both). They are analogous to comments, but designed for our compiler and runtime to understand and act upon.
+
+
+\section{Using Annotations}
+Let's look at a simple example of a built in annotation for reference during and pre compilation and for documentation generation, \lstinline{@Deprecated}:
+
+This particular annotation is used to denote when a method of a class is deprecated and support for which is likely to be removed in future versions of said class. The annotation may be attached to a method by referencing it before the def keyword as follows. Note that \lstinline{@Deprecated} it is an auto imported type.
+
+\begin{lstlisting}
+class MyClass{
+	@Deprecated
+	def myMethod(){
+		
+	}
+}
+\end{lstlisting}
+
+Annotations may be attached to the following items in Concurnas: classes, fields, functions, methods, parameters, annotations. For example:
+
+\begin{lstlisting}
+annotation AnAnnotation
+
+@AnAnnotation
+def afunction() => 12
+
+@AnAnnotation
+class AClass(@AnAnnotation cdf int){
+	
+	@AnAnnotation
+	def aMethod(@AnAnnotation arg int) => 44
+	
+	@AnAnnotation
+	afield int = 99
+}
+\end{lstlisting}
+
+\section{Defining Annotations}
+Annotations may be defined in much the same way as classes, but since they represent static/constant data, they may not express methods and the types which they reference as fields may be of the following types only: primitive types (\lstinline{int, long, float} etc), Class, String, enums, annotation or arrays of the aforementioned types. We create an annotation using the \lstinline{annotation} keyword, the name of the annotation and an optional attached block containing any fields (defined in the same way as class fields):
+
+\begin{lstlisting}
+annotation MapsTo{
+	name String
+	mapTo String
+	repeat = 1
+}
+\end{lstlisting}
+
+When defining fields we can choose to specify a default value for the field - such as in the case of the \lstinline{repeat} field. If this is done then users of the annotation do not need to specify a value for \lstinline{repeat}. On the other hand because the fields \lstinline{name} and \lstinline{mapTo} have no default value, they have to be specified by any users of the annotation.
+
+We can use the above declared annotation by using the annotation symbol \lstinline{@} and specifying any fields as a comma separated list of name and assignment as follows:
+
+\begin{lstlisting}
+class MyClass{
+	@MapsTo(name = "mappingName", mapTo = "anotherName")
+	afield int =99
+}
+\end{lstlisting}
+
+As with classes, we can also define annotations using annotation declaration arguments (aka the 'one liner' syntax). For example, the above annotation \lstinline{MapsTo} can be more concisely declared as:
+\begin{lstlisting}
+annotation MapsTo(name String, mapTo String, repeat = 1)
+\end{lstlisting}
+
+We can apply more than one annotation at an annotate-able location by separating them with a comma:
+
+\begin{lstlisting}
+annotation Annot1
+annotation Annot2
+
+@Annot1, @Annot2
+class MyClass
+\end{lstlisting}
+
+
+For annotations which have only one non-default field, we can omit the field name from the parameter declaration when we use it as follows:
+\begin{lstlisting}
+annotation NameCount(name String, count = 0)
+
+@NameCount("aName")//we don't have to write this as: @NameCount(name = "aName")
+def myFunction() => 16
+\end{lstlisting}
+
+For annotations which have fields of type array, we do not have to specify the array declaration if we only wish to pass an array with a single value. For example:
+\begin{lstlisting}
+annotation Ports(instances int[])
+
+@Ports(8080) //only one value for field instances. This use call is translated into: @Ports(instances=[8080])
+class HttpServer{
+	a =2
+}
+\end{lstlisting}
+
+\section{Annotation Retention}
+The retention policy of an annotation denotes how accessible it is to different parts of the compilation/runtime process. There are 3 retention policies dictating how visible an annotation is when it's used:
+\begin{itemize}
+	\item SOURCE - The annotation is visible to the reader of the source file only, it's not accessible to the compiler or at runtime.
+	\item CLASS - The annotation is visible to the reader and it is also accessible to the compiler. It's not accessible at runtime.
+	\item RUNTIME - the annotation is visible to the reader, the compiler and is accessible at runtime.
+\end{itemize}
+
+If no retention policy is specified then it will be implicitly defaulted to Runtime. Only one policy may be specified. Most annotations are most sensibly marked with policy of either SOURCE or RUNTIME.
+
+We can specify the retention policy as follows:
+
+\begin{lstlisting}
+from java.lang.\annotation import Retention, RetentionPolicy
+//note that annotation is a keyword and therefore must be escaped
+
+@Retention(RetentionPolicy.SOURCE)
+annotation MYAnnotation1(a=1)
+
+@Retention(RetentionPolicy.CLASS)
+annotation MYAnnotation2(a=1)
+
+@Retention(RetentionPolicy.RUNTIME)
+annotation MYAnnotation3(a=1)
+
+@MYAnnotation1
+@MYAnnotation2
+@MYAnnotation3
+class SpecialClass
+\end{lstlisting}
+
+\section{Restricting Annotation Use}
+By default, a declared annotation can be used at any annotate-able location (classes, fields, functions, methods, parameters, annotations). To restrict this a 'Target' may be specified for the use of the annotation. These are the valid targets and the restrict usage of the declared annotation to:
+
+\begin{itemize}
+	\item ANNOTATION\_TYPE - Other annotations
+	\item CONSTRUCTOR - Constructors
+	\item FIELD - Class Fields
+	\item METHOD - Methods or functions 
+	\item PARAMETER - Method or function parameters
+	\item TYPE - Classes
+\end{itemize}
+
+Target's can be specified as follows:
+
+\begin{lstlisting}
+@Target(ElementType.ANNOTATION_TYPE)
+annotation ForAnAnnotation
+
+@Target(ElementType.TYPE)
+annotation ForClasses
+\end{lstlisting}
+
+More than one target may be specified by listing the targets as an array:
+
+\begin{lstlisting}
+@Target([ElementType.TYPE ElementType.FIELD])
+annotation MultiUse
+\end{lstlisting}
+
+\section{Accessing annotations via reflection}
+Annotations marked with retention policy RUNTIME (the default if none is specified) may be accessed at runtime via reflection. For example:
+
+\begin{lstlisting}
+annotation Ports(instances int[])
+
+@Ports(8080)
+class HttpServer{
+	a =2
+}
+
+res = HttpServer.class.getAnnotations()
+/
+res => [@Ports(instances = [8080])]
+\end{lstlisting}
+
+Many JVM annotation frameworks use this mechanism (reflection) to implement functionality operating on annotations.
+
+\section{Annotations to class fields with getters and setters}
+If one is annotating a class field which has getters/setters automatically generated (denoted via use of a \lstinline{-}, \lstinline{+} or \lstinline{~} prefix) we can use a special qualified form of the annotation symbol \lstinline{@} to denote where we would like our annotation to be placed (either on the constructor parameter, the auto generated getter, setter or field itself or a multiple number of these locations). To use the qualified annotation symbol we use the following syntax \lstinline{@[X]} where \lstinline{X} is one or many of a comma separated list of: param, setter, getter or field. For example:
+
+\begin{lstlisting}
+annotation MyAnnotation
+
+class MyClass(
+@MyAnnotation ~field0 int //no qualifier -> the annotation will be attached to the constructor parameter by default
+@[param]MyAnnotation ~field1 int
+@[setter]MyAnnotation ~field2 int
+@[getter]MyAnnotation ~field3 int
+@[field]MyAnnotation ~field3 int
+@[setter, getter]MyAnnotation ~field3 int //attach the annotation to the setter and getter methods
+){
+	@MyAnnotation ~defaultedField1 = 100 //no qualifier -> the annotation will be attached to the field by default
+	@[setter, getter]MyAnnotation ~defaultedField2 = 200 
+}
+\end{lstlisting}
+
+If no qualifier is used then the annotation will be attached in one of two ways:
+\begin{enumerate}
+	\item If the location is a parameter as part of a class definition argument list, then the annotation will be attached to the constructor argument only.
+	\item If the location is a field in a class, then the annotation will be attached to that field definition only.
+\end{enumerate}
+
+\end{document}

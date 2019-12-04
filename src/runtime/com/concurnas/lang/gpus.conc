@@ -1,0 +1,2195 @@
+from com.concurnas.lang import DeleteOnUnusedReturn, GPUKernelFunction, GPUStubFunction, GPUKernelFunctionDependancy, GPUBufferLocal, Transient
+from org.jocl.CL import clGetPlatformIDs, clGetDeviceIDs
+from org.jocl.CL import clGetPlatformInfo, clGetDeviceInfo
+from org.jocl.CL import clGetEventProfilingInfo, CL_PROFILING_COMMAND_QUEUED, CL_PROFILING_COMMAND_SUBMIT, CL_PROFILING_COMMAND_START, CL_PROFILING_COMMAND_END
+from org.jocl.CL import clCreateCommandQueue
+from org.jocl.CL import clEnqueueWriteBuffer, clEnqueueReadBuffer, clEnqueueCopyBuffer, clFinish
+from org.jocl.CL import clCreateContext, clCreateBuffer, clCreateProgramWithSource, clBuildProgram, clCreateKernel, clSetKernelArg, clEnqueueNDRangeKernel, clGetProgramBuildInfo
+from org.jocl    import cl_platform_id, cl_device_id, cl_context, cl_context_properties, cl_event, cl_mem, cl_command_queue, cl_program, cl_kernel 
+from org.jocl.CL import CL_DEVICE_TYPE_CPU, CL_DEVICE_TYPE_ACCELERATOR, CL_DEVICE_TYPE_GPU, CL_DEVICE_TYPE_ALL
+from org.jocl.CL import CL_PLATFORM_NAME, CL_DEVICE_NAME, CL_CONTEXT_PLATFORM
+from org.jocl.CL import CL_SUCCESS, CL_DEVICE_NOT_FOUND, CL_INVALID_PLATFORM, CL_INVALID_VALUE, CL_OUT_OF_HOST_MEMORY
+from org.jocl.CL import CL_MEM_READ_ONLY, CL_MEM_WRITE_ONLY, CL_MEM_READ_WRITE
+from org.jocl.CL import CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE
+from org.jocl.CL import CL_PROGRAM_BUILD_LOG
+from org.jocl.CL import stringFor_errorCode
+from org.jocl.CL import clSetEventCallback, CL_COMPLETE
+from org.jocl.CL import clReleaseEvent, clReleaseMemObject, clReleaseCommandQueue, clReleaseContext, clReleaseProgram, clReleaseKernel
+from org.jocl import Sizeof, Pointer, EventCallbackFunction
+from java.nio import Buffer, ByteBuffer, ByteOrder, BufferOverflowException
+from java.nio import LongBuffer, IntBuffer, ShortBuffer, CharBuffer, FloatBuffer, DoubleBuffer
+from java.nio.charset import Charset
+from java.lang.reflect import Array
+from java.util import List, ArrayList, HashMap, HashSet, Comparator, Collections
+from java.util.stream import Collectors
+from java.io import BufferedReader, FileReader
+
+private MAX_BUFER_SIZE = Integer.MAX_VALUE
+
+class GPUException(errcode int) < RuntimeException(stringFor_errorCode(errcode)){//this is neat
+	this(msg String){
+		super(msg)
+	}
+	this(msg String, errcode int){
+		this(msg + stringFor_errorCode(errcode))
+	}
+}
+
+private def getString(platform cl_platform_id , paramName int ){
+    size = new long[1]
+    errcode = clGetPlatformInfo(platform, paramName, 0, null, size)
+
+	if(errcode <> CL_SUCCESS){
+		throw new GPUException(errcode)
+	}
+
+    buffer = new byte[size[0] as int]
+    errcode = clGetPlatformInfo(platform, paramName, buffer.length, Pointer.\to(buffer), null)
+
+	if(errcode <> CL_SUCCESS){
+		throw new GPUException(errcode)
+	}
+
+    new String(buffer, 0, buffer.length-1)
+
+}
+
+private def getString(device cl_device_id, paramName int ){
+    size = new long[1]
+    errcode = clGetDeviceInfo(device, paramName, 0, null, size)
+	if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+
+    buffer = new byte[size[0] as int]
+    errcode = clGetDeviceInfo(device, paramName, buffer.length, Pointer.\to(buffer), null)
+	if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+
+    new String(buffer, 0, buffer.length-1)
+}
+
+private def getInt(device cl_device_id, paramName int){
+	values = new int[1]
+    errcode = clGetDeviceInfo(device, paramName, Sizeof.cl_int, Pointer.\to(values), null)
+	if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+    values[0]
+}
+
+private def getBoolean(device cl_device_id, paramName int){
+	return getInt(device, paramName) == 1
+}
+
+private def getLong(device cl_device_id, paramName int){
+	values = new long[1]
+    errcode = clGetDeviceInfo(device, paramName, Sizeof.cl_long, Pointer.\to(values), null)
+	if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+	values[0]
+}
+
+private def getSize(device cl_device_id, paramName int) long{
+	getSizes(device, paramName, 1)[0]
+}
+
+private def getSizes(device cl_device_id, paramName int, numValues int) long[]{
+	buffer = ByteBuffer.allocate(numValues * Sizeof.cl_size_t).order(ByteOrder.nativeOrder())
+	errcode = clGetDeviceInfo(device, paramName, Sizeof.cl_size_t * numValues, Pointer.\to(buffer), null)
+	if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+    
+    values = new long[numValues]
+    if (Sizeof.cl_size_t == 4){
+        for (i=0; i<numValues; i++){
+            values[i] = buffer.getInt(i * Sizeof.cl_size_t);
+        }
+    }
+    else{
+        for (i=0; i<numValues; i++) {
+            values[i] = buffer.getLong(i * Sizeof.cl_size_t);
+        }
+    }
+    values
+}
+
+private def bytesToString(bytes long) {
+    unit = 1024
+    if (bytes < unit){
+    	bytes + " B";
+    }else{
+    	exp = (Math.log(bytes) / Math.log(unit)) as int
+    	prex = "kMGTPE".charAt(exp-1);
+    	String.format("%.1f %sB", bytes / Math.pow(unit, exp), prex);
+    }
+    
+}
+
+@Transient
+class GPU{
+	private def getPlatforms(){
+		numPlatforms = new int[1];
+        errcode = clGetPlatformIDs(0, null, numPlatforms)
+		if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+
+        platforms = new cl_platform_id[numPlatforms[0]]
+        errcode = clGetPlatformIDs(platforms.length, platforms, null)
+		if(errcode <> CL_SUCCESS){	throw new GPUException(errcode)}
+
+		platforms
+	}
+
+	private def getAllDevices(deviceType long) DeviceGroup[] {
+       	platforms = getPlatforms()
+       	ret = new ArrayList<DeviceGroup>(platforms.length)
+
+        for (i=0; i < platforms.length; i++){
+        	platform = platforms[i]
+            platformName = getString(platform, CL_PLATFORM_NAME)
+
+            numDevices = new int[1]
+            errcode = clGetDeviceIDs(platforms[i], deviceType, 0, null, numDevices)
+			if(errcode <> CL_SUCCESS){
+				if(errcode == CL_DEVICE_NOT_FOUND){
+					continue
+				}
+
+				throw new GPUException(errcode)
+			}
+
+            devicesArray = new cl_device_id[numDevices[0]]
+            errcode = clGetDeviceIDs(platform, deviceType, numDevices[0], devicesArray, null)
+			if(errcode <> CL_SUCCESS ){	throw new GPUException(errcode)}
+
+			devices = new Device[devicesArray.length]
+			dg = new DeviceGroup(platform, platformName, devices)
+
+			add = true;
+			for(deviceid in devicesArray; idx){
+				dname = getString(deviceid, CL_DEVICE_NAME)
+				devices[idx as int] = Device(deviceid, dname.trim(), dg)
+			}else{
+				add=false;
+			}
+
+			if(add){
+				ret.add(dg)
+			}
+        }
+        ret.toArray(new DeviceGroup[ret.size()])
+    }
+
+	cpuDevices DeviceGroup[]? = null
+	gpuDevices DeviceGroup[]? = null
+	allDevices DeviceGroup[]? = null
+
+	def getCPUDevices() DeviceGroup[] {
+		if(null == cpuDevices){
+			cpuDevices = getAllDevices(CL_DEVICE_TYPE_CPU)
+		}
+		cpuDevices
+	}
+
+	def getGPUDevices() DeviceGroup[] {
+		if(null == gpuDevices){
+			gpuDevices = getAllDevices(CL_DEVICE_TYPE_GPU bor CL_DEVICE_TYPE_ACCELERATOR)
+		}
+		gpuDevices
+	}
+
+	def getALLDevices() DeviceGroup[] {
+		if(null == allDevices){
+			allDevices = getAllDevices(CL_DEVICE_TYPE_ALL)
+		}
+		allDevices
+	}
+}
+
+private class Node(public dims int, public name String, public source String, public signature String, children Node[]){
+	public depth = -1
+	def setDepth(n int){
+		if(n > depth){
+			depth = n
+		}
+	}
+	
+	override hashCode() => source.hashCode()
+	override equals(an Object) => an is Node and (an as Node).source.equals(source)
+	override toString() => "Node({name}, {depth})" 
+}
+
+class KernelDependancy(package dclass String, package dims int, package name String, package signature String, package globalLocalConstant String, package inout String)
+
+public def buildNode(srctoNode HashMap<String, Node>, dclass String, dims int, name String, signature String, globalLocalConstant String, inout String){
+	
+	class SrcAndDeps(source String, dependancies GPUKernelFunctionDependancy[])
+	
+	srcCls = Class.forName(dclass)
+	inst SrcAndDeps? = null//GPUKernelFunction
+	
+	if(name == "<clinit>"){//top level constants...
+		couldbe GPUKernelFunction? = srcCls.getAnnotation(GPUKernelFunction.class)
+		if(couldbe <> null){
+			src = couldbe.source()
+			inst = new SrcAndDeps(src, couldbe.dependancies());
+		}
+	}else{
+		for (m in srcCls.getMethods()) {
+			if (m.getName().equals(name)) {
+				couldbe = m.getAnnotation(GPUKernelFunction.class)
+				if (signature.equals(couldbe.signature()) and globalLocalConstant.equals(couldbe.globalLocalConstant()) and inout.equals(couldbe.inout())) {// found it!
+					src = couldbe.source()
+					
+					isStub GPUStubFunction? = m.getAnnotation(GPUStubFunction.class)
+					if(null <> isStub){
+						sourcefiles = isStub.sourcefiles()
+						if(sourcefiles){
+							for(srcFile in sourcefiles){
+								try( br = BufferedReader( FileReader(srcFile))){
+									sb = new StringBuilder()
+						            line String? = null;
+						            loop{
+						                line = br.readLine()
+						                if (line == null){
+						                    break
+						                }
+						                sb.append(""+line+"\n")
+						            }
+									src += "\n" + sb.toString()
+								}
+							}
+						}
+						
+						stubsrc = isStub.source()
+						if(stubsrc <> ""){
+							src += "\n" + stubsrc
+						}
+						
+					} 
+					
+					inst = new SrcAndDeps(src, couldbe.dependancies());
+				
+					break;
+				}
+			}
+		}
+	}
+	
+	
+
+	if (inst == null) {//now...
+		throw new GPUException(String.format("Unable to resolve gpu dependency: %s with signature: %s", name, signature))
+	}
+
+	src = inst??.source
+	
+	return if (src not in srctoNode) {
+		deps = inst??.dependancies
+		childNodes = new Node[deps.length];
+		ret = new Node(dims, name, src, signature, childNodes);
+		srctoNode.put(src, ret);
+
+		for(dep in deps; idx = 0) {
+			childNodes[idx as int] = buildNode(srctoNode, dep.dclass(), dep.dims(), dep.name(), dep.signature(), dep.globalLocalConstant(), dep.inout());
+		}
+		ret
+	} else {
+		srctoNode.get(src);
+	}
+}
+
+private def tagDependancyWithDepth(root Node, allNodes HashSet<Node>, jumps=0, visitAlready = new HashSet<Node>()){
+	if(root in visitAlready){
+		throw new GPUException(String.format("Recursion, either direct or indirect, is not permitted in gpu kernel invocation chains. '%s' is recursive", root.name))
+	}
+	root.setDepth(jumps)
+	jumps++
+	visitAlready.add(root)
+	for(child in root.children){
+		tagDependancyWithDepth(child, allNodes, jumps, visitAlready)	
+	}
+	visitAlready.remove(root)
+	jumps--
+	allNodes.add(root)
+}
+
+private def checkNoFunctionOverloading(allNodes HashSet<Node>){
+	nodeCounter = { default -> def(a String) { 0 } }
+	for(node in allNodes){
+		nodeCounter[node.name]++
+	}
+	
+	invalids = key.replace('_', '.') for key in nodeCounter if nodeCounter[key] > 1
+	
+	if(invalids){
+		throw new GPUException("Function overloading is not permitted within gpu execution chains. The following functions are overloaded: {String.join(', ' , invalids)}")
+	}
+}
+
+private def checkDimLevelsMatch(allNodes HashSet<Node>){
+	dlevels = new HashSet<int>(x.dims for x in allNodes if x.dims >0)
+	if(dlevels.size() > 1){
+		flat = "" + x for x in dlevels
+		Collections.sort(flat)
+		
+		throw new GPUException(String.format("Kernels referenced with incompatible kernel dimension levels specified in kernel call chain. There can be only one kernel dimension specified not %s, these are: %s", dlevels.size(), String.join(', ', flat)));
+	}
+}
+
+private def orderDependancyTree(root Node){
+	allNodes = HashSet<Node>()
+	tagDependancyWithDepth(root, allNodes)
+	checkNoFunctionOverloading(allNodes)
+	checkDimLevelsMatch(allNodes)
+	allNodes.remove(root)
+	//use Collections sort with a comparitor?
+
+	maxDepth=-1
+	for(child in allNodes){
+		if(child.depth > maxDepth){
+			maxDepth = child.depth
+		}
+	}
+	
+	arl = new ArrayList<Node>(allNodes.size())
+	while(maxDepth > 0){
+		for(child in allNodes){
+			if(child.depth == maxDepth){
+				arl.add(child)
+			}
+		}
+		maxDepth--
+	}
+	
+	(x.source for x in arl).toArray(new String[arl.size()])
+}
+
+@Transient
+class Kernel(package holdingClass Class<?>, package dims int, package name String, package signature String, package source String, package dependencies KernelDependancy[], package arguments KerenelArg...){
+	registedDeviceGroups = new ArrayList<DeviceGroup>()
+	
+	package def inc(deviceGroup DeviceGroup) void{
+		registedDeviceGroups.add(deviceGroup)
+	}
+	
+	override delete(){
+		for(dp in registedDeviceGroups){
+			dp.ondelete(this)
+		}
+		registedDeviceGroups.clear()
+	}
+	
+	depdendancySrcCache String[]? = null
+	
+	package def getAllDependances() String[]{
+		if(null == depdendancySrcCache){
+			childenNodes = new Node[dependencies.length];
+			root = new Node(dims, this.name, this.source, signature, childenNodes)
+			srctoNode = {this.source -> root}
+						 
+			for(dep in dependencies; idx = 0){
+				childenNodes[idx as int] = buildNode(srctoNode, dep.dclass, dep.dims, dep.name, dep.signature, dep.globalLocalConstant, dep.inout)
+			}
+			//TODO: check dims are all equal
+			
+			depdendancySrcCache = orderDependancyTree(root)
+		}
+		
+		
+		return depdendancySrcCache
+	}
+}
+
+enum KernelArgType{ NORMAL, BUFFER, LOCAL }
+
+class KerenelArg(package type KernelArgType, package arg Object)//com.concurnas.lang.GPUBuffer<?>
+
+@Transient
+class DeviceGroup(val platform cl_platform_id, val -platformName String, val -devices Device[]){
+	~profiling boolean = false
+
+	override toString() => "{platformName}: {devices}"
+
+	deleteBeenCalled=false;
+	override delete(){
+		if(context <> null){
+			//clear out existing compiled programs
+			
+			for(classname in classNameToSigToProgram){
+				strToCnts = classNameToSigToProgram[classname]
+				for(sig in strToCnts){
+					strToCnts[sig].dec()
+				}
+			}
+			classNameToSigToProgram.clear()
+			
+			clReleaseContext(context)
+			context=null
+		}
+		deleteBeenCalled=true
+	}
+
+	private context cl_context? = null
+	protected def getContext(){
+		if(deleteBeenCalled){
+			throw new GPUException("Device Group has already been deleted")			
+		}
+		
+		if(null == context){
+			props = new cl_context_properties()
+			props.addProperty(CL_CONTEXT_PLATFORM, platform)
+			errcode = new int[1]
+
+			devIds = (d.deviceid for d in devices).toArray(new cl_device_id[devices.length])
+
+			context = clCreateContext(props, devices.length, devIds, null, null, errcode)
+			if(errcode[0] <> CL_SUCCESS){	throw new GPUException(errcode[0])}
+		}
+		context
+	}
+	
+	def getProfile() => getString(platform, org.jocl.CL.CL_PLATFORM_PROFILE)
+	/**
+	 * OpenCL<space><major_version.minor_version><space><platform-specific information>
+	 */
+	def getOpenCLVersion() => getString(platform, org.jocl.CL.CL_PLATFORM_VERSION)
+	def getOpenCLVersionNumber() => getOpenCLVersion().split(" ")[1]
+	def getVendor() => getString(platform, org.jocl.CL.CL_PLATFORM_VENDOR)
+	def getExtensions() => getString(platform, org.jocl.CL.CL_PLATFORM_EXTENSIONS).split(" ")
+	
+	def getSummary() String{
+		sb = StringBuilder()
+		sb.append('Vendor:         ' + getVendor() + "\n")
+		sb.append('Device Group:   ' + toString() + "\n")
+		sb.append('OpenCL Version: ' + getOpenCLVersion() + "\n")
+		sb.append('Extensions:     ' + String.join(", ", getExtensions()) + "\n")
+		sb.append('Profile:        ' + getProfile() + "\n")
+		
+		sb.toString()	
+	}
+	
+	//class -> signature -> countAndProgram
+	classNameToSigToProgram = HashMap<Class<?>, HashMap<String, CountAndProgram>>()
+	
+	private def createProgramSouce(theKernel Kernel) String[] {
+		deps = theKernel.getAllDependances()
+		allsource = new String[deps.length + 2]
+		System.arraycopy(deps, 0, allsource, 1, deps.length)
+		header = "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n"
+		allsource[0] = header
+		allsource[deps.length+1] = theKernel.source
+		allsource
+	}
+	
+	package def obtainKernal(theKernel Kernel) cl_kernel {
+		//may be cached
+		holdingclass = theKernel.holdingClass
+		signature = theKernel.name + theKernel.signature
+		
+		addedClassEntry = false
+		sigToProgram = if(holdingclass not in classNameToSigToProgram){
+			addedClassEntry=true
+			sigToProg = new HashMap<String, CountAndProgram>()
+			classNameToSigToProgram[holdingclass] = sigToProg
+			sigToProg
+		}else{
+			classNameToSigToProgram[holdingclass]
+		}
+		
+		addedNewProgram = false
+		cntAndProg = if(signature not in sigToProgram){
+			addedNewProgram=true
+			srcs = createProgramSouce(theKernel)
+			
+			errcode = new int[1]
+			program cl_program = clCreateProgramWithSource(getContext(), srcs.length, srcs, null, errcode)
+			if(errcode[0] <> CL_SUCCESS){//clean up...
+				if(addedClassEntry){
+					classNameToSigToProgram.remove(holdingclass)
+				}
+				throw new GPUException(errcode[0])
+			}
+        
+       		builderror = clBuildProgram(program, 0, null, null, null, null)
+       		if(builderror <> CL_SUCCESS){//clean up...
+       			if(addedClassEntry){
+					classNameToSigToProgram.remove(holdingclass)
+				}
+				//lets find the real reason for the error...
+				device1 = devices[0]
+				logsize = new long[1];
+				getlogsize = clGetProgramBuildInfo (program, device1.deviceid, CL_PROGRAM_BUILD_LOG, 0, null, logsize)
+				if(getlogsize == CL_SUCCESS){
+					buffer = ByteBuffer.allocateDirect(logsize[0] as int)
+					getLoc = clGetProgramBuildInfo(program, device1.deviceid, CL_PROGRAM_BUILD_LOG, logsize[0], Pointer.\to(buffer), null);
+					if(getLoc == CL_SUCCESS){
+						//read data from buffer...
+						throw new GPUException("Error during gpu compilation:\n" + Charset.forName("UTF-8").decode(buffer).toString() + "\nComplete code listing:\n" + String.join("\n\n", srcs), builderror)
+					}
+				}
+				
+				throw new GPUException(builderror)
+			}
+			
+			pro = new CountAndProgram(program)
+			sigToProgram[signature] = pro
+			pro
+		}else{
+			sigToProgram[signature]
+		}
+		
+		program = cntAndProg..inc().program
+		
+		errcode = new int[1]
+		kernel = clCreateKernel(program, theKernel.name, errcode);
+		if(errcode[0] <> CL_SUCCESS){//clean up...
+			if(addedClassEntry){
+				classNameToSigToProgram.remove(holdingclass)
+			}
+			if(addedNewProgram){
+				sigToProgram.remove(signature)
+			}
+			cntAndProg.dec()
+			throw new GPUException(errcode[0])
+		}
+		theKernel.inc(this)
+		kernel
+	}
+	
+	public def ondelete(theKernel Kernel) void{
+		//free up program if instance is the last one
+		holdingclass = theKernel.holdingClass
+		signature = theKernel.name + theKernel.signature
+		if(holdingclass in classNameToSigToProgram){
+			sigToProg = classNameToSigToProgram[holdingclass]
+			if(signature in sigToProg){
+				candp = sigToProg[signature]
+				if(candp.dec()){
+					//last one, remove entry
+					sigToProg.remove(signature)
+					if(sigToProg.isEmpty()){//last signature removed, so remove class
+						classNameToSigToProgram.remove(holdingclass)
+					}
+				}
+			}
+		}
+	} 
+}
+
+package class CountAndProgram(-program cl_program){
+	private count = 0
+	
+	def inc(){
+		count++;;
+	}	
+	
+	def dec(){
+		count--
+		if(count == 0){
+       	 	clReleaseProgram(program)
+			true//true if last instance removed
+		}else{
+			false
+		}
+	}	
+}
+
+
+private def product(items int[]){
+	acc = 1L
+	for(i in items) { acc *= i }
+	acc
+}
+
+private def getRootComponentCls(type Class<?>){
+	while(null <> type.getComponentType()) {
+		type = type.getComponentType();
+	}
+	type
+}
+
+private val sizeof_int 		= Sizeof.cl_int
+private val sizeof_short 	= Sizeof.cl_short
+private val sizeof_long 	= Sizeof.cl_long
+private val sizeof_float 	= Sizeof.cl_float
+private val sizeof_double = Sizeof.cl_double
+private val sizeof_char 	= Sizeof.cl_char16
+private val sizeof_byte 	= 1
+private val sizeof_boolean 	= sizeof_byte
+private val sizeof_pointer 	= Sizeof.POINTER
+
+
+private def sizeofRootcomponentCls(type Class<?>){
+	while(type.isArray()){
+		type = type.getComponentType()
+	}
+
+	match(type){
+		case(boolean.class or Boolean.class)	 => sizeof_boolean
+		case(byte.class or Byte.class) 		 	 => sizeof_byte
+		case(char.class or Character.class)		 => sizeof_char
+		case(double.class or Double.class) 		 => sizeof_double
+		case(float.class or Float.class) 	 	 => sizeof_float
+		case(int.class or Integer.class) 	 	 => sizeof_int
+		case(long.class or Long.class)		 	 => sizeof_long
+		case(short.class or Short.class)	 	 => sizeof_short
+		else 									 => sizeof_pointer
+	}
+}
+
+@Transient
+class Device(val -deviceid cl_device_id, val -name String, val parent DeviceGroup){
+	//TODO: add relevant stats
+	override toString() => "{name}"
+
+	deleteBeenCalled = false
+	override delete(){
+		if(commandQueue <> null){
+			deleteBeenCalled=true
+			finish(commandQueue)
+			clReleaseCommandQueue(commandQueue)
+			commandQueue=null
+		}
+	}
+
+	private commandQueue cl_command_queue?
+	package def getCommandQueue(){
+		if(deleteBeenCalled){
+			throw new GPUException("Device has already been deleted")			
+		}
+		
+		if(null == commandQueue){
+			ctxt = parent.getContext()
+			errcode = new int[1]
+			//props = new cl_queue_properties()
+			//props.addProperty(CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE)
+			//props.addProperty(CL_QUEUE_PROFILING_ENABLE, CL_QUEUE_PROFILING_ENABLE)
+			//commandQueue = clCreateCommandQueueWithProperties(ctxt, deviceid, props, errcode)
+			properties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE bor CL_QUEUE_PROFILING_ENABLE;
+			commandQueue = clCreateCommandQueue(ctxt, deviceid, properties, errcode);
+			
+			if(errcode[0] <> CL_SUCCESS){	throw new GPUException(errcode[0])}
+		}
+		commandQueue
+	}
+	
+	private def finish(cq cl_command_queue?){
+		errcode = clFinish(cq)
+		if(errcode <> CL_SUCCESS){
+			throw new GPUException(errcode)
+		}
+	}
+	
+	def finish(){
+		finish(getCommandQueue())
+	}
+	
+	@DeleteOnUnusedReturn
+	def exe(kernal Kernel, globalWorkSize int[], localWorkSize int[]?=null, waitingEvents boolean:GPURef...) boolean:GPURef {
+		globAsLong long[]? =null
+		if(globalWorkSize <> null){
+			globAsLongX = new long[globalWorkSize.length]
+			for(g in globalWorkSize; idx=0){
+				globAsLongX[idx as int] = g as long
+			}			
+			globAsLong=globAsLongX
+		}
+		
+		locAsLong long[]? =null
+		if(localWorkSize <> null){
+			locAsLongx = new long[localWorkSize.length]
+			for(g in localWorkSize; idx=0){
+				locAsLongx[idx as int] = g as long
+			} locAsLong = locAsLongx		
+		}
+		
+		exe(kernal, globAsLong, locAsLong, waitingEvents):
+	}
+	
+	@DeleteOnUnusedReturn
+	def exe(kernal Kernel, globalWorkSize long[]?, localWorkSize long[]?=null,  waitingEvents boolean:GPURef...) boolean:GPURef {
+		cq = getCommandQueue()
+		
+		globSize = 0 if globalWorkSize == null else globalWorkSize.length
+		if(globSize <> kernal.dims){//check global dims...
+			throw new GPUException(String.format("Global Work Size dimensions specified of %s does not match kernel dimensions to be executed of %s", globSize, kernal.dims ))
+		}
+		
+		if(localWorkSize <> null){
+			locSize = localWorkSize.length
+			if(locSize <> kernal.dims){//check global dims...
+				throw new GPUException(String.format("Local Work Size dimensions specified of %s does not match kernel dimensions to be executed of %s", locSize, kernal.dims ))
+			}
+			
+			maxWorkItemSizes = getMaxWorkItemSizes()
+			for(n = 0; n < locSize; n++){
+				if(maxWorkItemSizes[n] <  localWorkSize[n]){
+					throw new GPUException("local dimension of: {localWorkSize[n]} in position: {n} must less than or equal to the max work item size of: {maxWorkItemSizes[n]}")
+				}
+			}
+		}
+		
+		
+		
+		if(globalWorkSize <> null and localWorkSize <> null){
+			for(n = 0; n < kernal.dims; n++){
+				if(globalWorkSize[n] mod localWorkSize[n] <> 0){
+					throw new GPUException("local dimension of: {localWorkSize[n]} in position: {n} must be evenly divisible into global dimension: {globalWorkSize[n]}")
+				}
+			}
+		}
+		
+		
+		
+		singleUseKernel = parent.obtainKernal(kernal)
+		localMemoryUsed = 0L
+		for(argholder in kernal.arguments; idx = 0){
+			//class KerenelArg(package isBuffer bool, package arg Object)//
+			errcode = if(argholder.type == KernelArgType.BUFFER){
+				arg = argholder.arg as com.concurnas.lang.GPUBuffer<Object>
+				clSetKernelArg(singleUseKernel, idx as int, Sizeof.cl_mem, Pointer.\to(arg.buffer));
+			}elif(argholder.type == KernelArgType.LOCAL){
+				arg = argholder.arg as GPUBufferLocal<Object>
+				bs = arg.getByteSize()
+				localMemoryUsed += bs
+				clSetKernelArg(singleUseKernel, idx as int, bs, null);
+			}else{
+				sz = sizeof<gpusizeof> argholder.arg
+				tmpBuf = GPUEncoder(sz).put(argholder.arg)
+				
+				clSetKernelArg(singleUseKernel, idx as int, sz, Pointer.\to(tmpBuf));
+			}
+			
+			if(errcode <> CL_SUCCESS){
+				clReleaseKernel(singleUseKernel)
+				throw new GPUException(errcode)
+			}
+		}
+		
+		if(localMemoryUsed > getLocalMemSize()){
+			throw new GPUException("local buffers specified (of {localMemoryUsed} bytes) are larger than max local memory of: {getLocalMemSize()} bytes")
+		}
+		
+		
+		eventWaitList List<cl_event> = new ArrayList<cl_event>(0);
+		 
+		if(waitingEvents <> null){
+			eventWaitList = x:event for x in waitingEvents if x:event <> null
+		}
+		
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+		
+		exeEvent = new cl_event()
+		exeComplete = boolean:GPURef(exeEvent)
+		setter = new GPUEXECompleteSetter(exeComplete, singleUseKernel)
+		
+		def checkError(errcode int){
+			if(errcode <> CL_SUCCESS){
+				clReleaseKernel(singleUseKernel)
+				clReleaseEvent(exeEvent)
+				throw new GPUException(errcode)
+			}
+		}
+		
+		errcode = clEnqueueNDRangeKernel(cq, singleUseKernel, kernal.dims, null, globalWorkSize, localWorkSize, waitingEventsSz, eventsArr, exeEvent)
+		checkError(errcode)
+
+		errcode = clSetEventCallback(exeEvent, CL_COMPLETE, setter, null)
+		checkError(errcode)//error in setting callback
+		
+		exeComplete:
+	}
+
+	def apply<X>( kernalFunc () X ) X: {
+		null
+	}
+
+	private def createBuffer(type Class<?>, bytes long, flags long){
+
+		if(bytes > MAX_BUFER_SIZE){
+			throw new GPUException('Max byte size of buffer: ' + MAX_BUFER_SIZE)
+		}
+
+		ctxt = parent.getContext()
+		errcode = new int[1]
+		ret = clCreateBuffer(ctxt, flags, bytes, null, errcode);
+		if(errcode[0] <> CL_SUCCESS){	throw new GPUException(errcode[0])}
+		ret
+	}
+	
+	def getAddressBits() => getInt(deviceid, org.jocl.CL.CL_DEVICE_ADDRESS_BITS) 
+	def isAvailable() => getBoolean(deviceid, org.jocl.CL.CL_DEVICE_AVAILABLE) 
+	def isCompilerAvailable() => getBoolean(deviceid, org.jocl.CL.CL_DEVICE_COMPILER_AVAILABLE) 
+	def getLittleEdian() => getBoolean(deviceid, org.jocl.CL.CL_DEVICE_ENDIAN_LITTLE) 
+	def getErrorCorrectSupport() => getBoolean(deviceid, org.jocl.CL.CL_DEVICE_ERROR_CORRECTION_SUPPORT) 
+	def getExtensions() => getString(deviceid, org.jocl.CL.CL_DEVICE_EXTENSIONS ).split(" ")
+	def getGlobalMemSize() => getLong(deviceid, org.jocl.CL.CL_DEVICE_GLOBAL_MEM_SIZE) 
+	
+	private getLocalMemSizeCache Long? = null
+	def getLocalMemSize() long {
+		if(null == getLocalMemSizeCache){
+			getLocalMemSizeCache = getLong(deviceid, org.jocl.CL.CL_DEVICE_LOCAL_MEM_SIZE)
+		}
+		getLocalMemSizeCache
+	} 
+	
+	 
+	def getComputeUnits() => getInt(deviceid, org.jocl.CL.CL_DEVICE_MAX_COMPUTE_UNITS)  
+	def getClockFrequency() => getInt(deviceid, org.jocl.CL.CL_DEVICE_MAX_CLOCK_FREQUENCY)  
+	def getConstantArgs() => getInt(deviceid, org.jocl.CL.CL_DEVICE_MAX_CONSTANT_ARGS)  
+	def getConstantBufferSize() => getLong(deviceid, org.jocl.CL.CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE) 
+	
+	private getMaxMemAllocSizeCache Long? = null
+	def getMaxMemAllocSize() long{
+		if(null == getMaxMemAllocSizeCache){
+			getMaxMemAllocSizeCache = getLong(deviceid, org.jocl.CL.CL_DEVICE_MAX_MEM_ALLOC_SIZE)
+		}
+		getMaxMemAllocSizeCache
+	} 
+	 
+	def getParamSize() =>  getSize(deviceid, org.jocl.CL.CL_DEVICE_MAX_PARAMETER_SIZE)
+	def getMaxWorkGroupSize() => getSize(deviceid, org.jocl.CL.CL_DEVICE_MAX_WORK_GROUP_SIZE)
+	 
+	
+	private getMaxWorkItemSizesCache long[]? = null
+	def getMaxWorkItemSizes(){
+		if(null == getMaxWorkItemSizesCache){
+			getMaxWorkItemSizesCache = getSizes(deviceid, org.jocl.CL.CL_DEVICE_MAX_WORK_ITEM_SIZES, 3)
+		}
+		getMaxWorkItemSizesCache??
+	}
+	
+	  
+	def getBaseAddressAlign() => getInt(deviceid, org.jocl.CL.CL_DEVICE_MEM_BASE_ADDR_ALIGN)
+	def getDataTypeAlignSize() => getInt(deviceid, org.jocl.CL.CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE)
+	def getProfile() => getString(deviceid, org.jocl.CL.CL_DEVICE_PROFILE )
+	def getProfilingTimerResolution() => getSize(deviceid, org.jocl.CL.CL_DEVICE_PROFILING_TIMER_RESOLUTION)
+	def getType(){
+		deviceType = getLong(deviceid, org.jocl.CL.CL_DEVICE_TYPE)
+        if( (deviceType band CL_DEVICE_TYPE_CPU) <> 0){
+        	 "CL_DEVICE_TYPE_CPU"
+        }
+        elif( (deviceType band CL_DEVICE_TYPE_GPU) <> 0){
+        	"CL_DEVICE_TYPE_GPU"
+        }
+        elif( (deviceType band CL_DEVICE_TYPE_ACCELERATOR) <> 0){
+        	"CL_DEVICE_TYPE_ACCELERATOR"
+        }
+        else{//( (deviceType band CL_DEVICE_TYPE_DEFAULT) <> 0){
+        	"CL_DEVICE_TYPE_DEFAULT"
+        }
+	}
+	def getVendor() => getString(deviceid, org.jocl.CL.CL_DEVICE_VENDOR )
+	def getVendorId() => getInt(deviceid, org.jocl.CL.CL_DEVICE_VENDOR_ID)
+	def getOpenCLVersion() => getString(deviceid, org.jocl.CL.CL_DEVICE_VERSION )
+	def getOpenCLVersionNumber() => getOpenCLVersion().split(" ")[1]
+	def getDriverVersion() => getString(deviceid, org.jocl.CL.CL_DRIVER_VERSION )
+	
+	def getSummary() String{
+		sb = StringBuilder()
+		sb.append('Device:                     ' + toString() + "\n")
+		sb.append('Vendor:                     ' + getVendor() + "\n")
+		sb.append('Address Bits:               ' + getAddressBits() + "\n")
+		sb.append('Available:                  ' + isAvailable() + "\n")
+		sb.append('Compiler Available:         ' + isCompilerAvailable() + "\n")
+		sb.append('Little Endian:              ' + getLittleEdian() + "\n")
+		sb.append('Error Correction Support:   ' + getErrorCorrectSupport() + "\n")
+		sb.append('Global Memory Size:         ' + bytesToString(getGlobalMemSize()) + "\n")
+		sb.append('Local Memory Size:          ' + bytesToString(getLocalMemSize()) + "\n")
+		sb.append('Compute Units:              ' + getComputeUnits() + "\n")
+		sb.append('Clock Frequency:            ' + getClockFrequency() + "\n")
+		sb.append('Constant Args:              ' + getConstantArgs() + "\n")
+		sb.append('Constant Buffer Size:       ' + bytesToString(getConstantBufferSize()) + "\n")
+		sb.append('Max Memory Allocation Size: ' + bytesToString(getMaxMemAllocSize()) + "\n")
+		sb.append('Param Size:                 ' + getParamSize() + "\n")
+		sb.append('Max Work Group Size:        ' + getMaxWorkGroupSize() + "\n")
+		sb.append('Max Work Item Sizes:        ' + getMaxWorkItemSizes() + "\n")
+		sb.append('Base Address Align:         ' + getBaseAddressAlign() + "\n")
+		sb.append('Data Type Align Size:       ' + getDataTypeAlignSize() + "\n")
+		sb.append('Profile:                    ' + getProfile() + "\n")
+		sb.append('Profiling Timer Resolution: ' + getProfilingTimerResolution() + "\n")
+		sb.append('Type:                       ' + getType() + "\n")
+		sb.append('Vendor ID:                  ' + getVendorId() + "\n")
+		sb.append('OpenCL Version:             ' + getOpenCLVersion() + "\n")
+		sb.append('Driver Version:             ' + getDriverVersion() + "\n")
+		sb.append('Extensions:                 ' + String.join(", ", getExtensions()) + "\n")
+		
+		sb.toString()	
+	}
+	
+
+	@DeleteOnUnusedReturn
+	def makeOffHeapArrayIn<Type>(type Class<Type>, dims int...){
+		size = sizeofRootcomponentCls(getRootComponentCls(type)) * product(dims)
+		if(size > getMaxMemAllocSize()){ throw new GPUException("Buffer size (of {size} bytes) is greater than max allocation size of: {getMaxMemAllocSize()} bytes {size > getMaxMemAllocSize()}") }
+		elif(size <== 0){ throw new GPUException("Number of elements in buffer must be greater than zero")}
+		buf = createBuffer(type, size, CL_MEM_READ_ONLY)
+		new GPUBufferManagedInput<Type>(type, dims, buf, size as int, this)
+	}
+
+	@DeleteOnUnusedReturn
+	def makeOffHeapArrayOut<Type>(type Class<Type>, dims int...){
+		size = sizeofRootcomponentCls(getRootComponentCls(type)) * product(dims)
+		if(size > getMaxMemAllocSize()){ throw new GPUException("Buffer size (of {size} bytes) is greater than max allocation size of: {getMaxMemAllocSize()} bytes {size > getMaxMemAllocSize()}") }
+		elif(size <== 0){ throw new GPUException("Number of elements in buffer must be greater than zero")}
+		buf = createBuffer(type, size, CL_MEM_WRITE_ONLY)
+		new GPUBufferManagedOutput<Type>(type, dims, buf, size as int, this)
+	}
+
+	@DeleteOnUnusedReturn
+	def makeOffHeapArrayMixed<Type>(type Class<Type>, dims int...){
+		size = sizeofRootcomponentCls(getRootComponentCls(type)) * product(dims)
+		if(size > getMaxMemAllocSize()){ throw new GPUException("Buffer size (of {size} bytes) is greater than max allocation size of: {getMaxMemAllocSize()} bytes {size > getMaxMemAllocSize()}") }
+		elif(size <== 0){ throw new GPUException("Number of elements in buffer must be greater than zero")}
+		buf = createBuffer(type, size, CL_MEM_READ_WRITE)
+		new GPUBufferManagedMixed<Type>(type, dims, buf, size as int, this)
+	}
+
+	//single
+	@DeleteOnUnusedReturn
+	def makeOffHeapSingleIn<Type>(type Class<Type>){
+		compsize = sizeofRootcomponentCls(getRootComponentCls(type))
+		buf = createBuffer(type, compsize, CL_MEM_READ_ONLY)
+		new GPUBufferManagedInputSingle<Type>(type, buf, compsize, this)
+	}
+
+	@DeleteOnUnusedReturn
+	def makeOffHeapSingleOut<Type>(type Class<Type>){
+		compsize = sizeofRootcomponentCls(getRootComponentCls(type))
+		buf = createBuffer(type, compsize, CL_MEM_WRITE_ONLY)
+		new GPUBufferManagedOutputSingle<Type>(type, buf, compsize, this)
+	}
+
+	@DeleteOnUnusedReturn
+	def makeOffHeapSingleMixed<Type>(type Class<Type>){
+		compsize = sizeofRootcomponentCls(getRootComponentCls(type))
+		buf = createBuffer(type, compsize, CL_MEM_READ_WRITE)
+		new GPUBufferManagedMixedSingle<Type>(type, buf, compsize, this)
+	}
+
+
+	/*
+	@DeleteOnUnusedReturn
+	def makeOffHeapArray<Type>(type Class<?>, dims int...){
+		//called by default with: xxx int[]#GPUBufferMixed = int[10, 4]#device //like calls
+		makeOffHeapArrayMixed<Type>(type, dims)
+	}
+	*/
+}
+
+@Transient
+class Local<Type>(type Class<Type>, count int) ~ GPUBufferLocal<Type>{
+	compsize int
+
+	init{
+		if(count <== 0){
+			throw new GPUException("Number of elements in Local buffer must be greater than zero")
+		}
+		compsize = sizeofRootcomponentCls(getRootComponentCls(type))
+	}
+	
+	def getByteSize() =>  compsize * count
+	def getBuffer() cl_mem => null
+}
+
+private class GPUSizeof{
+	size = 0
+	def gpusizeof(an Object) int{
+		if(an <> null){
+			type = an.getClass()
+			if(type.isArray()){
+				processArray(an, type)
+			}else{
+				processSingle(type)
+			}
+		}
+
+		size
+	}
+
+	private def processArray(an Object, type Class<?>) void {
+		compType = type.getComponentType()
+		len = Array.getLength(an)
+
+		if(compType.isArray()){
+			for(n=0; n < len; n++){
+				processArray(Array.get(an, n), compType)
+			}
+		}else{
+			sz = match(compType){
+				case(boolean.class or Boolean.class) => sizeof_boolean
+				case(byte.class or Byte.class) 		 => sizeof_byte
+				case(char.class or Character.class)  => sizeof_char
+				case(double.class or Double.class)	 => sizeof_double
+				case(float.class or Float.class)	 => sizeof_float
+				case(int.class or Integer.class) 	 => sizeof_int
+				case(long.class or Long.class) 		 => sizeof_long
+				case(short.class or Short.class)	 => sizeof_short
+				else => sizeof_pointer
+			}
+			size += (len * sz)
+		}
+	}
+
+	private def processSingle(type Class<?>) void{
+		size += match(type){
+			case(boolean.class or Boolean.class) => sizeof_boolean
+			case(byte.class or Byte.class) 		 => sizeof_byte
+			case(char.class or Character.class)  => sizeof_char
+			case(double.class or Double.class)	 => sizeof_double
+			case(float.class or Float.class)	 => sizeof_float
+			case(int.class or Integer.class) 	 => sizeof_int
+			case(long.class or Long.class) 		 => sizeof_long
+			case(short.class or Short.class)	 => sizeof_short
+			else => sizeof_pointer
+		}
+	}
+}
+
+def gpusizeof(an Object) => GPUSizeof().gpusizeof(an)
+
+private class GPUEncoder(val size int){
+	private nestLevels = 0
+	private buffer ByteBuffer? = null
+
+	def put(an Object) Buffer{
+		type  Class<?> = an.getClass()
+		rootType Class<?> = getRootComponentCls(type)
+		rootCall=false;
+
+		try{
+			if(type.isArray()){
+				if(buffer == null){
+					rootCall=true
+				}
+
+				match(rootType){
+					case(boolean.class or Boolean.class) => putBooleanArray(an, type)
+					case(byte.class or Byte.class) 		 => putByteArray(an, type)
+					case(char.class or Character.class)  => putCharArray(an, type)
+					case(double.class or Double.class)	 => putDoubleArray(an, type)
+					case(float.class or Float.class)	 => putFloatArray(an, type)
+					case(int.class or Integer.class) 	 => putIntArray(an, type)
+					case(long.class or Long.class) 		 => putLongArray(an, type)
+					case(short.class or Short.class)	 => putShortArray(an, type)
+
+					else => throw new GPUException("GPU buffer assignment of type: {type} is not supported")
+				}
+			}else{//single value
+				if(buffer == null){
+					rootCall=true
+					buffer = ByteBuffer.allocateDirect(size)
+					buffer??.order( ByteOrder.nativeOrder())
+				}
+
+				match(type){
+					case(Boolean.class) 	=> put(an as boolean)
+					case(Byte.class) 		=> put(an as byte)
+					case(Character.class) 	=> put(an as char)
+					case(Double.class) 		=> put(an as double)
+					case(Float.class) 		=> put(an as float)
+					case(Integer.class) 	=> put(an as int)
+					case(Long.class) 		=> put(an as long)
+					case(Short.class) 		=> put(an as short)
+
+					else => throw new GPUException("Buffer assignment of type: {type} is not supported")
+				}
+			}
+		}catch(e BufferOverflowException){
+			throw new GPUException("Attempting to write to gpu an object larger than buffer size of: {size} bytes")
+		}
+	
+		cpos = buffer??.position()
+		if(rootCall and cpos <> size){
+			throw new GPUException("Attempting to write an object to gpu which is of size: {cpos} bytes, this is smaller than buffer size of: {size} bytes")
+		}
+
+		buffer
+	}
+
+	private def put(an int){
+		buffer??.putInt(an)
+	}
+
+	private def put(an long){
+		buffer??.putLong(an)
+	}
+
+	private def put(an short){
+		buffer??.putShort(an)
+	}
+
+	private def put(an double){
+		buffer??.putDouble(an)
+	}
+
+	private def put(an float){
+		buffer??.putFloat(an)
+	}
+
+	private def put(an char){
+		buffer??.putChar(an)
+	}
+
+	private def put(an byte){
+		buffer??.put(an)
+	}
+
+	private def put(an Boolean){
+		buffer??.put((1 if an == true else 0) as byte)
+	}
+
+	private def putIntArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putIntArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is int[]){
+				buffer??.position(buffer??.asIntBuffer()..put(an).position() * sizeof_int)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as int)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putLongArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putLongArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is long[]){
+				buffer??.position(buffer??.asLongBuffer()..put(an).position() * sizeof_long)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as long)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putShortArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putShortArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is short[]){
+				buffer??.position(buffer??.asShortBuffer()..put(an).position() * sizeof_short)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as short)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putFloatArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putFloatArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is float[]){
+				buffer??.position(buffer??.asFloatBuffer()..put(an).position() * sizeof_float)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as float)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putDoubleArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putDoubleArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is double[]){
+				buffer??.position(buffer??.asDoubleBuffer()..put(an).position() * sizeof_double)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as double)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putCharArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putCharArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is char[]){
+				buffer??.position(buffer??.asCharBuffer()..put(an).position() * sizeof_char)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as char)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putByteArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		newBuff = buffer == null
+		if(newBuff){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putByteArray(Array.get(an, n), compType)
+			}
+		}else{
+			if(newBuff and an is byte[]){
+				buffer??.put(an)
+			}else{
+				len = Array.getLength(an);
+				for(n=0; n < len; n++){
+					put(Array.get(an, n) as byte)
+				}
+			}
+		}
+		buffer
+	}
+
+	private def putBooleanArray(an Object, type Class<?>) Buffer{
+		compType = type.getComponentType()
+		if(buffer == null){
+			buffer = ByteBuffer.allocateDirect(size)
+			buffer??.order( ByteOrder.nativeOrder())
+		}
+
+		if(compType.isArray()){
+			len = Array.getLength(an)
+			for(n=0; n < len; n++){
+				putBooleanArray(Array.get(an, n), compType)
+			}
+		}else{
+			len = Array.getLength(an);
+			for(n=0; n < len; n++){
+				put(Array.get(an, n) as boolean)
+			}
+		}
+		buffer
+	}
+}
+
+private class GPUDecoder(type Class<?>, dims int...){
+	def decode(dataFrom ByteBuffer){
+		if(type.isArray()){
+			rootType Class<?> = getRootComponentCls(type)
+			match(rootType){
+				case(int.class) 		 => readIntegerBuffer(dataFrom, dims, false)
+				case(Integer.class) 	 => readIntegerBuffer(dataFrom, dims, true)
+
+				case(long.class) 		 => readLongBuffer(dataFrom, dims, false)
+				case(Long.class) 		 => readLongBuffer(dataFrom, dims, true)
+
+				case(boolean.class) 	 => readBooleanBuffer(dataFrom, dims, false)
+				case(Boolean.class)	 	 => readBooleanBuffer(dataFrom, dims, true)
+
+				case(byte.class) 		 => readByteBuffer(dataFrom, dims, false)
+				case(Byte.class) 		 => readByteBuffer(dataFrom, dims, true)
+
+				case(char.class) 		 => readCharBuffer(dataFrom, dims, false)
+				case(Character.class) 	 => readCharBuffer(dataFrom, dims, true)
+
+				case(double.class)	 	 => readDoubleBuffer(dataFrom, dims, false)
+				case(Double.class)		 => readDoubleBuffer(dataFrom, dims, true)
+
+				case(float.class)	 	 => readFloatBuffer(dataFrom, dims, false)
+				case(Float.class)	 	 => readFloatBuffer(dataFrom, dims, true)
+
+				case(short.class)		 => readShortBuffer(dataFrom, dims, false)
+				case(Short.class)		 => readShortBuffer(dataFrom, dims, true)
+
+				else => throw new GPUException("Buffer extraction of type: {type} is not supported")
+			}
+		}else{//single value
+			match(type){//TODO: replace this with a tableswitch
+				case(boolean.class) 	=> dataFrom.get()==1
+				case(Boolean.class) 	=> Boolean(dataFrom.get()==1)
+				case(byte.class) 		=> dataFrom.get()
+				case(Byte.class) 		=> Byte(dataFrom.get())
+				case(char.class) 		=> dataFrom.getChar()
+				case(Character.class) 	=> Character(dataFrom.getChar())
+				case(double.class) 		=> dataFrom.getDouble()
+				case(Double.class) 		=> Double(dataFrom.getDouble())
+				case(float.class) 		=> dataFrom.getFloat()
+				case(Float.class) 		=> Float(dataFrom.getFloat())
+				case(int.class) 		=> dataFrom.getInt()
+				case(Integer.class) 	=> Integer(dataFrom.getInt())
+				case(long.class) 		=> dataFrom.getLong()
+				case(Long.class) 		=> Long(dataFrom.getLong())
+				case(short.class) 		=> dataFrom.getShort()
+				case(Short.class) 		=> Short(dataFrom.getShort())
+				
+				else => throw new GPUException("Buffer extraction of type: {type} is not supported")
+			}
+		}
+	}
+
+	private def prepareArray(levels int, thisLevelLength int, typ Class<?>){
+		dimensions = new int[levels];//int[] dimentions = new int[] { 3, 0, 0 }
+		dimensions[0] = thisLevelLength
+		Array.newInstance(typ, dimensions)
+	}
+
+	private def readIntegerBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Integer.class if isBoxed else int.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Integer(dataFrom.getInt()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.getInt())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readIntegerBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readLongBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Long.class if isBoxed else long.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Long(dataFrom.getLong()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.getLong())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readLongBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readShortBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Short.class if isBoxed else short.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Short(dataFrom.getShort()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.getShort())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readShortBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readFloatBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Float.class if isBoxed else float.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Float(dataFrom.getFloat()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.getFloat())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readFloatBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readDoubleBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Double.class if isBoxed else double.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Double(dataFrom.getDouble()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.getDouble())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readDoubleBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readCharBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Character.class if isBoxed else char.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Character(dataFrom.getChar()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.getChar())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readCharBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readByteBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Byte.class if isBoxed else byte.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Byte(dataFrom.get()))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.get())
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readByteBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+
+	private def readBooleanBuffer(dataFrom ByteBuffer, dims int[], isBoxed bool){
+		thisLevelLength = dims[0]
+		levels = dims.length
+
+		ret = prepareArray(levels, thisLevelLength, Boolean.class if isBoxed else boolean.class)
+
+		if(levels == 1){
+			if(isBoxed){
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, Boolean(dataFrom.get()==1))
+				}
+			}else{
+				for(n=0; n < thisLevelLength; n++){
+					Array.set(ret, n, dataFrom.get()==1)
+				}
+			}
+		}else{
+			for(n=0; n < thisLevelLength; n++){
+				Array.set(ret, n, readBooleanBuffer(dataFrom, dims[1 ...], isBoxed))
+			}
+		}
+		ret
+	}
+}
+
+private class StatHolder{
+	timestamp long
+	error GPUException?
+	
+	package this(timestamp long){
+		this.timestamp = timestamp
+	} 
+	
+	package this(error GPUException){
+		this.error = error
+	}
+	
+	def get() long {
+		if(error <> null){
+			throw error
+		}
+		return timestamp
+	}
+	
+	override toString() String => "" + (error.getMessage() if error <> null else timestamp)
+}
+
+@Transient
+class ProfilingInfo{
+	package this(event cl_event){
+		submitTime = statExtractor(event, CL_PROFILING_COMMAND_QUEUED) 
+		queuedTime = statExtractor(event, CL_PROFILING_COMMAND_SUBMIT)
+		startTime = statExtractor(event, CL_PROFILING_COMMAND_START)  
+		endTime = statExtractor(event, CL_PROFILING_COMMAND_END) 
+	} 
+	
+	submitTime StatHolder
+	queuedTime StatHolder
+	startTime StatHolder
+	endTime StatHolder
+	
+	def getSubmitTime() long{
+		return submitTime.get()
+	}
+	
+	def getQueuedTime() long{
+		return queuedTime.get()
+	}
+	
+	def getStartTime() long{
+		return startTime.get()
+	}
+	
+	def getEndTime() long{
+		return endTime.get()
+	}
+	
+	@com.concurnas.lang.Uninterruptible
+	private def statExtractor(event cl_event, param int) StatHolder {
+		thing = new long[1]
+		errcode = clGetEventProfilingInfo(event, param, 8, Pointer.\to(thing), null)
+		if(errcode <> CL_SUCCESS){ 
+			StatHolder(new GPUException(errcode))
+		}else{
+			StatHolder(thing[0])
+		}
+	}
+	
+	def getWorkDuration() => getEndTime() - getStartTime()
+	def getTotalDuration() => getEndTime() - getSubmitTime()
+	
+	override toString(){
+		total = getTotalDuration()
+		worktime = getWorkDuration()
+		
+		fmt = def (x long) =>  String.format("%.3f", x / 1e6) + "ms"
+		//. Total Duration: {fmt(total)}.
+		"Work Duration: {fmt(worktime)}"
+	}
+}
+
+class GPURef<X>(type Class<?>[], transient ~event cl_event?) < com.concurnas.runtime.ref.Local<X>(type){
+	override delete(){
+		if(event <> null){
+			clReleaseEvent(event);
+			event=null
+		}
+	}
+	
+	stats ProfilingInfo?
+	
+	def getProfilingInfo(){
+		if(stats == null){
+			super.waitUntilSet()
+			stats = new ProfilingInfo(event??)
+		}
+		return stats
+	}
+
+	override set(x X){
+		super.set(x)
+	}
+}
+
+
+private class GPUEXECompleteSetter(toSet boolean:GPURef, singleUseKernel cl_kernel) ~EventCallbackFunction{
+	public def function(event cl_event, command_exec_callback_type int, user_data Object) void {
+		clReleaseKernel(singleUseKernel)
+		toSet=true
+	}
+}
+
+private class GPUWriteCompleteSetter(toSet boolean:GPURef) ~EventCallbackFunction{
+	public def function(event cl_event, command_exec_callback_type int, user_data Object){
+		toSet=true//no fiber on set here...
+	}
+}
+
+private class GPUReadCompleteSetter(decoder GPUDecoder, dataFrom ByteBuffer, toSet Object:GPURef) ~EventCallbackFunction{
+	public def function(event cl_event, command_exec_callback_type int, user_data Object){
+		try{
+			toSet = decoder.decode(dataFrom)
+		}catch(e){
+			toSet:setException(e)
+		}
+	}
+}
+
+private def typeEqual(a Class<?>, b Class<?>){
+	def unbox(type Class<?>)  {
+		match(type){
+			case(Boolean.class)	  => boolean.class
+			case(Byte.class)      => byte.class
+			case(Character.class) => char.class
+			case(Double.class) 	  => double.class
+			case(Float.class) 	  => float.class
+			case(Integer.class)   => int.class
+			case(Long.class)	  => long.class
+			case(Short.class)	  => short.class
+			else 				  => type
+		}
+	}
+	unbox(a) == unbox(b)
+}
+
+@Transient
+private abstract class GPUBufferManaged<Type>(type Class<Type>, dims int..., buffer cl_mem?, -size int, protected device Device) ~ com.concurnas.lang.GPUBuffer<Type> {
+
+	compsize int
+	componentType Class<?> 
+
+	init{
+		componentType = getRootComponentCls(type)
+		compsize = sizeofRootcomponentCls(componentType)
+	}
+
+	override toString(){
+		"{this.getClass().simpleName}: {type.getCanonicalName()} on: {device}"
+	}
+
+	hasBeenDeleted = false
+	override delete(){
+		if(null <> buffer){
+			clReleaseMemObject(buffer)
+			buffer = null
+		}
+		hasBeenDeleted = true
+	}
+	
+	def getBuffer(){
+		if(hasBeenDeleted){
+			throw new GPUException("Buffer has already been deleted")
+		}
+		buffer
+	}
+	
+
+	private def writeToBuffer(towrite Object, offset int, extent int, waitingEvents boolean:GPURef...) boolean:GPURef {
+		if(extent == -1){
+			extent=size
+		}
+		
+		{
+			passedType = towrite.getClass()
+			compo = getRootComponentCls(passedType)
+			if(not typeEqual(compo, componentType)){
+				throw new GPUException("Passed object to write to buffer of type: {passedType.getSimpleName()}. Component type must match {componentType.getSimpleName()} but it is: {compo.getSimpleName()}")
+			}
+		}
+		
+
+		tmpBuffer = GPUEncoder(extent).put(towrite)
+
+		eventWaitList = x:event for x in waitingEvents if x:event <> null
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+
+		writeEvent = new cl_event()
+		writeComplete = boolean:GPURef(writeEvent)
+		setter = new GPUWriteCompleteSetter(writeComplete)
+
+		pnt = Pointer.\to(tmpBuffer)
+
+		errcode = clEnqueueWriteBuffer(device.getCommandQueue(), getBuffer(), false, offset, extent, pnt, waitingEventsSz, eventsArr, writeEvent)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(writeEvent); throw new GPUException(errcode) }
+
+		errcode = clSetEventCallback(writeEvent, CL_COMPLETE, setter, null)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(writeEvent); throw new GPUException(errcode) }
+
+		writeComplete:
+	}
+	
+	
+	@DeleteOnUnusedReturn
+	public def writeToBuffer(towrite Object, waitingEvents boolean:GPURef...) boolean:GPURef {
+		writeToBuffer(towrite, 0, -1, waitingEvents):
+	}
+
+
+	private def subOp(fromx int, tox int, towrite Object, gotSize int, waitingEvents boolean:GPURef...) boolean:GPURef {
+		upperBound = (size / compsize)
+
+		if(fromx < 0){ fromx += upperBound }
+		if(tox< 0 ){   tox += upperBound   }
+
+		if(fromx >== tox){
+			throw new GPUException("Sublist index from: {fromx} must be less than to: {tox}")
+		}
+
+		if(fromx < 0){
+			throw new GPUException("Sublist index from: {fromx} must be greater than or equal to zero")
+		}
+
+		if(tox > upperBound){
+			throw new GPUException("Sublist index to: {tox} must be less than buffer size of: {upperBound} elements")
+		}
+
+		expectedSize = (tox - fromx) * compsize
+
+		if(expectedSize <> gotSize){
+			throw new GPUException("Expected input sublist to equal {expectedSize} bytes ({expectedSize/compsize)} elements), but resolves to: {gotSize} bytes ({gotSize/compsize)} elements)")
+		}
+
+		writeToBuffer(towrite, fromx*compsize, expectedSize, waitingEvents):
+		//null
+	}
+
+	@DeleteOnUnusedReturn
+	protected def subAssign(fromx int, tox int, towrite Object, waitingEvents boolean:GPURef...) boolean:GPURef {
+		gotSize = sizeof<gpusizeof> towrite
+		subOp(fromx, tox, towrite, gotSize, waitingEvents):
+	}
+
+	@DeleteOnUnusedReturn
+	protected def subfromAssign(fromx int, towrite Object, waitingEvents boolean:GPURef...) boolean:GPURef {
+		gotSize = sizeof<gpusizeof> towrite
+
+		tox = fromx + (gotSize/compsize)
+
+		subOp(fromx, tox, towrite, gotSize, waitingEvents):
+	}
+
+	@DeleteOnUnusedReturn
+	protected def subtoAssign(tox int, towrite Object, waitingEvents boolean:GPURef...) boolean:GPURef {
+		gotSize = sizeof<gpusizeof> towrite
+
+		subOp(0, tox, towrite, gotSize, waitingEvents):
+	}
+
+	@DeleteOnUnusedReturn
+	protected def readFromBuffer(waitingEvents boolean:GPURef...) Type:GPURef {
+		this.readFromBuffer(0, -1, waitingEvents):
+	}
+
+	private def readFromBuffer(offset int, extent int, waitingEvents boolean:GPURef...) Type:GPURef {
+		decoder = if(extent == -1){
+			extent = size
+			GPUDecoder(type, dims)
+		}else{
+			GPUDecoder(type, [extent/compsize])
+		}
+
+		writeToBuffer = ByteBuffer.allocateDirect(extent)
+		writeToBuffer.order( ByteOrder.nativeOrder())
+
+		eventWaitList = x:event for x in waitingEvents if x:event <> null
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+
+		readEvent = new cl_event()
+		readComplete = Object:GPURef(readEvent)
+		setter = new GPUReadCompleteSetter(decoder, writeToBuffer, readComplete)
+
+		errcode = clEnqueueReadBuffer(device.getCommandQueue(), getBuffer(), false, offset, extent, Pointer.\to(writeToBuffer), waitingEventsSz, eventsArr, readEvent)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(readEvent); throw new GPUException(errcode) }
+
+		errcode = clSetEventCallback(readEvent, CL_COMPLETE, setter, null)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(readEvent); throw new GPUException(errcode) }
+
+		readComplete:
+	}
+
+	private def subReadOp(fromx int, tox int, waitingEvents boolean:GPURef...) Type:GPURef {
+		upperBound = (size / compsize)
+
+		if(fromx < 0){ fromx += upperBound }
+		if(tox< 0 ){   tox += upperBound   }
+
+		if(fromx >== tox){
+			throw new GPUException("Sublist index from: {fromx} must be less than to: {tox}")
+		}
+
+		if(fromx < 0){
+			throw new GPUException("Sublist index from: {fromx} must be greater than or equal to zero")
+		}
+
+		if(tox > upperBound){
+			throw new GPUException("Sublist index to: {tox} must be less than buffer size of: {upperBound} elements")
+		}
+
+		expectedSize = (tox - fromx) * compsize
+
+		readFromBuffer(fromx*compsize, expectedSize, waitingEvents):
+		//null
+	}
+
+	@DeleteOnUnusedReturn
+	protected def sub(fromx int, tox int, waitingEvents boolean:GPURef...) Type:GPURef {
+		subReadOp(fromx, tox, waitingEvents):
+	}
+
+
+	@DeleteOnUnusedReturn
+	protected def subfrom(fromx int, waitingEvents boolean:GPURef...) Type:GPURef {
+		subReadOp(fromx, (size/compsize), waitingEvents):
+	}
+
+	@DeleteOnUnusedReturn
+	protected def subto(tox int, waitingEvents boolean:GPURef...) Type:GPURef {
+		subReadOp(0, tox, waitingEvents):
+	}
+
+	@DeleteOnUnusedReturn
+	protected def copyToBuffer<TypeTo>(copyTo GPUBufferManaged<TypeTo>, waitingEvents boolean:GPURef...) boolean:GPURef {
+		if(size <> copyTo.size){
+			throw new GPUException("Direct GPU copy from one buffer to another without subregion specified requires matching buffer sizes. From buffer size of: {size} does not equal to buffer size of: {copyTo.size}")
+		}
+
+		copyToBuffer<TypeTo>(copyTo, 0, size/compsize, 0, waitingEvents):
+	}
+
+
+	@DeleteOnUnusedReturn
+	protected def copyToBuffer<TypeTo>(copyTo GPUBufferManaged<TypeTo>, fromx int, tox int, destx int, waitingEvents boolean:GPURef...) boolean:GPURef {
+		/////////////checks...
+		upperBound = (size / compsize)
+
+		if(fromx < 0){ fromx += upperBound }
+		if(tox< 0 ){   tox += upperBound   }
+
+		if(fromx >== tox){
+			throw new GPUException("Copy source index from: {fromx} must be less than to: {tox}")
+		}
+
+		if(fromx < 0){
+			throw new GPUException("Copy source index from: {fromx} must be greater than or equal to zero")
+		}
+
+		if(tox > upperBound){
+			throw new GPUException("Copy source index to: {tox} must be less than buffer size of: {upperBound} elements")
+		}
+
+		upperBoundTo = (copyTo.size / copyTo.compsize)
+
+		if(destx < 0){ destx += upperBound }
+
+		if(destx < 0){
+			throw new GPUException("Copy destination index: {fromx} must be greater than or equal to zero")
+		}
+
+		destTox = destx + (tox - fromx)
+		if(destTox > upperBoundTo){
+			throw new GPUException("Copy destination effective index to: {tox} must be less than buffer size of: {upperBoundTo} elements")
+		}
+
+		/////////////check command queue matches
+		toDevice = copyTo.device
+		if(device &<> toDevice){
+			throw new GPUException("Can only copy data between buffers on the same device. '{device}' is not the same device as '{toDevice}'")
+		}
+
+		/////////////special checks for when copyTobuffer, same as self
+		if(this &== copyTo){
+			if((destx >== fromx and destx < tox)
+				or
+			 (destTox >== fromx and destTox < tox )){
+				throw new GPUException("When copying to a different region of the same buffer, copy region may not overlap. {fromx} to {tox} overlaps with {destx} to {destTox}")
+			}
+		}
+
+		/////////////type checks...
+		if(not typeEqual(copyTo.componentType, componentType)){
+			throw new GPUException("When copying, destination must be of the same component type {copyTo.componentType.getSimpleName()} <> {componentType.getSimpleName()}")
+		}
+		
+		/////////////copy...
+		eventWaitList = x:event for x in waitingEvents if x:event <> null
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+
+		copyEvent = new cl_event()
+		copyComplete = boolean:GPURef(copyEvent)
+		setter = new GPUWriteCompleteSetter(copyComplete)
+
+		errcode = clEnqueueCopyBuffer(device.getCommandQueue(), getBuffer(), copyTo.getBuffer(), fromx* compsize, destx* copyTo.compsize, (tox - fromx) * compsize, waitingEventsSz, eventsArr, copyEvent)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(copyEvent); throw new GPUException(errcode) }
+
+		errcode = clSetEventCallback(copyEvent, CL_COMPLETE, setter, null)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(copyEvent); throw new GPUException(errcode) }
+
+		copyComplete:
+	}
+}
+
+abstract class GPUBufferManagedSingle<Type>(type Class<?>, buffer cl_mem?, -size int, device Device) ~ com.concurnas.lang.GPUBuffer<Type> {
+	override toString(){
+		"{this.getClass().simpleName}: {type.getCanonicalName()} on: {device}"
+	}
+
+	hasBeenDeleted = false
+	override delete(){
+		if(null <> buffer){
+			clReleaseMemObject(buffer)
+			buffer = null
+		}
+		hasBeenDeleted = true
+	}
+	
+	def getBuffer(){
+		if(hasBeenDeleted){
+			throw new GPUException("Buffer has already been deleted")
+		}
+		buffer
+	}
+	
+
+	@DeleteOnUnusedReturn
+	public def writeToBuffer(towrite Object, waitingEvents boolean:GPURef...) boolean:GPURef {
+		tmpBuffer = GPUEncoder(size).put(towrite)
+
+		eventWaitList = x:event for x in waitingEvents if x:event <> null
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+
+		writeEvent = new cl_event()
+		writeComplete = boolean:GPURef(writeEvent)
+		setter = new GPUWriteCompleteSetter(writeComplete)
+
+		pnt = Pointer.\to(tmpBuffer)
+
+		errcode = clEnqueueWriteBuffer(device.getCommandQueue(), getBuffer(), false, 0, size, pnt, waitingEventsSz, eventsArr, writeEvent)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(writeEvent); throw new GPUException(errcode) }
+
+		errcode = clSetEventCallback(writeEvent, CL_COMPLETE, setter, null)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(writeEvent); throw new GPUException(errcode) }
+
+		writeComplete:
+	}
+
+	@DeleteOnUnusedReturn
+	protected def readFromBuffer(waitingEvents boolean:GPURef...) Type:GPURef {
+		decoder = GPUDecoder(type, 1)
+
+		writeToBuffer = ByteBuffer.allocateDirect(size)
+		writeToBuffer.order( ByteOrder.nativeOrder())
+
+		eventWaitList = x:event for x in waitingEvents if x:event <> null
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+
+		readEvent = new cl_event()
+		readComplete = Object:GPURef(readEvent)
+		setter = new GPUReadCompleteSetter(decoder, writeToBuffer, readComplete)
+
+		errcode = clEnqueueReadBuffer(device.getCommandQueue(), getBuffer(), false, 0, size, Pointer.\to(writeToBuffer), waitingEventsSz, eventsArr, readEvent)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(readEvent); throw new GPUException(errcode) }
+
+		errcode = clSetEventCallback(readEvent, CL_COMPLETE, setter, null)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(readEvent); throw new GPUException(errcode) }
+
+		readComplete:
+	}
+
+
+	@DeleteOnUnusedReturn
+	protected def copyToBuffer<TypeTo>(copyTo GPUBufferManagedSingle<TypeTo>, waitingEvents boolean:GPURef...) boolean:GPURef {
+		if(size <> copyTo.size){
+			throw new GPUException("Direct single value GPU copy from one buffer to another requires matching buffer sizes. From buffer size of: {size} does not equal to buffer size of: {copyTo.size}")
+		}
+
+		eventWaitList = x:event for x in waitingEvents if x:event <> null
+		waitingEventsSz = eventWaitList.size()
+
+		eventsArr = null if waitingEventsSz==0 else eventWaitList.toArray(new cl_event[waitingEventsSz]);
+
+		copyEvent = new cl_event()
+		copyComplete = boolean:GPURef(copyEvent)
+		setter = new GPUWriteCompleteSetter(copyComplete)
+
+		errcode = clEnqueueCopyBuffer(device.getCommandQueue(), getBuffer(), copyTo.buffer, 0, 0, size, waitingEventsSz, eventsArr, copyEvent)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(copyEvent); throw new GPUException(errcode) }
+
+		errcode = clSetEventCallback(copyEvent, CL_COMPLETE, setter, null)
+		if(errcode <> CL_SUCCESS){ clReleaseEvent(copyEvent); throw new GPUException(errcode) }
+
+		copyComplete:
+	}
+}
+
+class GPUBufferManagedInput<Type>(type Class<Type>, dims int..., buffer cl_mem, size int, device Device) < GPUBufferManaged<Type>(type, dims, buffer, size, device) ~ com.concurnas.lang.GPUBufferInput<Type> {
+	//writeto
+	override writeToBuffer(an Object, waitingEvents boolean:GPURef...) => super.writeToBuffer(an, waitingEvents):
+
+	//sublist write
+	override subAssign(fromx int, tox int, towrite Object, waitingEvents boolean:GPURef...) => super.subAssign(fromx, tox, towrite, waitingEvents):
+	override subfromAssign(fromx int, towrite Object, waitingEvents boolean:GPURef...) => super.subfromAssign(fromx, towrite, waitingEvents):
+	override subtoAssign(tox int, towrite Object, waitingEvents boolean:GPURef...) => super.subtoAssign(tox, towrite, waitingEvents):
+}
+
+class GPUBufferManagedOutput<Type>(type Class<Type>, dims int..., buffer cl_mem, size int, device Device) < GPUBufferManaged<Type>(type, dims, buffer, size, device) ~ com.concurnas.lang.GPUBufferOutput<Type> {
+	//get
+	override readFromBuffer(waitingEvents boolean:GPURef...) => super.readFromBuffer(waitingEvents):
+
+	//copy
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedInput<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedMixed<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, waitingEvents):
+
+	//copy subregion
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedInput<TypeTo>, fromx int, tox int, destx int, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, fromx, tox, destx, waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedMixed<TypeTo>, fromx int, tox int, destx int, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, fromx, tox, destx, waitingEvents):
+
+	//sublist get
+	override sub(fromx int, tox int, waitingEvents boolean:GPURef...) => super.sub(fromx, tox, waitingEvents):
+	override subfrom(fromx int, waitingEvents boolean:GPURef...) => super.subfrom(fromx, waitingEvents):
+	override subto(tox int, waitingEvents boolean:GPURef...) => super.subto(tox, waitingEvents):
+}
+
+class GPUBufferManagedMixed<Type>(type Class<Type>, dims int..., buffer cl_mem, size int, device Device) < GPUBufferManaged<Type>(type, dims, buffer, size, device) ~ com.concurnas.lang.GPUBufferInput<Type>, com.concurnas.lang.GPUBufferOutput<Type>{
+	//read and write
+	override writeToBuffer(an Object, waitingEvents boolean:GPURef...) => super.writeToBuffer(an, waitingEvents):
+	override readFromBuffer(waitingEvents boolean:GPURef...) => super.readFromBuffer(waitingEvents):
+
+	//copy
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedInput<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedMixed<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, waitingEvents):
+
+	//copy subregion
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedInput<TypeTo>, fromx int, tox int, destx int, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, fromx, tox, destx, waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedMixed<TypeTo>, fromx int, tox int, destx int, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManaged<TypeTo>, fromx, tox, destx, waitingEvents):
+
+	//sublist write
+	override subAssign(fromx int, tox int, towrite Object, waitingEvents boolean:GPURef...) => super.subAssign(fromx, tox, towrite, waitingEvents):
+	override subfromAssign(fromx int, towrite Object, waitingEvents boolean:GPURef...) => super.subfromAssign(fromx, towrite, waitingEvents):
+	override subtoAssign(tox int, towrite Object, waitingEvents boolean:GPURef...) => super.subtoAssign(tox, towrite, waitingEvents):
+
+	//sublist get
+	override sub(fromx int, tox int, waitingEvents boolean:GPURef...) => super.sub(fromx, tox, waitingEvents):
+	override subfrom(fromx int, waitingEvents boolean:GPURef...) => super.subfrom(fromx, waitingEvents):
+	override subto(tox int, waitingEvents boolean:GPURef...) => super.subto(tox, waitingEvents):
+}
+
+class GPUBufferManagedInputSingle<Type>(type Class<Type>, buffer cl_mem, size int, device Device) < GPUBufferManagedSingle<Type>(type, buffer, size, device) ~ com.concurnas.lang.GPUBufferInput<Type> {
+	override writeToBuffer(an Object, waitingEvents boolean:GPURef...) => super.writeToBuffer(an, waitingEvents):
+}
+
+class GPUBufferManagedOutputSingle<Type>(type Class<Type>, buffer cl_mem, size int, device Device) < GPUBufferManagedSingle<Type>(type, buffer, size, device) ~ com.concurnas.lang.GPUBufferOutput<Type> {
+	override readFromBuffer(waitingEvents boolean:GPURef...) => super.readFromBuffer(waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedInputSingle<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManagedSingle<TypeTo>, waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedMixedSingle<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManagedSingle<TypeTo>, waitingEvents):
+}
+
+class GPUBufferManagedMixedSingle<Type>(type Class<Type>, buffer cl_mem, size int, device Device) < GPUBufferManagedSingle<Type>(type, buffer, size, device) ~ com.concurnas.lang.GPUBufferInput<Type>, com.concurnas.lang.GPUBufferOutput<Type>{
+	override writeToBuffer(an Object, waitingEvents boolean:GPURef...) => super.writeToBuffer(an, waitingEvents):
+	override readFromBuffer(waitingEvents boolean:GPURef...) => super.readFromBuffer(waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedInputSingle<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManagedSingle<TypeTo>, waitingEvents):
+	@SuppressWarnings("generic-cast")
+	def copyToBuffer<TypeTo>(copyTo GPUBufferManagedMixedSingle<TypeTo>, waitingEvents boolean:GPURef...) => super.copyToBuffer<TypeTo>(copyTo as GPUBufferManagedSingle<TypeTo>, waitingEvents):
+}
+

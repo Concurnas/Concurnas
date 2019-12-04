@@ -1,0 +1,57 @@
+package com.conc2.compiler.ast;
+
+import com.conc2.compiler.ast.interfaces.Expression;
+import com.conc2.compiler.visitors.TypeCheckUtils;
+import com.conc2.compiler.visitors.Visitor;
+
+public class IfExpr extends AbstractExpression implements Expression {
+
+	public Expression test;
+	public Expression op1;
+	public Expression op2;
+
+	public IfExpr(int line, int col, Expression test, Expression op1, Expression op2) {
+		super(line, col);
+		this.test = test;
+		this.op1 = op1;
+		this.op2 = op2;
+	}
+	
+	@Override
+	public Node copyTypeSpecific() {
+		IfExpr ret= new IfExpr(super.line, super.column, (Expression)test.copy(), (Expression)op1.copy(), (Expression)op2.copy());
+		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
+
+		return ret;
+	}
+	private Expression preceedingExpression;
+	@Override
+	public void setPreceedingExpression(Expression expr) {
+		this.preceedingExpression = expr;
+	}
+	@Override
+	public Expression getPreceedingExpression() {
+		return preceedingExpression;
+	}
+	
+	@Override
+	public Object accept(Visitor visitor) {
+		visitor.setLastLineVisited(super.getLine());
+		return visitor.visit(this);
+	}
+	
+	@Override
+	public Type setTaggedType(Type tt){
+		if(tt != null){
+			//ensure that the components know their type (place)
+			Utils.setTypeOnNullListDef((Node)op1,  (Type)tt.copy()  );
+			Utils.setTypeOnNullListDef((Node)op2,  (Type)tt.copy()  );
+		}
+		return super.setTaggedType(tt);
+	}
+
+	public void setExpectNonRef(boolean var) {
+		((Node)op1).setExpectNonRef(var);
+		((Node)op2).setExpectNonRef(var);
+	}
+}

@@ -1,0 +1,964 @@
+//##1.1.a anf transform - constructor
+def v1() => "2"
+
+def doings() String {
+	ssb  =new StringBuilder( v1() ) 
+	return ssb.toString()
+}
+
+~~~~~
+//##1.1.c anf transform - constructor - remember doubles take two slots
+
+def v1() => 2.0
+def v2() => 2
+
+class DoubThingy(a double, b int, c double, d int){
+	override toString() => "" + [a,b,c,d]
+}
+
+def doings() String {
+	ssb  = new DoubThingy( v1(), v2(), v1(), v2() ) 
+	return ssb.toString()
+}
+
+~~~~~
+//##1.1.b anf transform - constructor - nested
+def v1() => "2"
+def v2(a String) => "+" + a + "+"
+
+def doings() String {
+	ssb  =new StringBuilder( v2(v1()) ) 
+	return ssb.toString()
+}
+
+~~~~~
+//##1.2.a anf transform - constructor - in cls
+def v1() => "2"
+
+class X{
+	def doings() String {
+		ssb  =new StringBuilder( v1() ) 
+		return ssb.toString()
+	}
+}
+
+def doings() String {
+	return new X().doings()
+}
+
+~~~~~
+//##1.2.d anf transform - constructor - nested - in cls
+def v1() => "2"
+def v2(a String) => "+" + a + "+"
+
+class X{
+	def doings() String {
+		ssb  =new StringBuilder( v2(v1()) ) 
+		return ssb.toString()
+	}
+}
+
+def doings() String {
+	return new X().doings()
+}
+
+
+~~~~~
+//##1.3.a anf transform - constructor - in cls
+
+class X{
+	def v1() => "2"
+
+	def doings() String {
+		ssb  =new StringBuilder( v1() ) 
+		return ssb.toString()
+	}
+}
+
+def doings() String {
+	return new X().doings()
+}
+
+~~~~~
+//##1.3.d anf transform - constructor - nested - in cls
+
+
+class X{
+
+	def v1() => "2"
+	def v2(a String) => "+" + a + "+"
+
+	def doings() String {
+		ssb  =new StringBuilder( v2(v1()) ) 
+		return ssb.toString()
+	}
+}
+
+def doings() String {
+	return new X().doings()
+}
+
+
+~~~~~
+//##2. method overriden from primordial class use normal version
+
+class Cls(){ 
+	 override toString() => "works"
+}
+
+c = new Cls()
+
+def doings() String {
+	return "" + c
+	
+}
+
+~~~~~
+//##2.b method overriden from primordial class use normal version
+
+what = 0
+
+class Cls(){ public ~x int =99; 
+	 override toString() String {what++; return ""+x;}  
+}
+
+cls = [new Cls(), new Cls()]
+
+def doings() String {
+
+	return ""+ cls + ":" + what
+	
+}
+
+~~~~~
+//##3. anf transform - nested
+
+class Holder<A>(~a A){ override def toString() String { return "Holder obj"  } }
+open class Sup<X>(~x X){}
+class MyClass(x String) extends Sup<String>(x + "hi"){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	a = new Holder<MyClass>(new MyClass("mate"))
+	return "" + a
+}
+
+~~~~~
+//##4. remove the exceptions consoldation code :- trying to be too clever above
+
+ret = "";
+
+def thrower(n int) {
+	ret += " throw"
+	if(n==1){ throw new Exception("Dd2d") }
+}
+
+
+def onCatch() { ret += " onCatch" }
+def onFin() { ret += " onFin" }
+
+def exceper(n int)  {
+	ret =""
+	excepera(n)
+	ret
+}
+
+def excepera(n int)  {
+		
+	try{
+		try{
+			thrower(1)
+		}
+		catch(e Exception)
+		{
+			onCatch()
+			thrower(n)
+		}
+		finally
+		{
+			onFin()
+		}
+	}
+	catch(e Exception)
+	{
+		ret +=" extra"
+	}
+	ret
+}
+
+def doings() String {
+	return ""+[exceper(0), exceper(1)]
+}
+
+~~~~~
+//##5. fiber operation performed even for non concable methods
+
+import com.concurnas.bootstrap.lang.Stringifier;
+
+class MyClass{
+	override equals(o Object) => false
+	override hashCode() => 3
+	
+	override def toString() =>  Stringifier.stringify ("hi")+ ":"; //fail
+}
+
+//this is coming back with 2 for some reason; ?
+
+cObj Object = new MyClass()
+cCls = new MyClass()
+
+def doings(){
+	i = cObj.toString()
+	i2 = cObj.toString()
+
+	"" + [i, i2]
+}
+
+~~~~~
+//##6. nested innner class consturction
+
+class Outer(){
+	public class Inner<Y>(public y Y) {
+	}
+}
+
+out = new Outer();
+
+def doings() String {
+	
+	inner = out.new Inner<Integer>(99);
+	
+	return "" + inner.y
+}
+
+~~~~~
+//##6.b nested innner class consturction - more complex
+
+class Outer(){
+	public class Inner<Y>(public y Y) {
+		public class Inner2(public y int) {
+		}
+	}
+}
+
+//out = new Outer();
+
+def doings() String {
+	
+	inner = new Outer().new Inner<Integer>(99).new Inner2(991);
+	
+	return "" + inner.y
+}
+~~~~~
+//##7. shift across boundaries
+
+ia1 int[] = [ 1 2 ];
+ia2 int[] = ia1.clone();
+
+def doings() String  {
+    res = (ia1 == ia2) + ":" //the boolean check causes there to be an
+    //if else after the strinbuilder invokation
+    
+    return "" + res
+}
+
+~~~~~
+//##7.b shift across boundaries -advanced
+
+ia Integer[2] = [ [Integer(1) 2] ; null  ]
+ja Integer[2] = ia.clone()
+
+def main2( ) String  {
+	res=""
+    res += (ia == ja) + " ";
+    //System.out.println("ok")
+    res += (ia[0] == ja[0]) 
+    return res
+}
+
+//TODO try other == variant
+def doings() String{
+	return "" + main2() 
+}
+
+~~~~~
+//##7.c shift across boundaries -advanced
+
+ia Integer[2] = [ [Integer(1) 2] ; null  ]
+ja Integer[2] = ia.clone()
+
+def main2( ) String  {
+	res=""
+    res += (ia == ja) + " ";
+   // System.out.println("ok")
+    res += (ia[0] == ja[0]) +""
+    return res
+}
+
+//TODO try other == variant
+def doings() String{
+	return "" + main2() 
+}
+
+~~~~~
+//##7.d shift across boundaries -super complex case
+
+ia Integer[2] = [ [Integer(1) 2] ; null  ]
+ja Integer[2] = ia.clone()
+
+def somthing(a String, b String) => a+b
+
+def main2( ) String  {
+	res=""
+	n=0
+    res += while(n++ < 10) { n} + " ";
+    //System.out.println("ok")
+    res += somthing(res + (ia == ja) + " ", (ia[0] == ja[0]) + "")
+    return res
+}
+
+//TODO try other == variant
+def doings() String{
+	return "" + main2() 
+}
+
+~~~~~
+//##8. primarch methods arnt instumented
+//doesnt belong here
+
+//note that [for final method or methods of final classes] which are primarch
+//we do not do any fiberization via the stack because its impossible for
+//the called method to pick up the fiber
+//note that this is bad if primach code is slow, but lucky for us
+//most of it is ok
+
+def doings() String {
+	dd = new StringBuilder()
+	
+	dd.append("hi") //append is final so doesnt get fiberized via stack
+	
+	return "" + dd
+}
+
+~~~~~
+//##9. ensure that fiber version called
+
+def doings() String {
+	com.concurnas.bootstrap.lang.Stringifier.stringify("Hello world") //fiber version should be called
+}
+
+/*#Find lines:
+    INVOKESTATIC com/concurnas/bootstrap/lang/Stringifier.stringify (Ljava/lang/String;Lcom/concurnas/bootstrap/runtime/cps/Fiber;)Ljava/lang/String;
+*/
+
+~~~~~
+//##9.b ensure that fiber version called - on lambdas
+
+a  =  def () String { "Hello world" }
+
+def doings() String {
+	"" + a()
+}
+
+/*#Find lines:
+    ALOAD 1
+    INVOKEVIRTUAL com/concurnas/bootstrap/runtime/cps/Fiber.down ()Lcom/concurnas/bootstrap/runtime/cps/Fiber;
+    INVOKEVIRTUAL com/concurnas/bootstrap/lang/Lambda$Function0.apply (Lcom/concurnas/bootstrap/runtime/cps/Fiber;)Ljava/lang/Object;
+    ALOAD 1
+*/
+
+
+~~~~~
+//##10. dunno looks complex stick it here
+
+class MyClass{
+	def getA() => false
+	override equals(a Object) => (a as MyClass).getA() //b = 9; b==b
+	//override hashCode() = 2
+}
+
+cls = new MyClass()
+cls2 Object = new MyClass()
+
+
+def doings() {
+	inst1 = cls2.equals(cls2);
+	"" + (not inst1)
+}
+
+~~~~~
+//##11. enable globals to be fiberized
+
+one = "mate"
+
+def funcola2() => "there " + one
+
+def funcola() => "hi " + funcola2()
+
+res = "nice" 
+
+res3 = funcola()
+
+//all the above are turned into Globals.getIntance().res [etc] form
+
+def doings() => "" + [res, funcola(), res3]
+
+~~~~~
+//##12. use of non public consturctor in nestee
+//use of non public consturctor inside nested static thing - method or class-
+from com.concurnas.lang.precompiled import UsdConInNestedStatic
+
+def doings() String{
+	cool = UsdConInNestedStatic.insto
+	cool.user()
+}
+
+~~~~~
+//##13. avoid inf loop on module level lambdas
+
+val xasdasd=10
+var xasdasd2=10
+g = def () int { xasdasd+xasdasd2}
+r = g()//this used to cause an inifinit loop, but now we split the <init> and the init into two seperate parts - problem solved
+
+
+def doings() String {
+	return "" + "ok" if r==20 else "no"
+}
+
+~~~~~
+//##14.a fib of init - basic
+def doings() String{
+	new String("hi")
+}
+
+~~~~~
+//##14.b fib of init - basic classes
+
+def fibla() => return 10
+
+class MyClass{
+	public val x int
+	public val y String
+	
+	this(){//normal init still calls object, -> new init does actual work, thus permitting fiberization
+		x = fibla()
+	 	y = new String("cool")
+	}
+}
+
+def doings() String{
+	xxx = new MyClass()
+	"" + xxx.x
+}
+
+~~~~~
+//##14.c fib of init - basic classes more adv
+
+def fibla() => return 10
+
+class MyClass{
+	public val x int
+	public val y String
+	
+	this(){
+		x = fibla()
+	 	y = new String("cool")
+	}
+}
+
+def doings() String{
+	xxx = new MyClass()
+	"" + xxx.y
+}
+
+~~~~~
+//##14.d fib of init - basic classes more adv 2
+
+def fibla() => return 10
+
+class MyClass{
+	public val x int
+	public val y String
+	
+	this(){
+		x = fibla()
+	 	y = new String("cool")
+	}
+}
+
+def doings() String{
+	xxx = new MyClass()
+	"" + [xxx.x, xxx.y]
+}
+
+~~~~~
+//##14.e fib of init - ensure no dup set get methods created
+
+class Holder(~a MyClass){ override def toString() String { return "Holder obj" + a.toString()  } }
+class MyClass(x String){ override def toString() String { return "MyClass obj"  }  }
+
+def doings() String {
+	a = new Holder(new MyClass("mate"))
+	return "" + a
+}
+
+~~~~~
+//##15. primordial superclasses - direct subclass
+
+from java.util.concurrent.atomic import AtomicInteger
+
+class MyClass extends AtomicInteger{
+	val -f int
+	
+	this(x int){
+		super(x)//ensure that this gets set in the <init> as normal
+		f=9//pass this into the init method
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClass(10)//calls both the <init> and init
+	return "" + mc//[mc, mc.f]
+}
+
+~~~~~
+//##15.b primordial superclasses - direct subclass - via no arg subclass
+
+from java.util.concurrent.atomic import AtomicInteger
+
+class MyClass extends AtomicInteger{
+	
+	this(){
+		super(5)
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClass()
+	return "" + mc
+}
+
+~~~~~
+//##15.c primordial superclasses - direct subclass - kids get infected too
+
+from java.util.concurrent.atomic import AtomicInteger
+
+abstract class MyClass extends AtomicInteger{
+	
+	this(){
+		super(5)
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+class MyClassMyClass extends MyClass{
+	this(){
+		//super() //implicit super call
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClassMyClass()
+	return "" + mc
+}
+
+~~~~~
+//##15.d primordial superclasses - direct subclass - kids get infected too explicit
+
+from java.util.concurrent.atomic import AtomicInteger
+
+open class MyClass extends AtomicInteger{
+	
+	this(x int){
+		super(x)
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+class MyClassMyClass extends MyClass{
+	this(){
+		super(12) //implicit super call
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClassMyClass()
+	return "" + mc
+}
+
+~~~~~
+//##15.e primordial superclasses - direct subclass - kids get infected too explicit x2
+
+from java.util.concurrent.atomic import AtomicInteger
+
+open class MyClass extends AtomicInteger{
+	
+	this(x int){
+		super(x)
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+class MyClassMyClass extends MyClass{
+	this(x int){
+		super(x) //implicit super call
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClassMyClass(13)
+	return "" + mc
+}
+
+~~~~~
+//##15.f primordial superclasses - direct subclass - i dunno
+//too tired to think - this probably works
+
+from java.util.concurrent.atomic import AtomicInteger
+
+open class MyClass extends AtomicInteger{
+	
+	this(x int){
+		super(x)
+	}
+	
+	this(){
+		super()
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+class MyClassMyClass extends MyClass{
+
+	
+	this(x int){
+		super() //implicit super call
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClassMyClass(6)
+	return "" + mc
+}
+
+~~~~~
+//##15.g primordial superclasses - ensure called once only
+
+from java.util.concurrent.atomic import AtomicInteger
+
+x=0
+
+def calltwice() int{
+	x++
+}
+
+class MyClass extends AtomicInteger{
+	
+	this(){
+		super(5)
+		calltwice()
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+
+def doings() String {
+	mc = new MyClass()
+	return "" + x
+}
+
+~~~~~
+//##15.h.1 primordial superclasses - self conc call
+
+
+class MyClass{
+	val -x int
+	var -y MyClass?
+	var -y2 String?
+	this(x int){
+		this.x=x
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+	
+	this() { this(5); y=new MyClass(9); y2="hi" }
+}
+	
+
+def doings() String {
+	mc = new MyClass()
+	"" + mc.x + ", " +  mc.y?.x + ", " +  mc.y2
+}
+
+~~~~~
+//##15.h.2 primordial superclasses - self conc call - nested
+
+class SupClass{
+	public class MyClass{
+		val -x int
+		this(x int){
+			this.x=x
+		}
+		
+		this() { this(5) }
+	}
+	
+	this(a int, b int){}
+}
+
+def doings() String {
+	mc = new SupClass(1,2).new MyClass()
+	"" + mc.x
+}
+
+~~~~~
+//##15.h.3 primordial superclasses - self conc call - nested x2 
+
+from java.util import HashMap
+
+class SupClass{
+	public open class MyClass{
+		val -x int
+		this(x int){
+			this.x=x
+		}
+		
+		this() { this(5) }//note that this invokation must pass up the outer class instance
+	}
+	
+	public class MyClass2 extends MyClass{
+		this() { super(5) }//uh oh
+	}
+	
+	this(a int, b int){}
+}
+
+def doings() String {
+	mc = new SupClass(1,2).new MyClass()
+	mc2 = new SupClass(1,2).new MyClass2()
+	"" + mc.x + " : " + mc2.x
+}
+
+~~~~~
+//##16. oh i see you have a stringbuilder before the super call
+
+open class Sup<X>(~x X){
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+class MyClass(x String) extends Sup<String>(x + " hi"){ 
+	//the default constructor calls a striingbuilder first, this was tricking the initzliser tracker so it was loading the wrong type since assumed first INVOKESPECIAL was the constructor (whihc was not the case here)
+
+override def toString() String { return "MyClass obj - " + super.x  }  
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	a = new MyClass("mate")
+	return "" + a
+}
+
+~~~~~
+//##16.b oh i see you have a stringbuilder before the super call - more complex case
+
+abstract class SSS{
+	public this(){
+	}
+}
+open class Outer{
+	var has = false
+	b Outer?
+	public this(b Outer ){this.b = b; has = true}
+	public this(){}
+	
+	override toString() => " " + this.has + " my b: " + b
+	
+}
+
+class Me extends Outer{
+	public this(){
+		super(new Outer());
+	}
+}
+
+def doings()  String {
+	m = new Me()
+	"ok" + m
+}
+
+~~~~~
+//##17 stackframemap - ensure that correct supertype is chosen!
+
+open class SSS(a String){
+	override toString() => "my: " + a
+}
+
+class Child1 extends SSS("one"){}
+class Child2 extends SSS("two"){}
+
+def xxx(x boolean) => "" + (new Child1() if x else new Child2())
+//above should have the stackframemap set to return SSS on entrypoint to stringifyer append method call
+
+def doings()  String {
+	m1 = xxx(true)
+	m2 = xxx(false)
+	"" + [m1, m2]
+}
+
+~~~~~
+//##18. globalizer not overriden
+
+open class SSS(a String){
+	override toString() => "my: " + a
+}
+
+class Child1 extends SSS("one"){
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+class Child2 extends SSS("two"){
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def xxx(x boolean) => "" + new Child1() + ": " + new Child2()
+//def xxx(x boolean) = "" + [ new Child1() ,new Child2()]
+//ensure globalizer getInstance is not fiddled with
+
+def doings()  String {
+	"" + xxx(true)
+}
+
+
+
+~~~~~
+//##19. call a different init in an init
+
+class Imm(val x int){
+	//this(){ 	this(88)}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+	
+	override toString() => "" + x
+	
+}//should be annotated as immutable 
+
+
+
+open class NoImm2 extends Exception("asdasd"){
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+	
+	a = new Imm(4);//copier needs to respect annotation and not dupe
+	b = new String("hi")//primordial needs to be respected as just <init>
+	
+	override toString() => "" + [a + b]
+	
+}
+
+
+def doings() String {
+	return "Hello world: " + new NoImm2()
+}
+
+~~~~~
+//##20. antoher primordial sup which now works ok
+
+from java.util.concurrent.atomic import AtomicInteger
+
+abstract class MyClass extends AtomicInteger{
+	
+	this(){
+		super(5)
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+class MyClassMyClass extends MyClass{
+	this(){
+		//super()
+	}
+	
+	override def equals(a Object) => false;
+	override def hashCode() => 10;
+}
+
+def doings() String {
+	mc = new MyClassMyClass()
+	return "" + mc
+}
+
+
+~~~~~
+//##21. dunno what this does but i thought it was a bug
+
+class MyCls(-x4 int) {} 
+
+a4 int:= 5
+a5 int:= 5
+
+def xxx() => true 
+x4 = (new MyCls(a4++)).x4
+x5 = a5++ if xxx() else a5++; //tweak to ret type has to cascade down
+
+
+def doings() {
+	"" + [a4, a5, x4, x5] 
+}
+
+~~~~~
+//##22. this error goes away when rt.jar is fiberized
+
+//TODO: you need to fiberize rt.jar on 'installation' of concurnas
+//e.g. whenever u star running on a new jdk
+from java.util import ArrayList
+
+class MyClass1(a String){ }
+
+class MyClass2() extends ArrayList<String>{
+	this(a String){
+		super(10)
+	}
+}
+
+def doings() {
+	a = new MyClass1(""+1)//fine
+	b = new MyClass2(""+1)//not permitted cos calling method inside primordial calling constructor
+	//so the above blows up - note that this is solved when rt.jar is fiberized!
+	"wonderful"
+}

@@ -1,0 +1,254 @@
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import ErrorOrWarning, Result, IterationResult
+from com.concurnas.lang.LangExt import Variable, Method, MethodParam
+from java.util import Stack, Scanner, ArrayList, List
+
+/*
+ * sample inputs:
+ *  (+ 1 2 3 )
+ * 	(+ 1 2 n )
+ * 	(+ 1 2 (* 3 5) )
+ * 	(+ 1 2 (methodCall 3 5) )
+ */
+
+/////////////////   AST  /////////////////
+enum MathOps(code String){PLUS("+"), MINUS("-"), MUL("*"), DIV("/"), POW("**");
+	override toString() => code
+}
+
+open class ASTNode(-line int, -col int){
+	nodes = new ArrayList<ASTNode>()
+	def add(toAdd ASTNode){
+		nodes.add(toAdd)
+	}
+	
+	def accept(visitor Visitor) Object 
+}
+
+class LongNode(line int, col int, along Long) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+class MathNode(line int, col int, what MathOps) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+class MethodCallNode(line int, col int, methodName String) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+class NamedNode(line int, col int, name String) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+
+///////////////// Parser /////////////////
+
+def parse(line int, col int, source String) (ASTNode, Result) {
+	rootNode ASTNode?=null
+	
+	warnings = new ArrayList<ErrorOrWarning>()
+	errors = new ArrayList<ErrorOrWarning>()
+	
+	sc = new Scanner(source)
+	nodes = Stack<ASTNode>()
+	
+	while(sc.hasNext()){
+		if(sc.hasNextInt()){
+			llong = sc.nextLong()
+			
+			if(nodes.isEmpty()){
+				errors.add(new ErrorOrWarning(line, col, "unexpected token: {llong}"))
+			}
+			else{
+				nodes.peek().add(LongNode(line, col, llong))
+			}
+		}else{
+			str = sc.next()
+			match(str){
+				")" => {
+					
+					if(nodes.isEmpty()){
+						errors.add(new ErrorOrWarning(line, col, "unexpected token: {str}"))
+					}else{
+						rootNode = nodes.pop()
+						if(rootNode <> null and not nodes.isEmpty()){
+							nodes.peek().add(rootNode)
+						}
+					}
+				}
+				else => match(str){
+					"(+" => nodes.push(MathNode(line, col, MathOps.PLUS))
+					"(-" => nodes.push(MathNode(line, col, MathOps.MINUS))
+					"(*" => nodes.push(MathNode(line, col, MathOps.MUL))
+					"(/" => nodes.push(MathNode(line, col, MathOps.DIV))
+					"(^" => nodes.push(MathNode(line, col, MathOps.POW))
+					else =>{
+						if(str.startsWith("(")){
+							str = str.substring(1, str.length());
+							nodes.push(MethodCallNode(line, col, str))
+						}else{
+							if(nodes.isEmpty()){
+								errors.add(new ErrorOrWarning(line, col, "unexpected token: {str}"))
+							}else{
+								nodes.peek().add(NamedNode(line, col, str))
+							}
+						}
+					} 
+				}
+			}
+		}
+	}
+	
+	
+	
+	rootNode?:LongNode(0, 0, 0), new Result(errors, warnings)
+}
+
+/////////////////Visitors/////////////////
+
+trait Visitor{
+	def visit(longNode LongNode) Object
+	def visit(mathNode MathNode) Object
+	def visit(namedNode NamedNode) Object
+	def visit(methodNode MethodCallNode) Object
+}
+
+class CodeGennerator ~ Visitor{
+	def visit(longNode LongNode) Object{
+		"{longNode.along}"
+	}
+	
+	def visit(mathNode MathNode) Object{
+		String.join("{mathNode.what}", ("" + x.accept(this)) for x in mathNode.nodes)
+	}
+	
+	def visit(methodCall MethodCallNode) Object{
+		"{methodCall.methodName}(" + String.join(", ", ("" + x.accept(this)) for x in methodCall.nodes ) + ")"
+	}
+	
+	def visit(namedNode NamedNode) Object{
+		"{namedNode.name}"
+	}
+}
+cg = CodeGennerator()
+
+private numericalTypes = new set<String>()
+{
+	numericalTypes.add("I")
+	numericalTypes.add("J")
+	numericalTypes.add("Ljava/lang/Long;")
+	numericalTypes.add("Ljava/lang/Integer;")
+}
+
+class NodeChecker(ctx Context) ~ Visitor{
+	errors = ArrayList<ErrorOrWarning>()
+	warnings =  ArrayList<ErrorOrWarning>()
+	
+	def visit(longNode LongNode) Object => "I"
+	def visit(mathNode MathNode) Object{
+		for( x in mathNode.nodes){
+			x.accept(this)
+		}
+		
+		"I"
+	}
+	
+	private def raiseError(line int, col int, str String){
+		errors.add(new ErrorOrWarning(line, col, str))
+	}
+	
+	def visit(namedNode NamedNode) Object{
+		vari Variable? = ctx.getVariable(namedNode.name)
+		type = vari?.type
+		
+		if(type){
+			if(type not in numericalTypes){
+				raiseError(namedNode.line, namedNode.col, "Variable: {namedNode.name} is expected to be of numerical type")
+			}
+		}else{
+			raiseError(namedNode.line, namedNode.col, "Unknown variable: {namedNode.name}")
+		}
+		
+		return type
+	}
+	
+	
+	def visit(methodCall MethodCallNode) Object{
+		meths List<Method> = ctx.getMethods(methodCall.methodName)
+		
+		found = false
+		
+		argsWanted = methodCall.nodes
+		wantedSize = argsWanted.size()
+		
+		for(method in meths){
+			ret = method.returnType
+			if(ret=="V" or ret in numericalTypes){
+				margs ArrayList<String> = method.arguments
+				if(wantedSize == margs.size()){
+					found=true
+				}else{
+					//check to see if an arg is an array - then can attempt to vararg in
+					found = margs.stream().anyMatch(a => a <> null and a.startsWith("["))				
+				}
+				
+				if(found){
+					break
+				}
+			}
+		}
+		
+		if(not found){
+			raiseError(methodCall.line, methodCall.col, "Cannot find method: {methodCall.methodName}")
+		}
+		
+		for(arg in argsWanted; idx){
+			atype = ""+arg.accept(this)
+			if(atype not in numericalTypes){
+				raiseError(methodCall.line, methodCall.col, "method argument {idx+1} is expected to be of numerical type not: {atype}")
+			}
+		}
+		
+		return "I"
+	}
+}
+
+
+///////////////// Lang  /////////////////
+
+class SimpleLisp ~ LanguageExtension{
+	line int
+	col int
+	rootNode ASTNode?=null
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result {
+		this.line = line
+		this.col = col
+				
+		//build abstract syntax tree...
+		(this.rootNode, result) = parse(line, col, source)
+		
+		result
+	}
+	
+	def iterate(ctx Context) IterationResult {
+		rootn = rootNode
+		if(rootn){
+			nc = NodeChecker(ctx)
+			rootn.accept(nc)
+			
+			code = ""
+			if(nc.errors.isEmpty() and nc.warnings.isEmpty()){
+				code = ""+rootn.accept(cg)
+			}
+			
+			new IterationResult(nc.errors, nc.warnings, code)
+			
+		}else{
+			errors = ArrayList<ErrorOrWarning>()
+			warnings =  ArrayList<ErrorOrWarning>()
+			new IterationResult(errors, warnings, "")
+		}
+	}
+}

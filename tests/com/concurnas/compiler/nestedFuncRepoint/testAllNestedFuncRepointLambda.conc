@@ -1,0 +1,336 @@
+//##0. zero capture case
+
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	inner = def (y int) int {
+		return 7 + y + somestat
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##1. simple localvar ref
+
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	inner = def (y int) int {
+		return x+7 + y + somestat + hh
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##2. simple localvar ref 2 levels
+
+somestat = 9
+def funto(x int ) int {
+	hh = 9
+	gg = 121
+	inner = def (y int) int {
+			gg += 1			
+			inner2 = def (z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2(5)
+	}
+	return inner(12)
+}
+
+def doings() String {
+	b = funto(5)
+	return "" + b
+}
+
+~~~~~
+//##3. simple localvar ref via class
+
+somestat = 9
+
+class X{
+	jk = 9
+	def funto(x int ) int {
+	  hh = 9
+	  inner = def (y int) int {
+	  	return x + 7 + y + somestat + hh + jk
+	  }
+	  return inner(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)
+	return "" + b
+}
+
+~~~~~
+//##4. simple localvar ref via class - 2 levels
+
+somestat = 9
+class X{
+	jk = 9
+
+	def funto(x int ) int {
+		hh = 9
+		gg = 121
+		inner = def (y int) int {
+				gg += 1			
+				inner2 = def (z int) int {
+					return x+7 + y + somestat + hh + z + gg + jk
+				}
+				return inner2(5)
+		}
+		return inner(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)
+	return "" + b
+}
+
+~~~~~
+//##5. simple localvar ref - funcref
+
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	inner = def (y int) int {
+		return x+7 + y + somestat + hh
+	}
+	return inner&(12)
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##6. simple localvar ref 2 levels- funcref
+
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	gg = 121
+	inner = def (y int) int {
+			gg += 1			
+			inner2 = def (z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2(5)
+	}
+	return inner&(12)
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##7. simple localvar ref via class- funcref
+
+somestat = 9
+
+class X{
+	jk = 9
+	def funto(x int ) () int {
+	  hh = 9
+	  inner = def (y int) int {
+	  	return x + 7 + y + somestat + hh + jk
+	  }
+	  return inner&(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##8. simple localvar ref via class - 2 levels- funcref
+
+somestat = 9
+class X{
+	jk = 9
+
+	def funto(x int ) () int {
+		hh = 9
+		gg = 121
+		inner = def (y int) int {
+				gg += 1			
+				inner2 = def (z int) int {
+					return x+7 + y + somestat + hh + z + gg + jk
+				}
+				return inner2(5)
+		}
+		return inner&(12)
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##9.a - funcref of funcref nested inner
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	gg = 121
+	inner = def (y int) () int {
+			gg += 1			
+			inner2 = def (z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2&(5)
+	}
+	return inner(12)&()
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+
+~~~~~
+//##9.b - funcref of funcref nested inner
+
+somestat = 9
+class X{
+	jk = 9
+
+	def funto(x int ) () int {
+		hh = 9
+		gg = 121
+		inner = def (y int) () int {
+				gg += 1			
+				inner2 = def (z int) int {
+					return x+7 + y + somestat + hh + z + gg + jk
+				}
+				return inner2&(5)
+		}
+		return inner(12)&()
+	}
+}
+
+def doings() String {
+	b = new X().funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##11 - nested class def -1
+
+somestat = 9
+
+class X{
+	fromouter = 99
+	public class Y{
+		jk = 9
+		def funto(x int ) int {
+		  hh = 9
+		  inner = def (y int) int {
+		  	return x + 7 + y + somestat + hh + jk + fromouter
+		  }
+		  return inner(12)
+		}
+	}
+}
+def doings() String {
+	b = new X().new Y().funto(5)
+	return "" + b
+}
+
+
+
+
+~~~~~
+//##11 - nested class def -2
+
+somestat = 9
+
+class X{
+	fromouter = 99
+	public class Y{
+		jk = 9
+	
+		def funto(x int ) int {
+			hh = 9
+			gg = 121
+			inner = def (y int) int {	
+				inner2 = def (xxx int) int {	
+					return x+7 + y + somestat + hh  + jk + fromouter + gg + xxx
+				}	
+				return inner2(77)
+			}
+			return inner(12)
+		}
+	}
+}
+
+def doings() String {
+	b = new X().new Y().funto(5)
+	return "" + b
+}
+
+
+
+~~~~~
+//##12a - mix of lambda and funcref 
+
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	gg = 121
+	inner = def (y int) () int {
+			gg += 1			
+			def inner2(z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2&(5)
+	}
+	return inner(12)&()
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##12b - mix of lambda and funcref 
+
+somestat = 9
+def funto(x int ) () int {
+	hh = 9
+	gg = 121
+	def inner(y int) () int {
+			gg += 1			
+			inner2 = def (z int) int {
+				return x+7 + y + somestat + hh + z + gg
+			}
+			return inner2&(5)
+	}
+	return inner(12)&()
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}

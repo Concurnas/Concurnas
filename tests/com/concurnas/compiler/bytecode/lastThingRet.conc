@@ -1,0 +1,1935 @@
+//##1. block simple
+def doings() String{
+	f=9
+	a = {f} //ok
+
+	return "" + a
+}
+
+~~~~~
+//##1. block complex
+
+def doings() String{
+	a2 = { f=9; f }
+
+	return "" + a2
+}
+
+~~~~~
+//##1b. block func
+def z() int{ return 9 }
+
+def doings() String{
+	a2 = { z() }
+
+	return "" + a2
+}
+
+~~~~~
+//##1c. block func var ret
+
+def z() int{ return 9 }
+
+def doings() String{
+	a2 = { g=z(); g; }
+
+	return "" + a2
+}
+
+~~~~~
+//##1d. block in an if stmt
+def z() int{ return 9 }
+
+def doings() String{
+	a2="fail"
+	if( 9 == { g=z(); g; } ){
+		a2="ok"
+	}
+
+	return "" + a2
+}
+
+
+~~~~~
+//##2.a if else
+
+def go(g boolean) int {
+	a1=	 if(g){	1	}	else{		2	}
+	
+	return a1
+}
+
+def doings() String{
+	return "" + [go(false), go(true)]
+}
+
+~~~~~
+//##2.b if elif else
+def go(i int) int {
+	a1=	 if(i==0){	1	} elif(i==1) { 15 } else { 16}
+	return a1
+}
+
+def doings() String{
+	return "" + [go(0), go(1), go(2)]
+}
+
+
+~~~~~
+//##2.c early termination
+
+def go(i int) int {
+	a1=	 if(i==0){	 1	} elif(i==1) { 15 } else { return 7 }
+	return a1
+}
+
+def doings() String{
+	return "" + [go(0), go(1), go(2)]
+}
+
+~~~~~
+//##2.d why not
+def ttt()=>true
+def fff() => false
+def doings() String{
+	a1 = if(ttt()){	8	}	else{		9	}
+	a1b = if(ttt()){	8	} elif(fff()){ 8 }	else{		9	}
+	a1c = if(ttt()){	8	} else {6}
+
+	return "" + [a1, 		a1b, 		a1c]
+}
+
+~~~~~
+//##2.e check casts
+
+def go(i int) double {
+	a1 double =	 if(i==0){	 1	} elif(i==1) { 15.f } else { return 7 }
+	return a1
+}
+
+def doings() String{
+	return "" + [go(0), go(1), go(2)]
+}
+
+~~~~~
+//##3.a try catch - basic
+
+def doings() String{
+	a3 = try{ 6} catch(e){ 7}
+	return "" + a3
+}
+
+~~~~~
+//##3.b try catch - with final
+
+def doings() String{
+	a3 = try{ a=6; 12} catch(e){ a=7; 12} finally{a=12}
+	return "" + a3
+}
+
+~~~~~
+//##3.c try catch - detailed
+
+def throIt(b boolean) {
+	if(b){
+	throw new Exception("");}
+}
+
+def go(b boolean) int{
+	return try{ throIt(b); 6 } catch(e){ 7}
+}
+
+def doings() String {
+	return "" + [go(true), go(false)]
+}
+
+~~~~~
+//##4.a try catch - funcRepoint
+
+def doings() String{
+	return "a" + try{ "6"} catch(e){ "7"}
+}
+
+~~~~~
+//##4.b try catch - funcRepoint with final
+
+def doings() String{
+	a=999
+	return "a" + try{ g="6"+a; "32"+a} catch(e){ g="7"+a; "32"+a} finally{ f="32"+a } + "a"
+}
+//the extractor function used to blow up, so   mod  ified it such that only a above is captured, not g as well (which is defined here for the first time)
+
+~~~~~
+//##4.c try catch - repoint var capture
+def maybeThrow(b boolean){
+	if(b){ throw new Exception("") }
+}
+
+def do(bd boolean) String{
+	a=12
+	b=13 //more than one var cos this caused problems with the comparitor previously
+	return "a" + try{ maybeThrow(bd); "" + a} catch(e){ "" + b} //finally{ "32" } + "a" //throw new Exception("23")
+}
+
+def doings() String {
+	return "" + [do(true), do(false)]
+}
+
+~~~~~
+//##4.d try catch - mul it
+
+def doings() String{
+	return ""+(12 * try{ 12 } catch(e){ 7} )
+}
+
+~~~~~
+//##4.e try catch - reuse same code
+
+def doings() String{
+	a=13
+	b=15
+	one = "" + (12 * try{ 1+a } catch(e){ 2 +b} )
+	two = "" + (12 * try{ 1+a } catch(e){ 2 +b} )//can use same code
+	three = "" + (12 * try{ 1+b } catch(e){ 2+a} )//switch on args can use same code
+	four = "" + try{ a**b } catch(e){ b**a} //diff code and args
+	return "" + [one, two, three, four]
+}
+
+~~~~~
+//##4.f try catch - multi nested
+
+def maybeThrow(b boolean){
+	if(b){ throw new Exception("") }
+}
+
+def doings1(b1 boolean, b2 boolean, b3 boolean) String{
+	a=2
+	b=3
+	one = "" + try{ maybeThrow(b1); 1000  + try{ maybeThrow(b2); 100+a**b  } 
+							   catch(e) { 200 + b**a }  
+				  }
+			   catch(e) { 2000  + try{ maybeThrow(b3); 100+a**b  } 
+			   						  catch(e) { 200 + b**a } }
+	return "" + one
+}
+
+
+def doings() String{
+	return "" + [
+	doings1(true,  true,  true),
+	doings1(false, true,  true),
+	doings1(true,  false, true),
+	doings1(false, false, true),
+	doings1(true,  true,  false),
+	doings1(false, true,  false),
+	doings1(true,  false, false),
+	doings1(false, false, false)]
+	//[2209, 1209, 2209, 1108, 2108, 1209, 2108, 1108]
+}
+
+~~~~~
+//##4.g try catch - no translation required
+
+//TODO: better to validate this via some kind of code inspection
+def maybeThrow(b boolean){
+	if(b){ throw new Exception("") }
+}
+
+def doings1(b boolean) int {
+	return try{maybeThrow(b); 12} catch(e){ 13}
+}
+
+def doings() String{
+	return "" + [doings1(true), doings1(false)]
+}
+
+~~~~~
+//##4.h try catch - no translation required - as class
+
+class MC{
+	def maybeThrow(b boolean){
+		if(b){ throw new Exception("") }
+	}
+	
+	def doings1(b boolean) String {
+		return "" + try{maybeThrow(b); 12} catch(e){ 13}
+	}
+}
+
+def doings() String{
+	mc = new MC()
+	return "" + [mc.doings1(true), mc.doings1(false)]
+}
+
+~~~~~
+//##5. for loop simple cases
+
+def doings() String{
+	ar1 = for( n=1; n <== 10; n++){ n*2  }
+	ar2 = for(n in [1,2,3,4,5,6,7]){ n*2 }//fake me up
+	ar3 = for(n in ar1){ n*2 }//non faked
+	conv = for( n=1; n <== 10; n++){ "" + (n*2)  }
+	
+	return ""+ [""+ar1, "" + ar2, "" + ar3] + ", " + conv
+}
+
+~~~~~
+//##5.b for loop simple cases - nested for loops
+
+def doings() String{
+	conv = for( n=1; n <== 10; n++){  for( m=1; m <== 10; m++){ (n*m)  }  }
+	conv2 = for( n in [1,2,3]){  for( m in [1,2,3] ){ (n*m)  }  }
+	conv3 = for( n=1; n <== 10; n++){ ""+ for( m=1; m <== 10; m++){ "" + (n*m)  }  }
+	conv4 = for( n in [1,2,3]){ ""+ for( m in [1,2,3] ){ ""+ (n*m)  }  }
+	
+	return ""+ for(x in ["" + conv,"" + conv2, "" + conv3, "" + conv4]){  x + "\n" } 
+}
+
+~~~~~
+//##5.b for loop simple cases - nested for loops - array version
+
+def doings() String{
+	conv = for( n=1; n <== 10; n++){  for( m=1; m <== 10; m++){ (n*m)  }  }
+	conv2 = for( n in [1 2 3]){  for( m in [1 2 3] ){ (n*m)  }  }
+	conv3 = for( n=1; n <== 10; n++){ ""+ for( m=1; m <== 10; m++){ "" + (n*m)  }  }
+	conv4 = for( n in [1 2 3]){ ""+ for( m in [1 2 3] ){ ""+ (n*m)  }  }
+	
+	return ""+ for(x in ["" + conv,"" + conv2, "" + conv3, "" + conv4]){  x + "\n" } 
+}
+
+
+~~~~~
+//##6.a - simple while
+
+def doings() String{
+	a=1;
+	return "" + while(a++ <== 10) { a++ }
+}
+
+~~~~~
+//##6.b - simple while - complex
+
+def doings() String{//TODO: fix me, i am too slow to compile
+	a1 = "" + { a=1; while(a++ <== 10) { b=1; while(b++ <== 10) { b++ * a++ } } }
+	a2 = "\n" + { a=1; ""+while(a++ <== 10) { b=1; while(b++ <== 10) { b++ * a++ } } }
+	a3 = "\n" + { a=1; while(a++ <== 10) { b=1; ""+while(b++ <== 10) { b++ * a++ } } }
+	a4 = "\n" + { a=1; ""+while(a++ <== 10) { b=1; ""+while(b++ <== 10) { b++ * a++ } } }
+	a5 = "\n" + { a=1; ""+while(a++ <== 10) { b=1; ""+while(b++ <== 10) { ""+( b++ * a++) } } }
+	
+	return "" + [a1, a2, a3, a4, a5]
+}
+
+~~~~~
+//##7.a break continue returns - simple while
+
+def doings() String { 
+	a=0; b=0;
+	ar = while(a++ < 10){ continue a;	} //ok
+	ar2 = while(b++ < 10){ break b;	} //ok
+	return "" + [ar, ar2]
+}
+
+
+~~~~~
+//##7.b break continue returns - complex while fors
+
+def doings1() String { 
+	a=0; b=0;
+	ar = while(a++ < 10){ continue a-1;	} //ok
+	ar2 = while(b++ < 10){ break b-1;	} //ok
+	return "" + [ar, ar2]
+}
+
+def doings2() String { 
+	ar = for(a =0; a < 10; a++) { continue a;	} //ok
+	ar2 = for(a =0; a < 10; a++) { break a;	} //ok
+	return "" + [ar, ar2]
+}
+
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings3() String { 
+	ar = for(a in x){ continue a;	} //ok
+	ar2 = for(b in x){ break b;	} //ok
+	ar3 = for(a in xxx){ continue a;	} //ok
+	ar4 = for(b in xxx){ break b;	} //ok
+	return "" + [ar, ar2, ar3, ar4]
+}
+
+def doings() String{
+	return "" + doings1() + "\n" + doings2() + "\n" + doings3()
+}
+
+
+~~~~~
+//##7.c break continue returns - complex while fors -  inc early cont
+
+def doings1() String { 
+	a=0; b=0;
+	ar = while(a++ < 10){ if(a  mod  2==0){continue } continue a-1;	} //ok
+	a=0;
+	arn = while(a++ < 10){ if(a  mod  2<>0){continue } continue a-1;	} //ok
+	//while(a++ < 10){ if(a  mod  2==0){continue } continue ;	} //ok
+	ar2 = while(b++ < 10){if(b-1  mod  2==0){continue} break b-1;	} //ok
+	return "" + [ar, arn, ar2]
+}
+
+def doings2() String { 
+	ar = for(a =0; a < 10; a++) {if(a  mod  2==0){continue} continue a;	} //ok
+	ar2 = for(a =0; a < 10; a++) {if(a  mod  2==0){continue} break a;	} //ok
+	return "" + [ar, ar2]
+}
+
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings3() String { 
+	ar = for(a in x){if(a  mod  2==0){continue} continue a;	} //ok
+	ar2 = for(b in x){if(b  mod  2==0){continue} break b;	} //ok
+	ar3 = for(a in xxx){if(a  mod  2==0){continue} continue a;	} //ok
+	ar4 = for(b in xxx){if(b  mod  2==0){continue} break b;	} //ok
+	return "" + [ar, ar2, ar3, ar4]
+}
+
+def doings() String{
+	return "" + doings1() + "\n" + doings2() + "\n" + doings3()
+}
+
+~~~~~
+//##7.d break continue returns - complex while fors -  inc early cont p90
+
+def doings1() String { 
+	a=0; b=0;
+	ar = while(a++ < 10){ if(a  mod  2==0){continue 90 } continue a-1;	} //ok
+	a=0;
+	arn = while(a++ < 10){ if(a  mod  2<>0){continue 90 } continue a-1;	} //ok
+	//while(a++ < 10){ if(a mod 2==0){continue 90 } continue ;	} //ok
+	ar2 = while(b++ < 10){if(b-1 mod 2==0){continue 90} break b-1;	} //ok
+	return "" + [ar, arn, ar2]
+}
+
+def doings2() String { 
+	ar = for(a =0; a < 10; a++) {if(a mod 2==0){continue 90} continue a;	} //ok
+	ar2 = for(a =0; a < 10; a++) {if(a mod 2==0){continue 90} break a;	} //ok
+	return "" + [ar, ar2]
+}
+
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings3() String { 
+	ar = for(a in x){if(a mod 2==0){continue 90} continue a;	} //ok
+	ar2 = for(b in x){if(b mod 2==0){continue 90} break b;	} //ok
+	ar3 = for(a in xxx){if(a mod 2==0){continue 90} continue a;	} //ok
+	ar4 = for(b in xxx){if(b mod 2==0){continue 90} break b;	} //ok
+	return "" + [ar, ar2, ar3, ar4]
+}
+
+def doings() String{
+	return "" + doings1() + "\n" + doings2() + "\n" + doings3()
+}
+
+~~~~~
+//##7.e break continue returns - complex while fors -  inc early break p90
+def doings1() String { 
+	a=0; b=0;
+	ar = while(a++ < 10){ if(a mod 2==0){break 90 } continue a-1;	} //ok
+	a=0;
+	arn = while(a++ < 10){ if(a mod 2<>0){break 90 } continue a-1;	} //ok
+	//while(a++ < 10){ if(a mod 2==0){break 90 } continue ;	} //ok
+	ar2 = while(b++ < 10){if(b-1 mod 2==0){break 90} break b-1;	} //ok
+	return "" + [ar, arn, ar2]
+}
+
+def doings2() String { 
+	ar = for(a =0; a < 10; a++) {if(a mod 2==0){break 90} continue a;	} //ok
+	ar2 = for(a =0; a < 10; a++) {if(a mod 2==0){break 90} break a;	} //ok
+	return "" + [ar, ar2]
+}
+
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings3() String { 
+	ar = for(a in x){if(a mod 2==0){break 90} continue a;	} //ok
+	ar2 = for(b in x){if(b mod 2==0){break 90} break b;	} //ok
+	ar3 = for(a in xxx){if(a mod 2==0){break 90} continue a;	} //ok
+	ar4 = for(b in xxx){if(b mod 2==0){break 90} break b;	} //ok
+	return "" + [ar, ar2, ar3, ar4]
+}
+
+def doings() String{
+	return "" + doings1() + "\n" + doings2() + "\n" + doings3()
+}
+
+~~~~~
+//##7.f break continue returns - complex while fors -  inc early break
+def doings1() String { 
+	a=0; b=0;
+	ar = while(a++ < 10){ if(a mod 2==0){break } continue a-1;	} //ok
+	a=0;
+	arn = while(a++ < 10){ if(a mod 2<>0){break } continue a-1;	} //ok
+	//while(a++ < 10){ if(a mod 2==0){break } continue ;	} //ok
+	ar2 = while(b++ < 10){if(b-1 mod 2<>0){break} break b-1;	} //ok
+	return "" + [ar, arn, ar2]
+}
+
+def doings2() String { 
+	ar = for(a =0; a < 10; a++) {if(a mod 2<>0){break} continue a;	} //ok
+	ar2 = for(a =0; a < 10; a++) {if(a mod 2<>0){break} break a;	} //ok
+	return "" + [ar, ar2]
+}
+
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings3() String { 
+	ar = for(a in x){if(a mod 2<>0){break} continue a;	} //ok
+	ar2 = for(b in x){if(b mod 2<>0){break} break b;	} //ok
+	ar3 = for(a in xxx){if(a mod 2<>0){break} continue a;	} //ok
+	ar4 = for(b in xxx){if(b mod 2<>0){break} break b;	} //ok
+	return "" + [ar, ar2, ar3, ar4]
+}
+
+def doings() String{
+	return "" + doings1() + "\n" + doings2() + "\n" + doings3()
+}
+
+
+~~~~~
+//##8. a real example
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings() String{
+	a1 = "" + for(f in [1,2,3, 4, 5, 6, 7, 8, 9, 10]) { f + ":" + if(f  mod 2==0){ 2 } elif(f  mod 3==0){ 3 } else{ "_"}}
+	a2 = "" + for(f=1; f <==10; f++) { f + ":" + if(f  mod 2==0){ 2 } elif(f  mod 3==0){ 3 } else{ "_"}}
+	a3 = "" + for(f in xxx) { f + ":" + if(f  mod 2==0){ 2 } elif(f  mod 3==0){ 3 } else{ "_"}}
+	var x = "" + for(f in xxx) { if(f  mod 2==0){ 2 } elif(f  mod 3==0){ 3 } else{ "_"}} //to be complete
+	
+	
+	return "" + [a1, "\n", a2, "\n", a3, "\n", x]
+}
+
+~~~~~
+//##8.b a real example - 2
+
+orig int:: = 90
+x int:: = orig
+
+from java.util import ArrayList
+
+checks = new ArrayList<Boolean>();
+
+raw = 8
+ref1l = 8!
+ref2l = (8!)!
+
+
+rawAOnes = [def () boolean { x ::= raw; return true }, 
+		  def () boolean { x := raw; return true },
+		  def () boolean { x = raw; return true } ]
+
+l1ones =  [def () boolean { x ::= ref1l; return true },
+			def () boolean { x := ref1l; return true },
+			def () boolean { x = ref1l; return true } ]
+
+l2ones =  [def () boolean { x ::= ref2l; return true },
+		def () boolean { x := ref2l; return true },
+		def () boolean { x = ref2l; return true } ]
+
+proc = def ( funcl () boolean ) boolean { x ::= orig; return funcl(); }//reset then do
+
+
+
+def doings() String{
+	 "" + for (group in [rawAOnes, l1ones, l2ones ] ) {	 for( test in group) { proc(test) }			}
+}
+
+~~~~~
+//##8.c a real example - 3 - as aboe but simpler
+
+orig int:: = 90
+x int:: = orig
+
+from java.util import ArrayList
+
+checks = new ArrayList<Boolean>();
+
+def doings() String{
+	raw = 8
+	ref1l = 8!
+	ref2l = (8!)!
+	
+
+	rawAOnes = [def () boolean { x ::= raw; return x==raw }, 
+			  def () boolean { x := raw; return x==raw },
+			  def () boolean { x = raw; return x==raw } ]
+	
+	l1ones =  [def () boolean { x ::= ref1l; return x:&==ref1l: and x::&<>ref1l: },
+				def () boolean { x := ref1l; return x::&==orig:: and x:&==ref1l: and x::&<>ref1l: },
+				def () boolean { x = ref1l; return x::&==orig:: and x==ref1l and x:&<>ref1l: and x::&<>ref1l: } ]
+	
+	l2ones =  [def () boolean { x ::= ref2l; return x::&==ref2l:: },
+			def () boolean { x := ref2l; return x::&==orig:: and x:&==ref2l: },
+			def () boolean { x = ref2l; return x::&==orig:: and x == ref2l and x:&<>ref2l } ]
+	
+	proc = def ( funcl () boolean ) boolean 
+			{  { orig = 90::
+				x ::= orig; 
+				raw = 8
+				ref1l = 8!
+				ref2l = (8!)!
+				}//reset
+			return funcl(); }//reset then do
+	
+	res = "" +  for (group in [rawAOnes, l1ones, l2ones ] ) { for( test in group) { proc(test) } } + ";;\n"
+	
+	res += ""+ for( test in rawAOnes) { proc(test) } +"\n"
+	res += ( for( test in l1ones) { proc(test) } )  +"\n"
+	res +=  (for( test in l2ones) { proc(test) }) 
+	
+	//now with 2 level ref
+	//1 level ref [check placement]
+	
+	return "" + res
+}
+
+~~~~~
+//##9.a exceptions - simple
+
+import java.util.List as MySpecialList
+
+
+def doings1() String{
+	a int =10
+	d MySpecialList<Integer> = for(a in [1,2,3,4,5,6,7,8,9]){
+		try{
+			if(a mod 2 == 0){ throw new Exception("")} else { 12 }
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+def doings2() String{
+	a int =10
+	d MySpecialList<Integer> = for(a in [1,2,3,4,5,6,7,8,9]){
+		try{
+			if(a mod 2 == 0){ throw new Exception("")} else { throw new Exception("") }
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+def doings() String{
+	return "" + doings1() + "::" + doings2()
+}
+
+~~~~~
+//##9.b exceptions - adv
+
+import java.util.List as MySpecialList
+
+
+def doings() String{
+	a int =10
+	d MySpecialList<Integer> = for(a in [1,2,3,4,5,6,7,8,9]){
+		try{
+			if(a mod 3 == 0)
+			{
+				if(a mod 2 == 0){ throw new Exception("")} else { throw new Exception("") }
+			}
+			else{
+				if(a mod 2 == 0){ throw new Exception("")} else { 12 }
+			}
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##9.c exceptions - adv 2
+
+import java.util.List as MySpecialList
+
+za = [1,2,3,4,5,6,7,8,9]
+
+def doings() String{
+	d MySpecialList<Integer> = for(a in za){
+		try{
+			if(a mod 3 == 0)
+			{
+				if(a mod 2 == 0){ 11} else { 33 }
+			}
+			else{
+				if(a mod 2 == 0){ 22} else {  throw new Exception("") }
+			}
+		}catch(e){
+			if(a mod 2 == 0){ 22} else { 93 }
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##9.cc exceptions - adv 3
+
+import java.util.List as MySpecialList
+
+za = [1,2,3,4,5,6,7,8,9]
+
+def doings() String{
+	d MySpecialList<Integer> = for(a in za){
+		try{
+			if(a mod 3 == 0)
+			{
+				if(a mod 2 == 0){ 11} else { throw new Exception("")  }
+			}
+			else{
+				if(a mod 2 == 0){ 22} else {  33}
+			}
+		}catch(e){
+			if(a mod 2 == 0){ 22} else { 93 }
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##9.d exceptions - adv 2 - for block old
+
+import java.util.List as MySpecialList
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d MySpecialList<Integer> = for(n = 0; n < za.length; n++){
+		a = za[n]
+		try{
+			if(a mod 3 == 0)
+			{
+				if(a mod 2 == 0){ 11} else { 33 }
+			}
+			else{
+				if(a mod 2 == 0){ 22} else {  throw new Exception("") }
+			}
+		}catch(e){
+			if(a mod 2 == 0){ 22} else { 93 }
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##10. more elaborate while
+
+import java.util.List as MySpecialList
+
+
+def doings() String{
+	a=0
+	d MySpecialList<MySpecialList<String>> = while(a++ < 10)
+	{
+		b=0
+		while(b++ < 10){
+			z=a*b
+			(if(z mod 2==0){ if(z mod 3==0){"p" } else{ "l"} } else{ "y"})  + z
+		}
+	}
+			
+	return "" + d
+}
+
+~~~~~
+//##11. handly little mini test
+
+def afunc(av int) int{ return av }
+
+def doings() String{
+	return "" + afunc({a=3; a*a})
+}
+
+~~~~~
+//##12. complex exception cases
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		r=0
+		try{
+			try{
+				if(a mod 2 == 0){ r=22} else {  throw new Exception("XXX") }
+			}catch(e){
+				r=if(a mod 3 == 0){ 33} else {  throw new Exception("XXX") }
+			}
+		}catch(e){
+			r=93
+		}
+		r
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##12.b complex exception cases
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		r=0
+		try{
+			r=try{//overwrite next block such that jump is done correctly
+				//if(a mod 2 == 0){ 22} else {  throw new Exception("") }
+				//if(a mod 2 == 0){ 22} else { 33 }
+				555
+			}catch(e){
+				//if(a mod 3 == 0){ 33} else { throw e }
+				999
+			}
+			r=1000
+		}catch(e){
+			r=93
+		}
+		r
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##12.c complex exception cases - no stuff after
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		r=0
+		try{
+			r=try{//overwrite next block such that jump is done correctly
+				//if(a mod 2 == 0){ 22} else {  throw new Exception("") }
+				//if(a mod 2 == 0){ 22} else { 33 }
+				555
+			}catch(e){
+				//if(a mod 3 == 0){ 33} else { throw e }
+				999
+			}
+		}catch(e){
+			r=93
+		}
+		r
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##12.d complex exception cases - no stuff after getting better
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		r=0
+		try{
+			r=try{
+				if(a mod 2 == 0){ 22} else {  throw new Exception("") }
+			}catch(e){
+				if(a mod 3 == 0){ 33} else { throw e }
+			}
+		}catch(e){
+			r=93
+		}
+		r
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##12.e complex exception cases - dunno
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		try{
+			try{
+				if(a mod 2 == 0){ 22} else {  throw new Exception("") }
+			}catch(e){
+				if(a mod 3 == 0){ 33} else { throw e }
+			}
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+
+~~~~~
+//##12.f complex exception cases - dunno 2
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		
+		try{
+			r=try{
+				if(a mod 2 == 0){ 22} else {  33 }
+			}catch(e){
+				if(a mod 3 == 0){ 44} else { 55 }
+			}
+			r
+		}catch(e){
+			99
+		}
+		
+	} 
+			
+	return "" + d
+}
+~~~~~
+//##12.g complex exception cases - dunno 3
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		try{
+			r=0
+			try{
+				r=if(a mod 2 == 0){ 22} else {  33 }
+				//r=r
+			}catch(e){
+				//if(a mod 3 == 0){ 44} else { 55 }
+				r=111
+			}
+			r
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##12.h complex exception cases - dunno 4
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		
+		try{
+			r=try{
+				if(a mod 2 == 0){ 22} else {  33 }
+			}catch(e){
+				r=if(a mod 2 == 0){ 22} else {  33 }
+				r
+			}
+			r
+		}catch(e){
+			99
+		}
+		
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##13. minor point
+
+xxx =  [1 2 4]
+
+def doings() String{
+	f =  for( test in xxx) { 999 } + "" //create string ref with empty string on lhs, else jvm moans about uninit object on stack
+	return "" + f
+}
+
+~~~~~
+//##14. nest try catch with fin
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		
+		try{
+			r=try{
+				a=33
+				88
+			}catch(e){
+				a=44
+				88
+			}
+			finally{
+				x=88
+			}	
+			r
+		}catch(e){
+			99
+		}
+		
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##15. the fin does the return op
+
+za = [1 2 3 4 5 6 7 8 9]
+
+def gofa() int{ return 8; } 
+
+def doings() String{
+	d = for(n = 0; n < za.length; n++){
+		a = za[n]
+		
+		try{
+			gofa()
+			33
+		}
+		catch(e){
+			gofa()
+			33
+		}
+		finally{
+			x=33
+		}
+		
+	} 
+			
+	return "" + d
+}
+
+
+~~~~~
+//##16. last thing in function is ret
+
+def doings() String{
+	"ok"
+}
+
+~~~~~
+//##17. last thing in lambda is ret
+
+def doings() String{
+	xxx = def (a int) String { ""+a }
+	
+	xxx(12)
+}
+
+~~~~~
+//##18. ensure old ways still work
+def ttt() => true
+def doings() String{
+	if(ttt()){ return "fine" } else{ return "ok" }
+}
+
+
+~~~~~
+//##19.a def with final
+
+def voidRet() {}
+
+def vernormal() int {
+	try{
+		z=12
+		19
+	}catch(e){
+		z=12
+		19
+	}
+	finally{
+		voidRet()//void so does nothing
+		
+	}
+}
+
+def doings() String { "" + vernormal() }
+
+~~~~~
+//##19.b def with final
+
+def retInt() int{ 22}
+
+def alright() int {
+	try{
+		retInt() //gets poped even tho last thing
+		12
+	}catch(e){
+		retInt()
+		12
+	}
+	finally{
+		x=12
+	}
+}
+
+def doings() String{
+	"" + alright()
+}
+
+~~~~~
+//##19.c def with final - as above but void
+
+def voidRet() {  }
+
+def alright() int {
+	try{
+		voidRet()
+		12
+	}catch(e){
+		voidRet()
+		12
+	}
+	finally{
+		x=12//ok, returns this thing
+	}
+}
+
+def doings() String{
+	"" + alright()
+}
+
+~~~~~
+//##19.d.a def with final - finally void
+
+def doings() String {
+	try{
+		""+12
+	}catch(e){
+		""+12
+	}
+	finally{
+	
+	}
+}
+
+~~~~~
+//##19.d.b def with final - finally void 2
+
+a=0
+def voidRet() void {  a++ }
+def ttt()=>true
+def doings() String {
+	x=try{
+		"12"
+	}catch(e){
+		"12"
+	}
+	finally{
+		if(ttt()){voidRet() } else{ voidRet() }
+	}
+	
+	return "" + x + ">" + a
+}
+
+~~~~~
+//##19.d.b def with final - finally void 3
+
+def voidRet()  {   }
+
+def doings() String {
+	try{
+		"12"
+	}catch(e){
+		"12"
+	}
+	finally{
+		voidRet()
+	}
+}
+
+~~~~~
+//##19.e dunno why this is here
+
+def voidRet() {}
+
+def doings() String{
+	try{
+		return "22"
+	}
+	finally{
+		voidRet()
+	}
+}
+
+~~~~~
+//##20. one line func def
+
+def doings1() String => "great"
+def doings2() String => a="work";a
+
+def doings() String => ""+[doings1(), doings2()]
+
+~~~~~
+//##20.b one line func def - lambda
+
+//TODO: support the following syntax
+//doings1 = def () String = "great"
+//doings2 =  def () String = a="work";a
+
+//this will have to do for now:
+doings1 = def () String {"great"}
+doings2 =  def () String {a="work";a}
+
+def doings() String => ""+[doings1(), doings2()]
+
+~~~~~
+//##20.c one line func def - constru
+
+class M1{
+	public a = 9
+	this() => a=10 
+}
+
+
+def doings() String => a=new M1(); ""+ a.a
+
+~~~~~
+//##21. minor bug i found by chance
+
+def doings() String{
+	return try{ "12" } catch(e){ throw new Exception("23") }  
+}
+
+~~~~~
+//##21.b minor bug i found by chance - phew least this is ok
+
+def doings() String{
+	return try{ throw new Exception("23") } catch(e){ "12" }  
+}
+
+~~~~~
+//##22.a Type inference
+
+def doings1() { return "hi" }
+def doings2() { "hi" }
+def doings3() => "hi" 
+def doings4() => {"hi"}
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()]
+
+
+~~~~~
+//##22.b Type inference - on lambda
+
+xxx2  = def (x int) {  x+3; } //infer ret int, also ltr on the val
+def doings() => "" + xxx2(12)//lol note no nice = syntax on the def :(
+
+~~~~~
+//##23. another edge case, block can have immediate use
+
+def bol() => false
+//public boolean bol() { return false; }
+
+def newif(x boolean, y boolean, z boolean)  => //nl between = and {
+{
+	if(x){
+		bol()
+	}
+	else{
+		bol()
+	}//immediate use
+}
+
+def doings() => "" + newif(true, true, true) 
+
+~~~~~
+//##24. this was playing up, now its ok
+
+ike = 0
+
+def produceOne() (int) void {
+	def inner(a int)  => ike += a
+	return inner&(? int)
+}
+
+def doings() => produceOne()(8); "" + ike 
+
+~~~~~
+//##25. pop the thing constructed or array if not required
+
+class X{}
+
+def doings( ) {
+    new X()
+    new int[4]
+    "ok"
+}
+
+~~~~~
+//##26. last thing ret iso blocks and blocks
+def ttt()=>true
+
+def doings1() String{
+	a4 = {if(ttt()){12} else{7}}
+
+	return "" + a4
+}
+
+def doings2() String{
+	a4 = {a=if(ttt()){12} else{7};a}
+
+	return "" + a4
+}
+
+
+def doings3() => {
+	a4 = {	if(ttt()){12}else {7}	}!
+
+	""+ ["" + a4:, "" + a4]
+}
+
+def doings4() String{
+	a4 = sync{	if(ttt()){12}else {7}	}
+
+	"" + a4
+}
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()]
+
+~~~~~
+//##27. check for block old
+
+def doings() {
+	o=8
+	for (nohoh=9;nohoh<10;
+			{nohoh++; 
+			nohoh++; 
+			o=9} ) {//doesnt have to return anything
+	    a=5
+	}
+ 	"fine"
+}
+
+~~~~~
+//##28. sync block
+
+def doings() String {
+	sync{
+		"hi"//TODO: with blocks
+	}
+}
+
+~~~~~
+//##29. incomplete statements if tcf last thing ret bevahour
+def ttt()=>true
+xxx=0
+
+def justOnce()  {
+	if(ttt()){ xxx++; }
+	elif(ttt()){ xxx++; }
+	//else block not required becaues this statement doesnt return anything
+}
+
+def justOnce2()  {
+	try{ xxx++; }
+	catch(e){  }//no ret in here needed as doesnt return anything
+}
+
+def doings() String{
+	//these are both void:
+	justOnce()
+	justOnce2()
+	
+	return "" + xxx
+}
+
+~~~~~
+//##30. misc - the ret is not used
+
+from java.util import ArrayList
+
+xxx = new ArrayList<Integer>();
+
+def newif(x boolean, y boolean, z boolean)  {
+	thing=0
+	tt=true
+	if(x){
+		xxx.add(thing + 10)
+	}
+	else{
+		xxx.add(thing + 10)
+	}
+	
+}
+
+def doings() String{
+	newif(true, true, true) 
+				 newif(true, false, true) 
+				 newif(false, true, true)  
+				 newif(false, false, true)
+				 newif(true, true, false)  
+				 newif(true, false, false)
+				 newif(false, true, false) 
+				 newif(false, false, false) 
+	
+	
+	return "" + xxx
+}
+
+~~~~~
+//##31. misc - ltr 
+
+import java.util.List as MySpecialList
+
+za = [1,2,3,4,5,6,7,8,9]
+
+def doings() String{
+	d MySpecialList<Integer> = for(a in za){
+		try{
+			if(a mod 3 == 0)
+			{
+				11
+			}
+			else{
+				//if(a mod 2 == 0){ 22} else {  33 }
+				f=		if(a mod 2 == 0){ 22} else {  throw new Exception("WANK") }
+				f
+			}
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##31.b misc - ltr 2
+
+import java.util.List as MySpecialList
+
+za = [1,2,3,4,5,6,7,8,9]
+
+def doings() String{
+	d MySpecialList<Integer> = for(a in za){
+		try{
+			if(a mod 3 == 0)
+			{
+				11
+			}
+			else{
+				//if(a mod 2 == 0){ 22} else {  33 }
+				if(a mod 2 == 0){ 22} else {  throw new Exception("WANK") }
+				
+			}
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##31.c misc - ltr 3
+
+import java.util.List as MySpecialList
+
+za = [1,2,3,4,5,6,7,8,9]
+
+def doings() String{
+	d MySpecialList<Integer> = for(a in za){
+		try{
+			if(a mod 3 == 0)
+			{
+				11
+			}
+			else{
+				if(a mod 2 == 0){ 22} else {  33 }
+				//if(a mod 2 == 0){ 22} else {  throw new Exception("WANK") }
+				
+			}
+		}catch(e){
+			99
+		}
+	} 
+			
+	return "" + d
+}
+
+~~~~~
+//##32. misc - easy while x2
+
+def doings1() String{
+	a=1
+	a1 = "" + while(a++ <== 10) { 
+					2
+				} 
+	
+	"" + a1
+}
+
+def doings2() String{
+	a=1
+	a1 = "" +{ while(a++ <== 10) { 
+					2
+				} }
+	
+	"" + a1
+}
+
+def doings() => "" + [doings1(), doings2()]
+
+~~~~~
+//##33. misc - infer return type
+
+open class Parent{
+	def theFunc() Object => ""
+}
+
+class Child extends Parent{
+	override def theFunc() => "hi" //this is a ok
+}
+
+def doings()  {
+	c = new Child()
+	"" + c.theFunc()
+}
+
+~~~~~
+//##34. for loop eh why not
+
+def doings() => {
+	y = for(x in [1,2]){ x=7;x }
+	"" +  y
+}
+
+~~~~~
+//##35. for loop variants
+
+from java.util import ArrayList
+
+x = [0,1,2,3,4,5,6,7,8,9, 10]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+
+
+def doings1() String{
+	aa = for(a in xxx){
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+def doings2() String{
+	aa = for(a in x){ 
+				if(a > 2) { 11 } 
+				else{ 22 } 
+			}
+	"" + aa
+}
+
+def doings3() String{
+	aa = for(a=0; a <== 10; a++){  
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+
+def doings () => "" + [doings1(), "\n", doings2(), "\n", doings3()] 
+
+~~~~~
+//##35.a for loop variants - via array
+
+from java.util import ArrayList
+
+x = [0 1 2 3 4 5 6 7 8 9  10]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+
+
+def doings1() String{
+	aa = for(a in xxx){
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+def doings2() String{
+	aa = for(a in x){ 
+				if(a > 2) { 11 } 
+				else{ 22 } 
+			}
+	"" + aa
+}
+
+def doings3() String{
+	aa = for(a=0; a <== 10; a++){  
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+
+def doings () => "" + [doings1(), "\n", doings2(), "\n", doings3()] 
+
+
+~~~~~
+//##36. easy while
+
+def doings() String{
+	a=0;
+	aa = while(a++ <== 10){
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+~~~~~
+//##37. nest while
+
+def doings() String{
+	a=0; 
+	aa = while(a++ <== 4){
+				b=0
+				while(b++ <== 4){
+					if(a > 2) { 11 } 
+					else{ 22 }
+				}
+			}
+	"" + aa
+}
+
+~~~~~
+//##38. while and tcf
+
+def doings() String{
+	a=0
+	aa = while(a++ <== 10){
+				try{ 12	}
+				catch(e){ 13 }
+			}
+	"" + aa
+}
+
+~~~~~
+//##39. simple for
+
+def doings() String{
+	aa = for(a=0; a < 10; a++){
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+~~~~~
+//##39.b simple for - new
+
+from java.util import ArrayList
+xxx = new ArrayList<Integer>();
+xxx.add(1);
+xxx.add(2);
+xxx.add(3);
+xxx.add(4);
+
+def doings() String{
+	aa = for(a in xxx){
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+~~~~~
+//##39.c simple for - new but old
+
+def doings() String{
+	aa = for(a in [1,2,3]){
+				if(a > 2) { 11 } 
+				else{ 22 }
+			}
+	"" + aa
+}
+
+~~~~~
+//##40. another one
+
+def doings () String{
+	aa = for(a=0; a < 10; a++){ 
+				if(a > 2) { a } 
+				else{ a } 
+			}
+	"" + aa
+}
+
+~~~~~
+//##41. for and while no need cont - for map old
+
+def doings () String{
+	aa = for(a in [0, 1,2,3, 4, 5]){ 
+				if(a < 3) { 99 } 
+				else{ continue  } 
+			}
+	"" + aa
+}
+
+~~~~~
+//##41.b for and while no need cont - for old
+
+def doings () String{
+	aa = for(a=0; a< 10; a++){ 
+				if(a < 3) { 99 } 
+				else{ continue  } 
+			}
+	"" + aa
+}
+
+~~~~~
+//##42.c for and while no need cont - for new
+
+from java.util import ArrayList
+ar = new ArrayList<int>()
+ar.add(0)
+ar.add(1)
+ar.add(2)
+ar.add(3)
+ar.add(4)
+ar.add(5)
+
+def doings () String{
+	aa = for(a in ar){ 
+				if(a < 3) { 99 } 
+				else{ continue  } 
+			}
+	"" + aa
+}
+
+~~~~~
+//##42.d break and continue - for old
+
+def doings1() String { 
+	ar = for(a =0; a < 10; a++) { if(a==5){99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings2() String { 
+	ar = for(a =0; a < 10; a++) {  {continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings3() String { 
+	ar = for(a =0; a < 10; a++) { if(a==5){break 99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+def doings4() String { 
+	ar = for(a =0; a < 10; a++) { if(a==5){ 99} else { a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()]
+
+~~~~~
+//##42.e break and continue - for new maps to old
+
+def doings1() String { 
+	ar = for(a in [1,2,3,4,5,6,7,8,9,10]) { if(a==5){99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings2() String { 
+	ar = for(a in [1,2,3,4,5,6,7,8,9,10]) {  {continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings3() String { 
+	ar = for(a in [1,2,3,4,5,6,7,8,9,10]) { if(a==5){break 99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+def doings4() String { 
+	ar = for(a in [1,2,3,4,5,6,7,8,9,10]) { if(a==5){ 99} else { a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()]
+
+~~~~~
+//##42.f break and continue - new for
+
+from java.util import ArrayList
+
+x = [1,2,3,4,5,6,7,8,9,10]
+xxx = new ArrayList<Integer>();
+for(f in x){ xxx.add(f); }
+
+def doings1() String { 
+	ar = for(a in xxx) { if(a==5){99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings2() String { 
+	ar = for(a in xxx) {  {continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings3() String { 
+	ar = for(a in xxx) { if(a==5){break 99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+def doings4() String { 
+	ar = for(a in xxx) { if(a==5){ 99} else { a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()]
+
+~~~~~
+//##42.f break and continue - on its own
+
+from java.util import ArrayList
+xxx = new ArrayList<Integer>();
+xxx.add(1);
+xxx.add(2);
+xxx.add(3);
+xxx.add(4);
+xxx.add(5);
+xxx.add(6);
+xxx.add(7);
+xxx.add(8);
+xxx.add(9);
+xxx.add(10);
+
+
+def doings() String { 
+	ar = for(a in xxx) { if(a==5){break 99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+~~~~~
+//##42.f break and continue - while
+
+def doings1() String { 
+	a=0
+	ar = while(a++<==10) { if(a==5){99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings2() String { 
+	a=0
+	ar = while(a++<==10) {  {continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings3() String { 
+	a=0
+	ar = while(a++<==10) { if(a==5){break 99} else { continue a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+def doings4() String { 
+	a=0
+	ar = while(a++<==10) { if(a==5){ 99} else { a; }	} //ok
+	return "" + ar// + [ar, ar2]
+}
+
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()]
+
+
+
+~~~~~
+//##43. the else is optional if the if is in a loop
+
+def doings1() String{
+	a=0
+	aa = while(a++<10) {
+				if(a <== 5) { 99 } 
+			}
+	"" + aa
+}
+
+def doings2() String{
+	aa = for(a=0; a<10; a++) {
+				if(a <== 5) { 99 } 
+			}
+	"" + aa
+}
+
+la = [1,2,3,4,5,6,7,8,9,10]
+
+def doings3() String{
+	aa = for(a in la){
+				if(a <== 5) { 99 } 
+			}
+	"" + aa
+}
+
+from java.util import ArrayList
+ar = new ArrayList<int>()
+for(a in la){ar.add(a)}
+
+def doings4() String{
+	aa = for(a in ar){
+				if(a <== 5) { 99 } 
+			}
+	"" + aa
+}
+
+
+def doings() => "" + [doings1(), doings2(), doings3(), doings4()] 
+
+~~~~~
+//##44. nice and concise
+def doings () => "" + for(a in [1,2,3,4,5,6,7]){ if(a > 2) {a }  }

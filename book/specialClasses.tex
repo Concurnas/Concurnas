@@ -1,0 +1,109 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Special Classes]{Special Classes}
+	
+There exist two forms of special class in Concurnas which can be used in some circumstances where a non standard approach to the sharing of state or persistence is required. These are shared classes and transient classes.
+
+Bear in mind that one may choose to designate as class as being either shared or transient but not both.
+
+\section{Shared Classes}
+
+Classes, abstract classes and traits may be marked shared. This can be achieved by either using the \lstinline{@com.concurnas.lang.Shared} annotation or shared keyword.
+
+\begin{lstlisting}
+shared class MyClass{
+	mylistInst = [1, 2, 3, 4]
+}
+
+obj1 = MyClass()
+obj2 = {obj1}!//obj1 &== obj2
+obj3 = obj1@//obj1 &== obj3 
+\end{lstlisting}
+
+Marking a class or trait as being shared is most useful for read only or large data structures which are used by multiple iso’s, or for classes which are not concerned with or implement their own multi threading (multi iso) support - for instance, all ref’s a implicitly shared since their implement their own multi threading support.
+
+Instances of objects the class of which is marked as shared or having a shared superclass or trait cannot be explicitly copied, the following kind of code results in a compilation error:
+
+\begin{lstlisting}
+shared class MyClass{
+	~a =9
+}
+mc = MyClass()
+c = mc@//this will result in a compilation error
+\end{lstlisting}
+
+But of course implicit copying is still possible (when an object is passed to an iso or transitivity, e.g. when a field of a class is of a shared class type) - here the 'copy' of the object will in fact just be a reference to itself.
+
+Since marking a superclass, abstract class or trait as being shared will result in all implementing/composed/sub classes also becoming shared, so care should be taken with transient traits.
+
+Classes may be tagged as either shared or transient but not both.
+
+Care should be taken when declaring top level global variables, at module level, with a type of shared class with subsequent reassignment at module level (both directly or indirectly via a function/method etc). Since top level module code is run on import by an isolate, this has the effect of wiping out whatever was previously stored within the variable holding a shared class type every time an isolate which uses any aspect of the module is executed…. (thus defeating the point of the shared class). Here is an example of what to watch out for:
+
+\begin{lstlisting}
+//in module com.myorg.code.conc
+shared class Holder<X>(~x X)
+
+public shared sharedvar = new Holder("initial value")//initial top level declaration
+
+sharedvar = new Holder("reset value") //top level module core re-assigning a value to sharedvar - dangerous
+
+//in module: com.myorg.othercode
+from com.myorg.code import sharedvar, Holder
+
+def operation(){
+	sharedvar = new Holder("new Value")
+	[sharedvar.getX() {sharedvar.x}!]//when the iso is executed sharedvar will be 'reset' to 26
+}
+
+//== ['new Value:' 'reset value:']
+\end{lstlisting}
+
+Removing the \lstinline{sharedvar = new Holder("reset value")} line will have the effect of allowing us to preserve the assigned value of \lstinline{Holder("new Value")} within the \lstinline{operation} method when the iso \lstinline!{sharedvar.x}! is run:
+
+\begin{lstlisting}
+//in module com.myorg.code.conc
+shared class Holder<X>(~x X)
+public shared sharedvar = new Holder("initial value")
+
+//in module: com.myorg.othercode
+from com.myorg.code import sharedvar, Holder
+
+def operation(){
+	sharedvar = new Holder("new Value")
+	[sharedvar.getX() {sharedvar.x}!]
+}
+
+//== ['new Value:' 'new Value:']
+\end{lstlisting}
+
+
+\section{Transient Classes}
+\label{sec:transientClasses}
+Classes, abstract classes and traits may be marked transient. This can be achieved by either using the \lstinline{@com.concurnas.lang.Transient} annotation or transient keyword:
+\begin{lstlisting}
+@com.concurmas.lang.Transient
+class MyTransientClass
+
+transient class AnotherTransientclass
+
+transient trait MyTrait
+\end{lstlisting}
+
+Marking a class as being transient will render it uncopyable between iso’s. I.e. referencing an object of a class marked as being transient in an iso which has been created outside of that iso’s scope will result in a it being null, additionally, manually copying an object using the \lstinline{@} operator will return null:
+
+\begin{lstlisting}
+transient class  MyClass
+
+obj = MyClass()
+obj2 = {obj}! //obj2 resolves to null
+obj3 = obj @//obj3 resolves to null
+\end{lstlisting}
+
+Additionally, marking a class as transient results in it being non persistable off-heap.
+
+Marking a superclass, abstract class or trait as being transient will result in all implementing/composed/sub classes also becoming transient, so care should be applied with transient traits.
+
+\end{document}

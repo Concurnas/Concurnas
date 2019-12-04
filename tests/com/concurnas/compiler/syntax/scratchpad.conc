@@ -1,0 +1,32 @@
+n&(2);
+n(2).k;
+h;
+n&(2)(2);
+
+
+n();
+n(23,6);
+n&();
+n&()();
+
+z = b&();
+z = b&(8);
+z = b&(8)(6);
+z = b&(8, 9);
+z = b&(8, ? int);
+z = b&(8,  Int)(9)&(5, ? float)(5.);
+z = b&(8, ? int)(9)&(5, ? float)&(5.)();
+z = b&(8, ? int)(9)&(5, ? float)(5.)();
+
+z lambda =  b&(); //genneral catch all for a funcref/lambda
+
+
+ax[2].b()(5);
+
+ax[3][2].a()(3);//takes no args
+
+
+ax[3][2].a&(? int)(3);
+ax[3][2].a&(5,? int)(3);
+ax[3][2].a&(5,? int,7)(3);
+ax[3][2].a&(5,? int,? int)&(3,? int)(9)[1].print();

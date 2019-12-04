@@ -1,0 +1,156 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Original author:
+% Mathias Legrand (legrand.mathias@gmail.com) with modifications by:
+% Vel (vel@latextemplates.com)
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+% Adapted for use in this document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt,fleqn]{book} % Default font size and left-justified equations
+\input{structure.tex}
+
+\hypersetup{pdftitle={Concurnas Reference Manual},pdfauthor={Jason Tatton, Founder, Concurnas Ltd}}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begingroup
+\thispagestyle{empty} % Suppress headers and footers on the title page
+\begin{tikzpicture}[remember picture,overlay]
+\node[inner sep=0pt] (background) at (current page.center) {\includegraphics[width=\paperwidth]{background.jpg}};
+\draw (current page.center) node [fill=ocre!30!white,fill opacity=0.6,text opacity=1,inner sep=1cm]{\Huge\centering\bfseries\sffamily\parbox[c][][t]{\paperwidth}{\centering{The Concurnas Programming Language\\[15pt] 
+{\huge Reference Manual} \\
+{\Large v\input{version}}\\[20pt]}}}; 
+\end{tikzpicture}
+\vfill
+\endgroup
+
+%----------------------------------------------------------------------------------------
+%	COPYRIGHT PAGE
+%----------------------------------------------------------------------------------------
+
+\newpage
+~\vfill
+\thispagestyle{empty}
+
+\noindent Copyright \copyright\ \the\year \hspace{1mm} Concurnas Ltd\\ % Copyright notice
+
+%\noindent \textsc{Published by Concurnas Ltd}\\ % Publisher
+
+\noindent \textsc{www.concurnas.com}\\ % URL
+
+%%\noindent Licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License (the ``License''). You may not use this file except in compliance with the License. You may obtain a copy of the License at \url{http://creativecommons.org/licenses/by-nc/3.0}. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an \textsc{``as is'' basis, without warranties or conditions of any kind}, either express or implied. See the License for the specific language governing permissions and limitations under the License.\\ % License information, replace this with your own license (if any)
+
+%%\noindent \textit{First printing, March 2019} % Printing/edition date
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS
+%----------------------------------------------------------------------------------------
+
+%\usechapterimagefalse % If you don't want to include a chapter image, use this to toggle images off - it can be enabled later with \usechapterimagetrue
+
+\chapterimage{chapters.jpg} % Table of contents heading image
+
+\pagestyle{empty} % Disable headers and footers for the following pages
+
+\tableofcontents % Print the table of contents itself
+
+\cleardoublepage % Forces the first chapter to start on an odd page so it's on the right side of the book
+
+\pagestyle{fancy} % Enable headers and footers again
+
+
+
+%----------------------------------------------------------------------------------------
+%	Preface
+%----------------------------------------------------------------------------------------
+
+\subfile{preface}%CDGIgnore
+
+%----------------------------------------------------------------------------------------
+%	PARTS
+%----------------------------------------------------------------------------------------
+
+\part{The Basics}
+\subfile{theBasics}
+\subfile{variableAssignment}
+\subfile{types}
+\subfile{nullsafe}
+\subfile{tuples}
+\subfile{typedefs}
+\subfile{multitypes}
+\subfile{castingAndCheckingTypes}	
+\subfile{classKeyword}
+\subfile{imports}
+\subfile{operators}
+\subfile{controlStatements}
+\subfile{listComprehensions}
+\subfile{exceptions}
+\subfile{arraysMatricesAndLists}
+\subfile{maps}
+\subfile{delete}
+\subfile{functions}
+
+\part{Object-oriented}
+\subfile{classes}
+\subfile{traits}
+\subfile{specialClasses}
+\subfile{accessModifiers}
+\subfile{generics}
+\subfile{enums}
+\subfile{annotations}
+\subfile{copy}
+\subfile{objProviders}
+
+\part{Advanced Techniques}
+\subfile{vectorization}
+\subfile{ranges}
+\subfile{datautils}
+\subfile{patternMatching}
+\subfile{methodReferences}
+\subfile{offHeap}
+\subfile{expressionLists}
+\subfile{extensionFunctions}
+\subfile{langExtensions}
+
+\part{Concurrent, Distributed and GPU}
+\subfile{concurrentProgramming}
+\subfile{gpuParallelProgramming}
+\subfile{distComp}
+
+\part{Tools}
+\subfile{concc}
+\subfile{conc}
+\subfile{replIde}
+%\subfile{docugen}
+
+\part{Others}
+\subfile{warn}
+\subfile{dsl}
+\subfile{others}
+%\subfile{interop}
+%\subfile{reference}
+
+%----------------------------------------------------------------------------------------
+%	INDEX
+%----------------------------------------------------------------------------------------
+
+%\cleardoublepage % Make sure the index starts on an odd (right side) page
+%\phantomsection
+%\setlength{\columnsep}{0.75cm} % Space between the 2 columns of the index
+%\addcontentsline{toc}{chapter}{\textcolor{ocre}{Index}} % Add an Index heading to the table of contents
+%\printindex % Output the index
+
+%----------------------------------------------------------------------------------------
+
+\end{document}

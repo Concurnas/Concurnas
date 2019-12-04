@@ -1,0 +1,1710 @@
+//##1. simple match
+def matcher(a int){
+	res = ""
+	
+	match(a){
+		case(5){
+			res  = "five"
+		}
+		case(1 or 2){
+			res  = "1 or 2"
+		}
+		case(>7){
+			res  = "gt 7"
+		}
+		else{
+			res="?"
+		}
+	}
+	
+	res
+}
+
+def range(x int){
+	for(n=0; n < x; n++) { n }
+}
+
+def doings(){
+	"" + for(x in range(10)){ matcher(x)}//[matcher(2), matcher(10)]
+}
+
+~~~~~
+//##2. as above but defo returns
+
+def matcher(a int){
+	
+	match(a){
+		case(5){
+			"five"
+		}
+		case(1 or 2){
+			"1 or 2"
+		}
+		case(>7){
+			 "gt 7"
+		}
+		else{
+			"?"
+		}
+	}
+}
+
+def range(x int){
+	for(n=0; n < x; n++) { n }
+}
+
+def doings(){
+	"" + for(x in range(10)){ matcher(x)}//[matcher(2), matcher(10)]
+}
+
+~~~~~
+//##3. more complex
+
+def matcher(a int){
+	res = ""
+	
+	match(a){
+		case(10){
+			res  = "ten"
+		}
+		case(==9){
+			res  = "explicit 9"
+		}
+		case(2 or 3){
+			res = "or case"
+		}
+		case(>2 and >5 and <==10){
+			res = "gt 5"
+		}
+		case(>3 and <==10){
+			res = "gt three not ten"
+		}
+		case(>11){
+			res = "gt to 11"
+		}
+		else{
+			res = "something else" + a
+		}
+	}
+	
+	res
+}
+
+
+def doings(){
+	"" + [matcher(2), matcher(10), matcher(9), matcher(4),  matcher(6), matcher(20), matcher(-5)] 
+}
+
+~~~~~
+//##4. in for arrays
+
+a=1
+b=10
+inof = [1 2 3]
+
+def doings(){
+	
+	cc1 = a in inof
+	cc2 = a not in inof
+	
+	cc3 = b in inof
+	cc4 = b not in inof
+	
+	advanced = [1] in [[1] ; [2]]
+	boxers = Integer(a) in inof
+
+	"" + [cc1, cc2, cc3, cc4, advanced, boxers]
+}
+
+~~~~~
+//##5. spot bugfix
+
+def matcher(a int){
+      if ( {
+        temp2  = a ;
+        temp1  = false ;
+        for ( temp0 in [ 1 , 2 , 3 ] ) {
+          if ( temp2 == temp0 ) {
+            temp1  = true ;
+            break ;
+          }
+        }
+        temp1 ;
+      }      ) {//used to be an error on if expression label allocation
+        " small " ;
+      } elif ( {
+        temp2  = a ;
+        temp1  = false ;
+        for ( temp0 in [ 1 , 2 , 3 ] ) {
+          if ( temp2 == temp0 ) {
+            temp1  = true ;
+            break ;
+          }
+        }
+        temp1 ;
+      }      ) {
+        " small " ;
+      }
+      else {
+        " big " + a ;
+      }
+}
+
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(30)] 
+}
+
+~~~~~
+//##6. match on in
+
+def matcher(a int){
+	match(a){
+		case(in [1,2,3]){
+			"small"
+		}
+		else{
+			"big"+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(30)] 
+}
+
+~~~~~
+//##7. untyped expr
+
+def matcher(a int){
+	match(a){
+		case(x; x== 2){//untpyed
+			"small"
+		}
+		else{
+			"big"+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(30)] 
+}
+
+~~~~~
+//##7.b untyped expr 2
+
+def matcher(a int){
+	match(a){
+		case(x; x== 2){//untpyed
+			"small"
+		}
+		case(x; == 4){//untpyed
+			"less small"
+		}
+		else{
+			"big"+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(4), matcher(30)] 
+}
+
+~~~~~
+//##8. typed refed expr
+
+from java.util import ArrayList
+
+def matcher(a Object){
+	match(a){
+		case(x int; x== 2){
+			"small"
+		}
+		case(x String; x == "hello"){
+			"said hi"
+		}
+		else{
+			"else: "+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(new ArrayList<String>())] 
+}
+
+~~~~~
+//##9. typed refed without an expression
+
+from java.util import ArrayList
+
+def matcher(a Object){
+	match(a){
+		case(x int){
+			"an int" + x
+		}
+		case(x String; x == "hello"){
+			"said hi"
+		}
+		else{
+			"else: "+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(new ArrayList<String>())] 
+}
+
+~~~~~
+//##10. use thing inside block
+
+from java.util import ArrayList
+
+def matcher(a Object){
+	match(a){
+		case(x int; x==3){
+			"got 3: " + x//use x in thingy
+		}
+		case(x int){
+			"other int: " + x//use x in thingy
+		}
+		case(x String; x == "hello"){
+			"said hi: " + x
+		}
+		else{
+			"else: "+ a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(new ArrayList<String>())] 
+}
+
+~~~~~
+//##11. only gennerate used vars
+
+from java.util import ArrayList
+
+def matcher(a Object){
+	match(a){
+		case(x int; x==3){
+			"got 3: " + x//use x in thingy
+		}
+		case(x int){
+			"other int: " + x//use x in thingy
+		}
+		case(x String; x == "hello"){//no tempvar gennerated for this
+			"said hi: "
+		}
+		else{
+			"else: "+ a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(new ArrayList<String>())] 
+}
+
+~~~~~
+//##12. use thing in case block
+
+def matcher(a int){
+	match(a){
+		case(x; x== 2){//untpyed
+			"small: " + x //can use
+		}
+		else{
+			"big"+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(30)] 
+}
+
+~~~~~
+//##13. just typed
+
+def matcher(a Object){
+	match(a){
+		case(int; in [1,2]){
+			"small: " + a //can use
+		}
+		case(int){
+			"another int: " + (a+100) //can use a as int
+		}
+		case(String){
+			"a str: " + a.length() //can use
+		}
+		else{
+			"sth else: "+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(2.)] 
+}
+
+~~~~~
+//##14. var typed expressionless
+
+def matcher(a Object){
+	match(a){
+		case(x int){
+			"an int: " + (x+100) //can use a as int
+		}
+		else{
+			"sth else: "+a
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(2.)] 
+}
+
+~~~~~
+//##15. catch all
+def matcher(a Object){
+	match(a){
+		case(x int){
+			"an int: " + [x, a] 
+		}
+		case(x ){
+			"catch all: " + [x, a] 
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(2.)] 
+}
+
+~~~~~
+//##16. catch all => else
+
+def matcher(a Object){
+	match(a){
+		case(x int){
+			"an int: " + [x, a] 
+		}
+		case(x Object; true){//this is converted into an else block
+			"catch all: " + [x, a] 
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(2.)] 
+}
+
+~~~~~
+//##16. catch all with TypedCaseExpression
+
+def matcher(a Object){
+	match(a){
+		case(x int){
+			"an int: " + [x, a] 
+		}
+		case(n Object){//this gets converted into the else statement
+			"catch all: " +  a 
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(2.)] 
+}
+
+~~~~~
+//##17. bugfix on number to primative convetion
+
+a Number = 9
+def doings(){
+	b int=0
+	b2 int=0
+	
+	x boolean = a is Integer//can be compared
+	if(x){
+		b = a as int//this is how we do the conversion
+		b2 = a //implicit conversion from number
+	}
+		
+	"" + [b, b2]
+}
+
+~~~~~
+//##18. supertype of thing being matched will always match
+
+def matcher(a Number){
+	match(a){
+		case(x Integer){//this does indeed match all as we can convert from any Number to int...
+			"an int: " + [x, a] 
+		}
+		case( n Object){//matches all as > Number all so goes to else
+			"catch all: " +  a 
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(2.)] 
+}
+
+~~~~~
+//##19. handles null ok
+
+def matcher(a Number?) {
+	match(a){
+		case(x Integer){//this does indeed match all as we can convert from any Number to int...
+			"an int: " + [x, a] 
+		}
+		case(null){//this does indeed match all as we can convert from any Number to int...
+			"a null"
+		}
+		else{"else: " + a}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(2.), matcher(null)] 
+}
+
+~~~~~
+//##20. else not needed if not certain to ret
+
+def matcher(a Number?) {
+	d="something else"
+	match(a){
+		case(x Integer){//this does indeed match all as we can convert from any Number to int...
+			d="an int: " + [x, a] 
+		}
+		case(null){//this does indeed match all as we can convert from any Number to int...
+			d="a null"
+		}
+	}
+	d
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher(2.), matcher(null)] 
+}
+
+~~~~~
+//##21. cater for captured case expression pres correctly
+
+def matcher(a int) {
+	n=1
+	match(a){
+		case(n){//we convert from TypedCaseExpression to CaseExpressionPre
+			"case1"
+		}
+		else{
+			"case other"
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(2)]
+}
+
+~~~~~
+//##22. case on enums
+
+enum MyEnum{ CASE1, CASE2, CASE3 }
+
+def matcher(a MyEnum) {
+	match(a){
+		case(MyEnum.CASE1){
+			"case1"
+		}
+		case(MyEnum.CASE2){
+			"case2"
+		}
+		else{"other case: " + a}
+	}
+}
+
+def doings(){
+	"" + [matcher(MyEnum.CASE1), matcher(MyEnum.CASE2), matcher(MyEnum.CASE3)]
+}
+
+~~~~~
+//##23. case on enums in short form
+
+enum MyEnum{ CASE1, CASE2, CASE3 }
+
+def matcher(a MyEnum) {
+	match(a){
+		case(CASE1){//one does not need to reference the class
+			"case1"
+		}
+		case(MyEnum.CASE2){
+			"case2"
+		}
+		else{"other case: " + a}
+	}
+}
+
+def doings(){
+	"" + [matcher(MyEnum.CASE1), matcher(MyEnum.CASE2), matcher(MyEnum.CASE3)]
+}
+
+~~~~~
+//##24. refname in or caseExpression
+
+def matcher(a Object) {
+	n1 = 1 
+	n2 = 2
+
+	match(a){
+		case(n1 or n2){
+			"case2 or 3"
+		}
+		else{"fail"}
+		//no else needed as all cases covered
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(2), matcher(10)]
+}
+
+~~~~~
+//##25. for enums can use ors
+
+enum MyEnum{ CASE1, CASE2, CASE3, CASE4 }
+
+def matcher(a MyEnum) {
+	match(a){
+		case(MyEnum.CASE1){//one does not need to reference the class
+			"case1"
+		}
+		case(CASE2 or MyEnum.CASE3){
+			"case2 or 3"
+		}
+		else{"fail"}
+		//no else needed as all cases covered
+	}
+}
+
+def doings(){
+	"" + [matcher(MyEnum.CASE1), matcher(MyEnum.CASE2), matcher(MyEnum.CASE3)]
+}
+
+~~~~~
+//##26. we cover all the enum cases so no else needed
+
+enum MyEnum{ CASE1, CASE2, CASE3 }
+
+def matcher(a MyEnum) {
+	match(a){
+		case(MyEnum.CASE1){//one does not need to reference the class
+			"case1"
+		}
+		case(CASE2 or MyEnum.CASE3){
+			"case2 or 3"
+		}
+		//else{"fail"}
+		//no else needed as all cases covered!
+	}
+}
+
+def doings(){
+	"" + [matcher(MyEnum.CASE1), matcher(MyEnum.CASE2), matcher(MyEnum.CASE3)]
+}
+
+~~~~~
+//##27. non exhaustive enum match warning can be supressed
+
+enum MyEnum{ CASE1, CASE2, CASE3 }
+
+@SuppressWarnings("enum-match-non-exhaustive")
+def matcher(a MyEnum) {
+	d="dunno"
+	match(a){
+		case(MyEnum.CASE1){//one does not need to reference the class
+			d="case1"
+		}
+		case(CASE2){
+			d="case2"
+		}
+	}
+	d
+}
+
+def doings(){
+	"" + [matcher(MyEnum.CASE1), matcher(MyEnum.CASE2), matcher(MyEnum.CASE3)]
+}
+
+~~~~~
+//##28. catch this or that
+
+class MyExcep(msg String) < Exception(msg)
+class MyExcep2(msg String) < Exception(msg)
+
+def thrower(){
+	throw new MyExcep("en exception")
+}
+
+def doings(){
+	got=""
+	try{
+		thrower()
+	}catch(ew MyExcep or MyExcep2){
+		got = "" + ew.getMessage()
+	}
+
+	"" + got
+}
+
+~~~~~
+//##29. instanceof works with or
+
+a Object = "hi"
+
+def doings(){
+	
+	x = a is String or Boolean//did this ages ago and forgot
+	
+	"" + x
+}
+
+~~~~~
+//##30. this or that CaseExpressionAssign
+
+open class ParCls(~a String)
+class Child1 < ParCls("Child1")
+class Child2 < ParCls("Child2")
+
+
+def matcher(a Object) {
+	match(a){
+		case(a Child1 or Child2){//one does not need to reference the class
+			"child: " + a.a
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(Child1()), matcher(Child2()),matcher("dunno"),]
+}
+
+~~~~~
+//##31. this or that CaseExpressionAssign with expr
+
+open class ParCls(~a String)
+class Child1 < ParCls("Child1")
+class Child2 < ParCls("Child2")
+
+
+def matcher(a Object) {
+	match(a){
+		case(a Child1 or Child2; a.a=="Child1"){//one does not need to reference the class
+			"fancy child: " + a.a
+		}
+		case(a Child1 or Child2){//one does not need to reference the class
+			"child: " + a.a
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(Child1()), matcher(Child2()),matcher("dunno"),]
+}
+
+~~~~~
+//##32. this or that CaseExpressionAssign with NO expr
+
+open class ParCls(~a String){
+	override toString() => a
+}
+class Child1 < ParCls("Child1")
+class Child2 < ParCls("Child2")
+
+
+def matcher(a Object) {
+	match(a){
+		case(x Child1 or Child2){//one does not need to reference the class
+			"child: " + (a as ParCls).a + x
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(Child1()), matcher(Child2()),matcher("dunno"),]
+}
+
+~~~~~
+//##33. this or that TypedCaseExpression with NO expr
+
+open class ParCls(~a String)
+class Child1 < ParCls("Child1")
+class Child2 < ParCls("Child2")
+
+
+def matcher(a Object) {
+	match(a){
+		case(Child1 or Child2){//one does not need to reference the class
+			"child: " + (a as ParCls).a
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(Child1()), matcher(Child2()),matcher("dunno"),]
+}
+
+~~~~~
+//##34. this or that TypedCaseExpression with expr
+
+open class ParCls(~a String){
+	override toString() => a
+}
+class Child1 < ParCls("Child1")
+class Child2 < ParCls("Child2")
+
+
+def matcher(a Object) {
+	match(a){
+		case(Child1 or Child2; <>null){//one does not need to reference the class
+			"child: " + (a as ParCls).a
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(Child1()), matcher(Child2()),matcher("dunno"),]
+}
+
+~~~~~
+//##35. match on dot op external stuff
+
+from com.concurnas.lang.precompiled import MatchHelper 
+
+def matcher(a int) {
+	match(a){
+		case(MatchHelper.AnInt or MatchHelper.AnInt2){
+			"little int"
+		}
+		case(n){
+			"another int" + n
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(9), matcher(10),]
+}
+
+~~~~~
+//##36. non refname assignemnt in the match
+
+def matcher(a int) {
+	match(a + 100){
+		case(110){
+			"little int"
+		}
+		case(n){
+			"another int" + n
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(9), matcher(10),]
+}
+
+~~~~~
+//##37. non refname assignemnt in the match assign existing
+
+def matcher(ab int) {
+	match(a = ab){
+		case(10){
+			"little int"
+		}
+		case(n){
+			"another int" + n
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(9), matcher(10),]
+}
+
+~~~~~
+//##38. non refname assignemnt in the match assign new
+
+def matcher(ab int) {
+	match(a int = ab){
+		case(10){
+			"little int"
+		}
+		case(n){
+			"another int" + n
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(9), matcher(10),]
+}
+
+~~~~~
+//##39. use compact case def style
+
+def matcher(ab int) {
+	match(val a int = ab){
+		case(10)=>	"little int"
+		case(n) =>	"another int" + n		
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(9), matcher(10),]
+}
+
+~~~~~
+//##40. operates on object ref
+
+def matcher(a :) {
+	match(a){
+		case(10)=>	"little int"
+		case(n) =>	"another int" + n		
+	}
+}
+
+def doings(){
+	"" + [matcher(1), matcher(9), matcher(10),]
+}
+
+~~~~~
+//##41. operates on object ref some more
+
+def matcher(a Object) {
+	match(a){
+		case(a int: ; a == 10 )=>	"an int ten"
+		case(a int:)=>	"an int"
+		case(n Object:) =>	"another thing" 		
+	}
+}
+
+def doings(){
+	"" + [matcher(1:), matcher("9":), matcher(10:),]
+}
+
+~~~~~
+//##42. operates on object ref some more seems ok
+
+def matcher(a Object) {
+	match(a){
+		case(a int: ; a == 10 )=>	"an int ten"
+		case(a int:)=>	"an int"
+		//case(int or :) =	"another thing" 		
+		//case(:) =	"another thing" 		
+		case(x Object:) =>	"another thing" + x: + (a is Object:)
+	}
+}
+
+def doings(){
+	"" + [matcher(1:), matcher("9":), matcher(10:),matcher(10)]
+}
+
+~~~~~
+//##43. bugfix full use of vars inside thingy
+
+open class ParCls(public aff String)
+class Child1 < ParCls("Child1")
+class Child2 < ParCls("Child2")
+
+
+def matcher(a Object) {
+	match(a){
+		case(ab Child1 or Child2){
+			"child: {(ab as ParCls).aff} " //this was not being marked as visited previously in the RefsUsed as abstract visitor didnt visit the string subelements 
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(Child1()), matcher(Child2()),matcher("dunno"),]
+}
+
+~~~~~
+//##44. ops used on post basis
+
+def matcher(a int) {
+	match(a){
+		case(20<){
+			"oh, an int gt 20"
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(200), matcher(2)]
+}
+
+~~~~~
+//##45. bug with lt
+
+def matcher(a int) {
+	match(a){
+		case(<20){
+			"oh, an int lt 20"
+		}
+		case(x){
+			"not sure what this is" + x
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(200), matcher(2)]
+}
+
+~~~~~
+//##46. bugfix match on expression element resolution
+
+class MyClass(a int, b int){
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+}
+
+
+def f() => MyClass.class.name
+
+class MyProvider{
+	def \new(className String, args Object...){
+		match(className){
+			case( f() ){ new MyClass(args[0] as int, args[1] as int) }
+			else{ null }
+		}
+	}
+}
+
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new MyClass(1,2)
+}
+
+~~~~~
+//##47. also on CaseExpressionWrapper
+
+class MyClass(a int, b int){
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+}
+
+clnam = MyClass.class.name
+
+class MyProvider{
+	def \new(className String, args Object...){
+		match(className){
+			case(MyClass.class.name also args.length == 2){ new MyClass(args[0] as int, args[1] as int) }
+			else{ null }
+		}
+	
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new MyClass(1,2)
+}
+
+~~~~~
+//##48. also on TypedCaseExpression
+
+thing=false
+
+def matcher(a int){
+	match(a){
+		case(x; x == 2 also thing){//
+			"small 2"
+		}
+		case(x;  3== also thing){//
+			"small 3 "
+		}
+		case(x; == 4 also thing){//
+			"another small"
+		}
+		else{
+			"big"+a
+		}
+	}
+}
+
+def doings(){
+	a1 = "" + [thing, matcher(2), matcher(3), matcher(4), matcher(30)]
+	thing=true
+	a2 = "" + [thing, matcher(2), matcher(3), matcher(4), matcher(30)]
+	"" + [a1, a2]
+	 
+}
+
+~~~~~
+//##49. alos on pre post or 
+
+thing=false
+
+def matcher(a int){
+	match(a){
+		case( == 2 also thing){
+			"small 2"
+		}
+		case( 3== also thing){
+			"small 3 "
+		}
+		case( ==4 or ==5 also thing){
+			"small 4 or 5 "
+		}
+		else{
+			"big"+a
+		}
+	}
+}
+
+def doings(){
+	a1 = "" + [thing, matcher(2), matcher(3), matcher(4), matcher(5), matcher(30)]
+	thing=true
+	a2 = "" + [thing, matcher(2), matcher(3), matcher(4), matcher(5), matcher(30)]
+	"" + [a1, a2]
+}
+
+~~~~~
+//##50. bugfix on compound stmt first element of string concat
+
+def isPalendrome(a String){
+	upp = a.toUpperCase()
+	upp == ""+StringBuilder(upp).reverse()//reverse used to return AbstractStringBuilder
+}
+
+def matcher(inp String){
+	match(inp){
+		case(also isPalendrome(inp)){ "is" }
+		else{ "is not" }
+	} + " a Palindrome"
+
+}
+
+def doings(){
+	
+	"" + [matcher('ava'), matcher('dave')]
+}
+
+~~~~~
+//##51. nice littl test
+
+class Grouper(size int, avoid int[]){
+	collector = java.util.ArrayList<int>()
+	private result = ""
+	
+	def getResult(){
+		if(not collector.isEmpty()){
+			result += ""+collector 
+		}
+		result
+	}
+	
+	def addItem(a int){
+		match(a){
+			case( not in avoid also collector.size()>==size ){
+				//cluster our elements together when we hit the size except for when == to something in avoid
+				result += ""+collector
+				collector.clear()
+			}
+		}
+		collector.add(a)
+	}
+}
+
+def doings(){
+	grp = Grouper(3, [4])
+	for(a in [1,2,3,4,5,6,7,8,9, 10]){
+		grp.addItem(a)
+	}
+	grp.result //resolves to: [1, 2, 3, 4][5, 6, 7][8, 9, 10]
+}
+	
+~~~~~
+//##52. more concise syntax
+	
+def matcher(a Object) {
+	match(a){
+		int; ==1 or ==2 => { "first case"}
+		else => "other case"
+	}
+}
+
+def doings(){
+	a1=matcher(1) // -> returns “first case”
+	a2=matcher(2)  // -> returns “first case”
+	a3=matcher(3)  // -> returns “other case”
+
+	"" + [a1, a2, a3]	
+}
+	
+~~~~~
+//##53. more compact form
+def isPalendrome(a String){
+	upp = a.toUpperCase()
+	upp == ""+StringBuilder(upp).reverse()//reverse used to return AbstractStringBuilder
+}
+
+def matcher(inp String){
+	match(inp){
+		also isPalendrome(inp) =>  "is" 
+		else => "is not" 
+	} + " a Palindrome"
+}
+
+
+def doings(){
+	matcher('asa')
+}
+
+~~~~~
+//##54. bugfix on label tagging when match used in else block
+
+from java.nio import Buffer, ByteBuffer
+
+private def getRootComponentCls(type Class<?>){
+	while(null <> type.getComponentType()) {
+		type = type.getComponentType();
+	}
+	type
+}
+
+private class GPUDecoder(type Class<?>){
+	override hashCode()=> 1
+	override equals(an Object)=> false
+	
+	def decode(){
+		if(type.isArray()){
+			'one'
+		}else{
+			match(type){
+				case(Boolean.class) 	=> 'two'
+				else => 'three'
+			}
+		}
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##55. this was a bug now its ok
+
+from org.jocl import Sizeof
+from java.lang.reflect import Array
+
+private val sizeof_int 		= Sizeof.cl_int
+private val sizeof_short 	= Sizeof.cl_short
+private val sizeof_long 	= Sizeof.cl_long
+private val sizeof_float 	= Sizeof.cl_float
+private val sizeof_double 	= Sizeof.cl_double
+private val sizeof_char 	= Sizeof.cl_char16
+private val sizeof_byte 	= 1
+private val sizeof_boolean 	= sizeof_byte
+private val sizeof_pointer 	= Sizeof.POINTER
+
+private class GPUSizeof{
+	override hashCode() => 1
+	override equals(an Object) => false
+
+	size = 0
+
+	
+	private def processArray(an Object, type Class<?>) void {
+		compType = type.getComponentType()
+		len = Array.getLength(an)
+		
+		if(compType.isArray()){
+			new String("hi")
+		}else{
+			 sz={if ( type == boolean.class) {
+	             sizeof_boolean 
+	           }
+	           else {
+	             sizeof_pointer 
+	           }}
+        	 
+			gg =  10000 + sz
+		}
+	}
+}
+
+
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n++] = n
+	}
+	
+	ret
+}
+
+def doings(){
+	leAr = arMarker(20)
+	//gpusize = sizeof<gpusizeof> leAr//ok
+	"its ok"// + gpusize
+}
+
+~~~~~
+//##56. match tuple 
+
+def callme(n Object){
+	match(n){
+		(a int, b int, c int) => "3: {a}, {b}, {c}"
+		(a int, b int); a > b => 'gt {a}'
+		(a int, b int); a < b => 'lt {a}'
+		(int, int, int, int) => "4: ok"
+		(int, int, double, int) => "4: ok with double"
+		(a , b, c, d, e) => "5: {a}, {b}, {c}, {d}, {e}"
+		else => 'fail {n}'
+	}
+}
+
+
+def doings(){
+	t1 = (3, 4, 5)
+	t2 = (4, 3)
+	t3 = (3, 4)
+	t4 = (1, 2, 3, 4)
+	t5 = (1, 2, 3., 4)
+	t6 = (1, 2, 3, 4, "spanner")
+	t7 = "fails"
+	
+	things = [t1, t2, t3, t4, t5, t6, t7]
+	
+	"" + String.join("\n", callme(things^))
+}
+
+~~~~~
+//##57. match tuple case variant
+
+def callme(n Object){
+	match(n){
+		case( (a int, b int, c int) ) { "3: {a}, {b}, {c}"}
+		case( (a int, b int); a > b ) { 'gt {a}'}
+		case( (a int, b int); a < b ) { 'lt {a}'}
+		case( (int, int, int, int) ) { "4: ok"}
+		case( (int, int, double, int) ) { "4: ok with double"}
+		case( (a , b, c, d, e) ) { "5: {a}, {b}, {c}, {d}, {e}"}
+		else => 'fail {n}'
+	}
+}
+
+
+def doings(){
+	t1 = (3, 4, 5)
+	t2 = (4, 3)
+	t3 = (3, 4)
+	t4 = (1, 2, 3, 4)
+	t5 = (1, 2, 3., 4)
+	t6 = (1, 2, 3, 4, "spanner")
+	t7 = "fails"
+	
+	things = [t1, t2, t3, t4, t5, t6, t7]
+	
+	"" + String.join("\n", callme(things^))
+}
+
+~~~~~
+//##58. tuple content match
+
+def matcher(n (int, int)){
+	match(n){
+	  (0, 0) => "FizzBuzz"
+	  (0, ) => "Fizz"
+	  (, 0) => "Buzz"
+	  x => x
+	}
+}
+
+
+def doings(){
+	"" + matcher( ((a mod 3, a mod 5) for a in (1 to 15))^ )
+}
+
+~~~~~
+//##59. tuple content match vs var
+
+z0 = 0
+
+def matcher(n (int, int)){
+	match(n){
+	  (z0, z0) => "FizzBuzz"
+	  (z0, ) => "Fizz"
+ 	  (, z0) => "Buzz"
+	  x => x
+	}
+}
+
+
+def doings(){
+	"" + matcher( ((a mod 3, a mod 5) for a in (1 to 15))^ )
+}
+
+~~~~~
+//##60. tuple partial compoent test
+
+def matcher(n (int, int, int)){
+	match(n){
+	  (==1, <1 or >2, c) => "got {c}"
+	  x => x
+	}
+}
+
+def doings(){
+	"" + matcher( ((a mod 3, a mod 5, a mod 2) for a in (1 to 15))^ )
+}
+
+~~~~~
+//##61. tuple match with extra test
+
+def matcher(n (int, int)){
+	match(n){
+	  (a, b); a > b => "got {(a, b)}"
+	  //x => x
+	}
+}
+
+def doings(){
+	"" + matcher( ((a mod 3, a mod 5) for a in (1 to 15))^ )
+}
+
+~~~~~
+//##62. impossible to match
+
+a=0
+b=0
+
+def matcher(n (int, int)){
+	match(n){
+	  (a, b); a > b  => "got {a, b}"//impossible to match
+	  x => "n"
+	}
+}
+
+def doings(){
+	"" + matcher( ((a mod 3, a mod 5) for a in (1 to 15))^ )
+}
+
+~~~~~
+//##63. match on tuple
+
+v1 = v2 = 0
+
+def matcher(n (int, int)){
+	r1 = match(n){
+	  (0, 2) => 'z2'
+	  (0, ) => 'zN'
+	  (, 0) => 'Nz'
+	  (a, 1) => 'eq2 a:{a}'
+	  x => "any: {x}"
+	}
+	
+	r2 = match(n){
+	  (a, ==2) => 'eq a:{a}'
+	  (a, b) => "extract: {a}, {b}"
+	  //x => "any2: {x}"
+	}
+	
+	"{n}:: [{r1} :: {r2}]"
+}
+
+def doings(){
+	"" + String.join("\n", matcher( ((a mod 3, a mod 5) for a in (1 to 15))^ ))
+}
+
+~~~~~
+//##64. tuple match with extra check using values
+
+a=0
+
+def matcher(n (int, int)){
+	match(n){
+	  (a, b); {a >== b}  => "got {(a, b)}"//impossible to match
+	  x => "n"
+	}
+}
+
+def doings(){
+	"" + matcher( ((a mod 3, a mod 5) for a in (1 to 15))^ )
+}
+
+~~~~~
+//##65. this match is fine
+
+def matcher(a Object){
+	match(a){
+		case(x ){
+			"catch all: " + [x, a] 
+		}
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(2.)] 
+}
+
+~~~~~
+//##66. was broken now fine
+
+def mmerr(n (int, int)){
+	xa=match(n){
+		(a, b) => "weird {(a, b)}"
+		//x => "nope"
+	}
+	xa
+}
+
+def doings(){
+	"" + mmerr((1, 2))
+}
+
+~~~~~
+//##67. tuple catch all
+
+def mmerr(n (int, int)){
+	xa=match(n){
+		(a, b) => "weird {(a, b)}"
+	}
+	xa
+}
+
+def doings(){
+	"" + mmerr((1, 2))
+}
+
+~~~~~
+//##68. fizzbuzz example
+
+import java.util.stream.Collectors;
+
+def doings(){
+	ret = (1 to 15).stream().map(a  => match( (a mod 3, a mod 5) ) {
+		(0,0) => "FizzBuzz"
+		(0,) => "Fizz"
+		(,0) => "Buzz"
+		x => x
+	}).collect(Collectors.toList())
+	
+	"" + ret 
+}
+
+~~~~~
+//##69.match on object contents
+
+enum Color{ Blue, Green, Yellow }
+
+class Record(-age int, -friendcnt int, -name String, -favColor Color){
+	override toString() => "{age}, {friendcnt}, {name}, {favColor}" 
+}
+
+def matcher(an Object){
+	match(an){
+		Record(age == 2, friendcnt > age) => "record: {an.age}"
+		x => 'fail: {x}'
+	}
+}
+
+def doings() {
+	"" + matcher( new Record(2, 3, "Dave", Color.Blue) )
+}
+
+~~~~~
+//##70.match on object contents case
+
+enum Color{ Blue, Green, Yellow }
+
+class Record(-age int, -friendcnt int, -name String, -favColor Color){
+	override toString() => "{age}, {friendcnt}, {name}, {favColor}" 
+}
+
+def matcher(an Object){
+	match(an){
+		case(Record(age == 2, friendcnt > age)) => "record: {an.age}"
+		case(x) => 'fail: {x}'
+	}
+}
+
+def doings() {
+	"" + matcher( new Record(2, 3, "Dave", Color.Blue) )
+}
+
+~~~~~
+//##71.match on object contents case long dot name version
+
+//##MODULE com.myorg.code2
+enum Color{ Blue, Green, Yellow }
+
+class Record(-age int, -friendcnt int, -name String, -favColor Color){
+	override toString() => "{age}, {friendcnt}, {name}, {favColor}" 
+}
+
+
+//##MODULE
+
+from com.myorg.code2 import Record, Color
+
+def matcher(an Object){
+	match(an){
+		com.myorg.code2.Record(age == 2, friendcnt > age) => "record: {an.age}"
+		Record(age == 3, friendcnt > age) => "record M2: {an.age}"
+		x => 'fail: {x}'
+	}
+}
+
+def doings() {
+	//"" + matcher( new Record([2 3]^, [3 4]^, "Dave", Color.Blue) )
+	"" + matcher( new Record([2 3]^, [3 4]^, "Dave", Color.Blue)^ )
+}
+
+~~~~~
+//##72. match on object contents nested version
+
+class PassDetails(-title String, -score int){
+	override toString() => "PassDetails: {title}, {score}" 
+}
+
+class Record(-age int, -name String, -pass PassDetails){
+	override toString() => "Record: {age}, {name}, [{pass}]" 
+}
+
+def matcher(an Object){
+	match(an){
+		Record(age == 2, pass(score==21)) => "record: {(an.age, an)}"
+		x => 'ignore'
+	}
+}
+
+def doings() {
+	"" + matcher( new Record(2, "Dave", PassDetails("one", [21, 51]^)^)^ )
+}
+
+~~~~~
+//##73. match on object with var assignment
+
+class Person(-yearOfBirth int, -name String)
+	
+def matcher(an Object){
+	match(an){
+		val person Person(yearOfBirth < 1960) => "Person. Born: {person.yearOfBirth}"
+		person Person(yearOfBirth < 1970) => "Person. Born: {person.yearOfBirth}"
+		x => "unknown input"
+	}
+}
+
+
+def doings(){
+	"" + [matcher(Person(1945, "dave")), matcher(Person(1962, "paul")), matcher(Person(1982, "freddie"))]
+}
+
+~~~~~
+//##74. another way to write match
+def matcher(a int){
+	match(a){
+		10{
+			"ten"
+		}
+		==9{
+			"explicit 9"
+		}
+		2 or 3{
+			"or case"
+		}
+		>2 and >5 and <==10{
+			"gt 5"
+		}
+		>3 and <==10{
+			"gt three not ten"
+		}
+		>11{
+			"gt to 11"
+		}
+		else{
+			"something else" + a
+		}
+	}
+}
+
+
+def doings(){
+	"" + [matcher(2), matcher(10), matcher(9), matcher(4),  matcher(6), matcher(20), matcher(-5)] 
+}
+
+~~~~~
+//##75. another way to write match 2
+def matcher(a int){
+	match(a){
+		10 => "ten"
+		==9 => "explicit 9"
+		2 or 3 => "or case"
+		>2 and >5 and <==10 => "gt 5"
+		>3 and <==10 => "gt three not ten"
+		>11 => "gt to 11"
+		else => "something else" + a
+	}
+}
+
+
+def doings(){
+	"" + [matcher(2), matcher(10), matcher(9), matcher(4),  matcher(6), matcher(20), matcher(-5)] 
+}
+
+~~~~~
+//##76. another alternative
+from java.util import ArrayList
+
+def matcher(a Object){
+	match(a){
+		x int; x== 2 => "small"
+		x String; x == "hello" => "said hi"
+		else => "else: "+a
+	}
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(new ArrayList<String>())] 
+}

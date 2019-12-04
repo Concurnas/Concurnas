@@ -1,0 +1,970 @@
+//##1. qualified this via this obj
+class Outerclass{
+	private variable = 'outer variable'
+	def aMethod(){
+		"outer method"
+	}
+	
+	public class Innerclass{
+	
+		public class Innerclass2{ }
+		private variable = 'inner variable'
+		
+		def aMethod(){
+			"inner method"
+		}
+		
+		def work(){
+			outer = this[Outerclass]
+			inner = this[Innerclass]
+			""+[outer.aMethod(), outer.variable, inner.aMethod(), inner.variable]
+		}
+	}
+}
+
+def doings(){
+	outer = Outerclass()
+	inst = outer. Innerclass()
+	""+inst.work()// -> [inner method, 2]
+}
+
+~~~~~
+//##2. qualified this direct invocation
+
+class Outerclass{
+	private variable = 'outer variable'
+	def aMethod(){
+		"outer method"
+	}
+	
+	public class Innerclass{
+	
+		public class Innerclass2{ }
+		private variable = 'inner variable'
+		
+		def aMethod(){
+			"inner method"
+		}
+		
+		def work(){
+			""+[this[Outerclass].aMethod(), this[Outerclass].variable, this[Innerclass].aMethod(), this[Innerclass].variable]
+		}
+	}
+}
+
+def doings(){
+	outer = Outerclass()
+	inst = outer. Innerclass()
+	""+inst.work()// -> [inner method, 2]
+}
+
+~~~~~
+//##3. three levels
+
+class Outerclass{
+	private variable = 'outer variable'
+	def aMethod(){
+		"outer method"
+	}
+	
+	public class Innerclass{
+		private variable = 'inner variable'
+		
+		def aMethod(){
+			"inner method"
+		}
+		
+		public class Innerclass2{ 
+			private variable = 'inner2 variable'
+		
+			def aMethod(){
+				"inner2 method"
+			}
+			
+			def work(){
+				outer = this[Outerclass]
+				inner = this[Innerclass]
+				inner2 = this[Innerclass2]
+				""+[outer.aMethod(), outer.variable, inner.aMethod(), inner.variable, inner2.aMethod(), inner2.variable]
+			
+			}
+			
+		}
+		
+	}
+}
+
+def doings(){
+	outer = Outerclass()
+	inner = outer. Innerclass()
+	inst = inner. Innerclass2()
+	""+inst.work()// -> [inner method, 2]
+}
+
+~~~~~
+//##4. simple funcext
+
+def String myFunc(another String) => "{this} {another}"
+
+def doings(){
+	res = "hi"
+	res.myFunc("there")
+}
+
+~~~~~
+//##5. ext function shouldnt hide the class method
+
+class MyClass{
+	def myFunc(another String) => "in MyClass: {another}"
+}
+
+def String myFunc(another String) => "{this} {another}"
+
+def doings(){
+	mc = MyClass()
+	mc.myFunc("there")//ext function shouldnt hide the class method
+}
+
+~~~~~
+//##6. ext func call implicit this
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def amethod() => 'ignored'//ignored on call below
+
+def MyClass myFunc(  ) {
+	"" + amethod()//call MyClass not the static method
+}
+
+def doings(){
+	res = MyClass()
+	res.myFunc()
+}
+
+~~~~~
+//##7. ext func call explicit this
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def amethod() => 'no'
+
+def MyClass myFunc(  ) {
+	"" + this.amethod()
+}
+
+def doings(){
+	res = MyClass()
+	res.myFunc()
+}
+
+~~~~~
+//##8. implicit and explicit variable access
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	public myvar = 12
+}
+
+var myvar = 'ignored'
+
+def MyClass myFunc(  ) {
+	"" + [myvar, this.myvar]
+}
+
+def doings(){
+	res = MyClass()
+	res.myFunc()
+}
+
+~~~~~
+//##9. references to ext func class methods
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+
+def MyClass myFunc(  ) {
+	x = amethod&()
+	x2 = this.amethod&()
+	x3 = amethod&
+	x4 = this.amethod&
+
+
+	""+ [x(), x2(), x3(), x4()] 
+}
+
+def doings(){
+	res = MyClass()
+	res.myFunc()
+}
+
+~~~~~
+//##10. calls in nested inner function
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def MyClass myFunc(  ) {
+	def nestcall(){
+		"nest " + [amethod(), this.amethod()]
+	}
+
+	""+ nestcall()
+}
+
+def doings(){
+	res = MyClass()
+	res.myFunc()
+}
+
+~~~~~
+//##11. bugfix ensure args called correctly, factored in instance type of ext function
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+
+def MyClass myFunc( a int ) {
+	""+ amethod()
+}
+
+def doings(){
+	res = MyClass()
+	res.myFunc(22)
+}
+
+~~~~~
+//##12. can override methods 
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def anexistingmethod() => 'existing'
+}
+
+
+def MyClass anexistingmethod(  ) {
+	'in ext function'
+}
+
+def doings(){
+	res = MyClass()
+	res.anexistingmethod()
+}
+
+~~~~~
+//##13. ext function in bytecode
+
+import com.concurnas.lang.precompiled.ExtensionFunctions.repeater
+
+def doings(){
+	"hi".repeater(4)
+}
+
+~~~~~
+//##14. ext method 
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass repeater(  ) {
+		""+ [amethod(), this.amethod()]
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+	
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##15. ext method call vars 
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	public avar = 12
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass repeater(  ) {
+		""+ [avar, this.avar]
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+	
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##16.a ext method call nested indirect
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass repeater(  ) {
+		def xxx() => ""+ [amethod()]
+		
+		xxx()
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##16.b ext method call nested indirect
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass repeater(  ) {
+		def xxx() => ""+ [this.amethod()]
+		
+		xxx()
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##17. references inside extension methods
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass repeater(  ) {
+		x1 = amethod&()
+		x2 = this.amethod&()
+	
+		"" + [x1(), x2()]		
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##18. qualified this
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 'extendee'
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def amethod() => 'extendor'
+	
+	def MyClass repeater(  ) {
+		defult = amethod()
+		witthis = this.amethod()
+		qualiother = this[AnotherClass].amethod()
+		qualime = this[MyClass].amethod()
+		
+		"" + [defult, witthis, qualiother, qualime]
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##19. qualified this in nested function
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 'extendee'
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def amethod() => 'extendor'
+	
+	def MyClass repeater(  ) {
+		def doer(){
+			defult = amethod()
+			witthis = this.amethod()
+			qualiother = this[AnotherClass].amethod()
+			qualime = this[MyClass].amethod()
+			
+			"" + [defult, witthis, qualiother, qualime]
+		}
+		
+		doer()
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##20. qualified this refs
+
+class MyClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 'extendee'
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def amethod() => 'extendor'
+	
+	def MyClass repeater(  ) {
+		defult = amethod&()
+		witthis = this.amethod&()
+		qualiother = this[AnotherClass].amethod&()
+		qualime = this[MyClass].amethod&()
+		
+		"" + [defult(), witthis(), qualiother(), qualime()]
+	}
+	
+	def worker(){
+		res = MyClass()
+		res.repeater()
+	}
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##21. generic ext func
+
+class MyClass<X>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+class AnotherClass{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass<String> repeater(  ) {
+		""+ [amethod(), this.amethod()]
+	}
+	
+	def worker(){
+		res = MyClass<String>()
+		res.repeater()
+	}
+	
+}
+
+def doings(){
+	another = AnotherClass()
+	another.worker()
+}
+
+~~~~~
+//##22. generic ext func 2
+ 
+class MyClass<X>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+class AnotherClass<XXX>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	
+	def MyClass<XXX> repeater(  ) {
+		""+ [amethod(), this.amethod()]
+	}
+	
+	def worker(){
+		res = MyClass<XXX>()
+		res.repeater()
+	}
+	
+}
+
+def doings(){
+	another = AnotherClass<int>()
+	another.worker()
+}
+
+~~~~~
+//##23. generic ext func as func
+
+class MyClass<X>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def MyClass<String> repeater(  ) {
+	""+ [amethod(), this.amethod()]
+}
+
+def doings(){
+	mc = MyClass<String>()
+	mc.repeater()
+}
+
+~~~~~
+//##24. unused local generic
+
+class MyClass<X>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def  MyClass<String> repeater<X>(  v X ) {
+	""+ [amethod(), this.amethod()]
+}
+
+def doings(){
+	mc = MyClass<String>()
+	mc.repeater("")
+}
+
+~~~~~
+//##25. local generic infered
+
+class MyClass<X>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def  MyClass<X> repeater<X>(  v X ) {
+	""+ [amethod(), this.amethod()]
+}
+
+def doings(){
+	mc = MyClass<String>()
+	mc.repeater("")
+}
+
+~~~~~
+//##26. local generic from args
+
+class MyClass<X>{
+	override equals(a Object)  =>false
+	override hashCode() => 1
+	override toString() => 'MyClass'
+	def amethod() => 12
+}
+
+def  MyClass<X> repeater<X>(   ) {
+	""+ [amethod(), this.amethod()]
+}
+
+def doings(){
+	mc = MyClass<String>()
+	mc.repeater<String>()
+}
+
+~~~~~
+//##27. ext func as op overload
+
+from java.util import ArrayList
+
+def ArrayList<X> plus<X>( a X   ) {
+	this.add(a)
+	this
+}
+
+def doings(){
+	ar = new ArrayList<int>()
+	ar.plus(12)
+	ar = ar + 12 //op overload
+	"" + ar
+}
+
+~~~~~
+//##28. ext func on primative type
+
+def int meg(){
+	this * 1024 * 1024
+}
+
+def doings(){
+	//f=12
+	x =	12\.meg()
+	"" + x
+}
+
+~~~~~
+//##29. ext func on primative type boexed up
+
+def Integer meg(){
+	this * 1024 * 1024
+}
+
+def doings(){
+	x =	12\.meg()
+	"" + x
+}
+
+~~~~~
+//##30. ext func on primative type unboxed
+
+def int meg(){
+	this * 1024 * 1024
+}
+
+def doings(){
+	f=Integer(12)
+	""+	f.meg()
+}
+
+~~~~~
+//##31. ext func on primative type boxed sub
+
+def Number meg(){
+	this.intValue() * 1024 * 1024
+}
+
+def doings(){
+	x =	12\.meg()
+	"" + x
+}
+
+~~~~~
+//##32. primative as qualified this
+
+class MyClass{
+	override toString () => 'MyClass'
+	
+	def int meg(){
+		""+[this, this[MyClass], this[int]]
+	}
+	
+	def worker(){
+		33\.meg()
+	}
+}
+
+def doings(){
+	MyClass().worker()
+}
+
+~~~~~
+//##33. extension function with varargs
+
+def int ameth(a int, b int...) => 'varag: ' + [this, a,b]
+
+def doings(){
+	12\.ameth(6, 99, 7)
+}
+
+~~~~~
+//##34. extension func super to avoid recursive call
+
+class MyClass{
+	def countdown(a int) => "Mi: {a}"
+}
+
+def MyClass countdown(a int){
+	""+ 0 if a == 0 else "{a}, {super.countdown(a-1)}, {this.countdown(a-1)}"
+} 
+
+def doings(){
+	"" + (new MyClass() countdown 5)
+}
+
+~~~~~
+//##35. ar syntax get and set on objects with ext function
+
+private def String get(idx int) => this.charAt(idx)
+
+def doings(){
+	prefix = "iasd"
+	what   = prefix[0]
+	"" + what
+}
+
+~~~~~
+//##36. ar syntax get and set on objects with ext function 2
+
+class MyObject(~wrapee int[])
+
+def MyObject get(a int) => this.wrapee[a]
+def MyObject put(a int, what int) => this.wrapee[a] = what;;
+
+def doings(){
+	mo = MyObject([1 2 3 4 5])
+	what   = mo[0]
+	mo[1] = 99
+	"" + [what, mo.wrapee]
+}
+
+~~~~~
+//##37. ar syntax get+set on objects with ext function 2
+
+class MyObject(~wrapee int[])
+
+def MyObject get(a int) => this.wrapee[a]
+def MyObject put(a int, what int) => this.wrapee[a] = what;;
+
+
+mo = MyObject([1 2 3 4 5])
+
+def doings(){
+	mo[3] += 23//get and set
+	"ok" + [ mo.wrapee]
+}
+
+~~~~~
+//##38. broke this now fixed it
+
+mo = [1, 2, 3, 4, 5]
+
+def doings(){
+	mo[3]=900
+	//mo[3]+=9
+	
+	"ok" + mo
+}
+
+~~~~~
+//##39. fixed list assign with op overload
+
+mo = [1, 2, 3, 4, 5]
+
+def doings(){
+	mo[3]+=9
+	
+	"ok" + mo
+}
+
+~~~~~
+//##40. doubles work phew
+
+mo = [1, 2, 3, 4, 5]
+
+def doings(){
+	mo[3]**=2
+	
+	"ok" + mo
+}
+
+~~~~~
+//##41. str concat version
+
+mo = ['one', 'two', 'three']
+
+def doings(){
+	mo[2] += 22
+	mo[1] += 'hi'
+	
+	"ok" + mo
+}
+
+~~~~~
+//##42. extension function when in class override get set
+
+class Myclass{
+	
+	private def String get(idx int) => this.charAt(idx)
+	
+	def doings(){
+		prefix = "iasd"
+		what   = prefix[0]
+		"" + what
+	}
+}
+
+def doings(){
+	Myclass().doings()
+}
+
+
+~~~~~
+//##43. ext func many nesting
+
+class Myclass{
+	private def String get(idx double) => this.charAt(idx as int)
+	
+	def twang()=> "ok"
+	
+	class MyclassChild{
+		
+		def doings(){
+			twang()
+			prefix = "iasd"
+			what   = prefix[0.]
+			"" + what
+		}
+	}
+	
+	def doings(){
+		MyclassChild().doings()
+	}
+}
+
+
+def doings(){
+	Myclass().doings()
+}
+
+~~~~~
+//##44. get and set normal
+
+class MyObject(~wrapee int[]){
+	def  get(a int) => this.wrapee[a]
+	def  put(a int, what int) => this.wrapee[a] = what;;
+}
+
+mo = MyObject([1 2 3 4 5])
+
+def doings(){
+	what   = mo[0]++//get and set
+	"ok" + [what, mo.wrapee]
+}
+
+~~~~~
+//##45. get and set via ext func
+
+class MyObject(~wrapee int[]){
+	//def  get(a int) => this.wrapee[a]
+	//def  put(a int, what int) => this.wrapee[a] = what;;
+}
+
+def MyObject get(a int) => this.wrapee[a]
+def MyObject put(a int, what int) => this.wrapee[a] = what;;
+
+
+mo = MyObject([1 2 3 4 5])
+
+def doings(){
+	//mo[3]+=9
+	
+	what   = mo[0]++//get and set
+	//mo[3]++//get and set
+	
+	"ok" + [what, mo.wrapee]
+}

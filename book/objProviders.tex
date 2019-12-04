@@ -1,0 +1,673 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Object Providers]{Object Providers}
+	\label{ch:ObjProviders}
+
+
+Concurnas has first class citizen support for dependency injection which we term, Object Providers. Readers familiar with frameworks in other languages such as \href{https://spring.io}{Spring}, \href{https://github.com/google/guice}{Google Guice} and \href{https://github.com/google/dagger}{Google Dagger} will no doubt be sold on the benefits of dependency injection and how they become essential for the structuring of large, or even small to medium sized projects. Let's now look at why dependency injection is so useful...
+
+
+\section{The case for Dependency Injection}
+First let us define what we mean by a dependency. A dependency is considered a unit of related functionality that another unit of functionality in a system relies upon. For example, let's say we have a \lstinline{MessageProcessor} function, which takes a message, potentially performs some processing before passing it on somewhere else. 
+
+One way of writing this \lstinline{MessageProcessor} would be as follows (of course, in real life this would be much more complex, but this example is to illustrate dependencies and the case for dependency injection):
+\begin{lstlisting}
+class MessageProcessor {
+	public def processMessage(){//processing
+		sendMessage(getMessage()) //probably some more complex processing here in real life...
+	}
+	private def getMessage() String {//obtination
+		return "A message"
+	}
+	private def sendMessage(msg String) void {//deliverance
+		System.out.println(msg)
+	}
+}
+\end{lstlisting}
+
+The above serves its purpose from a function perspective. However, there are a number of problems, which would be magnified in a real life situation. 
+
+\begin{enumerate}
+	\item \textbf{Reasoning}. The Message "Processor" above actually contains both the obtination and deliverance functions, which makes reasoning about the functionality harder than it needs to be. 
+	\item \textbf{Testing}. The above is very hard to test, since we have no way of easily mocking up the message obtination and message sending mechanism above we have no way of testing the \lstinline{processMessage} functionality in isolation. Furthermore, in real systems where there are side effects, these are unavoidably triggered when we attempt to test the message processing functionality.
+	\item \textbf{Reusability}. Perhaps we'd like to reuse of the three elements of functionality (obtination, processing, deliverance) could be reused elsewhere in the our overall system we're likely building, but this is extremely difficult with the above design.	
+\end{enumerate}
+
+We can rewrite the above example, splitting out the three components of functionality which make up the overall function (obtination, processing and deliverance) as follows:
+
+\begin{lstlisting}
+class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer.getMessage())
+	}
+}
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) void
+}
+
+class SimpleMG ~ MessageGetter {
+	def getMessage() String => 'A message'
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) void => System.out.println(msg)
+}
+
+//to be used as follows:
+getter = SimpleMG()
+printer = MessagePrinter()
+mp = new MessageProcessor(getter, printer )
+mp.processMessage()
+\end{lstlisting}
+
+If we take \lstinline{MessageProcessor} above as being the central component of interest, we can say that the \lstinline{MessageGetter} and \lstinline{MessageSender} are dependences of the \lstinline{MessageProducer}. The above design is nice as it solves all the problems previously identified:
+\begin{enumerate}
+	\item \textbf{Reasoning}. It's clear what all the above components do. And there is no pollution of concerns, senders send, getters get and processors process.
+	\item \textbf{Testing}. By using traits for our \lstinline{MessageGetter} and \lstinline{MessageSender} we can provide mock implementations when we are testing our \lstinline{MessageProcessor} which allows that testing to take place in isolation, side effect free and with controlled inputs and outputs which we can validate against.
+	\item \textbf{Reusability}. We can easily reuse the \lstinline{MessageProcessor} functionality above by simply defining different \lstinline{MessageGetter} and \lstinline{MessageSender} implementations.
+\end{enumerate}
+
+Whilst the above is a nice design approach, one disadvantage is that one has to manually create a lot of objects and do a lot of "wiring"/"plumbing" every time one wishes to create a \lstinline{MessageProcessor}. This of course decreases our ratio of useful domain specific work to non domain specific work, and in practical programs the number of lines of code responsible for this wiring can number in the thousands... But lucky for us, with Concurnas we can use Object Providers to make this much easier for us, as we can automatically inject these dependencies and skip all the plumbing! Here is what we need to change in order to use this:
+
+\begin{lstlisting}
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer.getMessage())
+	}
+}
+
+provider MPProvider{
+	provide MessageProcessor //provide objects of this type
+	MessageGetter => new SimpleMG()//dependency satisfaction for MessageProcessor 
+	MessageSender => new MessagePrinter()//dependency satisfaction for MessageProcessor
+}
+
+//to be used as follows:
+mpProvider = new MPProvider()
+mp = mpProvider.MessageProcessor()
+///business as usual...
+\end{lstlisting}
+
+Now not only do we have all the advantages outlined above, but we have eliminated the plumbing which use would have had to have done every time we wish to create a new \lstinline{MessageProcessor} instance, instead we can simply use an instance of the \lstinline{MPProvider}.
+
+We will now look in detail at this new object provider mechanism...
+
+Note that there other Dependency injection frameworks which are written in Java and are therefore compatible with Concurnas. Some rely on separate configuration files coded in XML, some rely upon runtime reflection and some avoid this. All of these solutions are however library based. Concurnas on the other hand has dependency injection built in and treated with first class citizen support. This of course means that we are able to perform the plumping associated with dependency injection at compile time, via generated code, which makes for a very efficient runtime implementation. This is particularly handy in cases where one is building large complex systems, creating thousands or even millions of objects (and so requires an efficient dependency injection implementation to create those). An additional benefit of providing first class citizen support is that it makes that it easy to track down how dependencies are being injected at compilation and runtime. With library based solutions relying upon reflection, this can be challenging.
+
+\section{Injectable Classes}
+In order to be able to render a class compatible with Object Providers we must tag at most one constructor with the keyword \lstinline{inject} before the accessibility modifier (\lstinline{public}, \lstinline{private}, \lstinline{protected}, \lstinline{package}, or nothing - which will default to \lstinline{public}). This has to be done even if we have a zero argument constructor. For example:
+\begin{lstlisting}
+class MyClass{
+	inject this(proc Processor){
+		//...
+	}
+	//...
+}
+\end{lstlisting}
+
+In cases where no constructors are explicitly defined (for instance, when we are defining class definition level arguments), then we can tag the class itself with inject:
+\begin{lstlisting}
+inject class MyClass(proc Processor)
+\end{lstlisting}
+
+\section{Injectable elements}
+In addition to constructors, both fields and methods having injectable arguments can be marked as inject (and again are implicitly marked as being publicly accessible):
+\begin{lstlisting}
+inject class MessageProcessor{
+	inject obtainer MessageGetter
+	private sender MessageSender
+	inject MSSetter(sender MessageSender){ this.sender = sender }
+}
+\end{lstlisting}
+
+In the above case, the \lstinline{MessageSender} is now considered a dependency since it's an argument of an injectable method and the \lstinline{MessageGetter} is also a dependency as it's the type of an injectable field.
+
+At first glance it would seem clumsy so as to require dependencies to be explicitly marked with the inject keyword. But it's actually incredibly useful as firstly it gets one thinking early on in the construction of one's software from the perspective of dependency injection and how that software will be tested so as to validate its function, and secondly because it makes the expected dependencies of a class very explicit - thus improving readability for whomever will be using and supporting the software in the future.
+
+\section{Providers}
+Now that we have marked our classes as being injectable, and tagged our dependencies as appropriate above (whether they be passed in via constructors, methods or directly as fields), we can now move on to defining the Object Providers themselves.
+
+Object Providers are made up of two components, objects to provide, and dependency qualifiers to satisfy those dependencies of the the objects being provided.
+
+\begin{lstlisting}
+provider MPProvider{
+	provide MessageProcessor //provide objects of this type
+	//dependency qualifiers for MessageProcessor...
+	MessageGetter => {
+		new SimpleMG()
+	}//a block may be used
+	MessageSender => new MessagePrinter()//a single line may be used
+}
+\end{lstlisting}
+
+Providers may provide many Objects of differing type, but they must provide at least one. Also, only non-array object types may be provided. In the above example we're providing one Object of type \lstinline{MessageProcessor}. In exampling the dependency tree of \lstinline{MessageProcessor} we see that it have two injectable dependencies on objects of  type \lstinline{MessageGetter} and \lstinline{MessageSender}. These are qualified via dependency qualifiers.
+
+Dependency qualifiers are type names which are not prefixed with the keyword \lstinline{provide} and which use \lstinline{=>} to resolve to an expression which must return something equal to or a subtype of the dependency type being qualified. In the above example it's \lstinline{new SimpleMG()} and \lstinline{new MessagePrinter()} qualifying  \lstinline{MessageGetter} and \lstinline{MessageSender} respectfully. All declared dependency qualifiers must be used in the dependency tree of the objects being provided.
+
+Note that although it is possible to perform complex computation within the dependency qualifier (as any valid expression or block is permitted), it is inadvisable to do so since then one would be mixing computation with one's dependency injection mechanism and this can make reasoning about system behaviour challenging.
+
+At compilation time, the provider block is transformed into a class with generated code to satisfy the object graphs of the defined providers. In this example the name of the provider is \lstinline{MPProvider} and so a class of that name is created and can be used just like a normal class. As such all the usual restrictions regarding class names being unique per module etc apply. Note that the class is a subtype of \lstinline{com.concurnas.lang.ObjectProvider}.
+
+The specified provide instances are exposed in this provider (as a class) in the form of a series of public methods returning an instance of the class being provided. So for the above provider we can obtain a new provided instance of a \lstinline{MessageProcessor} by using code like the following:
+
+\begin{lstlisting}
+mpProvider = new MPProvider()
+mp = mpProvider.MessageProcessor()
+\end{lstlisting}
+
+Note that all calls to \lstinline{MessageProcessor} will by default provide a new instance of the \lstinline{MessageProcessor}. If we want to provide just one unique instance for all calls, then we can use a scoped provider described below.
+
+We can override the name of the method by prefixing the class name with our choice of name. For example:
+
+\begin{lstlisting}
+provider MPProvider{
+	provide normalMP MessageProcessor//chance name of method to normalMP 
+	MessageGetter => new SimpleMG()
+	MessageSender => new MessagePrinter()
+}
+
+mpProvider = new MPProvider()
+mp = mpProvider.normalMP()//method is now called normalMP instead of MessageProcessor
+\end{lstlisting}
+
+This extends mechanism extends us a tremendous amount of flexibility in terms of automatically generating the wiring/plumbing code for our object dependency graphs. For instance, when it comes to testing, we need simply define a provider with our mock instances in place of our real dependencies for the functionality we wish to focus our testing on.
+
+\section{Qualified Providers}
+It can often be useful to fully qualify a provider and cut out the dependency injection mechanism all together, additionally, since dependency qualifiers themselves cannot be exposed as external methods using a provider can be a nice solution to this. Note that provide instances themselves may be used as dependency qualifiers by the Object Provider if appropriate. For instance we could do the following if needed:
+
+\begin{lstlisting}
+provider MPProvider{
+	provide MessageProcessor => new MessageProcessor(new SimpleMG(), new MessagePrinter())
+}
+\end{lstlisting}
+
+Providers may be marked as private in order to suppress public method generation for them (note that the associated method will still be generated, but it will be private).
+
+\section{Transient dependencies}
+In the examples previously explored we have seen that the dependencies of \lstinline{MessageProcessor} have been directly qualified in the object provider. But this can also be achieved on a transient basis, or in other words, indirectly provided that the intermediate classes involved are injectable. For example:
+
+\begin{lstlisting}
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer SimpleMG, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String){
+	def getMessage() String => theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	String => 'a message'
+}
+\end{lstlisting}
+
+Above we see that there is no dependency qualifier for \lstinline{SimpleMG}. But this is ok, because \lstinline{SimpleMG} is itself injectable and all of its dependencies (one String) are fully qualified within the provider.
+
+Another way to think about the dependency injection supported by Concurnas Object Providers is as a forest, the providers being the trunk of the trees, the branches the intermediate injectable classes (and type only dependency qualifiers), and the leaves the fully qualified dependencies. 
+
+\section{Provider specific dependency qualifiers}
+The dependency qualifiers we've seen in the previous examples have all been 'global' qualifiers. Meaning that they apply for all providers and to satisfy all dependencies of those respective provider graphs within the Object provider. If we want to be more specific and define dependency qualifiers which are for use only by only one provider we can do so by specifying some or all of its dependencies in a block as follows:
+
+\begin{lstlisting}
+provider MPProvider{
+	provide normalMP MessageProcessor{
+		MessageGetter => new SimpleMG()
+		MessageSender => new MessagePrinter()
+	}
+}
+
+mpProvider = new MPProvider()
+mp = mpProvider.normalMP()//method is now called normalMP instead of MessageProcessor
+\end{lstlisting}
+
+This block may contain only dependency qualifiers or type only dependency qualifiers, not provide instances.
+
+\section{Named dependency qualifiers}
+Dependency qualifiers may specify a parameter name string to which they will bind their dependencies. This further specializes what dependency they qualify. This is particularly useful in instances where we need to qualify a dependency of the same type but used for different purposes. The named qualifier is defined as follows:
+\begin{lstlisting}
+inject class User(firstName String, sirName String)
+
+provider UserProvider{
+	provide User
+	'firstName' String => "freddie"
+	'sirName' String => "Brown"
+}
+\end{lstlisting}
+
+In the above example when User is provided, \lstinline{firstName} is mapped to the qualified String resolving to \lstinline{"freddie"} and \lstinline{sirName} to \lstinline{"Brown"}. Note that the named dependency maps to the argument name of the injected constructor, the same applies to injectable method arguments. In the case of fields the field name is used.
+
+This behaviour of mapping the dependency qualifier name to an argument, can be overridden by using the \lstinline{@Named} annotation (which is an auto import in Concurnas) on the field or constructor/method argument name. For example:
+\begin{lstlisting}
+inject class User(@Named('The first name') firstName String, sirName String)
+
+provider UserProvider{
+	provide User
+	'The first name' String => "freddie"
+	'sirName' String => "Brown"
+}
+\end{lstlisting}
+
+Providers being used to satisfy dependencies may also specify a qualification String as follows:
+\begin{lstlisting}
+provider MCProvider{
+	provide 'aString' String => "A String"
+}
+\end{lstlisting}
+
+\section{Type only dependency qualifiers}
+In some cases, instead of qualifying a dependency using a dependency qualifier, it can be preferable to direct the dependency to a subtype of that needing qualification. This is particularly the case if one has a trait type which needs qualifying and where there are [potentially] multiple different implementing that trait which would be suitable and which themselves support injection. Let's look at an example of this:
+\begin{lstlisting}
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String =>  msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG//type only dependency qualification
+	'theMessage' String => 'a message'
+}
+
+//to be used as:
+mpProvider = new MPProvider()
+mp = mpProvider.MessageProcessor()
+\end{lstlisting}
+
+We see above that the \lstinline{MessageProcessor} is injected with an instance of a \lstinline{MessageGetter} trait. We've made the \lstinline{SimpleMG} class injectable and qualified its only dependency (argument name \lstinline{theMessage} of type String) is qualified to a String. The Object Provider knows which type to qualify the \lstinline{MessageGetter} with since we provide a type only dependency qualifier linking this as: \lstinline{MessageGetter <= SimpleMG}. Type specific dependency qualifiers are of the form: \lstinline{type <= type}. The type on the right hand side of the definition must be equal to or a subtype of the left hand side type.
+
+Type only dependency qualifiers may have their own specific dependency qualifier blocks just like provider declarations. For example:
+
+\begin{lstlisting}
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String =>  msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG{
+		'theMessage' String => 'a message'
+	}
+}
+
+mpProvider = new MPProvider()
+mp = mpProvider.MessageProcessor()
+\end{lstlisting}
+
+\section{Object Provider arguments}
+Object providers behave a lot like normal classes. As such we are able to provide arguments to them at the point of creation, these arguments can be used within the individual dependency qualifiers or any fully qualified provider. For example:
+
+\begin{lstlisting}
+provider MPProvider(theMessage String){
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG
+	SimpleMG => new SimpleMG(theMessage)
+}
+
+//used as:
+mpp = new MPProvider("My message")
+mpp.MessageProcessor()
+//as normal...
+\end{lstlisting}
+
+\section{Scoped providers}
+Concurnas provides two mechanisms where by objects can be scoped, via the \lstinline{single} and \lstinline{shared} keywords. Using either of these keywords will result in a singular instance of an object being provided or injected as a dependency by an object provider. These keywords can be used as both dependency qualifiers and provide instances.
+
+How the scopes differ is in terms of the 'lifetime' of the identicality of objects provided. For cases where the \lstinline{single} keyword is used, all calls to the provider will resolve to the same provided/injected object, throughout the lifetime of the provider itself. For the \lstinline{shared} keyword, the same object will be provided/injected for the duration of the external call to the provider only - i.e. the object graph will be populated with the same instance of an object for that call only.
+
+Provider specific dependency qualifiers may be scoped, that is to say, the \lstinline{single} and \lstinline{shared} keywords may be used within Provider specific dependency qualifier blocks.
+
+\subsection{single}
+Where the \lstinline{single} keyword is used, all calls to the provider will resolve to the same provided/injected object, throughout the lifetime of the provider itself. This can be applied to both dependency qualifiers and provide instances. Simply prefix the entity with the keyword \lstinline{single}. For example:
+
+\begin{lstlisting}
+inject class AgeHolder(age Integer)
+inject class User(name String, ah AgeHolder)
+
+provider UserProvider{
+	single provide User
+	String => "freddie"
+	AgeHolder => new AgeHolder(22)
+}
+
+up = new UserProvider()
+inst1 = up.User()
+inst2 = up.User()
+
+assert inst1 &== inst2//true, both User objects are the same
+\end{lstlisting}
+
+The above will resolve true as both variables point to the same object.
+
+We can also apply this to dependency qualifiers as follows:
+\begin{lstlisting}
+inject class AgeHolder(age Integer)
+inject class User(name String, public ah AgeHolder)
+
+provider UserProvider{
+	provide User
+	String => "freddie"
+	single AgeHolder => new AgeHolder(22)
+}
+
+up = new UserProvider()
+inst1 = up.User()
+inst2 = up.User()
+
+assert inst1 &<> inst2 //true, the two User instances are different objects
+assert inst1.ah  &== inst2.ah//true, the two AgeHolders resolve to the same object
+\end{lstlisting}
+
+Above, the \lstinline{User} objects returned from the provider above are unique, but their dependant \lstinline{AgeHolder} instance objects are the same across both instances.
+
+We can apply the \lstinline{single} keyword to a dependency even without a qualification on the right hand side as follows:
+
+\begin{lstlisting}
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	single Bean 
+}
+
+bcProvider = new CounterProvider()
+bcInst1 = bcProvider.BeanCounter()
+bcInst2 = bcProvider.BeanCounter()
+
+assert bcInst1.red &== bcInst1.blue //both Bean instances of BeanCounter are the same
+assert bcInst2.red &== bcInst1.red //all Bean instances of BeanCounter are the same across all instances
+\end{lstlisting}
+
+
+
+\subsection{shared}
+Where the \lstinline{shared} keyword is used, the same object will be provided/injected for the duration of the external call to the provider. In other words, all instances of the object in the object graph returned from the provider will be identical. However, unlike the \lstinline{single} keyword, subsequent calls to the provider will provide a different object. As with the \lstinline{single} keyword, \lstinline{shared} can be applied to both dependency qualifiers and provide instances. Simply prefix the entity with the keyword \lstinline{shared}.
+
+For example, a provide expression may be tagged as being shared - this is useful when the provide expression itself is called by another provide expression in the provider:
+
+\begin{lstlisting}
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	shared Bean => new Bean()
+}
+
+bcProvider = new CounterProvider()
+bcInst1 = bcProvider.BeanCounter()
+bcInst2 = bcProvider.BeanCounter()
+
+assert bcInst1.red &== bcInst1.blue //same bean for single object
+assert bcInst2.red &<> bcInst1.red  //the two beans on separate invocations of the provider differ
+\end{lstlisting}
+
+Above we see that a single instance of the \lstinline{BeanCounter} class has the same \lstinline{Bean} instance objects, but different \lstinline{BeanCounter} instance objects have different \lstinline{Bean} instance objects (if we were using the \lstinline{single} keyword then all the \lstinline{Bean} instance objects would be the same).
+
+We can apply the \lstinline{shared} keyword to a dependency qualification as follows:
+
+\begin{lstlisting}
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	provide PairOfBeans
+	single  Bean => new Bean()
+}
+
+bcProvider = new CounterProvider()
+bcInst1 = bcProvider.BeanCounter()
+bcInst2 = bcProvider.BeanCounter()
+
+assert bcInst1.red &== bcInst1.blue //resolves to true
+assert bcInst2.red &<> bcInst1.red  //resolves to true, the two beans on seperate invokations of the provider differ
+\end{lstlisting}
+
+The effect is the same as our previous example.
+
+We can apply the \lstinline{shared} keyword to a dependency qualification without a right hand side qualification as follows:
+
+\begin{lstlisting}
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	provide PairOfBeans
+	single 'red' Bean
+}
+
+bcProvider = new CounterProvider()
+bcInst1 = bcProvider.BeanCounter()
+bcInst2 = bcProvider.BeanCounter()
+
+assert bcInst1.red &== bcInst1.blue //resolves to true
+assert bcInst2.red &<> bcInst1.red  //resolves to true, the two beans on seperate invokations of the provider differ
+\end{lstlisting}
+
+Again, the effect is the same effect as the previous two examples.
+
+\section{Providers for Actors and refs}
+Actor instances and refs, being object types, can be provided by Object Providers, both as provided instances and dependencies. Additionally, for refs which themselves are injectable, their dependencies can also be satisfied by a provider.
+
+\section{Generics}
+Generics may be used within Object Providers in any place where you would normally use generics in relation to the use of types. For example:
+\begin{lstlisting}
+class GenericHolder<X>(xxx X)
+
+inject class MyClass<X>(gh GenericHolder<X>)
+
+inject class MyGenericThing<X>(an X)
+
+provider ManyProvides<X>(item X){
+	provide java.util.ArrayList<X> => new java.util.ArrayList<X>()
+	provide java.util.Set<String> => new  java.util.Set<String>()
+	provide MyClass<X>{	
+		GenericHolder<X> => new GenericHolder<X>(item)
+	}
+	provide MyGenericThing<String>{
+		String => "a string"
+	}
+}
+\end{lstlisting}
+
+Localized generics are also permitted by postfixing the provide keyword with the list of generic types:
+\begin{lstlisting}
+provider ARProvider{
+	provide<Y> java.util.ArrayList<Y> => new java.util.ArrayList<Y>()
+}
+\end{lstlisting}
+
+Generic types may be qualified with \lstinline{in out} and upper bounds etc as normal.
+
+\section{Special Types}
+There are three classes for which special behaviour/support is provided:
+
+\subsection{Lazy variables}
+Lazy variables which are dependencies can be assigned to lazily in Object providers, therefore maintaining their lazy binding quality. Here is an example:
+\begin{lstlisting}
+avar = 88
+
+class MyClass{
+	inject this(){}
+	inject lazy an String
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	lazy String => {avar = 99; "ok"}
+}
+
+
+apu1 = MCPRovider()
+res = "" + apu1.MyClass()
+}
+
+//res == [88 "ok" 99]
+\end{lstlisting}
+
+It's not necessary to explicitly define the String above as being lazy. As the lazy type can be considered a transient dependency. As such we can simplify our provider as follows:
+
+\begin{lstlisting}
+provider MCPRovider{
+	provide MyClass
+	String => {avar = 99; "ok"}
+}
+\end{lstlisting}
+
+Note that if the lazy String dependency qualifier above was marked as \lstinline{single} then the lazy String dependency would be qualified with only one lazy String instance, and the code in the associated block executed only once upon first unassignment of the lazy variable.
+
+\subsection{Provider type}
+The provider type is handy if you wish to produce more than one instance of an object instead of just one injected. The \lstinline{com.concurnas.lang.types.Provider<X>} type takes a function reference or lambda as its single input and invokes this on every call to its \lstinline{get() X} method. For example:
+
+\begin{lstlisting}
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class MyClass(an Provider<String>){
+	inject an2 Provider<String>
+	private an3 Provider<String>
+
+	inject def SetThingamy(an3 Provider<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2.get() an3.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	Provider<String> => new Provider<String>(def () {cnt++; "ok"} )
+}
+
+apu1 = MCPRovider()
+res = apu1.MyClass() + ""
+
+//res == [0 ok ok ok 3]
+\end{lstlisting}
+
+Again, just like with lazy variables, the provider generic type qualification only need be specified:
+
+\begin{lstlisting}
+provider MCPRovider{
+	provide MyClass
+	String => {cnt++; "ok"}
+}
+\end{lstlisting}
+
+Also, as with lazy types if the qualifier is marked as being \lstinline{single} then only one instance of the qualifier block will ever be executed. No matter how many times get is called.
+
+\subsection{Optional type}
+If you are running Concurnas on an Oracle JVM greater than or equal to version 1.8 then the \lstinline{java.util.Optional<X>} type (\href{https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html}{https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html}) may be used to denote an object which will either contain an instance of type \lstinline{X} or \lstinline{null}. Dependencies which are of Optional type may have their dependencies omitted in Object Providers. Here is an example:
+
+
+
+\begin{lstlisting}
+from java.util import Optional
+
+inject class MyClass(an Optional<String>){
+	override toString() => "" +an.isPresent()
+}
+
+provider MCPRovider{
+	provide present MyClass{
+		String => "hi"
+	}
+	provide notPresent MyClass
+}
+
+apu1 = MCPRovider()
+inst1 = apu1.present()
+inst2 = apu1.notPresent()
+
+res = ""+ [inst1 inst2]
+
+//res == [true false]
+\end{lstlisting}
+
+\section{Object Providers with Java Classes}
+If you have Java classes or classes in a standard Java format produced by another JVM compatible language (such as Clojure, Scala or Kotlin) then these can be made compatible with Object Providers by ensuring the following:
+At least one public constructor is decorated with the \lstinline{com.concurnas.lang.Inject} Annotation.
+Any public methods with arguments requiring injection or public fields needing injection are marked with the \lstinline{com.concurnas.lang.Inject} Annotation.
+
+In order to use Named dependencies, the injected arguments/fields must be decorated with either the \lstinline{@Named} or \lstinline{@FuncParam} annotation.
+
+
+\end{document}

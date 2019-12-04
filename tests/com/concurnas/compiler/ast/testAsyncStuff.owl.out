@@ -1,0 +1,34 @@
+{
+import System as System ;
+y = new Doer ( 56 ) ;
+x int = {
+func ( 69 ) ;
+}
+! ( new Doer ( 2 ) ) ;
+{
+System . out . println ( " hi " ) ;
+System . out . println ( " there " ) ;
+}
+! {
+n int = 66 ;
+}
+m int = 8 ;
+{
+func & ( ? int , 2 ) ( 3 ) ;
+}
+! ;
+d = {
+ax [ x ] . sfun ( ) ( 2 ) ;
+}
+! ;
+try {
+com \. concurnas \. bootstrap \. runtime \. cps \. Fiber \. getCurrentFiber ( ) \. enterSync ( ) ;
+{
+ref2 ( 3 ) ;
+}
+! ;
+}
+finally {
+com \. concurnas \. bootstrap \. runtime \. cps \. Fiber \. getCurrentFiber ( ) \. exitsync ( ) ;
+}
+}

@@ -1,0 +1,10 @@
+//((Boyish)a).c = 8;
+
+//d = ((Boyish)a).c
+//a = (a.gg())
+
+p = (a as Boyish).c 
+//b Boyish;
+
+
+a as (Boyish) rettype += funx();

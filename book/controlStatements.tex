@@ -1,0 +1,487 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Control Statements]{Control Statements}
+Crucial to imperative programming is the concept of control flow within a function or method. To this end a number of branching statements are provided within Concurnas. These are: \lstinline{if elif else}, the \lstinline{if else} expression, \lstinline{while}, \lstinline{loop}, \lstinline{for}, \lstinline{parfor}, \lstinline{match} and \lstinline{with}. First, lets examine the blocks which these control statements are composed of.
+
+\section{Blocks}
+Blocks form the foundation of control flow statements. They serve two purposes: 
+
+\begin{enumerate}
+	\item Defining scope - Variables and functions declared within a block cannot be used outside of that block. But code within a scope can use the functions and variables defined in parent nestor scopes.
+	\item Returning of values.
+\end{enumerate}
+
+
+Simply put a block is a pair of curly braces:
+\begin{lstlisting}
+{
+	//more code in here	
+}
+\end{lstlisting}
+
+Concurnas also offers a compact, single line block format \lstinline{=>} which can be used as follows:
+\begin{lstlisting}
+def myMath(a int, b int, c int) => a*b+c
+
+def mypy(a int, b int) => res = a**2 + b**2; return res**.5
+\end{lstlisting}
+
+Blocks are able (but not obliged) to return values if their final logical line of code returns something:
+
+\begin{lstlisting}
+result = {
+	a = 2+3; 
+	a**2
+}//result is assigned value 25
+\end{lstlisting}
+
+Blocks which are used as part of control statements (soon to be elaborated) may return values as well, this becomes a very useful programming construct for creating concise units of code. For example:
+
+\begin{lstlisting}
+result = if(cond1){
+	"condition 1 met"
+}elif(cond2){
+	"condition 2 met"
+}else{
+	"no conditions met"
+}
+\end{lstlisting}
+
+In the case where there are two or more different types returned by the individual blocks associated with a control statement, the most specific type which can satisfy all the available returned types is chosen as the overall return type of the statement:
+
+\begin{lstlisting}
+something Number = if(xyz()){
+	82//this is boxed to an Integer, which is a subtype of the more general type Number
+}else{
+	new Float(0.2)//Float is a subtype of Number
+}
+\end{lstlisting}
+
+All branches must return something for the above sort of code to be valid, if at least one branch does not return something, then this approach cannot be used (unless another flow of control statement causing breakout is encountered such as \lstinline{return}, \lstinline{throw} etc as the final line of the offending branch).
+
+Since blocks return values, and lambdas/functions/methods are composed of a name (except for lambdas), signature and block, then we can skip having to use the \lstinline{return} statement in our function/method definitions.
+
+So instead of:
+
+\begin{lstlisting}
+def plusTwo(an int){
+	return an + 2
+}
+\end{lstlisting}
+
+We can write:
+
+\begin{lstlisting}
+def plusTwo(an int){
+	an + 2
+}
+\end{lstlisting}
+
+In fact, with Concurnas, we can take this a step further by using the compact block form of \lstinline{=>}:
+\begin{lstlisting}
+def plusTwo(an int) => an + 2
+\end{lstlisting}
+
+Note that the return type in the \lstinline{plusTwo} function definitions is inferred as \lstinline{int}. Sometimes however this auto-return behaviour is undesirable. Say we are trying to implement a function returning void and our last expression can return something, here we can use nop \lstinline{;;} to suppress this being returned:
+\begin{lstlisting}
+count = 0
+def incrementor() => count++;;
+\end{lstlisting}
+
+Alternatively, we can specify the type for our function:
+\begin{lstlisting}
+count = 0
+def incrementor() void => count++
+\end{lstlisting}
+
+\section{Anonymous Blocks}
+It's often useful to specify a block on its own, without an attached control statement or association to a lambda/function/method etc. This provides one a bounded scope which is handy if one is working on a large/complex section of code and wishes to make clear a certain part of code is 'separate' functionality wise from the rest, and enable variable names to be potentially reused. It also allows one to return a value. For example:
+
+\begin{lstlisting}
+//complex code here
+
+oddcalc = {
+	a = 23
+	a*2 + a
+}
+
+anotherone = {
+	a = 57
+	b = 99
+	a*b-1
+}
+\end{lstlisting}
+
+In fact, this turns out to be especially useful functionality in so far as defining isolates is concerned. For it enables us to write this kind of code:
+\begin{lstlisting}
+res = {
+	//complex code here
+	a= 99
+	a + 1
+}!//Use the ! operator to create an isolate
+\end{lstlisting}
+
+\section{If elif else}
+If, else, if else is a branching control statement. It is composed of a if test and block, optionally any number of elif  (or else if) test and blocks and may optionally include an else block for when all the if test and any defined elif tests resolve to false. For example:
+
+\begin{lstlisting}
+def fullif(an int) String {
+	if(an == 1){
+		"one"
+	} elif (an==2){
+		"two"
+	} else if(an ==3){//'elif' and 'else if' are considered to be syntactically identical
+		"three"
+	} else{
+		"other"
+	}
+}
+
+def ifelse(an int) String {
+	if(an == 1){
+		"one"
+	} else{
+		"other"
+	}
+}
+
+def ifelif(an int) String {
+	res = "unknown"
+	if(an == 1){
+		res = "one"
+	} elif (an==2){
+		res = "two"
+	}
+}
+
+def justif(an int) String {
+	res = "unknown"
+	if(an == 1){
+		res = "one"
+	}
+}
+\end{lstlisting}
+
+In the final two examples above \lstinline{ifelif} and \lstinline{justif}, since no else block is provided, there is no certainty that all paths will resolve to return a value (it's possible that all the if and elif tests will fail) - so we cannot return a value from the if statements.
+
+
+\section{If else expression}
+The if else expression, whilst not a statement, is translated into a if elif else statement (without any elif units) and behaves otherwise identically to an if-elif-else statement. An if test and else case must be included. For example:
+
+\begin{lstlisting}
+avar = 12 if xyz() else 13
+\end{lstlisting}
+
+Functionally, this is identical to writing:
+
+\begin{lstlisting}
+avar = if(xyz()){ 12 } else{ 13 }
+\end{lstlisting}
+
+\section{Single expression test}
+\label{sec:singleexprtest}
+In Concurnas, a expression may be referenced in isolation within a test requiring a boolean value, e.g. an \lstinline{if}, \lstinline{elif} or \lstinline{while} test expression:
+
+\begin{lstlisting}
+def gcd(x int, y int){
+	while(y){//translated to y <> 0
+		(x, y) = (y, x mod y)
+	}
+	x
+}
+\end{lstlisting}
+
+In cases such as these where the value resulting from evaluating the test expression is non \lstinline{boolean} and in fact integral in nature, this is compared against the value \lstinline{0}, if the result is non zero the expression resolves to true.
+
+\section{toBoolean}
+As a corollary and in aid of our \hyperref[sec:singleexprtest]{Single expression test} above, all objects in Concurnas have a \lstinline{toBoolean} method automatically defined. This returns a single \lstinline{boolean} value resolving to \lstinline{true}. This value method may be overridden, for instance if one were defining a data structure, one may wish to define the \lstinline{toBoolean} as returning \lstinline{false} if the structure were empty.
+
+The \lstinline{toBoolean} method is called when a single object is referenced where a boolean value is expected. Additionally, if the object is nullable, then it is checked for nullability, only if these two conditions are met is a value of  \lstinline{true} returned. For example:
+
+\begin{lstlisting}
+class MyCounter(cnt = 0){
+	def inc(){
+		cnt++
+	}
+	override toBoolean(){
+		cnt > 0
+	}
+}
+
+counter = MyCounter()
+
+result = if(counter){//equivilent to: counter <> null and counter.toBoolean()
+	'counter is greater than one' 
+}else{
+	'counter is zero'
+}
+\end{lstlisting}
+
+The behaviour for Strings, arrays, lists, sets and maps in Concurnas is slightly different from the above. In order to return true for:
+
+\begin{itemize}
+	\item Strings. The value must be non null and non zero (i.e. not an empty String)
+	\item Arrays. The value must be non null and the \lstinline{length} field must be greater than 0.
+	\item Lists, sets and maps. For \lstinline{java.lang.List}, \lstinline{java.lang.Set}, \lstinline{java.lang.Map}'s the value must be non null and a call to the \lstinline{isEmpty} method must return \lstinline{false}.
+\end{itemize}
+
+\section{Loop}
+The \lstinline{loop} statement is our first repeating control statement. It will execute the block of code attached to it repeatedly until either the code breaks out from the loop (by using the \lstinline{return}, \lstinline{break} or by throwing an exception) or the program is terminated - which is the less common use case. For example:
+
+\begin{lstlisting}
+count=0
+loop{
+	System out println ++count
+	if(count == 100){
+		break
+	}
+}
+\end{lstlisting}
+
+\section{While}
+The \lstinline{while} statement is our second repeating control statement. It behaves in a similar way to loop but has a test at the start of the loop which if passed results in the attached block being called, at the end of the block the test is attempted again and if it passes then the block is called again, etc. If the test ever fails then repetition ceases. For example:
+
+\begin{lstlisting}
+count = 0
+while(++count <= 100){//test
+	System out println count
+}//block to execute
+\end{lstlisting}
+
+\section{For}
+The \lstinline{for} loop statement is our third and final repeating control statement. There are two variants of for loop: c style for and iterator style for.
+
+\subsection{C style for}
+\label{subsec:cstylefor}
+C style for is the syntactically older of the two variants of for loop. In addition to its main block to repeat, it is composed of three key components:
+\begin{enumerate}
+	\item An initialization expression, this is executed once at the start of the for loop. If a variable is created here it is bounded to the scope of the main block.
+	\item A termination expression. For as long as this resolves to \lstinline{true} the loop is repeated, it is executed at the start of each potential repetition of the loop.
+	\item A post expression. This is executed at the end of the loop.
+\end{enumerate}
+
+Here is a typical instance of a c style for loop:
+\begin{lstlisting}
+for(an = 0; an < 10; an++){
+	System out println an	
+}
+\end{lstlisting}
+
+Note that it's perfectly acceptable to omit any or all of the key components above, the following is equivalent to our loop example explored previously:
+\begin{lstlisting}
+count=0
+for(;;){
+	System out println ++count
+	if(count == 100){
+		break
+	}
+}
+\end{lstlisting}
+
+\subsection{Iterator style for}
+\label{subsec:IteratorStyleFor}
+The iterator style for is great for performing an operation per instance of an item in a list, array or otherwise iterable object - which is often the case about 80\% of the time in modern programming with for loops. Instead of the three separate key components as par the c style for loop above, we just have one, an iterator expression using the /in/ keyword, which creates a new variable with scope bound to the main block of the for loop:
+
+\begin{lstlisting}
+for(x in [1 2 3 4 5 6 7 8 9 10]){
+	System out println x
+}
+
+for(x int in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]){//here we choose to specify the type of our new variable x
+	System out println x
+}
+\end{lstlisting}
+
+In the above instances we are choosing to iterate over an n dimensional array and a list respectfully. We can also iterate over any object that implements the \lstinline{java.util.Iterator} interface, for example a range object:
+
+\begin{lstlisting}
+for(x in 1 to 10){
+	System out println x
+}
+\end{lstlisting}
+
+\section{Parallel for}
+\lstinline{parfor} looks a lot like a repeating control statement and indeed it does largely behave like a for loop in so far as iteration is concerned - indeed, both styles of for iteration are permitted, c style and iterator style. But execution of the main block is quite different. \lstinline{parfor} will spawn the maximum number of isolates it sensibly can (i.e. no more than one per processor core), and will assign each of the iterations of the for loop to these isolates in a round robin fashion, equally distributing the workload. Let's look at an example:
+
+\begin{lstlisting}
+result1 = parfor(x=1; x <= 100; x++){
+	1 + x*10
+}
+
+result2 = parfor(x in 1 to 100){
+	1 + x*10
+}
+\end{lstlisting}
+
+Bear in mind that code expressed in the main block that attempts to interact with the iteration operation (i.e. the value of \lstinline{x} in the first \lstinline{parfor} statement above) will not behave in the same way as an ordinary for loop. Likewise, break and continue are not permitted within a \lstinline{parfor} loop because the execution of the main block across a number of differing isolates occurs on a concurrent and non deterministic basis.
+
+Instead of returning a \lstinline{java.util.List<X>} object, as par a regular for loop, an array of ref's corresponding to each 'iteration' of the main block is returned of type: \lstinline{X:[]} - where \lstinline{X} is the type returned from the main block.
+
+\subsection{Parforsync}
+\lstinline{parforsync} behaves in the same way as \lstinline{parfor}, but all the ref's returned from the 'iterations' of the main block must have a value set on them before execution may continue past the statement - i.e. all iterations must have completed. Example:
+
+\begin{lstlisting}
+result1 = parforsync(x=1; x <= 100; x++){
+	1 + x*10
+}
+
+result2 = parforsync(x in 1 to 100){
+	1 + x*10
+}
+\end{lstlisting}
+
+\section{Repeating Control Statements Extra Features}
+The Repeating control statements; \lstinline{loop}, \lstinline{while}, \lstinline{for}, \lstinline{parfor} and \lstinline{parforsync} share some common extra features which make them especially useful.
+
+\subsection{else block}
+\label{subsec:forelseblock}
+An \lstinline{else} block can be attached to all the repeating control statements, except \lstinline{loop}, \lstinline{parfor} and \lstinline{parforsync}, and allows one to cater for cases where the attached main block is never entered into (i.e. the relevant test resolves to false on the first attempt):
+
+\begin{lstlisting}
+res = ""
+while(xyz()){
+	res += "x"	
+}else{
+	res = "fail"
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+res = ""
+for(x in xyz()){
+	res += x	
+}else{
+	res = "fail"
+}
+\end{lstlisting}
+
+\subsection{Returns from repeating control statements}
+The repeating control statements may return a list of type \lstinline{java.util.List<X>} where \lstinline{X} is the type returned by the attached loop block - \lstinline{int} in the below example:
+
+\begin{lstlisting}
+count=0
+series = loop{
+	if(count == 100){
+		break
+	}
+	++count//returns a value of type int
+}
+\end{lstlisting}
+
+For \lstinline{series} above the type is \lstinline{java.util.List<int>}
+
+when used in a for loop:
+\begin{lstlisting}
+series = for(a in 1 to 100){ a }
+\end{lstlisting}
+
+Note that \lstinline{parfor} and \lstinline{parforsync} have their own, different, return logic covered previously.
+
+\subsection{The index variable}
+\label{subsec:indexVar}
+All the repeating control statements (except the c style for loop) may have an attached index variable. This is handy in cases where one say wishes to use the Iterator style for loop, but also have a counter for the number of iterations so far. The index may have any name and by default the type of the index is \lstinline{int}. \lstinline{long} is a popular choice if you need to explicitly define the type of the index where working with very large iterations. An initial value assignment expression may be defined, if one is not then the value of the index is set to \lstinline{0}. For example, with a for loop:
+
+\begin{lstlisting}
+items = [2 3 4 5 2 1 3 4 2 2 1]
+
+res1 = for(x in items; idx) { "{x, idx}" }//idx implicitly set to 0
+res2 = for(x in items; idx long) { "{x, idx}" }//idx implicitly set to 0L
+res3 = for(x in items; idx = 100) { "{x, idx}" }
+res4 = for(x in items; idx long = 100) { "{x, idx}" }
+
+alreadyIdx = 10//index tobe used defined outside of loop
+res5 = for(x in items; alreadyIdx) { "{x, alreadyIdx}" }//alreadyIdx already defined
+\end{lstlisting}
+
+Index variables may be applied to loops and while loops in a similar fashion to iterator style for loops:
+
+\begin{lstlisting}
+items = [2 3 4 5 2 1 3 4 2 2 1]
+n=0; res1 = while(n++ < 10; idx) { "{n, idx}" }//idx implicitly set to 0
+n=0; res2 = loop(idx) {if(n++ > 10){break} "{n, idx}" }//idx implicitly set to 0
+\end{lstlisting}
+
+\section{With statement}
+The with statement which, though not being an actual control statement, does look a lot like one, and for that reason is included here. This is particularly useful in cases where one must call many methods, or interact with many fields of an object  in a block of code. Using the with statement allows us to skip having to explicitly reference the object variable of interest:
+\begin{lstlisting}
+class Details(~age int, ~name String){
+	def getSummary() => "{name}: {age}"
+	def rollage() => age++;;
+}
+
+det = new Details(23, "dave")
+
+with(det){
+	name = "david"
+	rollage()
+}
+
+det.getSummary()
+/
+=> "david: 24"
+\end{lstlisting}
+
+With statements, as with all block based code in Concurnas can return values:
+
+\begin{lstlisting}
+class Details(~age int, ~name String){
+	def getSummary() => "{name}: {age}"
+	def rollage() => age++;;
+}
+
+det = new Details(23, "dave")
+
+summary = with(det){
+	name = "david"
+	rollage()
+	getSummary()
+}
+//summary == "david: 24"
+\end{lstlisting}
+
+With statement may be nested. In instances where there is an identically callable method in the nesting layers, then the innermost layer is prioritized. 
+
+\section{Break and Continue}
+The \lstinline{break} and \lstinline{continue} keywords may be used within all the repeating control statements: loop, while, for (but not \lstinline{parfor} or \lstinline{parforsync}) in order to affect the flow of control within the main block of the statements.
+
+The \lstinline{break} keyword allows us to break out (escape from) from the inner most repeating control statement main block, and continue on with execution of the code post the control statement.
+
+The \lstinline{continue} keyword allows us to terminate the current repetition of the inner most repeating statement main block and carry on execution as if we had reached the end of the main block attached to the statement normally - so for a \lstinline{loop} this would be the start of the main block, for a \lstinline{while} it would be the beginning of the test etc.
+
+Let's look at an example of \lstinline{continue} and \lstinline{break}:
+\begin{lstlisting}
+items = x for x in 1 to 50
+
+for(x in items){
+	if(x <== 5){
+		continue //go back to the start of the loop, i.e. skip the code which outputs to console
+	}elif(x == 9){
+		break//go to the code after the for loop
+	}
+	System out println x
+}
+\end{lstlisting}
+
+The \lstinline{continue} and \lstinline{break} keywords may be used when the repeating control structures which return a value for each iteration in the following manner:
+
+\begin{lstlisting}
+series = for(x in items){
+	if(x <== 5){
+		continue x//continue but add a value to the result list
+	}elif(x == 6){
+		continue//continue and don't add a value to the result list
+	}elif(x == 9){
+		break x//break but add a final value to the result list
+	}elif(x == 10){
+		break//break and don't bother to return a value to the result list
+	}
+	x//if we've made it throught the above, then this value is added to the result list
+}
+\end{lstlisting}
+
+
+
+
+\end{document}

@@ -1,0 +1,61 @@
+{
+n ( ) ;
+n ( 23 , 6 ) ;
+n & ( ) ;
+n & ( ) ( ) ;
+z = b & ( ) ;
+z = b & ( 8 ) ;
+z = b & ( 8 ) ( 6 ) ;
+z = b & ( 8 , 9 ) ;
+z = b & ( 8 , ? int ) ;
+z = b & ( 8 , Int ) ( 9 ) & ( 5 , ? float ) ( 5.0 ) ;
+z = b & ( 8 , ? int ) ( 9 ) & ( 5 , ? float ) & ( 5.0 ) ( ) ;
+z = b & ( 8 , ? int ) ( 9 ) & ( 5 , ? float ) ( 5.0 ) ( ) ;
+z com.concurnas.bootstrap.lang.Lambda = b & ( ) ;
+ax [ 3 ] [ 2 ] . a ( ) ( 3 ) ;
+ax [ 3 ] [ 2 ] . a & ( ? int ) ( 3 ) ;
+ax [ 3 ] [ 2 ] . a & ( 5 , ? int ) ( 3 ) ;
+ax [ 3 ] [ 2 ] . a & ( 5 , ? int , 7 ) ( 3 ) ;
+ax [ 3 ] [ 2 ] . a & ( 5 , ? int , ? int ) & ( 3 , ? int ) ( 9 ) [ 1 ] . print ( ) ;
+n ( ) ;
+n & ( ) ( ) ;
+p = a ( ) ( 3 , Int ) ;
+z ( ) java.lang.Integer = b & ( 4 , 3 ) ;
+ans = a & ( 69 , 0 ) ( ) ;
+z = b & ( ) ;
+g = 9 ;
+s ;
+soemthing ( java.lang.Float ) java.lang.Integer = p ( ) ( 5.0 ) ;
+anotherthing ( java.lang.Float ) java.lang.Integer = p & ( 5 , ? float ) ( 5.0 ) ;
+a com.concurnas.bootstrap.lang.Lambda = dude ( ) ;
+norm int = a ( 69 , 54 ) ;
+something ( java.lang.Integer ) java.lang.Integer = a & ( ? int , 54 ) ;
+a & ( ? int , ? int ) ( 6 , 7 ) ;
+a & ( ? float , 45 , ? int ) ( 5.0 , 6 ) ;
+plus1v2 = def ( var n int ) int {
+return n + 1 ;
+}
+;
+plus1v3 ( java.lang.Integer ) java.lang.Integer = plus1v2 ;
+plus1v3 ( 4 ) ;
+def map ( var input List < Int > , var func ( java.lang.Integer ) java.lang.Integer ) List < Int > {
+ret = new List < Int > ( ) ;
+for ( i in input ) {
+ret . add ( func ( i ) ) ;
+}
+return ret ;
+}
+map ( [ 1 , 2 , 3 ] , plus1v3 ) ;
+def aa ( var n int , var m int ) int {
+n + m ;
+}
+curry = aa & ( ? int , 2 ) ;
+curry2 = curry & ( 4 ) ;
+res = curry2 ( ) ;
+ref ( java.lang.Integer ) void = null ;
+ref = def ( var a int ) void {
+print ( a ** 6 ) ;
+}
+( 8 ) ;
+something ( ) Int = a & ( 4 , 5 ) ;
+}

@@ -1,0 +1,365 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[DSLs]{Domain Specific Languages}
+
+Concurnas is a great language for building Domain Specific Languages (DSL's). DSL's enable us to define our own programming languages on top of the functionality offered by the host language in order to achieve the following objectives:
+
+\begin{itemize}
+	\item Narrow the semantic gap between our host language and the domain in which the problems we're trying to solve persist.
+	\item Make it easier for domain experts to express solutions to problems without requiring full knowledge of the host programming language.
+	\item Reduce time to market of solutions.
+	\item Reduce the amount of code we need to write and maintain.
+\end{itemize}
+
+In this chapter we shall briefly summarize the aspects of Concurnas which make achieving the above objectives possible.
+
+\section{Operator overloading}
+\hyperref[sec:OperatorOverloading]{Operator overloading} helps us reduce the amount of code one would otherwise be required to write and reduces the distance between the problem domain we are operating in, and the underlying language one is programming in - since one may use normal operators to achieve computation.
+
+\begin{lstlisting}
+class Complex(real double, imag double){
+	def +(other Complex) => new Complex(this.real + other.real, this.imag + other.imag)
+	def +=(other Complex) => this.real += other.real;  this.imag += other.imag
+	override toString() => "Complex({real}, {imag})"
+}
+
+c1 = Complex(2, 3)
+c2 = c1@//deep copy of c1
+c3 = Complex(3, 4)
+
+result1 = c1 + c3 //result1 == Complex(5.0, 7.0)
+c2 += c3 //compound plus assignment, c2 == Complex(5.0, 7.0)
+\end{lstlisting}
+
+\section{Extension functions}
+\hyperref[ch:extFuncs]{Extension functions} allow for functionality to be added to classes without needing to interact with the existing class hierarchy (e.g.extending the class etc). They are a convenient alternative to having to use utility functions/methods/classes which take an instance of a class and often permit a more natural way of interacting with objects:
+
+\begin{lstlisting}
+def String repeat(n int) String {//this is an extension function
+	return String.join(", ", java.util.Collections.nCopies(n, this))
+}
+
+res = "hi".repeat(2) //creates a reference
+rep() // returns: 'value, value'
+\end{lstlisting}
+
+Extension functions may be defined on any type including primitive types:
+\begin{lstlisting}
+def int meg() = this * 1024L * 1024L
+
+12.meg() //-> 12582912L
+\end{lstlisting}
+
+\section{Expression lists}
+Concurnas provides \hyperref[ch:exprLists]{expression lists}, this is a neat feature which enables a more natural way of writing expression related code that would otherwise have to be written as a set of chained together calls using the dot operator and/or function invocation brackets.
+
+Expression lists may be combined with operator overloading and extension functions to achieve some very impressive results. Using this feature one can create very succinct and readable DSLs:
+
+\begin{lstlisting}
+from java.time import Duration, LocalDateTime
+
+enum Currency{ GBP, USD, EUR, JPY }
+enum OrderType{Buy, Sell}
+
+class CcyAmount(amount long, ccy Currency){
+	override toString() => "{amount} {ccy}"
+}
+
+abstract class Order(type OrderType, ccyamount CcyAmount){
+	when LocalDateTime?
+	
+	def after(dur Duration){
+		when = LocalDateTime.now()+ dur
+	}
+	
+	override toString() => "{type} {ccyamount} at {when}"
+}
+class Buy(ccyamount CcyAmount) < Order(OrderType.Buy, ccyamount)
+class Sell(ccyamount CcyAmount) < Order(OrderType.Sell, ccyamount)
+//extension functions
+def long gbp() => CcyAmount(this, Currency.GBP)
+def int mil() => this*1000000L
+def int seconds() => Duration.ofSeconds(this)
+
+
+///////////Expression list:
+order = Buy 1 mil gbp after 10 seconds
+
+orderStr = "" + order
+//orderStr == Buy 1000000 GBP at 2018-02-15T06:32:11.099
+\end{lstlisting}
+
+\section{Language extensions}
+\hyperref[ch:langExt]{Language extensions} are the most powerful, but also most difficult to implement way to provide DSL's. Although most often the three previously mentioned methods of creating DSL's suffice, we have language extensions for those instances where the functionality offered is not enough.
+
+We can support virtually any syntax and semantics from an existing or new programming language within a language extension. Furthermore, this functionality may be provided at any point within a Concurnas program. But we must do most of the hard work in terms of language compilation to achieve these results.
+
+Here is an example language extension implementation from the \hyperref[ch:langExt]{Language extensions} chapter:
+
+\begin{lstlisting}
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import ErrorOrWarning, Result, IterationResult
+from com.concurnas.lang.LangExt import Variable, Method, MethodParam
+from java.util import Stack, Scanner, ArrayList, List
+
+/*
+* sample inputs:
+*  (+ 1 2 3 )
+*  (+ 1 2 n )
+*  (+ 1 2 ( * 3 5) )
+*  (+ 1 2 ( methodCall 3 5) )
+*/
+
+/////////////////   AST  /////////////////
+enum MathOps(code String){PLUS("+"), MINUS("-"), MUL("*"), DIV("/"), POW("**");
+	override toString() => code
+}
+
+open class ASTNode(-line int, -col int){
+	nodes = new ArrayList<ASTNode>()
+	def add(toAdd ASTNode){
+		nodes.add(toAdd)
+	}
+	
+	def accept(visitor Visitor) Object 
+}
+
+class LongNode(line int, col int, along Long) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+class MathNode(line int, col int, what MathOps) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+class MethodCallNode(line int, col int, methodName String) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+class NamedNode(line int, col int, name String) < ASTNode(line, col){
+	def accept(vis Visitor) Object => vis.visit(this);
+}
+
+
+///////////////// Parser /////////////////
+
+def parse(line int, col int, source String) (ASTNode, Result) {
+	rootNode ASTNode?=null
+	
+	warnings = new ArrayList<ErrorOrWarning>()
+	errors = new ArrayList<ErrorOrWarning>()
+	
+	sc = new Scanner(source)
+	nodes = Stack<ASTNode>()
+	
+	while(sc.hasNext()){
+		if(sc.hasNextInt()){
+			llong = sc.nextLong()
+			
+			if(nodes.isEmpty()){
+				errors.add(new ErrorOrWarning(line, col, "unexpected token: {llong}"))
+			}
+			else{
+				nodes.peek().add(LongNode(line, col, llong))
+			}
+		}else{
+			str = sc.next()
+			match(str){
+				")" => {
+					
+					if(nodes.isEmpty()){
+						errors.add(new ErrorOrWarning(line, col, "unexpected token: {str}"))
+					}else{
+						rootNode = nodes.pop()
+						if(rootNode <> null and not nodes.isEmpty()){
+							nodes.peek().add(rootNode)
+						}
+					}
+				}
+				else => match(str){
+					"( +" => nodes.push(MathNode(line, col, MathOps.PLUS))
+					"( -" => nodes.push(MathNode(line, col, MathOps.MINUS))
+					"( *" => nodes.push(MathNode(line, col, MathOps.MUL))
+					"( /" => nodes.push(MathNode(line, col, MathOps.DIV))
+					"( **" => nodes.push(MathNode(line, col, MathOps.POW))
+					else =>{
+						if(str.startsWith("(")){
+							str = str.substring(1, str.length());
+							nodes.push(MethodCallNode(line, col, str))
+						}else{
+							if(nodes.isEmpty()){
+								errors.add(new ErrorOrWarning(line, col, "unexpected token: {str}"))
+							}else{
+								nodes.peek().add(NamedNode(line, col, str))
+							}
+						}
+					} 
+				}
+			}
+		}
+	}
+	
+	rootNode?:LongNode(0, 0, 0), new Result(errors, warnings)
+}
+
+/////////////////Visitors/////////////////
+
+trait Visitor{
+	def visit(longNode LongNode) Object
+	def visit(mathNode MathNode) Object
+	def visit(namedNode NamedNode) Object
+	def visit(methodNode MethodCallNode) Object
+}
+
+class CodeGennerator ~ Visitor{
+	def visit(longNode LongNode) Object{
+		"{longNode.along}"
+	}
+	
+	def visit(mathNode MathNode) Object{
+		String.join("{mathNode.what}", ("" + x.accept(this)) for x in mathNode.nodes)
+	}
+	
+	def visit(methodCall MethodCallNode) Object{
+		"{methodCall.methodName}(" + String.join(", ", ("" + x.accept(this)) for x in methodCall.nodes ) + ")"
+	}
+	
+	def visit(namedNode NamedNode) Object{
+		"{namedNode.name}"
+	}
+}
+cg = CodeGennerator()
+
+private numericalTypes = new set<String>()
+{
+	numericalTypes.add("I")
+	numericalTypes.add("J")
+	numericalTypes.add("Ljava/lang/Long;")
+	numericalTypes.add("Ljava/lang/Integer;")
+}
+
+class NodeChecker(ctx Context) ~ Visitor{
+	errors = ArrayList<ErrorOrWarning>()
+	warnings =  ArrayList<ErrorOrWarning>()
+	
+	def visit(longNode LongNode) Object => "I"
+	def visit(mathNode MathNode) Object{
+		for( x in mathNode.nodes){
+			x.accept(this)
+		}
+		
+		"I"
+	}
+	
+	private def raiseError(line int, col int, str String){
+		errors.add(new ErrorOrWarning(line, col, str))
+	}
+	
+	def visit(namedNode NamedNode) Object{
+		vari Variable? = ctx.getVariable(namedNode.name)
+		type = vari?.type
+		
+		if(type){
+			if(type not in numericalTypes){
+				raiseError(namedNode.line, namedNode.col, "Variable: {namedNode.name} is expected to be of numerical type")
+			}
+		}else{
+			raiseError(namedNode.line, namedNode.col, "Unknown variable: {namedNode.name}")
+		}
+		
+		return type
+	}
+	
+	
+	def visit(methodCall MethodCallNode) Object{
+		meths List<Method> = ctx.getMethods(methodCall.methodName)
+		
+		found = false
+		
+		argsWanted = methodCall.nodes
+		wantedSize = argsWanted.size()
+		
+		for(method in meths){
+			ret = method.returnType
+			if(ret=="V" or ret in numericalTypes){
+				margs ArrayList<String> = method.arguments
+				if(wantedSize == margs.size()){
+					found=true
+				}else{
+					//check to see if an arg is an array - then can attempt to vararg in
+					found = margs.stream().anyMatch(a => a <> null and a.startsWith("["))				
+				}
+				
+				if(found){
+					break
+				}
+			}
+		}
+		
+		if(not found){
+			raiseError(methodCall.line, methodCall.col, "Cannot find method: {methodCall.methodName}")
+		}
+		
+		for(arg in argsWanted; idx){
+			atype = ""+arg.accept(this)
+			if(atype not in numericalTypes){
+				raiseError(methodCall.line, methodCall.col, "method argument {idx+1} is expected to be of numerical type not: {atype}")
+			}
+		}
+		
+		return "I"
+	}
+}
+
+///////////////// Lang  /////////////////
+
+class SimpleLisp ~ LanguageExtension{
+	line int
+	col int
+	rootNode ASTNode?=null
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result {
+		this.line = line
+		this.col = col
+		
+		//build abstract syntax tree...
+		(this.rootNode, result) = parse(line, col, source)
+		
+		result
+	}
+	
+	def iterate(ctx Context) IterationResult {
+		rootn = rootNode
+		if(rootn){
+			nc = NodeChecker(ctx)
+			rootn.accept(nc)
+			
+			code = ""
+			if(nc.errors.isEmpty() and nc.warnings.isEmpty()){
+				code = ""+rootn.accept(cg)
+			}
+			
+			new IterationResult(nc.errors, nc.warnings, code)
+			
+		}else{
+			errors = ArrayList<ErrorOrWarning>()
+			warnings =  ArrayList<ErrorOrWarning>()
+			new IterationResult(errors, warnings, "")
+		}
+	}
+}
+\end{lstlisting}
+
+We can now use or previously defined language extension:
+\begin{lstlisting}
+from com.mycompany.myproduct.langExts.miniLisp using SimpleLisp
+
+result = SimpleLisp||(+ 1 2 (* 3 3 ) )||
+//result == 9
+\end{lstlisting}
+
+As we can see, this is a lot of work, but the results are very impressive.
+
+\end{document}

@@ -1,0 +1,3190 @@
+//##1 ensure private fields are read locally
+
+open class Parent{
+	    h=9;
+	    def whatish() => h
+   } 
+   
+   class Child < Parent{
+	   h=88;
+	   def whatish2() => h;
+   }
+
+def doings() {
+	cc = Child()
+	"" + [cc.whatish()  cc.whatish2()]
+}
+
+~~~~~
+//##2 ensure fields are read locally
+
+open class Parent{
+	    public h=9;
+	    def whatish() => h
+   } 
+   
+   class Child < Parent{
+	   public h=88;
+	   def whatish2() => h;
+   }
+
+def doings() {
+	cc = Child()
+	"" + [cc.whatish(), cc.whatish2()]
+}
+
+~~~~~
+//##3 ensure unicode works correctly
+π = Math.PI//unicode, utf-8 works
+
+def doings() {
+	"π=" + π 
+}
+
+~~~~~
+//##4 bugfix used to pop on RefNamedType
+def doings(){
+	pp = System.out.println&(? String)
+	
+	"ok" 
+}
+
+~~~~~
+//##4 bugfix direct to setter or getter 
+//even if there is one even if the associated var does not match up name wize
+class MyClass(){
+	private ab=9//its not a!
+	def getA() => ab
+	def setA(a int) { ab = a}
+}
+
+def doings(){
+	mc=MyClass() 
+	//redirect to getter/setter as approperiate
+	mc.a=99
+	"" + mc.a
+}
+
+~~~~~
+//##5 dma map test 
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+import com.concurnas.bootstrap.runtime.cps.Fiber
+
+class MyClass(a int, b long){
+	f int = 99
+	override hashCode()=>0
+	override equals(a Object)=>true
+	override toString() => "" + [a,b]
+}
+
+11_meg = 11*1024*1024//parser used to not like stuff starting with a number
+
+def doings(){
+	mc = MyClass(12, 100l)
+	
+	offHeapMap = OffHeapMapRAM<String, MyClass>(11_meg)
+	offHeapMap.removeOnClose = true
+	offHeapMap.useFairLockingStrategy = true
+	offHeapMap.start()
+	
+	offHeapMap.put("hi", mc)
+	
+	useage1 = offHeapMap.getStoredNonPrimativeObjectUsage()
+	got = offHeapMap["hi"]
+	got2 = offHeapMap.remove("hi")
+	useage2 = offHeapMap.getStoredNonPrimativeObjectUsage()
+
+	
+	"got: " + got + " use: " + [useage1, useage2] + " cont: " + ("hi" in offHeapMap)
+}
+
+~~~~~
+//##6 simple with object array 
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+import com.concurnas.bootstrap.runtime.cps.Fiber
+from java.util import ArrayList
+
+
+public class MyClass(name String ) {
+	
+	public objArray Object[]?
+
+	override hashCode()=>0
+	override equals(a Object)=>true
+	override toString()=>""+[name + objArray]
+}
+
+
+11_meg = 11*1024*1024//parser used to not like stuff starting with a number
+
+def doings(){
+	mc = MyClass("hi")
+	mc.objArray = [null  "wassup"]
+	
+	offHeapMap = OffHeapMapRAM<String, MyClass>(11_meg)
+	offHeapMap.removeOnClose = true
+	offHeapMap.useFairLockingStrategy = true
+	offHeapMap.start()
+	
+	offHeapMap["hi"] = mc
+	
+	got = offHeapMap["hi"]
+	
+	offHeapMap.remove("hi")
+	
+	"got: " + got + " after cleanup: " + offHeapMap.getStoredNonPrimativeObjectUsage()
+}
+
+~~~~~
+//##7 big complex test 
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+import com.concurnas.bootstrap.runtime.cps.Fiber
+from java.util import ArrayList
+
+open class MyParent {
+	public parentthing int;
+}
+
+public class MyClass(-name String) < MyParent{
+	public aint int
+	public along long
+	public adouble double
+	public afloat float
+	public aboolean boolean
+	public ashort short
+	public abyte byte
+	public achar char
+	public looper MyClass?
+	public zzz = 99
+	
+	
+	public aintAr int[]?
+	public aintArnull int[]?
+	public alongAr long[] ?
+	public adoubleAr double[]? 
+	public adoubleAr3D double[2]? 
+	public adoubleAr3DNully double[2]? 
+	public afloatAr float[] ?
+	public abooleanAr boolean[]? 
+	public ashortAr short[] ?
+	public abyteAr byte[] ?
+	public acharAr char[] ?
+	
+	
+	public objArray Object[] ?
+	
+	public objArrayWithLoop Object[] ?
+	public objIsArray Object ?
+	public objIsArray3d Object ?
+	public friends MyClass[] ?
+	
+	public enumx MyEnum ?
+	public enumxar MyEnum[] ?
+
+	override hashCode()=>0
+	override equals(a Object)=>true
+	override toString()=>name
+}
+
+enum MyEnum{ONE, TWO}
+
+
+11_meg = 11*1024*1024//parser used to not like stuff starting with a number
+
+def doings(){
+	mc2 = MyClass("mc2")
+	mc2.ashort = 69 as short
+	
+	mc = MyClass("mc")
+	mc2.looper = mc
+	
+	mc.aint = 12
+	mc.along = 999l
+	mc.adouble = 345.234234
+	mc.afloat = 12.32f
+	mc.aboolean = true
+	mc.ashort=12 as short
+	mc.abyte = 99 as byte
+	mc.achar = 'c'
+	mc.looper = mc2
+
+	//arrrays
+	
+	mc.aintAr = [1 66]
+	mc.aintArnull = null
+	mc.alongAr = [10l 669l]
+	mc.adoubleAr = [23.34  666.78]
+	mc.adoubleAr3D = [23.34  666.78 ; 23.34  666.78]
+	mc.adoubleAr3DNully = [23.34  666.78 ; null]//also used to not process null correctly
+	mc.afloatAr = [10.f  669.f]
+	mc.abooleanAr = [true  false  true]
+	mc.ashortAr = [3 as short  9 as short]
+	mc.abyteAr = [4 as byte  9 as byte]//used to also be a bug when creating byte arrays
+	mc.acharAr = ['g'  'h']
+	
+	//mc.objArray = [null, null]
+	mc.objArray = [null  mc2]
+	
+	mc.objArrayWithLoop = [mc  mc2]
+	mc.objIsArray = [mc  mc2  null]
+	mc.objIsArray3d = [mc  mc2  null ; mc  mc2  null]
+	mc.friends = [mc2  mc]
+	
+	mc.enumx = MyEnum.ONE
+	mc.enumxar = [MyEnum.ONE  MyEnum.TWO  MyEnum.ONE]
+	
+	mc.parentthing = 100
+	
+	offHeapMap = OffHeapMapRAM<String, MyClass>(11_meg)
+	offHeapMap.removeOnClose = true
+	offHeapMap.useFairLockingStrategy = true
+	offHeapMap.start()
+	
+	offHeapMap["hi"] =  mc
+	
+	got = offHeapMap["hi"]
+	
+	ret = ArrayList<String>()
+	//validate...
+	{
+	
+		ret.add("name: " + got.name);
+		
+		ret.add("int: " + got.aint);
+		ret.add("long: " + got.along);
+		ret.add("double: " + got.adouble);
+		ret.add("float: " + got.afloat);
+		ret.add("boolean: " + got.aboolean);
+		ret.add("short: " + got.ashort);
+		ret.add("byte: " + got.abyte);
+		ret.add("char: " + got.achar);
+		
+		//short and int
+		
+		ret.add("int ar: " + got.aintAr); 
+		ret.add("int ar null: " + got.aintArnull); 
+		ret.add("long ar: " + got.alongAr);
+		ret.add("double ar: " + got.adoubleAr);
+		ret.add("double ar 3d: " + got.adoubleAr3D);
+		ret.add("double ar 3d nully: " + got.adoubleAr3DNully);
+		ret.add("float ar: " + got.afloatAr);
+		ret.add("boolean ar: " + got.abooleanAr);
+		ret.add("short ar: " + got.ashortAr);
+		ret.add("byte ar: " + got.abyteAr);
+		ret.add("char ar: " + got.acharAr);
+		
+		ret.add("object array: " + got.objArray);
+		
+		ret.add("object array wloop: " + got.objArrayWithLoop);
+		ret.add("object array sneeky: " + got.objIsArray);
+		ret.add("object array sneeky 3d: " + got.objIsArray3d);
+		ret.add("typed obj array: " + got.friends);
+		
+		ret.add("parent int: " + got.parentthing);
+		ret.add("an enum: " + got.enumx);
+		ret.add("an enum ar: " + got.enumxar);
+		
+		ret.add("me: " + got);
+		ret.add("looper: " + got.looper);
+		ret.add("looper short: " + got.looper?.ashort);
+		ret.add("looper looper: " + got.looper?.looper);
+		ret.add("-- Vid use: " + offHeapMap.getStoredNonPrimativeObjectUsage() );
+	}
+	
+	offHeapMap.remove("hi")
+	ret.add("-- Vid use after remove: " + offHeapMap.getStoredNonPrimativeObjectUsage() );
+	ret.add("keys: " + offHeapMap.keySet() );
+	
+	"got: " + [got got &<>mc] + String.join("\n", ret) 
+}
+
+~~~~~
+//##8 null object store 
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+import com.concurnas.bootstrap.runtime.cps.Fiber
+from java.util import ArrayList
+
+open class MyParent {
+	public parentthing int;
+}
+
+public class Myclass(-name String) < MyParent{
+	public aint int
+	public along long
+
+	override hashCode()=>0
+	override equals(a Object)=>true
+	override toString()=>name
+}
+
+
+
+11_meg = 11*1024*1024
+
+def doings(){
+
+	try(engine = new OffHeapRAM<Object?>(11_meg)){
+		engine.start()
+		//null object
+		offHeapObj = engine.put(null)
+		expectNull = engine.get(offHeapObj) as Myclass?
+		
+		ret = ArrayList<String>()
+		
+		ret.add("expect null: " + expectNull)
+		ret.add("-- Vid use: " + engine.getStoredNonPrimativeObjectUsage() )
+		
+		del offHeapObj
+		ret.add("-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage() )
+	
+		""+ret
+	}
+}
+
+~~~~~
+//##9 prim array store 
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+
+11_meg = 11*1024*1024
+
+def doings(){
+
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//object which resolves to primative array
+		offHeapObj = engine.put([1 2 3 ; 1 2 3]);
+		got = engine.get(offHeapObj); 
+		
+		ret = ArrayList<String>()
+
+		ret.add("int[2] array: " + got);
+		ret.add("-- Vid use: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		del offHeapObj
+		ret.add("-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		""+ret
+	}
+}
+
+~~~~~
+//##10 prim float array store
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+
+11_meg = 11*1024*1024
+
+def doings(){
+
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//object which resolves to primative array
+		offHeapObj = engine.put([1.f 2 3 ; 1 2.f 3]);
+		got = engine.get(offHeapObj); 
+		
+		ret = ArrayList<String>()
+
+		ret.add("int[2] array: " + got);
+		ret.add("-- Vid use: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		del offHeapObj
+		ret.add("-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		""+ret
+	}
+}
+
+~~~~~
+//##11 enum store
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+enum MyEnum{ ONE}
+
+11_meg = 11*1024*1024
+
+def doings(){
+
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//object which resolves to primative array
+		offHeapObj = engine.put(MyEnum.ONE);
+		got = engine.get(offHeapObj); 
+		
+		ret = ArrayList<String>()
+
+		ret.add("int[2] array: " + got);
+		ret.add("-- Vid use: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		offHeapObj.delete()
+		ret.add("-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		""+ret
+	}
+}
+
+~~~~~
+//##12 enum store array
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+enum MyEnum{ ONE, TWO}
+
+11_meg = 11*1024*1024
+
+def doings(){
+
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//object which resolves to primative array
+		offHeapObj = engine.put([MyEnum.ONE  MyEnum.TWO]);
+		got = engine.get(offHeapObj); 
+		
+		ret = ArrayList<String>()
+
+		ret.add("int[2] array: " + got);
+		ret.add("-- Vid use: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		offHeapObj.delete()
+		ret.add("-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage() );
+		
+		""+ret
+	}
+}
+
+~~~~~
+//##13 simple object persistance
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+
+
+11_meg = 11*1024*1024
+
+class Myclass(){
+	public ashort short
+	override toString() => "hi short: " + ashort
+}
+
+
+def doings(){
+	
+	ret = ArrayList<String>()
+			
+	path = try(offHeapDisk = new OffHeapDisk<Myclass>(11_meg)){
+		offHeapDisk.start();
+		
+		mc2 = Myclass()
+		mc2.ashort=69 as short
+		
+		dmaObj = offHeapDisk.put(mc2);
+		got = dmaObj.get() as Myclass;
+		
+		ret.add("off heap disk got item: " + got);
+		ret.add("off heap disk got item ashort: " + got.ashort);
+		
+		offHeapDisk.getPath();
+	}
+	
+	if(path.exists()){
+		ret.add("error: Path not cleaned after shutdown: " + path);
+	}
+	
+	"" + ret
+}
+
+~~~~~
+//##14 set cap
+
+from com.concurnas.lang.offheap.storage import OffHeapDisk
+from java.util import ArrayList
+
+11_meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	override toString() => "hi short: " + ashort
+}
+
+
+def doings(){
+	
+	ret = ArrayList<String>()
+			
+	path = try(offHeapDisk = new OffHeapDisk<Myclass>(11_meg)){
+		offHeapDisk.setPreallocate(true);
+		offHeapDisk.start();
+		//lets increase the capacity
+		offHeapDisk.setCapacity(_20meg);//used to pop incorrectly
+		try{
+			offHeapDisk.setCapacity(_2meg);
+			ret.add("should have complained about capacity decrease");
+		}catch(e){
+			
+		}
+		
+		ret.add(String.format("off heap disk capacity now: %s meg" , offHeapDisk.getCapacity()/1024/1024));
+		
+		offHeapDisk.getPath();
+	}
+	
+	if(path.exists()){
+		ret.add("Path not cleaned after shutdown: " + path);
+	}
+	
+	"" + ret
+}
+
+~~~~~
+//##15 set cap ram
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+_11meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	override toString() => "hi short: " + ashort
+}
+
+
+def doings(){
+	ret = ArrayList<String>()
+			
+	try(offHeapDisk = new OffHeapRAM<Object>(_11meg)){
+		//ensure that capacity can be increased (obejcts not lost, and extra space is useable).
+		//but not decreased
+		offHeapDisk.start();
+		
+		mc = new Myclass();
+		mc.ashort = 9
+		
+		dmao = offHeapDisk.put(mc);
+		
+		offHeapDisk.setCapacity(_20meg);
+		try{
+			offHeapDisk.setCapacity(_2meg);
+			ret.add("should have complained about capacity decrease");
+		}catch(e){
+			
+		}
+		
+		ret.add(String.format("off heap ram capacity now: %s meg" , offHeapDisk.getCapacity()/1024/1024));
+		
+		got = dmao.get() as Myclass
+		
+		ret.add(String.format("off heap ram extract: %s" , got.ashort));
+	}
+	
+	"" + ret
+}
+
+~~~~~
+//##16 bugfix
+
+def doings(){
+	gotx = new byte[1024*1024];
+	
+	assert gotx[2]==(0 as byte)//used to fail as incorrect ar load for byte array
+	
+	"ok"
+}
+
+~~~~~
+//##17 bugfix prim cast
+
+a Object = new byte[1024*1024];
+
+def doings(){
+	gotx = a as byte[]//used to not cast to primative array correctly (wow!)
+	ss = gotx.length
+
+	"ok " + ss
+}
+
+~~~~~
+//##18 capacity can be increased
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList
+
+_11meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	override toString() => "hi short: " + ashort
+}
+
+
+def doings(){
+	ret = ArrayList<String>()
+	
+	try(offHeapDisk = new OffHeapRAM<Object>(_11meg)){
+		//ensure that capacity can be increased (obejcts not lost, and extra space is useable).
+		offHeapDisk.start();
+		
+		offHeapDisk.setCapacity(_20meg);
+		
+		//add 19 meg of contents
+		_1meg = new byte[1024*1024];
+		keenOnHeap = new OffHeapObject<Object>[18];
+		//if we dont store the above then we will loose
+		for(n=0; n < keenOnHeap.length; n++){
+			for(nn=0; nn < _1meg.length; nn++){
+				_1meg[nn]=n as byte;
+			}
+			dmao = offHeapDisk.put(_1meg);
+			
+			gotx = offHeapDisk.get(dmao) as byte[]
+			h = "uh oh"
+			ss=gotx.length
+			for(nn=0; nn < ss; nn++){
+				assert gotx[nn]==(n as byte)
+			}
+			
+			keenOnHeap[n] = dmao;
+		}
+	}
+	
+	"all is good"
+}
+
+~~~~~
+//##19 kv pair map
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMap
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	override toString() => "hi myclass "
+}
+
+@Uninterruptible
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	try(offHeapMap = new OffHeapMapDisk<String, Myclass?>(_11meg)){
+		offHeapMap.setRemoveOnClose(true);
+		offHeapMap.start();
+		
+		{//basic
+			mc = new Myclass();
+			mc.adouble = 56.22;
+			offHeapMap.put("hello", mc);
+			got = offHeapMap.get("hello");
+			ret.add(String.format("map in/out %s vs %s" , mc.adouble, got.adouble));
+		}
+		
+		{//missing
+			missing Myclass? = offHeapMap.get("hellox");
+			ret.add(String.format("expect null: %s",  missing));
+		}
+		
+		mc2 = new Myclass();
+		{//overwrite
+			mc2.adouble = 99.9;
+			old = offHeapMap.put("hello", mc2);
+			got2 = offHeapMap.get("hello");
+			ret.add(String.format("map overwrite in/out %s vs %s old: %s" , mc2.adouble, got2.adouble, old.adouble));
+		}
+
+		s1 = "AaAaAa";
+		s2 = "AaAaBB";
+		
+		mcs1 = new Myclass();
+		mcs1.adouble = 101.2;
+		mcs2 = new Myclass();
+		mcs2.adouble = 693.2;
+		
+		{//same hash code different value
+			a1 = s1.hashCode();
+			a2 = s2.hashCode();
+			assert a1==a2;
+			
+			offHeapMap.put(s1, mcs1);
+			offHeapMap.put(s2, mcs2);
+			
+			got1 = offHeapMap.get(s1);
+			got2 = offHeapMap.get(s2);
+			ret.add(String.format("same has different value: %s vs %s" , got1.adouble, got2.adouble));
+		}
+		
+		{//remove not present
+			expectNull Myclass? = offHeapMap.remove("hi");//not included
+			assert expectNull == null;
+		}
+		
+		{//remove 
+			got = offHeapMap.remove("hello");//not included
+			ret.add(String.format("removed %s vs %s" , got.adouble, mc2.adouble));
+			expectNull Myclass? = offHeapMap.remove("hello");//removed
+			assert expectNull == null;
+			expectNull  = offHeapMap.put("hello", got);
+			assert expectNull == null;
+			
+			ret.add(String.format("put back in %s vs %s" , got.adouble, mc2.adouble));
+		}
+		
+		{//remove tricky 
+			got = offHeapMap.remove(s2);
+			ret.add(String.format("tricky removed: %s == 693.2" , got.adouble));
+			got1 = offHeapMap.get(s1);
+			ret.add(String.format("tricky still here: %s == 101.2" , got1.adouble));
+		}
+		
+		{//remove tricky2 reverse
+			offHeapMap.put(s1, mcs1);
+			offHeapMap.put(s2, mcs2);
+			
+			got = offHeapMap.remove(s1);
+			ret.add(String.format("tricky removed: %s == 101.2" , got.adouble));
+			got1 = offHeapMap.get(s2);
+			ret.add(String.format("tricky still here: %s == 693.2" , got1.adouble));
+		}
+		
+		{//contains key
+			offHeapMap.put("nino", null);
+			assert offHeapMap.containsKey("nino");
+			ret.add(String.format("contains key: %s" , offHeapMap.containsKey("nino")));
+		}
+		
+		{//size and keyset/values
+			ret.add(String.format("size now: %s" , offHeapMap.sizeLong()));
+			
+			keyz = new ArrayList<String>(offHeapMap.keySet());
+			Collections.sort(keyz);
+			ret.add(String.format("keys: %s" , keyz));
+			
+			valz = new ArrayList<Myclass>(offHeapMap.values());
+			//Collections.sort(valz);
+			ret.add(String.format("values: %s" , valz));
+		}
+		
+		{//clear
+			offHeapMap.clear();
+			assert not offHeapMap.containsKey("nino");
+		}
+		
+		{//size
+			ret.add(String.format("size after clear zero: %s" , offHeapMap.sizeLong()));
+		}
+		
+		{//putAll
+			toAdd = new HashMap<String, Myclass?>();
+			toAdd.put("hi", null);
+			
+			offHeapMap.putAll(toAdd);
+			ret.add(String.format("count post putAll: %s", offHeapMap.sizeLong()));
+			
+			keyz = new ArrayList<String>(offHeapMap.keySet());
+			Collections.sort(keyz);
+			ret.add(String.format("post putAll keys: %s" , keyz));
+			
+			//add self...
+			offHeapMap.putAll(offHeapMap);
+			
+			ret.add(String.format("count post putAll: %s", offHeapMap.sizeLong()));
+			
+			keyz = new ArrayList<String>(offHeapMap.keySet());
+			Collections.sort(keyz);
+			ret.add(String.format("post putAll keys: %s" , keyz));
+		}
+
+		{//getOrDefault
+			defx = new Myclass();
+			defx.adouble=453.2;
+			got = offHeapMap.getOrDefault("missingno", defx);
+
+			ret.add(String.format("defxault get: %s vs %s" , defx.adouble, got.adouble));
+		}
+		
+		{//putIfAbsent
+			defx = new Myclass();
+			defx.adouble=453.2;
+			got Myclass? = offHeapMap.putIfAbsent("missingno", defx);
+			assert got == null;
+
+			defx2 = new Myclass();
+			defx2.adouble=111.32;
+			gotx Myclass = offHeapMap.putIfAbsent("missingno", defx2);//its not absent so dont do this
+			assert gotx.adouble == defx.adouble;//previous value
+			ret.add("putIfAbsent ok");
+		}
+		
+		
+		{//remove if match
+			defx = new Myclass();
+			defx.adouble=89089.2;
+			offHeapMap.put("rmme", defx);
+			removed = offHeapMap.remove("rmme", null);
+			assert not removed;//no match so no removal
+			
+			removed = offHeapMap.remove("rmme", defx);
+			assert removed;// match so removal
+			ret.add("remove ok");
+		}
+		
+		{//replace
+			defx = new Myclass();
+			defx.adouble=89089.2;
+			
+			prev Myclass? = offHeapMap.replace("replaceme", defx);
+			assert prev==null;//nothing replaced
+			old = new Myclass();
+			old.adouble=987987;
+			offHeapMap.put("replaceme", old);
+			prevx = offHeapMap.replace("replaceme", defx);
+			assert prevx.equals(old);//replaced, previous was old
+			assert offHeapMap.get("replaceme").equals(defx);//replaced, new thing
+			ret.add("replace ok");
+		}
+		
+		{//replace if match
+			old = new Myclass();
+			old.adouble=89.2;
+			
+			key = "replifmatch";
+			
+			offHeapMap.put(key, old);
+			
+			newa = new Myclass();
+			newa.adouble=1111122222.2;
+			
+			replaced = offHeapMap.replace(key, newa, newa);
+			assert not replaced;//no match no replace
+			replaced = offHeapMap.replace(key, newa, newa);
+			assert not replaced;//no match no replace
+			replaced = offHeapMap.replace(key, old, newa);
+			assert replaced;//match so there is a replace
+			ret.add("replace ok");
+		}
+		
+		ret.add("fin count " + offHeapMap.sizeLong());
+		keyz = new ArrayList<String>(offHeapMap.keySet());
+		Collections.sort(keyz);
+		ret.add(String.format("end keys: %s" , keyz));
+		
+	}
+	
+	String.join("\n" , ret)	
+}
+
+~~~~~
+//##20 kv pair map OffHeapMapRAM one
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	override toString() => "hi myclass "
+}
+
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	try(ramMap = new OffHeapMapRAM<String, String>(_11meg)){
+		ramMap.start();
+		
+		ramMap.put("hi", "there");
+		
+		assert ramMap.get("hi").equals("there");
+		ret.add(String.format("ram one works ok: %s" , ramMap.sizeLong()));
+	}
+	
+	"" + ret	
+}
+
+~~~~~
+//##21 restoration from disk
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import java.io.File
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	override toString() => "hi myclass "
+}
+
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	{//restore from disk
+		key = "hi";
+		
+		thePath File;
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			diskMap.start();
+			diskMap.setRemoveOnClose(false);
+			
+			diskMap.put(key, "there");
+			
+			thePath = diskMap.getPath();
+		}
+		//restore...
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			//no capacity provided on the above!
+			diskMap.setPath(thePath);
+			diskMap.setRemoveOnClose(true);//cleanup on restart
+			//diskMap
+			diskMap.start();
+			diskMap.put(key+"2", "there");
+			
+			ret.add(String.format("got from disk: %s", diskMap.get(key)));
+			ret.add(String.format("got from disk: %s", diskMap.get(key+"2")));
+		}
+		
+		assert not thePath.exists();//and deleted!
+	}
+	
+	{//restore from disk no cap provided
+		key = "hi";
+		
+		thePath File;
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			diskMap.start();
+			diskMap.setRemoveOnClose(false);
+			
+			diskMap.put(key, "there");
+			
+			thePath = diskMap.getPath();
+		}
+		//restore...
+		try(diskMap = new OffHeapMapDisk<String, String>()){
+			//no capacity provided on the above!
+			diskMap.setPath(thePath);
+			diskMap.setRemoveOnClose(true);//cleanup on restart
+			//diskMap
+			diskMap.start();
+			diskMap.put(key+"2", "there");
+			
+			ret.add(String.format("got from disk no cap: %s", diskMap.get(key)));
+			ret.add(String.format("got from disk no cap: %s", diskMap.get(key+"2")));
+		}
+		
+		assert not thePath.exists();//and deleted!
+	}
+	
+	{//restore from disk no cap provided, override capacity, pre start
+		key = "hi";
+		
+		thePath File;
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			diskMap.start();
+			diskMap.setRemoveOnClose(false)
+			
+			diskMap.put(key, "there");
+			
+			thePath = diskMap.getPath();
+		}
+		//restore...
+		try(diskMap = new OffHeapMapDisk<String, String>()){
+			//no capacity provided on the above!
+			diskMap.setPath(thePath);
+			diskMap.setCapacity(_2meg);//ignored
+			diskMap.setRemoveOnClose(true);//cleanup on restart
+			//diskMap
+			diskMap.start();
+			diskMap.put(key+"2", "there");
+			
+			ret.add(String.format("got from disk no cap: %s", diskMap.get(key)));
+			ret.add(String.format("got from disk no cap: %s", diskMap.get(key+"2")));
+		}
+		
+		assert not thePath.exists();//and deleted!
+	}
+	
+	
+	{//restore from disk, named path
+		key = "hi";
+		
+		thePath = new File("leTempFile");
+		ret.add("file path: " + thePath.exists());
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			diskMap.setPath(thePath);
+			diskMap.start();
+			
+			diskMap.put(key, "there");
+			diskMap.put(key+"44", "there");
+			
+		}
+		//restore...
+		try(diskMap = new OffHeapMapDisk<String, String>()){
+			//no capacity provided on the above!
+			diskMap.setPath(thePath);
+			diskMap.setRemoveOnClose(true);//cleanup on restart
+			diskMap.start();
+			
+
+			assert diskMap.sizeLong()==2;
+			
+			diskMap.put(key+"2", "there");
+			
+			ret.add(String.format("got from disk no cap: %s", diskMap.get(key)));
+			ret.add(String.format("got from disk no cap: %s", diskMap.get(key+"2")));
+		}
+		
+		
+		assert not thePath.exists();//and deleted!
+	}
+	
+	
+	{//check empty on start
+		key = "hi";
+		
+		thePath File;
+		try(ramMap = new OffHeapMapDisk<String, String>(_11meg)){
+			ramMap.start();
+			
+			ramMap.put(key, "there");
+			
+			thePath = ramMap.getPath();
+		}
+		//restore...
+		try(ramMap = new OffHeapMapDisk<String, String>(_11meg)){
+			ramMap.setPath(thePath);
+			ramMap.setCleanOnStart(true);//cleanup on restart
+			ramMap.setRemoveOnClose(true);//cleanup on restart
+			ramMap.start();
+			
+			ret.add(String.format("got from empty disk: %s == null", ramMap.get(key)));
+		}
+		
+		assert not thePath.exists();//and deleted!
+		
+		//check empty on start
+	}
+	
+	"".join("\n", ret)
+}
+
+~~~~~
+//##22 misc space related things
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import java.io.File
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_20meg = 20*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	override toString() => "hi myclass "
+}
+
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	{//no cap provided or path
+		try{
+			try(diskMap = new OffHeapMapDisk<String, String>()){
+				//diskMap
+				diskMap.start();
+			}
+
+			ret.add("should have complained about missing path and cap");
+		}
+		catch(e){
+			
+		}
+	}
+	
+	
+	{//temp file
+		try{
+			try(diskMap = new OffHeapMapDisk<String, String>()){
+				//diskMap
+				diskMap.setPath(new File("./temp"));
+				diskMap.start();
+			}
+			ret.add("should have complained about cannot start file");
+		}
+		catch(e){
+			
+		}
+	}
+	
+	{//complain about min space check free space
+		try{
+			try(diskMap = new OffHeapMapDisk<String, String>(_11meg/40)){
+				//diskMap
+				diskMap.start();
+
+				ret.add("should have complained about min allocation size being 1meg");
+			}
+		}catch(e){}
+	}
+	
+	{//check free space
+		path File;
+		freeespace2 long;
+		try(diskMap = new OffHeapMapDisk<String, long[]>(_11meg)){
+			//diskMap
+			diskMap.start();
+			diskMap.setRemoveOnClose(false);
+			path=diskMap.getPath();
+			freeespace = diskMap.getFreeSpace();
+			ret.add(String.format("free space: %.5f%% [initial]" , freeespace/(_11meg as double)* 100.));
+			xxx = new long[10];
+			for(n=0; n < 10000; n++){
+				diskMap.put("k" + n, xxx);//used to POP2 incorrectly
+			}
+
+			freeespace2 = diskMap.getFreeSpace();
+			ret.add(String.format("free space: %.5f%%" , freeespace2/(_11meg as double)* 100.));
+			//100,000 per second
+		}
+		
+		try(diskMap = new OffHeapMapDisk<String, long[]>(path)){
+			//diskMap
+			diskMap.setRemoveOnClose(true);
+			diskMap.start();
+			
+			freeespace = diskMap.getFreeSpace();
+			//free space should be same as before
+			ret.add(String.format("free space restart: %.5f%%" , freeespace/(_11meg as double) * 100.));
+			
+			assert freeespace == freeespace2;
+		}
+	}
+	
+	"".join("\n", ret)//hmm its static
+}
+
+~~~~~
+//##23 defrags
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+from com.concurnas.lang.offheap import InsufficientFreeSpace, OffHeapOutOfMemoryError
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import java.io.File
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_10meg = 10*1024*1024
+_20meg = 20*1024*1024
+_8meg = 8*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	override toString() => "hi myclass "
+}
+
+@Uninterruptible
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	{//explicitly defragmentation, ram version
+		try(diskMap = new OffHeapMapRAM<String, String>(_11meg)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.start();
+			
+			xxx = "the long brown fox";
+			xxx2 = xxx+"2";
+			xxx3 = xxx+"3";
+			diskMap.put("k" , xxx);
+			diskMap.put("k2" , xxx2);
+			diskMap.put("k3" , xxx3);
+			
+			diskMap.remove("k2");
+			
+			ret.add("size: " + diskMap.sizeLong());
+			diskMap.defrag();
+			ret.add("size: " + diskMap.sizeLong());
+			
+			ret.add(String.format("post defrag integrity: %s, %s" , diskMap.get("k"), diskMap.get("k3")));
+		}
+	}
+	
+	
+	{//explicitly defragmentation, disk version
+		path File;
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.start();
+			diskMap.setRemoveOnClose(false);
+			
+			xxx = "the long brown fox";
+			xxx2 = xxx+"2";
+			xxx3 = xxx+"3";
+			diskMap.put("k" , xxx);
+			diskMap.put("k2" , xxx2);
+			diskMap.put("k3" , xxx3);
+										
+			ret.add("size: " + diskMap.sizeLong());
+			highwatermark = diskMap.defrag();
+			//System.err.println("" + highwatermark);
+			assert highwatermark==919091;//not too massive
+			diskMap.remove("k2");
+			ret.add("size: " + diskMap.sizeLong());
+			
+			ret.add(String.format("post defrag integrity: %s, %s" , diskMap.get("k"), diskMap.get("k3")));
+			
+			path = diskMap.getPath();
+		}
+		
+		//ensure that files have been persisted correctly and that we can load correctly...
+		try(diskMap = new OffHeapMapDisk<String, String>(_11meg)){
+			diskMap.setPath(path);
+			diskMap.setRemoveOnClose(true);
+			
+			diskMap.start();
+			assert 2 == diskMap.sizeLong();
+			
+			ret.add(String.format("post defrag integrity: %s, %s" , diskMap.get("k"), diskMap.get("k3")));
+		}
+	}
+	
+	
+	
+	{//reduce size
+		try(diskMap = new OffHeapMapDisk<String, long[]>(_11meg)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.setRemoveOnClose(true);
+			diskMap.start();
+			
+			xxx = new long[110];
+			for(n=0; n < 10000; n++){
+				diskMap.put("k" + n, xxx);
+			}
+			
+			freeespace = diskMap.getFreeSpace();
+			ret.add(String.format("free space pre compact: %.5f%%" , freeespace/(_11meg as double) * 100.));
+			
+			try{
+				diskMap.setCapacity(_2meg);
+				ret.add("should have thrown error about on demand defrag not being enabled");
+			}catch(e InsufficientFreeSpace){
+				assert e.message.equals("Insufficient free space to reduce capacity");
+			}
+			
+			diskMap.setDefragOnDemand(true);
+			
+			try{
+				diskMap.setCapacity(_2meg);//still fails but attempts defrag
+				ret.add("should have thrown error about on demand defrag not being enabled");
+			}catch(e InsufficientFreeSpace){
+				assert e.message.equals("Insufficient free space to reduce capacity");
+			}
+
+			yy = [3l  5l];
+			diskMap.put("yyy", yy);
+			//we would have backed out of the defrag above so check integrity
+			assert diskMap.get("yyy")[0] == yy[0];
+		}
+	}
+	
+	
+	
+	try(diskMap = new OffHeapMapRAM<String, byte[]>(_11meg)){
+		//ensure compaction ok, no defrag needed
+		diskMap.setRemoveOnClose(true);
+		diskMap.start();
+		
+		xxx = new byte[1024*1024];
+		for(n = 0; n < xxx.length; n++){
+			xxx[n] = 1 as byte;
+		}
+		for(n=0; n < 9; n++){
+			diskMap.put("k" + n, xxx);
+		}
+		
+		for(n=0; n < 9; ){//used to not be able to do n+=2
+			diskMap.remove("k" + n);//make spaces
+			n+=2//ughly
+		}
+		
+		diskMap.setCapacity(_8meg);
+		
+		keyz = diskMap.keySet();
+		
+		for(key in keyz){
+			got = diskMap.get(key);//make spaces
+			assert got[0] == 1;
+		}
+
+		ret.add("comaction ok");
+	}
+	
+	
+	try(diskMap = new OffHeapMapDisk<String, byte[]>(_11meg)){
+		//compaction, requires defrag
+		diskMap.setDefragOnDemand(false)
+		diskMap.setRemoveOnClose(true);
+		diskMap.start();
+		
+		_1meg = new byte[1024*1024];
+		 _500k = new byte[1024*1024/2];
+		_750k = new byte[1024*1024*3/4];
+		for(n = 0; n < _1meg.length; n++){
+			_1meg[n] = 1 as byte;
+		}
+		for(n = 0; n < _500k.length; n++){
+			_500k[n] = 1 as byte;
+		}
+		
+		for(n = 0; n < _750k.length; n++){
+			_750k[n] = 1 as byte;
+		}
+		
+		for(n=0; n < 9; n++){
+			diskMap.put("k" + n, _1meg);
+		}
+		
+		diskMap.remove("k1");//make 2x 1 meg space
+		diskMap.remove("k2");//make 2x 1 meg space
+		//fill spaces..
+		diskMap.put("m1", _500k);
+		diskMap.put("c1", _1meg);
+		diskMap.remove("m1");
+		//now we have two 500k blocks spit
+		//make some more holes
+
+		diskMap.remove("k8");//make 2x 1 meg space
+		diskMap.put("f1", _750k);
+		diskMap.remove("k7");//make 2x 1 meg space
+		diskMap.put("f2", _750k);
+		diskMap.remove("k6");//make 2x 1 meg space
+		diskMap.put("f3", _750k);
+		diskMap.remove("k5");//make 2x 1 meg space
+		diskMap.put("f4", _750k);
+		
+		
+		try{
+			diskMap.setCapacity(_8meg);
+			ret.add("should have thrown exception");
+		}
+		catch(ife InsufficientFreeSpace ){
+			assert ife.message.equals("Insufficient free space to reduce capacity. Defrag not attempted as defragOnDemand is set to false");
+		}
+		diskMap.setDefragOnDemand(true);
+		diskMap.setCapacity(_8meg);
+		
+		keyz = diskMap.keySet();
+		for(key in keyz){//integrity check
+			got = diskMap.get(key);
+			assert got[0] == 1;
+		}
+
+		ret.add("comaction needs defrag");
+	}
+	
+	
+	try(diskMap = new OffHeapMapDisk<String, byte[]>(_10meg)){
+		//do defrag on oom - if option enabled - disabled as hard to lock for now
+		diskMap.setRemoveOnClose(true);
+		diskMap.setDefragOnDemand(false)
+		diskMap.start();
+		
+		_1meg = new byte[1024*1024];
+		_500k = new byte[1024*1024/2];
+		_750k = new byte[1024*1024*3/4];
+		for(n = 0; n < _1meg.length; n++){
+			_1meg[n] = 1 as byte;
+		}
+		for(n = 0; n < _500k.length; n++){
+			_500k[n] = 1 as byte;
+		}
+		
+		for(n = 0; n < _750k.length; n++){
+			_750k[n] = 1 as byte;
+		}
+		
+		for(n=0; n < 9; n++){
+			diskMap.put("k" + n, _1meg);
+		}
+		
+		diskMap.remove("k1");//make 2x 1 meg space
+		diskMap.remove("k2");//make 2x 1 meg space
+		//fill spaces..
+		diskMap.put("m1", _500k);
+		diskMap.put("c1", _1meg);
+		diskMap.remove("m1");
+		//now we have two 500k blocks spit
+		//make some more holes
+
+		diskMap.remove("k8");//make 2x 1 meg space
+		diskMap.put("f1", _750k);
+		diskMap.remove("k7");//make 2x 1 meg space
+		diskMap.put("f2", _750k);
+		diskMap.remove("k6");//make 2x 1 meg space
+		diskMap.put("f3", _750k);
+		diskMap.remove("k5");//make 2x 1 meg space
+		diskMap.put("f4", _750k);
+		
+		try{
+			diskMap.put("try1", _1meg);
+			ret.add("should have thrown exception about oom");
+		}catch(ife OffHeapOutOfMemoryError){
+			assert ife.getMessage().equals("Failed to allocate contiguous 1048637 bytes");
+		}
+		
+		//diskMap.defrag();
+		diskMap.setDefragOnDemand(true);
+		diskMap.put("try1", _1meg);
+		ret.add("defrag on demand ok due to oom ok");
+	}
+	
+	
+	
+	"".join("\n", ret)//hmm its static
+}
+
+~~~~~
+//##24 misc bits and bobs
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapRAM
+from com.concurnas.lang.offheap import InsufficientFreeSpace, OffHeapOutOfMemoryError
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import java.io.File
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_10meg = 10*1024*1024
+_20meg = 20*1024*1024
+_8meg = 8*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	override toString() => "hi myclass "
+}
+
+@Uninterruptible
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	try{
+		diskMap = new OffHeapMapDisk<String, byte[]>(_11meg);
+		diskMap.setPath(new File("./defrag"));
+		diskMap.start();
+	}
+	catch(e IllegalArgumentException){
+		assert "File path name may not contain reserved word: defrag".equals(e.message);
+	}
+	
+	try(engine = new OffHeapRAM<Object>(10*1024*1024)){
+		engine.start();
+		try{
+			engine.setCapacity(1*1024*1024);
+			ret.add("should have thrown exception about oom");
+		}catch(e IllegalArgumentException){
+			assert e.message.equals("Cannot reduce capacity of off heap store from: 10485760 to: 1048576 as it is not marked as being compactable");
+		}
+		
+	}
+	try(engine = new OffHeapRAM<Object>(10*1024*1024)){
+		//not started, doesnt crash, used to crash
+	}
+
+	
+	
+	"ok"
+}
+
+~~~~~
+//##25 test meta stored in main
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapRAM
+from com.concurnas.lang.offheap import InsufficientFreeSpace, OffHeapOutOfMemoryError
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import java.io.File
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_10meg = 10*1024*1024
+_20meg = 20*1024*1024
+_8meg = 8*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	public aint int
+	override toString() => "hi myclass "
+}
+
+@Uninterruptible
+def doings(){
+	ret = ArrayList<String>()
+	
+	path File
+	try(diskMap = new OffHeapMapDisk<String, Object>(_11meg)){
+		//diskMap, cut down, attempt defrag, still fails
+		diskMap.start();
+		diskMap.setRemoveOnClose(false);
+		
+		mc = new Myclass();
+		mc.aint = 123;
+		diskMap.put("k" , mc);
+		
+		ret.add("stored vids: " + diskMap.getStoredNonPrimativeObjectUsage());
+		
+		path = diskMap.getPath();
+	}
+	
+	//ensure that files have been persisted correctly and that we can load correctly...
+	try(diskMap = new OffHeapMapDisk<String, Object>(_11meg)){
+		diskMap.setPath(path);
+		diskMap.setRemoveOnClose(true);
+		
+		diskMap.start();
+		ret.add("stored vids post restart: " + diskMap.getStoredNonPrimativeObjectUsage());
+		ret.add(""+diskMap.getStoredNonPrimativeObjectUsage());
+		assert 1 == diskMap.sizeLong();
+		
+		ret.add(String.format("post defrag integrity: %s" , (diskMap.get("k") as Myclass).aint));
+		assert 123 ==(diskMap.get("k") as Myclass).aint;
+	}
+	
+	String.join("\n", ret)
+}
+
+~~~~~
+//##26 persistance of boxed primative arrays
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapRAM
+from com.concurnas.lang.offheap import InsufficientFreeSpace, OffHeapOutOfMemoryError
+from com.concurnas.lang.offheap import OffHeapObject
+from java.util import ArrayList, Collections, HashMap
+import java.io.File
+import com.concurnas.lang.Uninterruptible;
+
+_11meg = 11*1024*1024
+_10meg = 10*1024*1024
+_20meg = 20*1024*1024
+_8meg = 8*1024*1024
+_2meg = 2*1024*1024
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	public aint int
+	override toString() => "hi myclass "
+}
+
+@Uninterruptible
+def doings(){//method is too long, meh, cheat and make it Uninterruptible!
+	ret = ArrayList<String>()
+	
+	//persistance of boxed primative arrays works ok with meta storage strategy
+	path File
+	try(diskMap = new OffHeapMapDisk<String, Object>(_11meg)){
+		//diskMap, cut down, attempt defrag, still fails
+		diskMap.start();
+		diskMap.setRemoveOnClose(false);
+		
+		mc = [12 23 new Integer(31)];
+		diskMap.put("k" , mc);
+		
+		ret.add("stored vids: " + diskMap.getStoredNonPrimativeObjectUsage());
+		
+		path = diskMap.getPath();
+	}
+	
+	//ensure that files have been persisted correctly and that we can load correctly...
+	try(diskMap = new OffHeapMapDisk<String, Object>(_11meg)){
+		diskMap.setPath(path);
+		diskMap.setRemoveOnClose(true);
+		
+		diskMap.start();
+		ret.add("stored vids post restart: " + diskMap.getStoredNonPrimativeObjectUsage());
+		assert "\{}".equals(""+diskMap.getStoredNonPrimativeObjectUsage());
+		assert 1 == diskMap.sizeLong();
+		
+		ret.add(String.format("post defrag integrity: %s" , (diskMap.get("k") as Integer[])[0]));
+		assert 12 ==(diskMap.get("k") as Integer[])[0];
+	}
+	
+	String.join("\n", ret)
+}
+
+~~~~~
+//##27. sizeof
+
+from com.concurnas.lang.offheap.storage import SizeofProvider
+
+class Myclass(){
+	public ashort short
+	public adouble double
+	public aint int
+	override toString() => "hi myclass "
+}
+
+def doings(){
+	mc = new Myclass();
+	sz = SizeofProvider.\sizeof(mc);
+	sz2 = sizeof mc
+	"" + [sz, sz2]
+}
+
+~~~~~
+//##28. fun with unicode
+
+def doings(){
+	"" + [sizeof "hi", sizeof "hiπ"]//unicode 2 bytes wide
+}
+
+~~~~~
+//##29. test java serialization
+
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Serializable
+
+
+class MyClass(transient valuexx=12, a ="pants") ~ Serializable{
+
+	override hashCode() => 12
+	override equals(a Object) => false
+	override toString() => "" + [valuexx, a]
+}
+//nice, got basic interfaces to work as well
+
+
+def doings(){
+   
+       al=new MyClass(100, "ok")
+
+       try{
+         fos= new ByteArrayOutputStream();
+         oos= new ObjectOutputStream(fos);
+         oos.writeObject(al);
+         oos.close();
+         fos.close();
+         
+         what = fos.toByteArray()
+         
+         fis= new ByteArrayInputStream(what);
+         ois= new ObjectInputStream(fis);
+         
+         al =  ois.readObject() as MyClass;
+        ois.close();
+        fis.close();
+          "" + al
+       }catch( ioe ){
+           "fail: " +  ioe
+        }
+   }
+
+~~~~~
+//##30. transient fields defualt on Copier
+
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Serializable
+
+
+class MyClass(transient valuexx=12, a ="looking", c String) ~ Serializable{
+
+	b = "thing"
+	transient valuexxanother="d88"
+
+	override hashCode() => 12
+	override equals(a Object) => false
+	override toString() => "" + [valuexx, valuexxanother, a, b, c]
+}
+
+
+def doings(){
+	x = MyClass(100, "nice", "cstr")
+	//we expect the default value for transient vaiables of myclass, not 100 and not 0 (whoch is the defualt for the type)
+	"" + (x@)
+}
+
+~~~~~
+//##31. not sure what this proves actually
+
+class MyArrayList<X>{
+	transient trasitems Object[]
+	items Object[]
+	highwatermark = 0
+	transient testTrans = "hi"
+	useTrans = false
+	
+	this(useTrans boolean){
+		this(10, useTrans)
+	}
+	
+	this(startsize int, useTrans boolean){
+		items = new Object[startsize]
+		trasitems = new Object[startsize]
+		this.useTrans = useTrans
+	}
+	
+	def add(what X){
+	
+		tms = trasitems if useTrans else items
+	
+		if(highwatermark >== tms.length){
+			newitems = new Object[Math.ceil(tms.length * 1.2)as int]
+			System.arraycopy(tms, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	private def substr(){
+		what = (trasitems if useTrans else items)
+		what[0 ... highwatermark] if what  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr()
+}
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+//from java.util import ArrayList
+
+def doings(){
+	"wtrans: "+ for( withtrans in [true, false]){
+		ar = new MyArrayList<String>(withtrans);
+		ar.add("hi")
+		ar.add("there")
+		
+		what MyArrayList<String>? = null
+		
+		try(diskMap = new OffHeapMapDisk<String, Object>(10*1014**2)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.start();
+			
+			diskMap["k"] =  ar
+			what = diskMap["k"] as MyArrayList<String>
+		}//bugfix, continue used to be inserted
+		
+		"{withtrans} - " + what
+	}
+}
+
+~~~~~
+//##32. dma defaulting of transient fields
+
+from java.util import ArrayList
+
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Serializable
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+
+class MyClass(transient valuexx=12, a ="looking", c String) ~ Serializable{
+
+	b = "thing"
+	transient valuexxanother="d88"
+
+	override hashCode() => 12
+	override equals(a Object) => false
+	override toString() => "" + [valuexx, valuexxanother, a, b, c]
+}
+
+
+def doings(){
+	x = MyClass(100, "nice", "cstr")
+		
+	what MyClass? = null
+		
+	try(diskMap = new OffHeapMapRAM<String, Object>(1024*1024**2)){
+		diskMap.start();
+		
+		diskMap["k"] =  x
+		what = diskMap["k"] as MyClass
+	}
+
+
+	"" + what //we default the transient fields to the defualts
+}
+
+~~~~~
+//##33. call serlializer if there is one defined
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Serializable
+import com.concurnas.lang.Uninterruptible
+
+
+def serialAndDeserial(inputterd Object){
+   try{
+	 fos= new ByteArrayOutputStream()
+	 oos= new ObjectOutputStream(fos)
+	 oos.writeObject(inputterd)
+	 oos.close()
+	 fos.close()
+	 
+	 gotbytes = fos.toByteArray()
+	 
+	 fis= new ByteArrayInputStream(gotbytes)
+	 ois= new ObjectInputStream(fis)
+	 
+	 got =  ois.readObject()
+	 ois.close();
+	 fis.close();
+      "" + got
+   }catch( ioe ){
+		"fail: " +  ioe
+   }
+}
+
+
+class MyArrayList<X> ~ Serializable{
+	transient trasitems Object[]
+	items Object[]
+	highwatermark = 0
+	transient testTrans = "hi"
+	useTrans = false
+	
+	this(useTrans boolean){
+		this(10, useTrans)
+	}
+	
+	this(startsize int, useTrans boolean){
+		items = new Object[startsize]
+		trasitems = new Object[startsize]
+		this.useTrans = useTrans
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	def add(what X){
+	
+		tms = trasitems if useTrans else items
+	
+		if(highwatermark >== tms.length){
+			newitems = new Object[Math.ceil(tms.length * 1.2)as int]
+			System.arraycopy(tms, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	private def substr(){
+		what = (trasitems if useTrans else items)
+		what[0 ... highwatermark] if what  <> null else 'its null'
+	}
+	
+	
+	private def writeObject(s java.io.ObjectOutputStream) void
+	{
+        s.defaultWriteObject();
+	
+        // Write out size as capacity for behavioural compatibility with clone()
+        s.writeInt(highwatermark);
+
+		what = (trasitems if useTrans else items)
+
+        // Write out all elements in the proper order.
+        for (i=0; i<highwatermark; i++) {
+            s.writeObject(what[i]);
+        }
+    }
+    
+	 private def readObject(s java.io.ObjectInputStream) void
+	 {
+		
+        // Read in size, and any hidden stuff
+        s.defaultReadObject();
+
+        // Read in capacity
+        highwatermark = s.readInt(); // ignored
+        
+		what = if(useTrans){
+			trasitems = new Object[highwatermark]
+			trasitems
+		}else{
+			items = new Object[highwatermark]
+			items
+		} 
+
+        for (i=0; i<highwatermark; i++) {
+            what[i] = s.readObject();
+        }
+    }
+	override toString() => "" + substr()
+}
+
+
+def doings(){
+	"wtrans: "+ for( withtrans in [false, false]){
+		ar = new MyArrayList<String>(withtrans);
+		ar.add("hi")
+		ar.add("there")
+		
+		what MyArrayList<String>? = null
+		
+		try(diskMap = new OffHeapMapRAM<String, Object>(10*1014**2)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.start();
+			
+			diskMap["k"] =  ar
+			what = diskMap["k"] as MyArrayList<String>
+		}//bugfix, continue used to be inserted
+		
+		[withtrans, "serial: " + serialAndDeserial(ar), "offheap: " + what]
+	}
+	//here we test normal java serialization with custom 'getter and setter'
+	//we also utilize this custom serialiser and deserializer in order to implement the to binary, from binary convertion
+}
+
+~~~~~
+//##34. call externalizer if there is one defined
+
+/*
+	GUIDE TO TRANSIENT VARAIBLES: 
+	serializable - no contorl - default value for type (0 or null) - dont want to break backward compatability
+	serializable[manual] - user defined
+	externalizable - user defined
+	
+	copy - 'default' value
+	dma  - 'default' value [also applies to new variables]
+	dma with serializable[manual] - user defined
+	dma with externaliable[manual] - user defined
+*/
+
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Externalizable
+import com.concurnas.lang.Uninterruptible
+
+
+def serialAndDeserial(inputterd Object){
+   try{
+	 fos= new ByteArrayOutputStream()
+	 oos= new ObjectOutputStream(fos)
+	 oos.writeObject(inputterd)
+	 oos.close()
+	 fos.close()
+	 
+	 gotbytes = fos.toByteArray()
+	 
+	 fis= new ByteArrayInputStream(gotbytes)
+	 ois= new ObjectInputStream(fis)
+	 
+	 got =  ois.readObject()
+	 ois.close();
+	 fis.close();
+      "" + got
+   }catch( ioe ){
+		"fail: " +  ioe
+   }
+}
+
+
+class MyArrayList ~ Externalizable{
+	transient trasitems String[]?
+	items String[]?
+	highwatermark = 0
+	useTrans = false
+	
+	this(){}//needed for externalizer
+	
+	this(useTrans boolean){
+		this(10, useTrans)
+	}
+	
+	this(startsize int, useTrans boolean){
+		items = new String[startsize]
+		trasitems = new String[startsize]
+		this.useTrans = useTrans
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	def add(what String){
+	
+		tms = (trasitems if useTrans else items)??
+	
+		if(highwatermark >== tms.length){
+			newitems = new String[Math.ceil(tms.length * 1.2)as int]
+			System.arraycopy(tms, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	private def substr(){
+		what = (trasitems if useTrans else items)
+		what[0 ... highwatermark] if what  <> null else 'its null'
+	}
+	
+	public def writeExternal(outx java.io.ObjectOutput){
+		outx.writeInt(highwatermark)
+		outx.writeBoolean(useTrans)
+		thing = (trasitems if useTrans else items)??
+		for(n=0; n < highwatermark; n++){
+			outx.writeUTF(thing[n])
+		}
+	}
+	
+	
+	public def readExternal(inx java.io.ObjectInput){
+		highwatermark = inx.readInt()
+		useTrans = inx.readBoolean()
+		
+		thing = new String[highwatermark]
+		
+		for(n=0; n < highwatermark; n++){
+			thing[n] = inx.readUTF()
+		}
+		
+		if(useTrans){
+			trasitems = thing
+		}else{
+			items = thing
+		}
+	}
+
+    
+	override toString() => "" + substr()
+}
+
+
+def doings(){
+	"wtrans: "+ for( withtrans in [true, false]){
+		ar = new MyArrayList(withtrans);
+		ar.add("hi")
+		ar.add("there")
+		
+		what MyArrayList? = null
+		
+		try(diskMap = new OffHeapMapRAM<String, Object>(10*1014**2)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.start();
+			
+			diskMap["k"] =  ar
+			what = diskMap["k"] as MyArrayList
+		}//bugfix, continue used to be inserted
+		
+		[withtrans, "serial: " + serialAndDeserial(ar), "offheap: " + what]
+	}
+	//here we test externalization java serialization with custom 'getter and setter'
+	//we also utilize this custom externalization and deserializer in order to implement the to binary, from binary convertion
+}
+
+~~~~~
+//##35. bugfix on placement of continue stmts
+
+//last if in for should have continue added to else only 
+def doings(){
+	res1 = for(a in [1 2 3 4 5 6 7 8]){
+		if(a mod 2== 0){a}
+	}
+	www = [1 2 3 4 5 6 7 8]
+	res2 = for(n=0; n < www.length; n++ ){
+		if(www[n] mod 2== 0){www[n]}
+	}
+	
+	n=0
+	res3 = while(n++ < 8){
+		if(n mod 2== 0){n}
+	}
+
+	"" + [res1, res2, res3]
+}
+
+~~~~~
+//##36. finally label bugfix
+
+x=true
+def tt() => x=not x; x
+def doings(){
+	res = for(a in [1,2,3]){
+		try{
+			"hi"
+		}finally{
+			if(tt()){
+				f=777
+			}
+		}
+	}
+	
+	"" + [res, x]
+}
+
+~~~~~
+//##37. finally label bugfix 2
+
+class MyArrayList<X>{
+	trasitems Object[]
+	items Object[]
+	highwatermark = 0
+	transient testTrans = "hi"
+	useTrans = false
+	
+	this(useTrans boolean){
+		this(10, useTrans)
+	}
+	
+	this(startsize int, useTrans boolean){
+		items = new Object[startsize]
+		trasitems = new Object[startsize]
+		this.useTrans = useTrans
+	}
+	
+	def add(what X){
+	
+		tms = trasitems if useTrans else items
+	
+		if(highwatermark >== tms.length){
+			newitems = new Object[Math.ceil(tms.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	private def substr(){
+		what = (trasitems if useTrans else items)
+		what[0 ... highwatermark] if what else 'null'
+	}
+	
+	override toString() => "" + substr()
+}
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+//from java.util import ArrayList
+
+def doings(){
+	""+ for( withtrans in [true, false]){
+		ar = new MyArrayList<String>(true);
+		ar.add("hi")
+		ar.add("there")
+		
+		ar = try(diskMap = new OffHeapMapDisk<String, Object>(10*1014**2)){
+			//diskMap, cut down, attempt defrag, still fails
+			diskMap.start();
+			
+			diskMap["k"] =  ar
+			diskMap["k"] as MyArrayList<java.lang.String>
+		}//bugfix, continue used to be inserted
+		
+		"withtrans: {withtrans} - " + ar
+	}
+}
+
+~~~~~
+//##38. enum copy transient fields
+
+enum MyEnum{ONE, TWO
+	public transient dt=4
+	public d=4
+	def incd() => dt++; d++;;
+}
+
+def doings() {
+	x = MyEnum.ONE
+	ww = {w="hihi"; x}!
+	x.incd()
+	copy = (x@)
+	copy0 = ((x as Object)@) as MyEnum//use more general copy mechanism
+	copy.incd()
+	a1= "" + [copy0.dt, copy.dt, x.dt, ww.dt]//6,6,6,6 //transient field gets default value
+	a2 = "" + [copy0.d, copy.d, x.d, ww.d]//6,6,6,6 - ok
+	//only ever one of these
+	"" + [a1,a2]
+}
+
+~~~~~
+//##39. enum only ever one
+
+enum MyEnum{ONE, TWO
+	public transient mut=100
+	override toString() => super.toString() + ": " + mut
+	def incd() => mut++
+}
+
+def doings(){
+	MyEnum.ONE.incd()
+	w = MyEnum.ONE
+	w.incd()
+	
+	p = ((w as Object)@) as MyEnum
+	p.incd()
+
+	"" + [MyEnum.ONE, w, p, p == w]
+}
+
+~~~~~
+//##40. enum dma nocopy
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+enum MyEnum{ONE, TWO
+	public transient dt=4
+	public d=4
+	override toString() => super.toString() +": "+ [d, dt]
+	def incd() => dt++; d++;;
+}
+
+
+11_meg = 11*1024*1024//parser used to not like stuff starting with a number
+
+def doings(){
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//null object
+		orig = MyEnum.ONE
+		orig.incd()
+		orig.incd()
+		offHeapObj = engine.put(orig)
+		got = engine.get(offHeapObj) as MyEnum
+		f="wierd"
+		"" + [orig, got, orig == got, got == MyEnum.ONE, MyEnum.values()[0]]//MyEnum.d
+	}
+	
+}
+
+~~~~~
+//##41. test removal of metaBinary
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+enum MyEnum{ ONE, TWO}
+
+11_meg = 11*1024*1024
+
+class MyClass(a AnotherClass)
+class AnotherClass(a String)
+
+def doings(){
+
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//object which resolves to primative array
+		offHeapObj1 = engine.put(MyEnum.ONE);
+		offHeapObj2 = engine.put(MyClass(AnotherClass("hi")));
+		offHeapObj3 = engine.put([1 2 3] as Object);
+		
+		b4 = "-- Vid use before delete: " + engine.getStoredNonPrimativeObjectUsage()
+		
+		del offHeapObj1
+		del offHeapObj2
+		del offHeapObj3
+		
+		a4 = "-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage()
+		"" + [b4,"\n", a4]
+	}
+}
+
+~~~~~
+//##42. class and java primordial types arraylist bigdecimal etc
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import ArrayList
+
+import java.math.BigDecimal
+
+enum MyEnum{ ONE, TWO}
+
+11_meg = 11*1024*1024
+
+class MyClass(a AnotherClass)
+class AnotherClass(a String)
+
+def doings(){
+	ar = ArrayList<String>()
+	ar.add("hi")
+	ar.add("there")
+	
+	bd = BigDecimal(12l)
+
+	try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//object which resolves to primative array
+		offHeapObj1 = engine.put(MyEnum.ONE);
+		offHeapObj2 = engine.put(MyClass(AnotherClass("hi")));
+		offHeapObj3 = engine.put([1 2 3] as Object);
+		offHeapObj4 = engine.put(ar);
+		offHeapObj5 = engine.put(String.class);
+		offHeapObj6 = engine.put(bd);
+		
+		b4 = "-- Vid use before delete: " + engine.getStoredNonPrimativeObjectUsage()
+		
+		ar2 = offHeapObj4.get()
+		bd2 = offHeapObj6.get()
+		
+		del offHeapObj1
+		del offHeapObj2
+		del offHeapObj3
+		del offHeapObj4
+		del offHeapObj5
+		del offHeapObj6
+		
+		a4 = "-- Vid use after delete: " + engine.getStoredNonPrimativeObjectUsage()
+		"" + [b4,"\n", a4, "\n", ar2, bd2]
+	}
+}
+
+~~~~~
+//##43. delete local var
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+delcalled = false;
+
+class MyClass{
+	~thing =12
+	override delete(){//called by delete
+		delcalled=true
+	}
+}
+
+11_meg = 11*1024*1024
+
+
+def doings(){
+	mc = MyClass()
+	del mc
+	
+	"" + delcalled
+}
+
+~~~~~
+//##44. delete map
+
+mmap1 = {"hi" -> {"hi" -> 23, "there" -> 55}, "there" -> {"hi" -> 23, "there" -> 55}}
+mmap2 = {"hi" -> 23, "there" -> 55} 
+
+def doings(){
+	del mmap1['hi']
+	del mmap2['hi']
+	
+	"" + [mmap1, mmap2]
+}
+
+~~~~~
+//##45. delete list element
+
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hi")
+ar.add("there")
+ar.add("wassup")
+
+arsub = ar@
+
+
+ar2 = new ArrayList<ArrayList<String>>()
+ar2.add(arsub)
+ar2.add(arsub)
+
+
+def doings(){
+	del ar[0]
+	del ar['wassup']
+	
+	del ar2[0]
+	
+	"" + [ar, ar2]
+}
+
+~~~~~
+//##45. delete from non map list objects
+
+from java.util import HashSet
+
+ar = new HashSet<String>()
+ar.add("hi")
+ar.add("there")
+ar.add("wassup")
+
+rm = false
+
+class MyClass(){
+	def remove(a int) boolean{rm=true; true}
+}
+
+def doings(){
+	mc =  MyClass()
+	del ar["hi"]
+	del mc[1]
+	
+	"" + [ar, rm]
+}
+
+~~~~~
+//##46. delete from map
+
+class MyAss{
+	valu Object?
+	def put(a int, b Object){
+		valu = "{a}->{b}"
+	}
+	
+	override toString() => ""+valu
+}
+
+stuff = {0->MyAss(), 1->MyAss(), 11->MyAss()}
+
+def doings(){
+	
+	stuff[1,1]="hi"
+	stuff[0][9]="wow"
+	
+	"" + stuff
+}
+
+~~~~~
+//##47. delete from map in class operator overload
+
+class MyAss{
+	valu Object?
+	def put(a int, b Object){
+		valu = "{a}->{b}"
+	}
+	
+	override toString() => ""+valu
+}
+
+class HolderClass{
+	public stuff = {0->MyAss(), 1->MyAss(), 11->MyAss()}
+}
+
+def doings(){
+	hc = HolderClass()
+	hc.stuff[1,1]="hi"
+	hc.stuff[0][9]="wow"
+	
+	"" + hc.stuff
+}
+
+~~~~~
+//##48. dma custom to from binary
+
+from com.concurnas.bootstrap.lang.offheap import Encoder, Decoder
+
+class MyArrayList<X>{
+	transient items Object[]
+	highwatermark = 0
+	
+	this(){
+		this(10)
+	}
+	
+	this(startsize int){
+		items = new Object[startsize]
+	}
+	
+	def add(what X){
+	
+		if(highwatermark >== items.length){
+			newitems = new Object[Math.ceil(items.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, items.length)
+			items = newitems
+		}
+		items[highwatermark++] = what
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	override toString() => "" + items
+	
+	override toBinary(enc Encoder){
+		enc.put(highwatermark)
+		enc.putObjectArray(items[0 ... highwatermark], 1);;
+		
+	}
+	
+	override fromBinary(dec Decoder){
+		highwatermark = dec.getInt()
+		items = dec.getObjectArray(1) as Object[]
+	}
+}
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+
+def doings(){
+	ar = new MyArrayList<String>();
+	ar.add("hi")
+	ar.add("there")
+	
+	oops String
+	
+	ar = try(diskMap = new OffHeapMapRAM<String, Object>(10*1014**2)){
+		diskMap.start();
+		
+		diskMap["k"] =  ar
+		
+		diskMap["x"] = "hi there"
+		oops = ""+ diskMap["x"] 
+		diskMap["k"] as MyArrayList<java.lang.String>
+	}//bugfix, continue used to be inserted
+	
+	"withtrans: " + [ar, oops]
+}
+
+~~~~~
+//##49. dma custom to from binary error in decoder
+
+from com.concurnas.bootstrap.lang.offheap import Encoder, Decoder
+
+class MyArrayList<X>{
+	transient items Object[]
+	highwatermark = 0
+	
+	this(){
+		this(10)
+	}
+	
+	this(startsize int){
+		items = new Object[startsize]
+	}
+	
+	def add(what X){
+	
+		if(highwatermark >== items.length){
+			newitems = new Object[Math.ceil(items.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, items.length)
+			items = newitems
+		}
+		items[highwatermark++] = what
+	}
+	
+	override hashCode() => 12
+	override equals(a Object) => false
+	
+	override toString() => "" + items
+	
+	override toBinary(enc Encoder){
+		enc.put(highwatermark)
+		//enc.putObjectArray(items[0 ... highwatermark], 1);;
+		;;
+	}
+	
+	override fromBinary(dec Decoder){
+		highwatermark = dec.getInt()
+		items = dec.getObjectArray(1) as Object[]//fail as beyond region, throw exception here
+		//this is the only error we are really concerned about
+	}
+}
+
+
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+
+def doings(){
+	ar = new MyArrayList<String>();
+	ar.add("hi")
+	ar.add("there")
+	
+	throwne = ""
+	
+	try(diskMap = new OffHeapMapRAM<String, Object>(10*1014**2)){
+		diskMap.start();
+		
+		diskMap["k"] =  ar
+		
+		try{
+			h=diskMap["k"]
+		}catch(e){
+			throwne += e.getMessage()
+		} 
+	}//bugfix, continue used to be inserted
+	
+	"" + ['Tried to decode data past allocated region' in throwne]
+}
+
+
+
+~~~~~
+//##50. nested inner class
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+class Outer(oou String){
+	public class Inner(a String, b int){
+		override toString() => "" + [oou, a, b]	
+	}
+}
+
+
+
+def doings(){
+	o = Outer("ouuter")
+	i = o.Inner("hi", 11)
+	
+	got = try(engine={engine = new OffHeapRAM<Object>(1024*1024); engine..start()}){
+		engine.put(i).get()//pretty cool syntax
+	}
+	
+	"" + [got, got &<>i]
+}
+
+~~~~~
+//##51. static bug fix
+
+from com.concurnas.lang.precompiled import WithStaticStuff
+
+stat = WithStaticStuff(12)
+stat.name="what"
+
+@com.concurnas.lang.Uninterruptible
+def doings(){
+	""+stat.name
+}
+
+~~~~~
+//##52. funcref on static things
+
+from com.concurnas.lang.precompiled import WithStaticStuff
+
+stat = WithStaticStuff(12)
+stat.name="what"
+
+@com.concurnas.lang.Uninterruptible
+def doings(){
+	x = stat.astaticCall&()
+	""+x()
+}
+
+~~~~~
+//##53. static bug fix - when local
+
+from com.concurnas.lang.precompiled import WithStaticStuff
+
+@com.concurnas.lang.Uninterruptible
+def doings(){
+	stat = WithStaticStuff(12)
+	
+	"" +stat.name
+}
+
+~~~~~
+//##54. dma of static things like modules etc
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from com.concurnas.lang.precompiled import WithStaticStuff
+
+class Outer(oou String){
+	public class Inner(a String, b int){
+		override toString() => "" + [oou, a, b]	
+	}
+}
+
+
+@com.concurnas.lang.Uninterruptible
+def doings(){
+	stat = WithStaticStuff(11)
+	stat.name="what"
+	
+	got = try(engine={xx = new OffHeapRAM<WithStaticStuff>(1024*1024); xx..start()}){
+		engine.put(stat).get()//pretty cool syntax
+	}
+	origavar = got.avar
+	//verify equality here
+	stat.name="whatthere"
+	got.avar = 99//not static
+	
+	//oh look the static stuff doesnt get copied, instead we just use the one associated with the iso
+	"" + [(stat.name &== got.name), stat.name, origavar, ( got.avar <> stat.avar)]
+}
+
+~~~~~
+//##55. dma of static things like modules etc even with custom enc dec
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from com.concurnas.lang.precompiled import WithStaticStuffCustDMA
+
+class Outer(oou String){
+	public class Inner(a String, b int){
+		override toString() => "" + [oou, a, b]	
+	}
+}
+
+
+@com.concurnas.lang.Uninterruptible
+def doings(){
+	stat = WithStaticStuffCustDMA(11)
+	stat.name="what"
+	
+	got = try(engine={xx = new OffHeapRAM<WithStaticStuffCustDMA>(1024*1024); xx..start()}){
+		engine.put(stat).get()//pretty cool syntax
+	}
+	origavar = got.avar
+	//verify equality here
+	stat.name="whatthere"
+	got.avar = 99//not static
+	
+	"" + [(stat.name &== got.name), stat.name, origavar, ( got.avar <> stat.avar)]
+}
+
+~~~~~
+//##56. check arrays of classes as class is a thing
+
+def doings(){
+	xxx = boolean[].class
+	"" + xxx
+}
+
+~~~~~
+//##57. Uninterruptible cannot be used with actor spawns
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+class MyClass(a int){
+	override toString() => "a: "+ a
+}
+
+@com.concurnas.lang.Uninterruptible
+def doings(){
+	stat = try{
+		actor MyClass(12)
+	}catch(e){
+		e.message
+	}
+	
+	"" + stat
+}
+
+~~~~~
+//##58. copy actor is a nop
+
+class MyClass(a int){
+	override toString() => "a: "+ a
+}
+
+def doings(){
+	stat = actor MyClass(12)
+	
+	cop = stat@
+	
+	"" + [stat &==cop]
+}
+
+~~~~~
+//##59. no dma on actor
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+class MyClass(a int){
+	override toString() => "a: "+ a
+}
+
+actor MyActor(a int){
+	override toString() => "untyped actor: "+ a
+}
+
+def doings(){
+	stat = actor MyClass(12)
+	xxx = MyActor(12)
+	
+	e1 =""
+	e2 =""
+	
+	try(engine={xx = new OffHeapRAM<Object>(1024*1024); xx..start()}){
+		try{engine.put(stat)}
+		catch(e){ e1 = e.message }
+		try{engine.put(xxx)}
+		catch(e){ e2 = e.message }
+	}
+	
+	
+	"" + [stat, xxx, e1, e2]
+}
+
+~~~~~
+//##60. dma hashset
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.util import HashSet
+
+
+def doings(){
+	stat = HashSet<String>()
+	stat.add("hi")
+	
+	got = try(engine={xx = new OffHeapRAM<HashSet<String>>(1024*1024); xx..start()}){
+		engine.put(stat).get()
+	}
+	
+	"" + [got, got &<>stat]
+	
+}
+
+~~~~~
+//##61. dma class array correctly
+
+class MyClass(){
+	~things = [String.class, Object.class]
+}
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+def doings(){
+	my = MyClass()
+	my.things = [Integer.class, String.class]
+	got = try(engine={xx = new OffHeapRAM<MyClass>(1024*1024); xx..start()}){
+		engine.put(my).get()
+	}
+	
+	"" + [my.things == got.things]
+	
+}
+
+~~~~~
+//##62. dma a ref
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+class MyClass(a int){
+	override toString() => "a: "+ a
+}
+
+
+def doings(){
+	stat = MyClass(12):
+	
+	e2 =""
+	
+	got := try(engine={xx = new OffHeapRAM<MyClass:>(1024*1024); xx..start()}){
+		engine.put(stat:).get()
+	}
+	
+	a1 = "" + [stat, e2, got, stat &== got]
+	
+	thing = onchange(got){
+		return got
+	}
+	
+	trans{
+		got = MyClass(13)
+	}
+	
+	a2 = "" + [stat, e2, got, stat &== got]
+	
+	"" + [a1, a2, thing]
+}
+
+~~~~~
+//##63. no dma of typed actor
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+
+class MyClass(a int){
+	override toString() => "a: "+ a
+}
+
+
+actor TypedAc(a int) of MyClass(a)
+
+def doings(){
+	xxx2 = TypedAc(12)
+	
+	got = try{
+		try(engine={xx = new OffHeapRAM<TypedAc>(1024*1024); xx..start()}){
+			""+engine.put(xxx2).get()
+		}
+	}catch (e){
+		e.message.contains('Actors cannot be converted into binary format')
+	}
+		
+	"" + [xxx2, got]
+}
+
+~~~~~
+//##64. was a bug but ok
+
+class MyListThing(useTrans bool) {
+
+	items Object[] = new Object[12]
+	trasitems Object[] = new Object[12]
+	highwatermark=0;
+	
+	def add(what String){
+	
+		tms = trasitems if useTrans else items
+	
+		if(highwatermark >== tms.length){
+			newitems = new Object[Math.ceil(tms.length * 1.2)as int]
+			System.arraycopy(tms, 0, newitems, 0, tms.length)
+			tms = newitems
+			if(useTrans){ trasitems = tms } else{ items = tms }
+		}
+		tms[highwatermark++] = what
+	}
+	
+	override toString(){
+		tms = trasitems if useTrans else items
+		"" + tms[... highwatermark]
+	}
+}
+
+
+def doings(){
+	""+for( tf in [true, false]){
+		mlt = MyListThing(tf)
+		mlt.add("seems ok")
+		mlt.add("yup")
+		mlt
+	}
+}
+
+~~~~~
+//##65. check field acess report for bool
+
+class MyClass(~a bool){
+	private b bool = false
+	public def isB() => b
+	public def setB(g bool){ b=g }
+}
+
+
+def doings(){
+	mc = MyClass(true)
+	mc.b=true
+	"" + [mc.isA(), mc.a, mc.b]
+}
+
+~~~~~
+//##66. minor array optimization, no set if thing eq default value
+
+//we know the default value of boolean is false, and numerical types it's 0, and objects its null
+//so save  on the instatiation here
+def funcla()=>"another thing"
+
+def doings(){
+	thing = [false  true  true false true]
+	thing2 = [1 0 45 2 0]
+	things3=["hi" null null "something" funcla()]
+	things4=[0.3 4.5 0. 0.]
+	
+	"" +[thing thing2 things3 things4]
+}
+
+~~~~~
+//##67. simple externalizable example
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Externalizable
+import com.concurnas.lang.Uninterruptible
+
+
+def serialAndDeserial(inputterd Object){
+   try{
+	 fos= new ByteArrayOutputStream()
+	 oos= new ObjectOutputStream(fos)
+	 oos.writeObject(inputterd)
+	 oos.close()
+	 fos.close()
+	 
+	 gotbytes = fos.toByteArray()
+	 
+	 fis= new ByteArrayInputStream(gotbytes)
+	 ois= new ObjectInputStream(fis)
+	 
+	 got =  ois.readObject()
+	 ois.close();
+	 fis.close();
+      "" + got
+   }catch( ioe ){
+		"fail: " +  ioe
+   }
+}
+
+
+class MyArrayList ~ java.io.Externalizable{
+	items String[]
+	highwatermark = 0
+	
+	this(){
+		items = new String[10]
+	}
+	
+	this(startsize int){
+		items = new String[startsize]
+	}
+	
+	def add(what String){
+		if(highwatermark >== items.length){
+			newitems = new String[Math.ceil(items.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, items.length)
+			items = newitems
+		}
+		items[highwatermark++] = what
+	}
+	
+	private def substr(){
+		items[0 ... highwatermark] if items  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr()
+		
+	public def writeExternal(outx java.io.ObjectOutput){
+		outx.writeInt(highwatermark)
+		for(n=0; n < highwatermark; n++){
+			outx.writeUTF(items[n])
+		}
+	}
+	
+	
+	public def readExternal(inx java.io.ObjectInput){
+		highwatermark = inx.readInt()
+		items = new String[highwatermark]
+		
+		for(n=0; n < highwatermark; n++){
+			items[n] = inx.readUTF()
+		}
+	}
+
+}
+
+def doings(){
+	ar = MyArrayList(10)
+	ar.add("hi")
+	ar.add("there")
+	
+	"" + serialAndDeserial(ar)
+}
+
+
+~~~~~
+//##68. simple Serializable example
+from com.concurnas.lang.offheap.storage import OffHeapMapRAM
+import java.io.ByteArrayOutputStream, ObjectOutputStream;
+import java.io.ByteArrayInputStream, ObjectInputStream;
+import java.io.Serializable
+import com.concurnas.lang.Uninterruptible
+
+def serialAndDeserial(inputterd Object){
+   try{
+	 fos= new ByteArrayOutputStream()
+	 oos= new ObjectOutputStream(fos)
+	 oos.writeObject(inputterd)
+	 oos.close()
+	 fos.close()
+	 
+	 gotbytes = fos.toByteArray()
+	 
+	 fis= new ByteArrayInputStream(gotbytes)
+	 ois= new ObjectInputStream(fis)
+	 
+	 got =  ois.readObject()
+	 ois.close();
+	 fis.close();
+      "" + got
+   }catch( ioe ){
+		"fail: " +  ioe
+   }
+}
+
+class MyArrayList ~ java.io.Serializable{
+	items String[]
+	highwatermark = 0
+	
+	this(){
+		items = new String[10]
+	}
+	
+	this(startsize int){
+		items = new String[startsize]
+	}
+	
+	def add(what String){
+		if(highwatermark >== items.length){
+			newitems = new String[Math.ceil(items.length * 1.2)as int]
+			System.arraycopy(items, 0, newitems, 0, items.length)
+			items = newitems
+		}
+		items[highwatermark++] = what
+	}
+	
+	private def substr(){
+		items[0 ... highwatermark] if items  <> null else 'its null'
+	}
+		
+	private def writeObject(s java.io.ObjectOutputStream) void{
+        s.defaultWriteObject();
+        s.writeInt(highwatermark);
+		for (i=0; i<highwatermark; i++) {
+            s.writeObject(items[i]);
+        }
+    }
+    
+	 private def readObject(s java.io.ObjectInputStream) void {
+        s.defaultReadObject();
+        highwatermark = s.readInt(); 
+		items = new String[highwatermark] 
+
+        for (i=0; i<highwatermark; i++) {
+            items[i] = s.readObject() as String
+        }
+    }
+
+    
+	override toString() => "" + substr()
+}
+
+def doings(){
+	ar = new MyArrayList()
+	ar.add("hi")
+	ar.add("there")
+	"" + serialAndDeserial(ar)
+}

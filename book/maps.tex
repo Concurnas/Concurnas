@@ -1,0 +1,279 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Maps]{Maps}
+	
+Concurnas has first class citizen support for creating and working with maps. Maps are an extremely useful data structure which enable us to map from one value to another in a generally very efficient manner. First class citizen support for maps in Concurnas utilizes instances of \lstinline{java.util.HashMap<Key, Value>} - they take advantage of generics in order to provide one uniform, efficient, implementation.
+
+\section{Creating maps}
+Concurnas offers a number of convenient mechanisms for creating maps. Starting with the most verbose:
+
+\begin{lstlisting}
+mymap = new HashMap<String, int>()
+\end{lstlisting}
+
+Above, we have created a HashMap instance which maps from elements of type String to Integer (the primitive type int is auto boxed to be of object type Integer).
+
+Concurnas comes pre packaged with an auto included map typedef which can be used in order to create a map in a more concise manner:
+\begin{lstlisting}
+mymap = map<String, int>()
+\end{lstlisting}
+
+We can take advantage of Concurnas's usage based generic type inference mechanism in order to qualify the generic parameters of the map, saving us the need to define them when constructing the map initially:
+
+\begin{lstlisting}
+mymap = map()
+\end{lstlisting}
+
+Then, based on usage of \lstinline{mymap} (e.g. putting items into the map) Concurnas will infer the generic types, i.e. what type is the key and what type is the value.
+
+\subsection{Creating maps with initial values}
+In the case where we need to create a map having an initial set of key value associations, then the following syntax (similar to that used for lists and arrays) comes in handy:
+
+\begin{lstlisting}
+mymap = {'taste' -> 10, 'colour' -> 4+1,'shape' -> 8}
+\end{lstlisting}
+
+Above we are defining a map as a comma separated list of key value pair maps via \lstinline{->}. The individual keys and values are expressions. The generic Key type of the map is taken to be the most specific type of all the keys, and the generic Value type is taken as the most specific catch all type of the values. In this case the map is a mapping between Strings to Integers.
+
+\section{Operations on maps}
+Concurnas has first class citizen support for five key operations on maps: putting values, getting values, checking the presence of keys, removing values and iterating over keys:
+
+\subsection{Putting values}
+Values can be added to a map one at a time as follows:
+\begin{lstlisting}
+mymap = map()
+mymap['taste'] = 10
+mymap['colour'] = 5
+mymap['shape'] = 8
+\end{lstlisting}
+
+The above support allows us to avoid having to call the \lstinline{put} method on the map in this way: \lstinline{mymap.put('taste', 10) }
+
+\subsection{Getting values}
+Values can be obtained from a map:
+\begin{lstlisting}
+mymap = map()
+mymap['taste'] = 10
+
+got = mymap['taste']//got now equals 10
+\end{lstlisting}
+
+The above support allows us to avoid having to call the \lstinline{get} method on the map in this way: \lstinline{got = mymap.get('taste')}
+
+\subsection{Checking the presence of keys}
+We can test to see if a particular key is present within a map via the \lstinline{in}, \lstinline{not in} keywords:
+
+\begin{lstlisting}
+mymap = {'taste' -> 10, 'colour' -> 5,'shape' -> 8}
+assert 'taste' in mymap
+assert 'weight' not in mymap//'weight' is not present in the map
+\end{lstlisting}
+
+\subsection{Removing values}
+Values can be removed from a map using the \lstinline{del} keyword
+\begin{lstlisting}
+mymap = map()
+mymap['taste'] = 10
+
+del mymap['taste']//value corresponding to 'taste' no longer exists
+\end{lstlisting}
+
+This saves us from having to write: \lstinline{mymap.remove('taste')}
+
+\subsection{Iteration}
+We can iterate over the keys of a map as follows:
+\begin{lstlisting}
+mymap = {'taste' -> 10, 'colour' -> 5,'shape' -> 8}
+
+for(key in mymap){//iterate over the keys
+	value = mymap[key]
+}
+\end{lstlisting}
+
+The order of map keys is not guaranteed between differing iterations over them.
+
+\subsection{More operations}
+Maps in Concurnas are instances of HashMaps. As such they have access to all of the methods provided by the JDK on which you're running your Concurnas session.For example:
+
+\begin{lstlisting}
+mymap1 = {'taste' -> 10, 'colour' -> 5,'shape' -> 8}
+
+mymap2 = map()
+mymap2.putAll(mymap1)//copy contents to new instance
+
+assert mymap1 == mymap2
+\end{lstlisting}
+
+For an exhaustive list of methods which are invocable on instances of HashMaps for your JDK (e.g. Java 9 ) see here: \href{https://docs.oracle.com/javase/9/docs/api/index.html?overview-summary.html}{JDK docs}.
+
+\section{Default maps}
+When using maps there is often a need to have an initial default value returned for a key in the absence of one in cases where one is extracting a value from a map. Let's say we are creating a count all instances of a number. Normally we'd have to write something like this:
+
+\begin{lstlisting}
+inputdata = [1,2,4,3,2,1,2,3,4,2,2,3,4,3,2,1]
+
+counter = map()
+for(x in inputdata){
+	if(x not in counter){
+		counter[x] = 0
+	}
+	counter[x]++
+}
+
+//counter now resolves to:
+//{1->3, 2->6, 3->4, 4->3}
+\end{lstlisting}
+
+The above is quite verbose. When defining a map, one can use the default keyword mapped to a function which will be called in instances where a value for a requested key is not present within the map. This allows us to solve our previous problem in a far more elegant manner:
+
+\begin{lstlisting}
+counter = {default -> def (a int) { 0 }}
+counter[x]++ for x in inputdata
+\end{lstlisting}
+
+The default value output from the function above will be persisted within the map at the point of initial use.
+
+\subsection{Creating default maps}
+Default maps in Concurnas are instances of class: \lstinline{concurnas.lang.DefaultMap<Key, Value>}. As with conventional maps there are a few ways in which they can be created, the first of which we have already seen above, where we pass a lambda taking one argument (the Key) and returning one default value (the Value):
+
+\begin{lstlisting}
+counter = {default -> def (a int) { 0 }}
+\end{lstlisting}
+
+The above is useful in cases where one wishes to use the passed key in some manner so as to derive an appropriate default value for that key.
+
+An alternative way to create a default map is to use a single expression as follows:
+\begin{lstlisting}
+counter = {1->"value", default -> 0}
+\end{lstlisting}
+
+The above is useful in cases where the Key of the map derivable since there exists a non default mapping, above it is since we have a key value mapping from an Integer to a String.
+
+A more verbose mechanism to create a default map, bypassing the first class citizen on creation support, can be achieved as follows:
+
+\begin{lstlisting}
+counter = new concurnas.lang.DefaultMap<int, int>(def (a int) { 0 })
+\end{lstlisting}
+
+One can use the auto imported \lstinline{map} function, with a lambda passed in order to create a default map like so:
+
+\begin{lstlisting}
+counter = map(def (a int) { 0 })
+\end{lstlisting}
+
+Using the \lstinline{map} function, along with Concurnas's support for anonymous lambda function definitions, and usage based generic type inference allows us to write some very succinct code:
+
+\begin{lstlisting}
+counter = map(a => 0)
+counter[0]++
+\end{lstlisting}
+
+\section{String maps}
+Concurnas has special support for 'string maps'\footnote{Inspired by javascript}. All maps in Concurnas have this support. This allows us to do two convenient things:
+
+\subsection{dot operator on keys}
+In the case where our maps keys are of type String (or originate from 'identifiers' as par above), we can use it in the following way:
+
+\begin{lstlisting}
+mymap = {'akey' -> 12, 'another' => 14}
+
+what = mymap.akey
+//what now resolves to 12
+\end{lstlisting}
+
+In fact, we can chain maps together in a nested fashion:
+
+\begin{lstlisting}
+mymap = {'another' -> {'thing' -> 'nested value'}}
+what = mymap.another.thing
+//what now resolves to 'nested value'
+\end{lstlisting}
+
+
+\subsection{Identifiers as string keys and values}
+Concurnas will recognise identifiers defined in maps with initial values that do not otherwise refer to an identifiable element in scope such as a variable name, method name etc, as being strings. This allows us to easily make single word string value/key maps without having to use the \lstinline{''} or \lstinline{""} notation:
+
+\begin{lstlisting}
+mymap = {akey -> 12}
+
+what = myma.akey
+//what now resolves to 12
+\end{lstlisting}
+
+Of course we may also to use the \lstinline{''} or \lstinline{""} notation for strings mixed with 'identifier' strings:
+
+\begin{lstlisting}
+mymap = {akey -> 12, 'another' -> 1}
+
+what = mymap.another
+//what now resolves to 1
+\end{lstlisting}
+
+
+\subsection{Object hashCode and equality}
+Most of the time we need not concern ourselves with the internals regarding how maps operate. But sometimes it is appropriate to understand this. Internal to a the maps described here are a set of key buckets into which keys are mapped to, this mapping is achieved by generating a hash code (a 32 bit integer) for the key object, this is then used to set the key value association into an appropriate bucket. Since more than one key object can have the same hash code\footnote{32 bits of information is not enough to enumerate the entirety of existence!} clashes can occur. When this occurs on extraction of a value from the map say, then values within the bucket are examined one by one to find the first match. This is achieved by checking the key object equality. Thus in the best case the computational complexity of our map when extracting a value is $O(1)$, however, in the worst case where all the key objects in our environment reside within the same bucket (perhaps due to an error in the hash code generation algorithm), then our computational complexity drops down to $O(n)$
+
+When designing hash code generation algorithms it's important to ensure that the set of unique objects of one's class which are expected to be created and stored in a map have hashcodes that are as spread out as much as possible within the 32 bit integer space of the hashcode return value. This is to avoid clustering of values within a map bucket leading to our detrimental $O(n)$ worst case described above.
+
+All objects in Concurnas are required to have a hashCode and equals method defined. By default Concurnas will automatically generate a \lstinline{hashCode} and \lstinline{equals} method for all classes. These methods will ensure that equality is implemented by value. These override the default provided by the JVM which provide referential equality.
+
+For more details of the nature of the default auto generated \lstinline{hashCode} and \lstinline{equals} methods see \hyperref[autoGeneqAndHash]{"Automatically generated equals and hashcode methods"}.
+
+
+\section{Map Gotchas}
+There are a few gotcha's associated with maps in Concurnas and maps in general which often catch out even seasoned pros. 
+
+\subsection{Objects with non fixed hashcodes}
+Objects with non fixed hashcodes that are used as keys can be problematic. The main source of error stems from the fact that as the mutable state of an object used as a key changes the hashcode of said object, more of than not (depending upon the implementation) will change as well. This means that a key which previously mapped to one internal map bucket is very likely (but not 100\% certain which can lead to false positives) to map to a different bucket post state mutation. This can lead to the following sorts of errors:
+
+\begin{lstlisting}
+class Person(-name String, ~age int)
+
+
+fred = Person('fred', 21)
+mymap = {fred -> 9}
+
+res1 = mymap[fred]
+fred.age++
+res2 = mymap[fred]
+
+//res1 == 9, but res2 is null!
+\end{lstlisting}
+
+We can see above that we are using the same object as a key, yet in the second instance, post object mutation, when extracting a value nothing is found and we obtain null. There are two mitigations for this sort of problem, the first to use either a \lstinline{java.util.IdentityHashMap} or to use only objects with immutable state as keys.
+
+\subsection{Implicit cast of map keys}
+Some care must be applied when one is using keys of a boxed primitive type. Since the \lstinline{java.util.Map} specification defines the \lstinline{get, put, remove} etc methods as taking a key argument of type object, when boxing a primitive type key element this boxing will be of the primitive types natural boxed counterpart (\lstinline{Integer} for \lstinline{int}, \lstinline{Character} for \lstinline{char} etc) - this is after all an Object type, but it may not be of the Generic key type defined for the map.
+
+Hence for maps of a boxed primitive type we can end up with some surprising behaviour when auto casting and auto boxing primitive types:
+
+\begin{lstlisting}
+mymap = map<Character, String>()
+achar = 'g'
+charAsInt = achar as int
+
+mymap[achar] = "value"
+
+res = mymap[charAsInt]//res is null!
+\end{lstlisting}
+
+
+Above, \lstinline{res} resolves to \lstinline{null} as when the \lstinline{int} \lstinline{charAsInt} is boxed to an \lstinline{Object}, it is boxed to an \lstinline{Integer} and not a \lstinline{Character}.
+
+The solution is to always explicitly cast into the primitive type which we have stored keys in:
+
+\begin{lstlisting}
+mymap = map<Character, String>()
+achar = 'g'
+charAsInt = achar as int
+
+mymap[achar] = "value"
+
+res = mymap[charAsInt as char]//res is value as expected
+\end{lstlisting}
+
+Above, \lstinline{charAsInt} resolves to \lstinline{"value"} as expected.
+
+\end{document}

@@ -1,0 +1,588 @@
+//##1 basic classloading gubbins
+
+from com.concurnas.runtime import ConcClassUtil
+
+class MyClassLoader {
+	override equals(a Object) => false
+	override hashCode() => 1
+
+	def currentClassLoader(){
+		what = MyClassLoader.class.getClassLoader() as ConcClassUtil //we can cast to this as its an iface
+		loader = what.Class.ClassLoader.Class.SimpleName
+		"" + [loader, ""+MyClassLoader.class.name, what.getBytecode(""+MyClassLoader.class.name).length>0, what.getParentCL().getClass().SimpleName]
+	}
+}
+
+def doings(){
+	mycl = MyClassLoader()
+	
+	"" + mycl.currentClassLoader()
+}
+
+
+~~~~~
+//##2 second stab at custom classloader
+
+from com.concurnas.runtime import ConcurnasClassLoader
+import com.concurnas.lang.Uninterruptible;
+
+class MyClass(){
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClassLoader extends java.lang.ClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	@Uninterruptible
+	def \new(ignore String){
+		loadClass(""+MyClass.class.name)//.newInstance()
+	}
+	
+	@Uninterruptible
+	override loadClass( name String) {
+		
+		if(name == ""+MyClass.class.name){
+			bytez = normalClassLoader.getBytecode(name)
+			super.defineClass(name, bytez, 0, bytez.length)
+		}else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	norm = MyClass()
+
+	mycl = MyClassLoader()
+	obtainedCls = mycl.\new('MyClass')
+	
+	normCls = norm.getClass()
+	
+	"" + [normCls, obtainedCls, normCls &== obtainedCls]
+}
+
+~~~~~
+//##3 classloader works ok
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+class MyClass(){
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	def \new(wat String){
+		if(wat == 'MyClass'){
+			loadClass(""+MyClass.class.name).newInstance()
+		}
+		else{ null }
+	}
+	
+	override loadClass( name String) {
+		if(name == ""+MyClass.class.name){
+			bytez = normalClassLoader.getBytecode(name)
+			super.defineClass(name, bytez)
+		}else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	norm = MyClass()
+
+	mycl = MyClassLoader()
+	instance = mycl.\new('MyClass')??
+	
+	normCls = norm.getClass()
+	obtainedCls = instance.getClass()
+	
+	"" + [normCls, obtainedCls, normCls &== obtainedCls]
+}
+
+~~~~~
+//##4. classloader of super type
+from com.concurnas.runtime import ConcurnasClassLoader
+
+open class SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClass() < SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	def \new(wat String){
+		if(wat == 'MyClass'){
+			loadClass(""+MyClass.class.name).newInstance()
+		}
+		else{ null }
+	}
+	
+	override loadClass( name String) {
+		if(name == ""+MyClass.class.name){
+			bytez = normalClassLoader.getBytecode(name)
+			super.defineClass(name, bytez)
+		}else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	norm = MyClass()
+
+	mycl = MyClassLoader()
+	instance = mycl.\new('MyClass')
+	
+	normCls = norm.getClass()
+	obtainedCls = instance?.getClass()
+	
+	normClsSup = norm.getClass().Superclass
+	obtainedClsSup = instance?.getClass()?.superclass
+	
+	"" + [normCls, obtainedCls, normCls &== obtainedCls, normClsSup &== obtainedClsSup]
+}
+~~~~~
+//##5. misc bugfix on generic widlcard with upper bounds
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+open class SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClass() < SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	def \new(wat String){
+		if(wat == 'MyClass'){
+			loadClass(""+MyClass.class.name).newInstance()
+		}
+		else{ null }
+	}
+	
+	override loadClass( name String) Class<?>  {//this was a bug before
+		if(name == ""+MyClass.class.name){
+			bytez = normalClassLoader.getBytecode(name)
+			a=super.defineClass(name, bytez)
+			a
+		}else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	norm = MyClass()
+
+	mycl = MyClassLoader()
+	instance = mycl.\new('MyClass')
+	
+	normCls = norm.getClass()
+	obtainedCls = instance?.getClass()
+	
+	normClsSup = norm.getClass()?.Superclass
+	obtainedClsSup = instance?.getClass()?.superclass
+	
+	"" + [normCls, obtainedCls, normCls &== obtainedCls, normClsSup &== obtainedClsSup]
+}
+
+~~~~~
+//##6. via classForName
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+open class SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClass() < SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	
+	override loadClass( name String) Class<?>  {//this was a bug before
+		if(name == ""+MyClass.class.name){
+			bytez = normalClassLoader.getBytecode(name)
+			a=super.defineClass(name, bytez)
+			a
+		}else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	norm = MyClass()
+
+	mycl = MyClassLoader()
+	
+	what = Class.forName(MyClass.class.name, true, mycl)
+	
+	"" + [what.name, norm.getClass() &<> what]
+}
+
+~~~~~
+//##7. useas classloader
+
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+
+open class SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClass() < SupClass{
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader 
+	
+	useAsMapping  = new HashMap<String, String>()
+	
+	def useas(fromx String, useas String){
+		useAsMapping[useas] = fromx
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in useAsMapping){
+			from com.concurnas.lang.precompiled import ClassNameRemapper
+			fromNamex = useAsMapping[name]
+			bytez = normalClassLoader.getBytecode(fromNamex)
+			bytez = ClassNameRemapper.remapClass(bytez, fromNamex, name)
+			super.defineClass(name, bytez)
+		}
+		else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	norm = MyClass()
+
+	mycl = MyClassLoader()
+	mycl.useas(MyClass.class.name, "CoolClass")
+	
+	what = Class.forName("CoolClass", true, mycl)
+	
+	"" + [what.name, norm.getClass() &<> what]
+}
+
+~~~~~
+//##8. classloaders all implement new operator overloaded with reflection by default
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader
+	 
+	defineInThisLoader  = new java.util.HashSet<String>()
+	defAlready  = new java.util.HashMap<String, Class<?>>()
+	
+	def loadHere(fromx String){
+		defineInThisLoader.add(fromx)
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in defAlready){
+			return defAlready[name]
+		}
+		
+		if(name in defineInThisLoader){
+			defAlready[name] = super.defineClass(name, normalClassLoader.getBytecode(name))
+			defAlready[name]
+		}
+		else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	mc = MyClassLoader()
+	
+	class AClass(a String, b String){
+		override equals(a Object) => false
+		override hashCode() => 1
+		override toString() => "" + [a,b]
+	}
+	
+	mc.loadHere(AClass.class.name)
+	got = mc.new AClass('one', 'two')//all classloaders have 'new' implicity by default - which operates via reflection
+	//must be known class no random stuff ( to get the name right)
+	//loadclass -> Class<?> -> new Instance(args) -> Object | leave as object 
+	//mc.loadClass(AClass.class.name).getDeclaredConstructor(String.class, String.class).newInstance('one', 'two')
+	
+	"" + got
+}
+
+~~~~~
+//##9. pass correct formatted name to new overloader opereator
+
+class MyClass(a int, b int){
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+}
+
+clnam = MyClass.class.name
+
+class MyProvider{
+	def \new(className String, args Object...){
+		match(className){
+			case(clnam){ new MyClass(args[0] as int, args[1] as int) }
+			else{ System.err.println("oh oh " + [className, clnam]); null }
+		}
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new MyClass(1,2)
+}
+
+~~~~~
+//##10. ref to something output from classloader
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader
+	 
+	defineInThisLoader  = new java.util.HashSet<String>()
+	defAlready  = new java.util.HashMap<String, Class<?>>()
+	
+	def loadHere(fromx String){
+		defineInThisLoader.add(fromx)
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in defAlready){
+			return defAlready[name]
+		}
+		
+		if(name in defineInThisLoader){
+			defAlready[name] = super.defineClass(name, normalClassLoader.getBytecode(name))
+			defAlready[name]
+		}
+		else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	mc = MyClassLoader()
+	
+	class AClass(a String, b String){
+		override equals(a Object) => false
+		override hashCode() => 1
+		override toString() => "" + [a,b]
+		def thing() => 'a thing' + [a,b]
+	}
+	
+	mc.loadHere(AClass.class.name)
+	got  = mc.new AClass&('one', 'two')
+	"" + got()
+}
+
+~~~~~
+//##11. ref to something output from classloader curry in args
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader
+	 
+	defineInThisLoader  = new java.util.HashSet<String>()
+	defAlready  = new java.util.HashMap<String, Class<?>>()
+	
+	def loadHere(fromx String){
+		defineInThisLoader.add(fromx)
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in defAlready){
+			return defAlready[name]
+		}
+		
+		if(name in defineInThisLoader){
+			defAlready[name] = super.defineClass(name, normalClassLoader.getBytecode(name))
+			defAlready[name]
+		}
+		else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+}
+
+def doings(){
+	mc = MyClassLoader()
+	
+	class AClass(a String, b String){
+		override equals(a Object) => false
+		override hashCode() => 1
+		override toString() => "" + [a,b]
+		def thing() => 'a thing' + [a,b]
+	}
+	
+	mc.loadHere(AClass.class.name)
+	got  = mc.new AClass&('one', ? String)
+	"" + got('ok')
+}
+
+~~~~~
+//##12. new operator overloader applies even to classloaders
+//operator overloader overrides classloader behavoiur
+
+from com.concurnas.runtime import ConcurnasClassLoader
+
+
+class MyClassLoader extends ConcurnasClassLoader{
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	normalClassLoader = MyClassLoader.class.getClassLoader() as ConcurnasClassLoader
+	 
+	defineInThisLoader  = new java.util.HashSet<String>()
+	defAlready  = new java.util.HashMap<String, Class<?>>()
+	
+	def loadHere(fromx String){
+		defineInThisLoader.add(fromx)
+	}
+	
+	override loadClass( name String) Class<?>  {
+		if(name in defAlready){
+			return defAlready[name]
+		}
+		
+		if(name in defineInThisLoader){
+			defAlready[name] = super.defineClass(name, normalClassLoader.getBytecode(name))
+			defAlready[name]
+		}
+		else{
+			normalClassLoader.loadClass(name)
+		}
+	}
+	
+	def \new(a String, stuff Object...){
+		null
+	}
+}
+
+def doings(){
+	mc = MyClassLoader()
+	
+	class AClass(a String, b String){
+		override equals(a Object) => false
+		override hashCode() => 1
+		override toString() => "" + [a,b]
+	}
+	
+	mc.loadHere(AClass.class.name)
+	got = mc.new AClass('one', 'two')
+	
+	"" + got
+}
+
+~~~~~
+//##13. simple one check use with serializer
+
+from com.concurnas.runtime import ConcurnasClassLoader
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+
+inject class DistFetchingClassLoader < ConcurnasClassLoader{
+	private parent ConcurnasClassLoader
+	sid = "sid"
+	this(){
+		parent = DistFetchingClassLoader.class.getClassLoader() as ConcurnasClassLoader
+	}
+	
+	override getBytecode(name String) byte[]{//check parent first
+		fromParent = parent.getBytecode(name)
+		if(fromParent == null){
+			null
+		}else{
+			fromParent
+		}
+	}
+	
+	override loadClass(name String) Class<?> {
+		try{
+			what = parent.loadClass(name)
+			if(what <> null){
+				return what
+			}
+		}catch(e ClassNotFoundException){
+		}
+		code byte[]? = null
+		parent.defineClass(name, code)
+	}
+}
+
+class Myclass(an int){
+	override toString() => ""+an
+}
+
+def doings(){
+	a int: = 100
+	cl = new DistFetchingClassLoader()
+	thing = SerializationEncoder.encode(a:)
+	got = SerializationDecoder.decode(thing, cl) as int:
+	"ok: " + got
+}

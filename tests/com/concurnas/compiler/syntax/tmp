@@ -1,0 +1,23 @@
+
+
+
+//currying
+map([1,2,3], &plusN(2));
+
+print(plusN(2)(4));
+
+print(""+&plusN(2)(4));
+print(""+(&plusN(2))(4));
+
+
+//currying the second param only
+map([1,2,3], &plusN(,2));
+
+
+def retFun()(int)int
+{
+	return &def (d int)int {return d+4;};
+}
+
+retFun()(5);
+

@@ -1,0 +1,152 @@
+//##1. simple range
+res = 0 to 5
+
+def doings(){
+	"" + res
+}
+
+~~~~~
+//##2. simple range non int
+res = 0 to 5
+
+def doings(){
+	"" + res
+}
+
+~~~~~
+//##3. simple range parser precidence order correct
+def doings() => "" + (6 in (1 to 10 ))
+
+~~~~~
+//##4. ax length is fine here
+
+ax int[2] = [ 2 3 4 5; 4 5 6 7 8 ; 7 8 9 10 11]
+
+def doings(){
+	
+	"" + (0 to ax.length)
+}
+
+~~~~~
+//##5. big test
+
+def xpander(x IntSequence, limit = 12){
+	n=0
+	for(t in x){
+		if(n++ >== limit){
+			break t
+		}
+		t		
+	}
+}
+
+def doings(){
+	x = 1 to 10
+	y = 0 to 100 step 9
+	z = 0 to
+	z2 = 0 to step 10
+	
+	decc1 = 10 to 1
+	
+	infdown = 10 to step (-2)
+	decc2 = 10 to (-6) step 2
+	
+	r1 = decc2 reversed
+	
+	res = "{f} -> {xpander(f)}" for f in [x, y, z, z2, decc1, infdown, decc2, r1]
+	
+	f1 = try{
+		fail1 = 10 to 1 step (-2)
+		'fail should complain about neg step'
+	}catch(e){
+		e getMessage
+	}
+	
+	f2 = try{
+		revfail = 0 to reversed
+		'fail should complain unbounded'
+	}catch(e){
+		e getMessage
+	}
+	
+	ins1 = 36 in y
+	notins = 37 not in y
+	insrev = (-4) in decc2
+	notinre = (-1) not in decc2
+	cinf = 99 in z
+	ncinf = (-1) not in z
+	infd = (-12) in infdown
+	infdn = (-11) not in infdown
+	
+	chars = x as char for x in 65 to 70
+	
+	String.join("\n", res) \
+	+ '\nFAILS:\n' \
+	+ String.join("\n", [f1 f2]) \
+	+ "\nIns\n" \
+	+ [ins1 notins insrev notinre cinf ncinf infd infdn] \
+	+ "\nextras:\n" \
+	+ [chars]
+}
+
+~~~~~
+//##6. big test long
+
+def xpander(x LongSequence, limit = 12){
+	n=0
+	for(t in x){
+		if(n++ >== limit){
+			break t
+		}
+		t		
+	}
+}
+
+def doings(){
+	x = 1 to 10L
+	y = 0L to 100 step 9L
+	z = 0L to
+	z2 = 0L to step 10
+	
+	decc1 = 10L to 1
+	
+	infdown = 10L to step (-2)
+	decc2 = 10L to (-6) step 2
+	
+	r1 = decc2 reversed
+	
+	res = "{f} -> {xpander(f)}" for f in [x, y, z, z2, decc1, infdown, decc2, r1]
+	
+	f1 = try{
+		fail1 = 10 to 1 step (-2)
+		'fail should complain about neg step'
+	}catch(e){
+		e getMessage
+	}
+	
+	f2 = try{
+		revfail = 0 to reversed
+		'fail should complain unbounded'
+	}catch(e){
+		e getMessage
+	}
+	
+	ins1 = 36L in y
+	notins = 37L not in y
+	insrev = (-4L) in decc2
+	notinre = (-1L) not in decc2
+	cinf = 99L in z
+	ncinf = (-1L) not in z
+	infd = (-12L) in infdown
+	infdn = (-11L) not in infdown
+	
+	chars = x as char for x in 65 to 70
+	
+	String.join("\n", res) \
+	+ '\nFAILS:\n' \
+	+ String.join("\n", [f1 f2]) \
+	+ "\nIns\n" \
+	+ [ins1 notins insrev notinre cinf ncinf infd infdn] \
+	+ "\nextras:\n" \
+	+ [chars]
+}

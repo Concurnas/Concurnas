@@ -1,0 +1,1769 @@
+//##1 local classes
+
+class MiniClass(a int){
+	override toString() => "gotxxx: " + a
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+
+
+def doings(){
+	class MiniClass(a int){
+		override toString() => "got: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mi1 = new MiniClass(12)
+	
+	"" + mi1 
+}
+
+~~~~~
+//##2 local classes nested
+
+class MiniClass(a int){
+	override toString() => "gotxxx: " + a
+	override equals(a Object) => false
+	override hashCode() => 1
+	
+	def stuff(){
+		
+		class MiniClass(a int){
+			override toString() => "got: " + a
+			override equals(a Object) => false
+			override hashCode() => 1
+		}
+		mi1 = new MiniClass(12)
+		
+		"" + mi1 
+	}
+}
+
+//create as static?
+def doings(){
+	new MiniClass(9).stuff()
+}
+
+~~~~~
+//##3 local classes pre bindings
+
+def doings(){
+	b = 99
+
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a// + " also: " + b
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = new MiniClass(9)
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##4 local classes local bindings
+
+def doings(){
+	b = 99
+
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = new MiniClass(9)
+	b=100
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##5 local classes without new keyword 
+
+def doings(){
+	b = 99
+
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = MiniClass(9)
+	b=100
+	mm2 = MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##6 local classes module level dependancies
+
+b = 99
+
+def doings(){
+	
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = MiniClass(9)
+	b=100
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+
+~~~~~
+//##7 local classes class level dependancies
+public b = 99
+b2 = 101//protected by default
+private b3 = 1012
+class Thing{
+	
+	
+	override equals(a Object) => false
+	override hashCode() => 1
+
+	def doingsXXX(){
+		
+		class MiniClass(a String){
+			this(a int){
+				this("" + a)
+			}
+		
+			override toString() => "got: " + a + " also: " + [b, b2, b3]
+			override equals(a Object) => false
+			override hashCode() => 1
+		}
+		
+		mm1 = MiniClass(9)
+		//b=100
+		//mm2 = new MiniClass("hi 9")
+		"" + mm1//[mm1, mm2]
+	}
+}
+
+def doings(){
+	new Thing().doingsXXX()
+}
+
+~~~~~
+//##8 local class deps - module functions
+
+f = 9
+def b() => 995 + f
+
+
+def doings(){
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b()
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = new MiniClass(9)
+	b=100
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##9 local class deps - local functions
+
+def doings(){
+
+	fu = 9
+	def b( ) => ""+ 995 + fu
+
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b()
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = new MiniClass(9)
+	fu=100
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##10 local class deps - ref to module functions
+
+f = 9
+def b() => 995 + f
+
+
+def doings(){
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b&()() + {e = b&(); e()}
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = new MiniClass(9)
+	b=100
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##11 local class deps - ref to local functions
+
+def doings(){
+	f = 9
+	def b() => 995 + f
+
+	class MiniClass(a String){
+		this(a int){
+			this("" + a)
+		}
+	
+		override toString() => "got: " + a + " also: " + b&()() + {e = b&(); e()}
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mm1 = new MiniClass(9)
+	b=100
+	mm2 = new MiniClass("hi 9")
+	"" + [mm1, mm2]
+}
+
+~~~~~
+//##12 local class extends normal class
+
+open class Par(h int) {}
+
+def doings(){
+
+	class MiniClass (a String) < Par(33){
+	
+		override toString() => "MiniClass: " + [a, h] 
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc = MiniClass('as')
+	
+	"" + mc
+}
+
+~~~~~
+//##13 checkcast ok
+
+def doings(){
+
+	open class Par(h int) {}
+
+	class MiniClass (a String){// < Par(33){
+	
+		override toString() => "MiniClass: " +a//+ [a, h] 
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc Object = MiniClass('hi')
+	
+	"" + (mc as MiniClass)
+}
+
+~~~~~
+//##14 local class extends another local class
+
+def doings(){
+
+	open class Par(h int) {}
+
+	class MiniClass (a String) < Par(33){
+	
+		override toString() => "MiniClass: " + [a, h] 
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc = MiniClass('hi')
+	
+	"" + mc
+}
+
+~~~~~
+//##15 local class extends another local class, with dependancies which need splicing in
+
+def doings(){
+	
+	dave = 99
+	def plusone() => 1
+
+	open class Par(h int) {
+		def thing() => dave + plusone()
+		override equals(a Object) => false
+		override hashCode() => 1
+	
+	}
+
+	class MiniClass (a String) < Par(33){
+	
+		override toString() => "MiniClass: " + [a, h, thing()] 
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc = MiniClass('hi')
+	
+	"" + mc
+}
+
+~~~~~
+//##16. nested local classes 1
+ha=100
+def doings(){
+	
+	dave = 99
+	def plusone() => 1
+
+	open class Par(h int) {
+		def thing() => 1111
+		override equals(a Object) => false
+		override hashCode() => 1
+	
+		def thingy(){
+			class MiniClass (a String){// < Par(33){
+				override toString() => "MiniClass: " + [a, ha/*, super.thing()*/] 
+				override equals(a Object) => false
+				override hashCode() => 1
+			}
+		
+			MiniClass('hi')
+		}
+	
+	}
+	
+	pp = Par(100)
+	
+	"" + pp.thingy()
+}
+
+~~~~~
+//##17. nested local classes 2 and extends parent nestor
+ha=100
+def doings(){
+	dave = 99
+	def plusone() => 1
+
+	open class Par(h int) {
+		def thing() => 1111
+		override equals(a Object) => false
+		override hashCode() => 1
+	
+		def thingy(){
+			class MiniClass (a String) < Par(33){
+				override toString() => "MiniClass: " + [a, ha, super.thing()] 
+				override equals(a Object) => false
+				override hashCode() => 1
+			}
+		
+			MiniClass('hi')
+		}
+	
+	}
+	
+	pp = Par(100)
+	
+	"" + pp.thingy()
+}
+
+~~~~~
+//##18. nested local classes constructor ref
+
+def doings(){
+	class MiniClass (a String){
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc = new MiniClass&("hi1")
+	mc2 = MiniClass&("hi2")
+	mc3 () MiniClass = new MiniClass&("hi3")
+	
+	"" + [mc(), mc2(), mc3()]
+}
+
+~~~~~
+//##19. nested local classes constructor ref implicit generics
+
+def doings(){
+	class MiniClass<X>(a X){
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc = new MiniClass&("hi1")
+	mc2 = MiniClass&("hi2")
+	mc3 () MiniClass<String> = new MiniClass&("hi3")
+	
+	"" + [mc(), mc2(), mc3()]
+}
+
+~~~~~
+//##20. nested local classes constructor ref explicit generics
+
+def doings(){
+	class MiniClass<X>(a X){
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	mc = new MiniClass<String>&("hi1")
+	mc2 = MiniClass<String>&("hi2")
+	mc3 () MiniClass<String> = new MiniClass<String>&("hi3")
+	
+	"" + [mc(), mc2(), mc3()]
+}
+
+~~~~~
+//##21. local class refs
+
+def doings(){
+class MiniClass (a String){
+		this(a int) { this(""+a) }
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+	
+	mc1 = MiniClass&
+	mc2 (*) MiniClass =  MiniClass&
+	
+	"" + [mc1('hi2'), mc2('hi3'), mc1(99), mc2(89)]
+}
+
+~~~~~
+//##22. local class refs with generics
+
+@SuppressWarnings("all")
+
+def doings(){
+class MiniClass<X>(a X){
+		this(a int) { this((""+a) as X) }
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+	
+	mc1 = MiniClass<String>&
+	mc2 (*) MiniClass<String> =  MiniClass<String>&
+	
+	"" + [mc1('hi2'), mc2('hi3'), mc1(99), mc2(89)]
+}
+
+~~~~~
+//##23. local constructor refs with dependancies
+@SuppressWarnings("all")
+
+def doings(){
+	xyz = 99
+	def xxx() => xyz + 100
+
+	class MiniClass (a String){
+		override toString() => "MiniClass: " + [a, xyz, xxx()]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+	
+	mc1 = MiniClass&('hi2')
+	
+	"" + mc1()
+}
+
+~~~~~
+//##24. local class refs with dependancies
+
+def doings(){
+	xyz = 99
+	def xxx() => xyz + 100
+
+	class MiniClass (a String){
+		override toString() => "MiniClass: " + [a, xyz, xxx()]//func call different route
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+		
+	mc1 = MiniClass&
+	
+	"" + mc1('hi2')
+}
+
+~~~~~
+//##25. pattern needed for local class defs
+
+def doings(){
+	gg = 99
+	mc1 = { class MC1 (a String){
+		override toString() => "MiniClass: " + [a, gg]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}; MC1& }
+	
+	"" + mc1('hi2')
+}
+
+~~~~~
+//##26. local classdef
+def doings(){
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = class (a String){
+		override toString() => "MiniClass: " + [a, xx, thsignsd()]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	"" + mc1('hi2')
+}
+
+~~~~~
+//##27. check we can define blocks at class level on rhs
+
+def something(a int) => a
+
+class MyClass{
+	public xx  = {1+2}
+	public xx2  = something({1+20})
+	
+}
+
+def doings(){
+	"" + [MyClass().xx2, MyClass().xx]
+}
+
+~~~~~
+//##28.local classes can have use outer variables
+
+def doings(){
+	x=100
+	  class MMM(a String){
+		override toString() => "MiniClass: " + [a, x]
+		override equals(a Object) => false
+		override hashCode() => 1
+		}
+	mc1 =	MMM&
+	
+	""+mc1('ok')
+}
+
+~~~~~
+//##29.local classes can have use outer variables from inside the rhs class ass block
+
+class MyClass{
+	xx  = 99
+	def thsignsd() => xx + 100
+	mc1 = {xxc=100; class MMM(a String){
+		override toString() => "MiniClass: " + [1,  xxc]
+		override equals(a Object) => false
+		override hashCode() => 1
+		}
+		MMM&}
+
+	override equals(a Object) => false
+	override hashCode() => 1
+		
+	//class MMM(oops String) {}
+		
+	def doings(){
+		"" + mc1('hi')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##30. local class ok even with name clash
+
+class MyClass{
+	mc1 = { class MMM(a String){
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+		}
+		MMM&}
+
+	override equals(a Object) => false
+	override hashCode() => 1
+		
+	class MMM(oops String) {}
+		
+	def doings(){
+		"" + mc1('hi')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##31. local as lambda as feidl
+
+class MyClass{
+	mc1 =  class (a String){
+		override toString() => "MiniClass: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+		}
+
+	override equals(a Object) => false
+	override hashCode() => 1
+		
+	class MMM(oops String) {}
+		
+	def doings(){
+		"" + mc1('hi')
+	}
+}
+
+def doings(){
+	MyClass().doings()
+}
+
+~~~~~
+//##32. check no generic qualifaction needed
+//for outter classs generic binding when using 'nested' enum
+class Outer<X>{
+	public enum SS{ONE, TWO}
+}
+
+def doings(){
+	s = Outer.SS.ONE//no generic qualifaction needed
+	"" + s//this is fine
+}
+
+~~~~~
+//##33. local class can call module level remapped nested method
+
+def lafunc(f String){
+	def afunc() => 22//cannot be called in cls
+
+	cls = class (a String){
+		override toString() => "MiniClass: " + [a, afunc()]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	cls("ok" + f)
+}
+
+def doings(){
+	""+lafunc('sdf')
+}
+
+~~~~~
+//##34. local class refer to another local class
+
+def lafunc(f String){
+
+	class LocalOne(a String){
+		override toString() => "LocalOne: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+
+	class LocalTwo(a LocalOne){
+		override toString() => "LocalTwo: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	LocalTwo(LocalOne("hi " + f))
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##35. local class use this methods refs etc
+
+//func and field access to this, functions variables and refs on local class
+def lafunc(f String){
+
+	class LocalClass(a String){
+		v = 99
+		override toString() {
+			g=9
+			def minime() => "ok" + g
+			rr = toref&()
+			rr2 =  minime&()
+			"MyClass: " + [thing(), v, rr(), minime(), rr2()]
+		}
+		def toref() => [22, v]
+		def thing() => a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	
+	LocalClass('ok ' + f)
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##36. local explicit typed actor
+
+class MyClass(a String){
+	override toString() => "MyClass: " + a
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def lafunc(f String){
+
+	actor LocActor of MyClass{}
+	
+	LocActor('ok ' + f)
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##37. local explicit typed actor with deps 
+
+class MyClass(public a String){
+	override toString() => "MyClass: " + a
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def lafunc(f String){
+
+	ee = 991
+	
+	actor LocActor of MyClass{
+		def something() => [ee, of.a]
+	}
+	
+	LocActor('ok ' + f).something()
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##38. unmtyped local actors 
+def lafunc(f String){
+	actor LocActor(a int){
+		def something() => [f  a++]
+	}
+		
+	LocActor(99)
+}
+
+
+def doings(){
+	lo = lafunc('there')
+	"" + [lo.something(), lo.something()]
+}
+
+~~~~~
+//##38.b unmtyped local actors- bug in actor def
+def lafunc(f String){
+	actor LocActor(a int){
+		def something() => [f, a++]//this was previously a bug as when gennerating the actor at runtime we were not corectly defninf the type array for
+		//the qualified generic type (ArrayList Integer) for the Ref - hence when it came to setting the value, this would cause a runtime exception
+	}
+		
+	LocActor(99)
+}
+
+
+def doings(){
+	lo = lafunc('there')
+	"" + [lo.something(), lo.something()]
+}
+
+~~~~~
+//##39. local typed actor
+
+def lafunc(f String){
+	actor LocActor of String{
+	}
+	
+	LocActor('ok ' + f)
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##40. more local typed actor
+
+def lafunc(f String){
+	ok= 999
+	actor LocActor of String{
+		def extra() => ok
+		def toStringx() => "" + ok + " " + of 
+	}
+	
+	LocActor('ok ' + f).toStringx()
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##41. typed actors of localized stuff
+
+def lafunc(f String){
+
+	class LocalOne(a String){
+		override toString() => "LocalOne: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+
+	class LocalTwo(a LocalOne){
+		override toString() => "LocalTwo: " + a
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	actor LocActor of LocalTwo{
+	}
+	
+	
+	LocActor(LocalOne("hi " + f))
+}
+
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##42. default actor of local class
+
+class FirstLocal(a String){
+		override toString() => "MiniClass: " + a//[a, afunc(), f]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+
+
+def lafunc(f String){
+	z16=9
+	def afunc() => 22//+z16//cannot be called in cls
+
+	fc = 16
+
+	class TheLocal(a String){
+		override toString() => "TheLocal: " + [a, afunc()]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	
+	xx = actor TheLocal("hi " + f)
+	
+	xx
+}
+
+def doings(){
+	""+lafunc('there')
+}
+
+
+~~~~~
+//##43. default actor of local class with dependancies
+
+class FirstLocal(a String){
+		override toString() => "MiniClass: " + a//[a, afunc(), f]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+
+def lafunc(f String){
+	z16=9
+	def afunc() => 22+z16//cannot be called in cls
+
+	//fc = 16
+
+	class TheLocal(a String){
+		override toString() => "TheLocal: " + [a, afunc(), f]
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+	
+	
+	xx = actor TheLocal("hi " + f)
+	//xx = TheLocal&("hi " + f)
+	//ad in extra args to in splice
+	
+	xx//()
+}
+
+def doings(){
+	""+lafunc('there')
+}
+
+~~~~~
+//##44. create iface chain even for non local returned things ie superclasses
+//we create an iface chain all the way back up to Object to support calling any constructor on a classref - (inc local classes of course)
+
+open class SupClass{
+	def something() => "super one"
+		override equals(a Object) => false
+		override hashCode() => 1
+}
+
+def canWeCallIt(){
+	class < SupClass{
+		override something() => super.something() + "yes we can call it 2"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+def doings(){
+	xxx2 (*) SupClass = canWeCallIt()
+
+	"" + xxx2().something() 
+}
+
+~~~~~
+//##45. create iface chain even for non local returned things ie superclasses x2
+
+open class SupClass{
+	def something() => "super one"
+		override equals(a Object) => false
+		override hashCode() => 1
+}
+
+def canWeCallIt(){
+	class < SupClass{
+		override something() => super.something() + " yes we can call it 2"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+def doings(){
+	xxx1 = canWeCallIt()
+	xxx2 (*) SupClass = canWeCallIt()
+
+	"" +  [xxx1().something(), xxx2().something()]
+}
+
+~~~~~
+//##46. class refs via FuncRefInvoke
+
+open class SupClass{
+	def something() => "super one"
+		override equals(a Object) => false
+		override hashCode() => 1
+}
+
+def canWeCallIt(){
+
+	class < SupClass{
+		override something() => super.something() + "yes we can call it 2"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+def doings(){
+	txt = " norm one"
+	xxx1 = canWeCallIt()()
+
+	"" + [ canWeCallIt()().something(), xxx1.something()]
+}
+
+~~~~~
+//##47. local classes callable via super type
+
+open class SupClass{
+	def something() => "super one"
+		override equals(a Object) => false
+		override hashCode() => 1
+}
+
+def canWeCallIt(){
+
+	class < SupClass{
+		override something() => super.something() + " yes we can call it 2"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+def doings(){
+	txt = " norm one"
+	class MyLocal1 < SupClass{
+		override something() => super.something() + txt + " 1"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+	lamver = class < SupClass{
+		override something() => super.something() + txt + " 2"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+	"" + [MyLocal1().something(), lamver().something(), canWeCallIt()().something()]
+}
+
+~~~~~
+//##48. str expr stuck in infinite loop as replace expr list every call
+
+open class SupClass{
+	def something() => "super one"
+		override equals(a Object) => false
+		override hashCode() => 1
+}
+
+
+def doings(){
+	txt = " norm one"
+
+	lamver = class < SupClass{
+		override something() => "{txt}  22222"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+
+	"" + lamver().something()
+}
+
+~~~~~
+//##49. mested local class
+
+def doings(){
+	class Local1{
+		h=99
+		override equals(a Object) => false
+		override hashCode() => 1
+		public class Local2{
+			override equals(a Object) => false
+			override hashCode() => 1
+			
+			override toString() => "ok" //+ h
+		}
+	}
+	
+	l1 = Local1()
+
+	"" + l1.new Local2()
+}
+
+~~~~~
+//##50. mested local class deps from parent
+
+def doings(){
+
+	class Local1{
+		public h=99
+		def topevel() => 100
+		override equals(a Object) => false
+		override hashCode() => 1
+		public class Local2{
+			override equals(a Object) => false
+			override hashCode() => 1
+			//ensure h is correctly bound...
+			override toString() => "ok " + [h, topevel()]
+		}
+	}
+
+	
+	l1 = Local1()
+
+	"" + l1.new Local2()
+}
+
+~~~~~
+//##51. local contains nested enum and anntoations
+
+def doings(){
+
+	class Local1{
+		override equals(a Object) => false
+		override hashCode() => 1
+		
+			
+		enum AnEMUN{ONE, TWO}
+		annotation one{}
+		
+		@one	def something() => 999
+		
+		def user() => ""+[AnEMUN.ONE, something()]
+	}
+
+	
+	"" + Local1().user()
+}
+
+
+/* 
+completed local class impl...
+
+	local in function - DONE
+	local in function nested in class - DONE
+	local in function - with bindings vars and funcs and funcrefs - DONE
+
+
+	//local class calling of vars, + fuctions, +refs: 
+	module - DONE
+	local - DONE
+	class - not permitted
+	
+	above with func ref:
+	module - DONE
+	local - DONE
+	class - not permitted
+
+	//extends - DONE
+	//extends local - DONE
+	//extends local with parent having bindings (var and funcs) - VARS - DONE
+	//extends the parent nestor? [weird] - DONE
+	//ref to local constructor - DONE
+	//ref to local constructor, with generics - DONE
+	//ref to local constructor, with generics implicit - DONE
+	//ref to local constructor, with extra bindings - DONE
+	//ref to local class [ class ref] - DONE
+	//ref to local class [ class ref] - with generics - DONE
+	//ref to local constructor with extra bindings... - DONE
+	//ref to local class [class ref] with extra bindings...- DONE
+	//local as lambda - do the {} trick - DONE
+	//local as lambda as field  - DONE
+	local as lambda as field- with bindings vars and funcs - DONE
+	local in function nested in class as field - DONE
+	local as lambda- with bindings vars and funcs - DONE
+	local in function nested in class as field- with bindings- DONE
+	actor of local
+	actor of local as lambda
+	actor of local as lambda as field
+	^above with bindings
+	constructor ref and class ref to actor of local
+	local actor
+	local actor as lambda
+	local actor as lambda as field
+	^above with bindings - DONE!
+	lambda or local < [extends] SomethingElse - DONE
+	local class having its own nested class - DONE
+		
+	local enum def
+	local iface def
+	local annotation def
+	^ above nested in class (no sense otherwise) - DONE
+
+*/
+
+~~~~~
+//##52. new oo - basic
+
+def \new() => "ok"
+
+
+def doings(){
+	\new()
+}
+
+~~~~~
+//##53. new oo - basic2
+
+class MyProvider{
+	def \new() => "ok"
+}
+
+
+def doings(){
+	mp = MyProvider()
+	mp.\new()
+}
+
+
+~~~~~
+//##54. new oo - basic3
+
+class MyProvider{
+	def \new(className String, args Object...) =>  className + ' ' + args
+}
+
+
+def doings(){
+	mp = MyProvider()
+	mp.\new('hi', 1, 2)
+}
+
+~~~~~
+//##55. new oo - create
+
+class MyClass(a int, b int){
+	this() => this(1,2)
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, args Object...){
+		if(className == 'x55newoocreate$MyClass' and args.length == 2){ new MyClass(args[0] as Integer, args[1] as Integer) }
+		elif(className == 'x55newoocreate$MyClass'){ new MyClass() }
+		else{ null }
+	}
+}
+
+
+def doings(){
+	mp = MyProvider()
+	"" + [mp.getClass(), mp.new MyClass(34, 25), mp.new MyClass()]
+}
+
+~~~~~
+//##56. new oo - requires cast
+
+class MyClass(a int, b int){
+	this() => this(1,2)
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+	def metCall() => toString()
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, args Object...) Object{
+		if(className == 'x56newoorequirescast$MyClass' and args.length == 2){ new MyClass(args[0] as Integer, args[1] as Integer) }
+		elif(className == 'x56newoorequirescast$MyClass'){ new MyClass() }
+		else{ null }
+	}
+}
+
+class MyOtherClass{}
+
+def doings(){
+	mp = MyProvider()
+	"" + [mp.getClass(), mp.new MyClass(34, 25).metCall(), mp.new MyClass().metCall(), mp.new MyOtherClass()]
+}
+
+~~~~~
+//##57. new oo - provider spits out object nulls the thing we asked for 
+
+class MyClass(a int, b int){
+	this() => this(1,2)
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+	def metCall() => toString()
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, args Object...) Object {
+		if(className == 'bytecodeSandbox.MyClass' and args.length == 2){ new MyClass(args[0] as Integer, args[1] as Integer) }
+		elif(className == 'bytecodeSandbox.MyClass'){ new MyClass() }
+		else{ null }
+	}
+}
+
+class MyOtherClass{}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new MyOtherClass()//complains as this is not produced
+}
+
+~~~~~
+//##58. new oo - provider spits out local class for unknown type
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, args Object...)  {
+		class ALocal(things Object...){
+			override equals(a Object) => false
+			override hashCode() => 1
+			override toString() => className + " -> " + getClass().getName() + " " + things
+		}
+		
+		ALocal(args)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new D.MyOtherClass(1,2,3)//complains as this is not produced
+}
+
+~~~~~
+//##59. new oo - provider spits out local class for unknown type v2
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, args Object...) Object {
+		class ALocal(things Object...){
+			override equals(a Object) => false
+			override hashCode() => 1
+			override toString() => className + " -> " + getClass().getName() + " " + things
+		}
+		
+		ALocal(args)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new D.MyOtherClass(1,2,3)//complains as this is not produced
+}
+
+~~~~~
+//##60. new oo - different signature
+
+def things(className String, a int, b int, c int) String {
+	class ALocal{
+		private things Object[]
+		this(things Object...){
+			this.things = things
+		}
+		override equals(a Object) => false
+		override hashCode() => 1
+		override toString() => className + " -> " + getClass().getName() + " " + things
+	}
+	
+	""+ new ALocal([a,b,c])
+}
+
+
+def doings() {
+	things("one", 1, 2, 3)
+}
+
+~~~~~
+//##61. new oo - as before
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, ars int...) Object {
+		class ALocal(things Object...){
+			override equals(a Object) => false
+			override hashCode() => 1
+			override toString() => className + " -> " + getClass().getName() + " " + things
+		}
+		
+		ALocal(ars)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new D.MyOtherClass(1,2,3)//complains as this is not produced
+}
+
+~~~~~
+//##62. new oo - generics
+
+class MyGenClass<X>(x X){
+	override toString() => "MyGenClass " + x
+}
+
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, thing Object) Object {
+		MyGenClass<String>(""+thing)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new MyGenClass<int>(77)
+}
+
+~~~~~
+//##63. new oo - ref to oo new
+
+class MyGenClass(x String, y String){
+	override toString() => "MyGenClass " + [x,y]
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, x String, y String)  {
+		MyGenClass(x, y)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	what = mp.new MyGenClass&("77", ? String)
+	
+	"" + what('lovely')
+}
+
+~~~~~
+//##64. new oo - with map
+
+
+class MyGenClass(x String, y String){
+	override toString() => "MyGenClass " + [x,y]
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, x String, y String)  {
+		MyGenClass(x, y)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	what = mp.new MyGenClass(y="77", 'cool')
+	
+	"" + what
+}
+
+~~~~~
+//##65. new oo - ref with map
+
+class MyGenClass(x String, y String){
+	override toString() => "MyGenClass " + [x,y]
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, x String, y String)  {
+		MyGenClass(x, y)
+	}
+}
+
+def doings(){
+	mp = MyProvider()
+	what = mp.new MyGenClass&(y="77", ? String)
+	
+	"" + what('lovely')
+}
+
+~~~~~
+//##66. transient classes
+
+open transient class MyClass{
+}
+
+class Child < MyClass{
+	
+}
+
+def aLocal(){
+	x=transient class{def afunc(){ 12} }
+	x()
+	
+}
+
+def doings(){
+	mc1 = MyClass()
+	mc2 = Child()
+	g1 = {mc1==null}!
+	g2 = {mc2==null}!
+	
+	gg = aLocal()
+	g3 = {gg==null}!
+	
+	"" + [g1, g2, g3]
+}
+
+~~~~~
+//##67. return local class from lambda
+
+def aLocal(){
+	transient class{def afunc(){ 12} }
+}
+
+def doings(){
+	classRef = aLocal()
+	g3 = {classRef<>null}!
+	
+	"" + g3
+}
+
+~~~~~
+//##68. top level local class def
+open class ID{
+	def operate(a int) int => a
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+x = {tmp = class < ID{}; tmp()} 
+
+def doings(){
+	"" + x.operate(10)
+}
+
+~~~~~
+//##69. more complex def
+
+abstract class Operator{
+	def operate(a int) int => a
+}
+
+open class ID < Operator{
+	override def operate(a int) => a
+}
+
+trait PlusOne < Operator{  override def operate(a int) => super.operate(a)+1 }
+trait Square  < Operator{  override def operate(a int) => super.operate(a)**2 }
+trait MinusOOne < Operator{  override def operate(a int) => super.operate(a)-1 }
+trait DivTwo < Operator{   override def operate(a int) => super.operate(a)/2 }
+
+x = {tmp = class < ID ~ PlusOne, Square, MinusOOne, DivTwo{}; tmp() } 
+
+def doings(){
+	"" + x.operate(10)
+}
+
+~~~~~
+//##70. anon class
+
+trait ID{
+	def operate(a int) int => a
+}
+
+abstract class Myclass{}
+
+x = new Myclass ~ ID
+
+def doings(){
+	"" + x.operate(10)
+}
+
+~~~~~
+//##71. anon class v2
+
+trait ID{
+	def operate(a int) int => a
+}
+
+abstract class Myclass
+
+x = new Myclass ~ ID
+y = new Myclass ~ ID{}
+z = new Myclass ~ ID{
+	override operate(a int) int => a + super.operate(a)
+}
+
+def doings(){
+	"" + (xx.operate(10) for xx in [x as ID y z])
+}
+
+~~~~~
+//##72. anon actor of an anon class
+
+trait ID{
+	def operate(a int) int => a
+}
+
+abstract class Myclass
+
+zz = new actor Myclass ~ ID
+
+def doings(){
+	"" + zz.operate(10)
+}
+
+~~~~~
+//##73. anon class variants
+
+trait ID{
+	def operate(a int) int => a
+}
+
+abstract class Myclass
+
+x = new Myclass ~ ID
+y = new Myclass ~ ID{}
+z = new Myclass ~ ID{
+	override operate(a int) int => a + super.operate(a)
+}
+zz = new actor Myclass ~ ID
+
+def doings(){
+	"" + (xx.operate(10) for xx in [x as ID y z zz])
+}
+
+~~~~~
+//##74. anon class variants generics
+
+trait ID<X>{
+	def operate(a int) int => a
+}
+
+abstract class Myclass
+
+x = new Myclass ~ ID<int>
+y = new Myclass ~ ID<int>{}
+z = new Myclass ~ ID<int>{
+	override operate(a int) int => a + super.operate(a)
+}
+zz = new actor Myclass ~ ID<int>
+
+def doings(){
+	"" + (xx.operate(10) for xx in [x as ID<?> y z zz])
+}
+
+~~~~~
+//##75. anon class in place
+
+trait ID{
+	def operate(a int) int => a
+}
+
+abstract class Myclass
+
+
+def takeId(an ID) => an.operate(10)
+
+def doings(){
+	"" + takeId(new Myclass ~ ID{
+	override operate(a int) int => a + super.operate(a)
+})
+}
+
+~~~~~
+//##76. anon class cool
+
+//anon classes
+abstract class Operator{
+	def operate(a int) int => a
+}
+
+open class ID < Operator{
+	override def operate(a int) => a
+}
+
+trait PlusOne < Operator{  override def operate(a int) => super.operate(a)+1 }
+trait Square  < Operator{  override def operate(a int) => super.operate(a)**2 }
+trait MinusOOne < Operator{  override def operate(a int) => super.operate(a)-1 }
+trait DivTwo < Operator{   override def operate(a int) => super.operate(a)/2 }
+
+x = new ID ~ PlusOne, Square, MinusOOne, DivTwo 
+y = new ID ~ DivTwo, MinusOOne, Square, PlusOne
+
+def doings(){
+	"" + (inst.operate(10) for inst in [x y])
+}
+
+~~~~~
+//##77. expr stmt ext function and a anon class
+
+class AbstractClass{
+	def operation(a int) int
+}
+
+instance = new AbstractClass{
+	def operation(a int) int => a*2
+}
+
+def int doOperation(an AbstractClass) => an.operation(this)
+
+def doings(){
+	"" + (2 doOperation instance)
+}
+
+~~~~~
+//##77. expr stmt ext function and a anon class v2
+
+class AbstractClass{
+	def operation(a int) int
+}
+
+
+def int doOperation(an AbstractClass) => an.operation(this)
+
+def doings(){
+	"" + (2 doOperation new AbstractClass{
+	def operation(a int) int => a*2
+})
+}
+
+~~~~~
+//##78. as above but easy
+
+class AbstractClass{
+	def operation(a int) int
+}
+
+def doOperation(apTo int, an AbstractClass) => an.operation(apTo)
+
+def doings(){
+	"" + doOperation(2, new AbstractClass{	def operation(a int) int => a*2 })
+}

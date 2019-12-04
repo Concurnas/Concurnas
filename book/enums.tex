@@ -1,0 +1,117 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Enumerations]{Enumerations}
+
+Enumerations, or enum's for short are a handy way of representing a fixed set (at compile time) of related states wrapped up as an object type. All values/states of an enum are considered public. Values may not have accessibility modifiers applied to them.
+
+When declaring an /enum/, a name and a comma separated list of values are required. The values do not have to be capitalized, but it is often conventional to do so. For example:
+
+\begin{lstlisting}
+enum Color{ RED, GREEN, BLUE }
+\end{lstlisting}
+
+Enums can be used as follows:
+\begin{lstlisting}
+aColor Color = Color.RED
+anotherColor = Color.BLUE
+\end{lstlisting}
+
+Only one instance of an enum is created per isolate, thus the following holds true:
+
+\begin{lstlisting}
+enum Color{ RED, GREEN, BLUE }
+
+c1 = Color.RED
+c2 = Color.RED
+
+assert c1 &== c2 //c1 and c2 resolve to the same object
+\end{lstlisting}
+
+In other words, the same enum object is created only once and shared.
+
+Enum items may have state associated with them, this can be initialized as follows:
+
+\begin{lstlisting}
+enum Color(hexcode int){
+	RED(0xFF0000), 
+	GREEN(0x00FF00), 
+	BLUE(0x0000FF) 
+}
+\end{lstlisting}
+
+We're able to assign state to enums because the individual entries are in fact subclasses of the enum holding them (\lstinline{Color} in this example). This allows us to write code like this:
+\begin{lstlisting}
+enum MyEnum(~a int, ~b int){
+	ONE(9){
+		this(a int){
+			super(a,8)
+		}
+	},
+	TWO(22, 33)
+	
+	override toString() => "[{a} {b}]"
+}
+
+
+res = [MyEnum.ONE MyEnum.TWO]
+
+//res == "[[9 8] [22 33]]"
+\end{lstlisting}
+
+Given that the enum and enum items are themselves classes, we are afforded access to the likes of abstract methods etc. we're able to write code like the following:
+\begin{lstlisting}
+public enum Operation {
+	PLUS   { public def eval(x double,  y double) {  x + y; } },
+	MINUS  { public def eval(x double,  y double) {  x - y; } },
+	TIMES  { public def eval(x double,  y double) {  x * y; } },
+	DIVIDE { public def eval(x double,  y double) {  x / y; } }
+	
+	def eval(x double, y double) double
+}
+
+res = Operation.PLUS.eval(1, 1)
+
+//res == 2
+\end{lstlisting}
+
+Note that although enums can have state, it is not recommended that this state be mutable given that enum items are shared per isolate.
+
+Enums specify two extremely useful methods:
+
+\textbf{valueOf}. This method can be called on an enum type and enables us to find the item instance for a specified name as a String:
+\begin{lstlisting}
+enum Nums{ONE, TWO, THREE, FOUR}
+
+item Nums = Nums.valueOf('TWO')
+\end{lstlisting}
+
+A variant of this method is to use the one exposed on the class Enum as follows:
+\begin{lstlisting}
+from java.lang import Enum
+
+enum Nums{ONE, TWO, THREE, FOUR}
+
+item = Enum.valueOf(Nums.class, 'TWO')
+\end{lstlisting}
+
+\textbf{values}. This method is useful for listing all items of an enum type. For example, we could rewrite our previous example as:
+
+\begin{lstlisting}
+enum MyEnum(~a int, ~b int){
+	ONE(9){
+		this(a int){
+			super(a,8)
+		}
+	},
+	TWO(22, 33)
+	
+	override toString() => "[{a} {b}]"
+}
+
+res = MyEnum.values()
+//res == "[[9 8] [22 33]]"
+\end{lstlisting}
+
+\end{document}

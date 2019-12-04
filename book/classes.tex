@@ -1,0 +1,844 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Classes]{Classes}
+	\label{ch:classes}
+
+\begin{tikzpicture}[overlay]
+\draw[anchor=north west] (9cm,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=45pt]{\strut\makebox[6cm]{}};
+
+\draw[anchor=north west,text width=8cm] (9.2cm,10.8cm) node {\begin{footnotesize}"She says shes an 80s baby\\
+	She goes for the bad boy type\\
+	She says shes an 80s baby\\
+	In the club she dance all night"\\
+	\begin{flushright}- All Night from Synthetic Love LP by Trevor Something (2013).\end{flushright}\end{footnotesize}};
+\end{tikzpicture}
+
+
+Classes are the cornerstone of object oriented programming and are extensively supported within Concurnas. They are an extremely useful way of programming with data, and more specifically state, in an easily understandable way. 
+
+In short they a mechanism by which data in the form of state expressed via fields, and functionality expressed via methods can be encapsulated together in the form of an object of which a class acts as a template. A class hierarchy may be established via inheritance and functionality may be 'composed into' classes via the use of traits.
+
+Object orientation helps reduce the gap between the way machines operate and humans think by allowing us to think about data/state manipulation using everyday concepts, or at least concepts which more closely map to our problem domain than the abstract terminology of a computers machine code. Consider the following two representations of data:
+
+\begin{lstlisting}
+peopleA Object[2] = [ ["dave" 45] ["freddy" 16] ["monica" 33]]
+
+class Person(name String, age int){
+	def incAge() => age++;;
+}
+peopleB = [Person("dave", 45) Person("freddy", 16) Person("monica", 33)]
+\end{lstlisting}
+
+\lstinline{peopleA} is declared as a matrix, it's a perfectly adequate way of representing our people data, but it is quite abstract - we're not able to determine what \lstinline{peopleA} really is representing without additional context. On the other hand \lstinline{peopleB}, through its use of representing its individual elements via \lstinline{People} instance objects, makes it immediately clear what it's representing.
+
+The case for classes is further strengthened when we consider manipulation of the state of a person. Let's write some code to increment the age of each person by one:
+
+\begin{lstlisting}
+for(person Object[] in peopleA){//approach 1
+	person[1]++
+}
+
+for(person Person in peopleB){//approach 2
+	person.incAge()
+}
+\end{lstlisting}
+
+For 'approach 1', manipulating the internal state of people held in the \lstinline{peopleA} matrix is quite an abstract process. It's not clear from looking at the code alone that we are incrementing the age of each person. Also, a more major hidden problem is that in the future if we wish to capture more information about a person, we need to change the structure of the data in the matrix - this would have a knock on negative impact on all instance of the code seen above, would the element in slot '1' of the array be the age still? With 'approach 2' these problems are mitigated; we're able to see that we are calling a method which increments the age of a person \lstinline{incAge} by just looking at the code. Also, we're free to change the internal structure of the person state without fear of breaking dependant code like this.
+
+Object orientation does have some disadvantages. One major one being that it can be a very verbose process to write object oriented code (for legitimate reasons as we shall see here). Concurnas offers many useful syntactic and semantic tools for reducing this verbosity, which are described in detail later on. These include:
+\begin{itemize}
+	\item One line class and superclass arguments via class declaration arguments.
+	\item Automatic generation of setters and getters.
+	\item Automatic redirection to getters and setters.
+	\item Automatic generation of \lstinline{hashCode} and \lstinline{equals} methods to provide equality by value.
+	\item Sensible accessibility modifier defaults.
+\end{itemize}
+
+\section{Creating Objects of Classes}
+We can create instance objects of classes using the new operator:
+
+\begin{lstlisting}
+class MyClass
+
+inst = new MyClass() //create a new instance object of class 'MyClass'
+\end{lstlisting}
+
+But we can also choose to omit the \lstinline{new} keyword all together:
+
+\begin{lstlisting}
+class MyClass
+
+inst = MyClass() //create a new instance object of class 'MyClass'
+\end{lstlisting}
+
+For classes which are defined in a separate source file from the one in which the new call is made (i.e. the case 90\% of the time when programming in the wild) - the relevant class will need to be either referenced by its full class name, or imported and optionally given an associated name:
+
+\begin{lstlisting}
+from java.util import ArrayList
+from java.util import ArrayList as ARList
+
+ar1 = ArrayList<String>()
+ar2 = ARList<String>()
+ar3 = java.util.ArrayList<String>()
+\end{lstlisting}
+
+All three of the above are equivalent. Note that we use generics when creating the above ArrayList instance objects, this is covered in more detail later.
+
+\section{Creating Classes}
+Classes are declared by use of the /class/ keyword followed by the name of the class. Usually one begins the name of a class with an Uppercase letter but this is not obligatory. The class may or may not have a block attached to it. For example:
+
+\begin{lstlisting}
+class MyClass1//class with no block
+
+class MyClass2{}//class with an empty block
+
+class MyClass3{//class with a method defined
+	def amethod() => 12
+}
+\end{lstlisting}
+
+\section{Fields}
+Classes allow variables, to be defined within themselves such that instance objects of those classes can maintain state within themselves. Variables like this are called fields. Example:
+
+\begin{lstlisting}
+class MyClass{
+	count int = 0
+	name = "Fred"
+}
+\end{lstlisting}
+
+
+Fields can be declared without initial assignment since it is anticipated that they will be assigned a value within a constructor call chain. If they are not assigned a value within a constructor call chain then a default value will be assigned contingent on the type of the field as follows:
+
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ll}
+			\hline
+			Type&Value\\
+			\hline
+			\lstinline!int, long, short!&0\\
+			\lstinline!byte!&0b\\
+			\lstinline!char!&''\\
+			\lstinline!boolean!&false\\
+			\lstinline!double, float!&0.0\\
+			\lstinline!Object! or subclass of \lstinline!Object!&null\\
+			n dimensional array of any component type&null\\
+			actors, tuples, etc&null\\
+			refs&\bettershortstack{a non null instance of the ref type\\with no assigned initial value}\\
+			\hline
+	\end{tabular}%\resizebox{\columnwidth}{!}{}
+\end{table}
+
+
+By default fields are \lstinline{var}'s, meaning that they don't require initial assignment in a constructor and can be changed at any point (provided that the rules concerning accessibility of the field are respected). Declaring a field \lstinline{val} both enforces initial assignment of the field within a constructor call chain and prohibits subsequent reassignment:
+
+\begin{lstlisting}
+class Myclass{
+	val name = "dave"//this field cannot be reassigned
+	val age int//this field must be assigned a value in a constructor chain - otherwise it's a compilation error
+	this(age int){
+		this.age = age
+	}
+}
+\end{lstlisting}
+
+\section{Overriding fields}
+If a field of the same name and supertype is defined in a superclass as that which we are defining in a subclass, then the subclass may optionally declare that field as being overridden by using the \lstinline{override} keyword. This will ensure that a ‘new’ field is not created at the subclass level. For example:
+\begin{lstlisting}
+open class SuperClass{
+	aField = "super"
+	anotherField = "super"
+}
+
+class Child < SuperClass{
+	aField = "child"
+	override anotherField = "child"
+}
+
+child = new Child()
+asSuper = child as SuperClass
+[child.aField child.anotherField ; asSuper.aField asSuper.anotherField]
+
+//== [child child ; super child]
+\end{lstlisting}
+
+In the above example we see that when we override \lstinline{anotherField} we do not create a new field at the \lstinline{Child} class level, but in fact override the value of the field in the superclass. Note that the superclass field must be accessible to the subclass (i.e. not defined as private in the superclass).
+
+The override keyword may also be used in class definition argument lists as follows:
+\begin{lstlisting}
+open class SuperClass{
+	aField = "super"
+	anotherField = "super"
+}
+
+class Child(aField = "child", override anotherField = "child") < SuperClass
+
+child = new Child()
+asSuper = child as SuperClass
+[child.aField child.anotherField ; asSuper.aField asSuper.anotherField]
+
+//== [child child ; super child]
+\end{lstlisting}
+
+The effect is the same as our previous example.
+
+\section{Methods}
+Methods are functions declared within classes. Methods have all the same capabilities as functions. Additionally, code defined within methods has access to the keyword \lstinline{this} which enables access their declaring classes internal state and all other accessible methods. For example:
+
+\begin{lstlisting}
+class Person(name String, age int){
+	def nameLength(){
+		this.name.length()
+	}
+	
+	def nameLengthandAge() (int, int) {
+		this.nameLength(), this.age
+	}
+}
+\end{lstlisting}
+
+Note that the this keyword can often be omitted and it left implicit in cases where the right hand side dot does not resolve to something else:
+
+\begin{lstlisting}
+class Person(name String, age int){
+	def nameLength(){
+		name.length()
+	}
+	
+	def nameLengthandAge() (int, int) {
+		nameLength(), age
+	}
+}
+\end{lstlisting}
+
+Code within methods also has access to the \lstinline{super} keyword, this is described later in the inheritance section.
+
+\section{Setters and Getters}
+\label{sec:setandget}
+It turns out that one of the most popular uses of classes and object oriented programming in general is the concept of encapsulation of data within objects, and providing access to that data via means of access methods, which, via convention take the form of 'getters and setters'. The format is straight forward... To set a field in a class, a setter is used, with name \lstinline{setX} where \lstinline{X} is the name of the field being set with the first letter capitalized, and signature \lstinline{(Y) void} where \lstinline{Y} is the type of the field being set. To get a field in a class, a getter is used, with name \lstinline{getX} (or \lstinline{isX} if the type of the field is of type \lstinline{boolean} or \lstinline{Boolean}) where again \lstinline{X} is the name of the field being set with the first letter capitalized, and signature \lstinline{() Y} where \lstinline{Y} is the type of the field being got. For example:
+
+\begin{lstlisting}
+class Person(age int){
+	def setAge(newAge int) void {
+		this.age = newAge;
+	}
+	
+	def getAge() int{
+		return this.age
+	}
+}
+
+//client code calling these methods:
+person = new Person(20)
+age = person.getAge()
+person.setAge(23)
+\end{lstlisting}
+
+This approach is seen as being favourable to simply permitting direct access to the age variable because if in the future we wish to change the internal design of our \lstinline{Person} class so as to make age a derived piece of information, we can easily substitute that logic in place to the \lstinline{setAge} and \lstinline{getAge} methods without having to change all the individual parts of code directly accessing the age field (wherever they may be in our codebase...) to accommodate this logic. For example, let's make age derived:
+
+\begin{lstlisting}
+nowYear = java.time.Year.now().getValue()
+
+class Person(yearOfBirth int){
+	def setAge(newAge int) void {
+		this.yearOfBirth = nowYear - newAge;
+	}
+	
+	def getAge() int{
+		nowYear - this.yearOfBirth
+	}
+}
+
+//our client code calling these methods does not need to change...
+age = person.getAge()
+person.setAge(23)
+\end{lstlisting}
+
+It can sometimes feel very redundant to have to call \lstinline{getAge}/\lstinline{setAge} when all we are doing is getting or setting a field, using the standard assignment operator \lstinline{=} can feel more natural. For this reason, Concurnas will automatically map to the appropriate getter/setter method where necessary. For example:
+
+\begin{lstlisting}
+age = person.age
+person.age = 23
+
+//is internally mapped to and is is equivalent to...
+age = person.getAge()
+person.setAge(23)
+\end{lstlisting}
+
+Just as calling getters and setters can feel redundant/verbose, so to can writing them in the first place. In fact in languages such as Java, for data centric classes, it's not uncommon for the getter setter code to make up as much as 95\% of the class body! To reduce verbosity here Concurnas provides a mechanism by which they can be automatically generated. Simply prefix the field with \lstinline{~}, \lstinline{-} or \lstinline{+}\footnote{In looking at a standard QWERTY keyboard you will notice that whilst \scantokens{\lstinline{-}} requires only one keystroke, \scantokens{\lstinline{~}} and \scantokens{\lstinline{+}} require two (shift and the \scantokens{\lstinline{+/~}} key). The choice of these characters for auto getter/setter generation is deliberate as the most common case for getters and setters is for fields to need only getters (with instantiation of state achieved via a constructor)} in order to generate the appropriate setters or getters. Which getters and setters are generated is below:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{lll}
+		\hline
+		Prefix&Generated Getter&Generates Setter\\
+		\hline
+		\lstinline!~!&Y&Y\\
+		\lstinline!-!&Y&\\
+		\lstinline!+!&&Y\\
+		\hline
+	\end{tabular}%\resizebox{\columnwidth}{!}{}
+\end{table}
+
+
+These prefixes can be used as follows:
+
+\begin{lstlisting}
+class Person1(-name String){
+	~age int
+}
+
+class Person2(name String){
+	age int
+	
+	def getName() String {
+		return this.name
+	} 
+	
+	def getAge() int {
+		return this.age
+	}
+	
+	def setAge(age int)void {
+		this.age = age
+	}
+}
+\end{lstlisting}
+
+\section{Constructors}
+Constructors are used to create instance objects of classes. They are defined in the same way as methods (and so can have default and varag parameters) as follows:
+
+\begin{lstlisting}
+class Person{
+	name String
+	age int
+	this(name String, age int){
+		this.name = name
+		this.age = age
+	}
+}
+\end{lstlisting}
+
+Classes may define more than one constructor and constructors may call one another via use of the \lstinline{this} keyword as follows:
+
+\begin{lstlisting}
+class Person{
+	name String
+	age int
+	this(name String, age int){
+		this.name = name
+		this.age = age
+	}
+	
+	this(age int){
+		this("fred", age)//call another constructor
+	}
+}
+
+obj1 = new Person("dave", 23)
+obj2 = new Person(56)
+\end{lstlisting}
+
+If a constructor calls another constructor this call must be the first entry in the constructor. This arrangement of constructor calling another constructor is known as a constructor chain. The top level (of which there may be more than one) being the constructor which calls a super constructor (via the \lstinline{super} keyword seen later) or has no /this/ constructor call at all.
+
+All classes must have at least one constructor. This constructor does not have to be publicly accessible. If at least one constructor is not provided then a publicly accessible zero argument constructor will be generated for the class automatically - if this were not the case then it would render the class uninstantiable in any situation, which is not ever useful.
+
+\section{Class Declaration Arguments}
+Often, particularly for data oriented classes with simple state and requiring only one or a straightforward set of constructors, having to declared a set of fields and constructors can lead to very verbose code. Concurnas has a remedy for this in the form of class declaration arguments. Here we combine both the field declaration and constructor set into one:
+
+\begin{lstlisting}
+class Person(forename String, surname String, age int)
+\end{lstlisting}
+
+The above declaration of /Person/ is equivalent to the more long winded version as follows:
+\begin{lstlisting}
+class Person2{
+	forename String
+	surname String
+	age int
+	
+	this(forename String, surname String, age int){
+		this.forename = forename
+		this.surname  = surname 
+		this.age = age
+	}
+}
+\end{lstlisting}
+
+In the above instance we have to write a tenth of the code in order to achieve the same effect (hence allowing us to be 10x more productive!).
+
+\section{Inheritance}
+When it comes to implementing class functionality and state it's often beneficial to to be able to establish a class hierarchy of sub and superclasses. Classes may subclass one another, and in doing so the superclass receives access to all the non private (and potentially package) fields and methods of the superclass. Classes may have only one superclass. The \lstinline{extends} or \lstinline{<} keyword is used in order to define a superclass for a class:
+
+\begin{lstlisting}
+open class Animal{
+	def livingState() => "is alive"
+}
+
+class Dog < Animal
+
+class Cat extends Animal
+\end{lstlisting}
+
+All classes are considered closed by default. This means that they cannot be extended with subclasses. The \lstinline{open} keyword must be used in order to denote that it's acceptable for a class to be subclassed.
+
+Instance objects of \lstinline{Dog} and \lstinline{Cat} can be treated as instances of \lstinline{Animal}. All of the accessible methods (and fields) of \lstinline{Animal} are accessible on instance objects of \lstinline{Dog} and \lstinline{Cat} for example:
+\begin{lstlisting}
+animals = [new Dog(), new Cat()]
+
+res = animals^livingState()
+
+//res == [is alive, is alive]
+\end{lstlisting}
+
+If a superclass has constructors then at least one must be invoked by the top level constructor chain of a subclass. Let's refine our previous example:
+
+\begin{lstlisting}
+open class Animal{
+	def livingState() => "is alive"
+}
+
+open class LeggedAnimal(legs int) < Animal
+
+class Dog < LeggedAnimal{
+	this(){
+		super(4)
+	}
+}
+
+class Bird < LeggedAnimal{
+	this(){
+		super(2)
+	}
+}
+\end{lstlisting}
+
+If a superclass has only a zero argument constructor defined then it is not necessary for subclass constructors to call it explicitly as this will be added implicitly. So for example, both the following are acceptable:
+
+\begin{lstlisting}
+open class Animal{
+	def livingState() => "is alive"
+}
+
+class Dog < Animal{
+	this(){
+		super()//this is ok, but unecsary
+	}
+}
+
+class Cat extends Animal{
+	int lives
+	this(lives int){
+		//super() is not called this is fine
+		this.lives = lives
+	}
+}
+\end{lstlisting}
+
+If there are no constructors declared for a class which is explicitly marked as being a subtype of another then its generated zero argument constructor will be generated to call the referenced superclasses zero argument constructor if there is one accessible.
+
+Where a superclass is undeclared, a class will implicitly be a subtype of \lstinline{java.lang.Object}, an implicit super constructor to \lstinline{Object} is added to all top level constructor chains. Both the following are equivalent:
+
+\begin{lstlisting}
+class MyClass1{
+	this(){
+		super()
+	}
+}
+
+class MyClass2
+\end{lstlisting}
+
+\section{The \lstinline{super} keyword}
+Similar to the \lstinline{this} keyword the \lstinline{super} keyword is used in two ways, 1). To enable a super constructor invocation (as we have already seen), 2). To allow a subclass method to access the fields and invocation of super class methods. Let's look at point 2...
+
+\begin{lstlisting}
+open class SuperClass{
+	def aMethod(a int) => a+1
+}
+
+class ChildClass < SuperClass{
+	def anotherMethod(a int) => super.aMethod(a)
+	override aMethod(a int) => super.aMethod(a)+1//using 'super' here lets us call the superclass version of 'aMethod' and not this method
+}
+\end{lstlisting}
+
+Just like the \lstinline{this} keyword, \lstinline{super} may be omitted in instances where there is no other way to match what's on the right hand side of the dot. So we can write the above as:
+
+\begin{lstlisting}
+open class SuperClass{
+	def aMethod(a int) => a+1
+}
+
+class ChildClass < SuperClass{
+	def anotherMethod(a int) => aMethod(a)
+	override aMethod(a int) => super.aMethod(a)+1 //we cannot omit super here as this would result in an infinite stack call loop to 'aMethod'
+}
+\end{lstlisting}
+
+\section{Accessibility modifiers}
+Class methods and fields may be tagged with one of the following accessibility modifiers. These affect the way in which the field/method to which they are attached can be accessed/called/overridden:
+
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{lll}
+		\hline
+		Modifier&Effect on the field/method&Overridable\\
+		\hline
+		\lstinline!public!&Can be accessed/called on any instance object anywhere.&Yes\\
+		\lstinline!protected!&Can only be accessed/called by subclass.&Yes\\
+		\lstinline!package!&Can be accessed/called by member of same package.&Yes\\
+		\lstinline!private!&Can only be accessed/called by the instance object itself.&No\\
+		\hline
+	\end{tabular}%\resizebox{\columnwidth}{!}{}
+\end{table}
+
+If no modifier is specified then the defaults are:
+\begin{itemize}
+	\item Fields - \lstinline!protected!
+	\item Methods - \lstinline!public!
+\end{itemize}
+
+The modifiers can be used as follows:
+\begin{lstlisting}
+class MyClass{
+	private field1 int = 9
+	package field2 int = 9
+	protected field3 int = 9
+	public field4 int = 9
+	field5 int = 9//defaults to protected
+	
+	private def aMethod1() => 12
+	package def aMethod2() => 12
+	protected def aMethod3() => 12
+	public def aMethod4() => 12
+	def aMethod5() => 12//defaults to public
+}
+\end{lstlisting}
+
+\section{Overriding methods}
+If we wish to override a method defined in a superclass we must use the \lstinline{override} keyword. The keyword must be used so as to prevent us from accidentally overriding a method defined in a superclass. For example:
+
+\begin{lstlisting}
+open class A{
+	def aMethod1() => 0
+	def aMethod2() => 0
+}
+
+class B < A{
+	override def aMethod1() => 1000//we can choose to include the 'def' keyword or omit it
+	override aMethod2() => 1000
+}
+\end{lstlisting}
+
+If one wishes to prevent subclasses from overriding a method then postfixing its declared name with a dot \lstinline{.} will prevent this from being possible. For example:
+
+\begin{lstlisting}
+open class A{
+	def aMethod.() => 0 //this method is now final and cannot be overridden
+}
+
+class B < A{
+	override aMethod() => 1000//this will throw a compilation error
+}
+\end{lstlisting}
+
+An overriding method may not narrow the accessibility of a method being overridden. So the following is not valid:
+
+\begin{lstlisting}
+open class Parent{
+	public def aMethod() => 12
+}
+
+class Child < Parent{
+	private def aMethod() => 14//this is not permitted since the accessibility modifier is being narrowed.
+}
+\end{lstlisting}
+
+As above we cannot override a public method to be private, but it is ok to override a private method to be public in a subclass.
+
+
+\section{Abstract classes}
+Abstract classes allow us to define 'intermediate' or 'prototype' classes which are designed to be extended by 'concrete'/non-abstract classes. They are partially implemented classes and can have methods and state. Abstract classes cannot be directly instantiated to make instance objects, only their (non abstract) subclasses can. Abstract classes can extend any class including abstract classes.
+
+Since abstract classes cannot be instantiated, they cannot have constructors. 
+
+A class can be made abstract via one of two methods:
+\begin{enumerate}
+	\item Using the /abstract/ keyword:
+	\begin{lstlisting}
+	abstract class LeggedAnimal(legs int)
+	\end{lstlisting}
+
+	When a class is declared abstract it's not necessary to declared it being an \lstinline{open} class, as this is implicit (the purpose of abstract classes is to be extended).
+
+	\item By having at least one abstract method defined. Abstract methods are defined in the same way as normal methods, but they do not have a body:
+	\begin{lstlisting}
+	abstract class LeggedAnimal(legs int){
+		def howFeels() String //this is an abstract method
+	}
+	\end{lstlisting}
+	
+	If an abstract class declares any abstract methods (which is the normal case), then these must be implemented in any concrete extending classes:
+	
+	\begin{lstlisting}
+	open class Animal{//implicitly an abstract class since we have an abstract method declared below
+		def reportFoodEaten() String //this method is abstract and must be implemented by all concrete sub classes of Animal
+	}
+	
+	class Panda < Animal{
+		def reportFoodEaten() => "bamboo"
+	}
+	\end{lstlisting}
+\end{enumerate}
+
+Note above that we do not need to use the 'override' keyword when we define \lstinline{reportFoodEaten}. This is because we are not overriding an existing implementation of \lstinline{reportFoodEaten}.
+
+Abstract methods may override concrete method implementations from super classes. The following is valid:
+
+\begin{lstlisting}
+open class A{
+	def aMethod() => 12
+}
+
+class AbstractClass < A{
+	def aMethod() int
+}
+\end{lstlisting}
+
+In the case above subclasses of \lstinline{AbstractClass} must implement the \lstinline{aMethod}. Note, direct subclasses of class \lstinline{A} do not need to implement this method since it's already been implemented.
+
+An abstract class that extends an abstract class is not obliged to provide a concrete implementation of its abstract superclass's abstract methods. So the following is perfectly valid:
+
+\begin{lstlisting}
+abstract class Animal{
+	def reportFoodEaten() String
+}
+
+abstract class FurryAnimal < Animal//not obliged to implement reportFoodEaten
+\end{lstlisting}
+
+\section{Class Declaration Arguments with superclasses}
+We can use our one line approach to class declaration with class declaration arguments when we need to call a super constructor as follows:
+
+\begin{lstlisting}
+open class Animal(favFood String, color String, age int)
+
+class Panda(page int) < Animal('bamboo', 'blackAndWhite', page)
+\end{lstlisting}
+
+Above as we are implicitly creating the constructor for \lstinline{Panda}, we are instructing Concurnas to add a super constructor invocation to the \lstinline{Animal} superclass constructor with the body \lstinline{('bamboo', 'blackAndWhite', page)}. Any expression is permissible in the super constructor argument list. In cases where a field name from the main class declaration arguments is referenced as a superclass super constructor argument, then this argument is not translated into a field for the class being declared. So for \lstinline{Panda} above, field \lstinline{page} is not created - it would if \lstinline{page} were not referenced in the superclass super constructor argument list.
+
+\section{Automatically generated equals and hashcode methods}
+\label{autoGeneqAndHash}
+Concurnas implements equality by value by default for instance objects. It achieves this by auto generating a method \lstinline{equals} with the following signature: \lstinline{equals(Object) boolean} for every class declared. This makes the following code possible:
+
+\begin{lstlisting}
+class Person(String name)
+
+p1 = Person("dave")
+p2 = Person("dave")
+
+assert p1 == p2
+\end{lstlisting}
+
+Equality is tested via use of the \lstinline{==} (and \lstinline{<>}) operator. We see above that although \lstinline{p1} and \lstinline{p2} are separate instances objects, their value is the same, therefore they are considered equal. 
+
+Concurnas will also generate a \lstinline{hashCode} method with signature \lstinline{hashCode () int} which is unique per the value of the class. This is useful for data structures such as HashSet's and HashMaps. For example:
+
+\begin{lstlisting}
+class Person(String name)
+
+p1 = Person("dave")
+p2 = Person("dave")
+
+pset = new java.util.HashSet<Person>()
+pset.add(p1)
+pset.add(p2)//p2 will not be added as its value matches p1 which is already in the set
+
+assert p1.hashCode() == p2.hashCode()//hashcode's match
+assert pset.size() == 1
+\end{lstlisting}
+
+One is of course free to implement the \lstinline{equals} and \lstinline{hashCode} methods manually and override the automatically generated versions. For example here is and example of referential equality:
+
+\begin{lstlisting}
+class MyClass{
+override hashCode() => System.identityHashCode(this)
+override equals(an Object) => this &== an
+}
+\end{lstlisting}
+
+\section{\lstinline{init} block}
+Concurnas provides an \lstinline{init} block that can be useful in cases where one is using class definition arguments but needs to include extra code in the generated constructor. For example:
+
+\begin{lstlisting}
+pCount = 0
+
+class Person(String name){
+	init{
+		System out println "Created a Person with name {name}"
+		pCount++
+	}
+}
+\end{lstlisting}
+
+The code within the \lstinline{init} block is added to the end of any generated constructors, as such they have access to all the fields/methods of the class as par a normal method. More than one \lstinline{init} block may be specified and they are executed in the linear order in which they were defined.
+
+\section{Nested Classes}
+Nested classes are classes defined within classes. They have access to all the methods and fields of their parent nestors scopes in which they are defined. For example:
+
+\begin{lstlisting}
+class Outerclass{
+	def outerMethod()=> 11
+	
+	public class InnerClass{
+		def innerMethod(){
+			outerMethod() + 1
+		}
+	}
+}
+\end{lstlisting}
+
+If no accessibility modifier is provided when declaring a nested class then it will default to private (this is because most of the time nested classes are best suited for intra class algorithms which do not require exposure outside the parent nestor class).
+
+Nested classes require a reference to their parent nestor in order to create instances of them, we may optionally use the \lstinline{new} keyword:
+
+\begin{lstlisting}
+oc = new Outerclass()
+inst1 = oc.new InnerClass()
+inst2 = oc.InnerClass()
+\end{lstlisting}
+
+In cases of multiple levels of nesting, the qualified \lstinline{this} syntax is appropriate for dealing with situations in which we need an reference to a specific parent nestor. The qualified this syntax is as follows, \lstinline{this[X]} where \lstinline{X} is the class name for which we wish to obtain a reference to the corresponding parent nestor of, the return type will be of type \lstinline{X}. For example:
+
+\begin{lstlisting}
+class Outerclass{
+	private variable = 'outer variable'
+	def aMethod(){
+		"outer method"
+	}
+	
+	public class Innerclass{
+		
+		public class Innerclass2{ }
+		private variable = 'inner variable'
+		
+		def aMethod(){
+			"inner method"
+		}
+		
+		def work(){
+			outer = this[Outerclass] //here we use the qualified this syntax!
+			inner = this[Innerclass] //and here!
+			""+[outer.aMethod(), outer.variable, inner.aMethod(), inner.variable]
+		}
+	}
+}
+
+outer = Outerclass()
+inst = outer.Innerclass()
+res = inst.work()
+
+//res == [outer method, outer variable, inner method, inner variable]
+\end{lstlisting}
+
+All the other normal operations on classes can be performed on inner classes provided that an instance of the outer class is specified:
+\begin{lstlisting}
+constructorRefernce  = outer.new Innerclass&//constructor refence
+classRefernce  = outer.Innerclass&//class refence
+actorInstance = outer.actor Innerclass()//actor of Innerclass
+\end{lstlisting}
+
+\section{Local Classes}
+Local classes are classes defined within functions or methods, they are declarable just like ordinary classes. They are limited in terms of instantiation by the scope in which they are declared.
+
+\begin{lstlisting}
+open class SuperClass
+
+def makeLocalClass() SuperClass {
+	class MyClass < SuperClass
+	return new MyClass()
+}
+\end{lstlisting}
+
+We cannot make use of \lstinline{MyClass} directly (i.e. instantiate an instance of it via the \lstinline{new} operator) outside the scope of the method in which it is defined, hence the type returned in the above example has to be either a superclass or trait which it implements.
+
+\section{Anonymous Classes}
+Anonymous classes provides a means by which classes can be both defined and instance objects derived from the in one relatively compact step. They are useful for implementing SAM types see here and when working with traits see here. 
+
+Anonymous classes are easy to define, here is an example:
+\begin{lstlisting}
+class AbstractClass{
+	def operation(a int) int//child classes must implement this method or be declared abstract
+}
+
+instance AbstractClass = new AbstractClass{ def operation(a int) => a*2 }
+
+instance.operation(2)
+
+//== 4
+\end{lstlisting}
+
+Anonymous classes may be defined without bodies
+\begin{lstlisting}
+abstract class AbstractClass{
+	def operation(a int) int => a
+}
+
+instance = new AbstractClass
+
+instance.operation(2)
+
+//== 2
+\end{lstlisting}
+
+Anonymous classes can be used any place where an expression is required:
+\begin{lstlisting}
+class AbstractClass{
+	def operation(a int) int
+}
+
+def doOperation(apTo int, an AbstractClass) => an.operation(apTo)
+
+doOperation(2, new AbstractClass{ def operation(a int) int => a*2 })
+
+//== 4
+\end{lstlisting}
+
+Anonymous classes may refer to variables and methods defined outside of the scope of the class:
+\begin{lstlisting}
+class AbstractClass{
+	def operation(a int) int
+}
+
+def doOperation(apTo int, an AbstractClass) => an.operation(apTo)
+
+mul = 4
+doOperation(2, new AbstractClass{def operation(a int) int => a*mul })
+
+//== 8
+\end{lstlisting}
+
+Generics may be used in anonymous classes as normal:
+\begin{lstlisting}
+class AbstractClass<X>{
+	def operation(a X) X
+}
+
+def doOperation(apTo int, an AbstractClass<Integer>) => an.operation(apTo)
+
+mul = 4
+doOperation(2, new AbstractClass<Integer>{ def operation(a Integer) Integer => a*mul })
+
+//== 8
+\end{lstlisting}
+
+Note that for an anonymous class definition both a class (inaccessible) and object of the anonymous class are created. As such the anonymous class may only have a zero arg constructor defined (if at all), it may not use augmented constructors.
+
+
+\end{document}

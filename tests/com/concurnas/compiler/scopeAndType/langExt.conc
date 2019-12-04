@@ -1,0 +1,175 @@
+//##1. pre defined seperate lang extensions
+from com.concurnas.tests.helpers.langExt using MyHiLang//ok
+from com.concurnas.tests.helpers.langExt using Normal//not ok
+
+def doings(){
+		
+	"0k"
+}
+
+~~~~~
+//##2. pre defined seperate lang extensions import validation
+from com.concurnas.tests.helpers.langExt using MyHiLang
+from com.concurnas.tests.helpers.langExt import MyHiLang as ML
+
+from com.concurnas.tests.helpers.langExt using NonExist//not exist
+from com.concurnas.tests.helpers.langExt using Normal//no as not ~ LanguageExtension
+
+def doings(){
+	x1 = new MyHiLang();//using, so cannot be created
+	x2 = new ML();//ok
+	
+	class MyHiLang{//warning
+		no = "way"
+	}
+	
+	
+	"0k"
+}
+
+~~~~~
+//##3. pre defined seperate lang extensions - same time declared modules
+//##MODULE com.myorg.langs.lispLike
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation, ErrorOrWarning, Result, IterationResult
+class MyLisp ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult {
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "'ok'")
+	}
+}
+
+class MyFaulty
+
+//##MODULE
+from com.myorg.langs.lispLike using MyLisp
+from com.myorg.langs.lispLike import MyLisp as ML
+
+from com.myorg.langs.lispLike using MyFaulty//no as not ~ LanguageExtension
+
+def doings(){
+	x1 = new MyHiLang();//using, so cannot be created
+	x2 = new ML();//ok
+	
+	class MyLisp{//warning
+		no = "way"
+	}
+	
+	
+	"0k"
+}
+
+~~~~~
+//##4. invalid code producted by lange ext
+from com.concurnas.tests.helpers.langExt using InvalidCodeOutput
+
+def doings(){
+	res3 = InvalidCodeOutput||(+ 1 2 3 )||;
+	
+	"ok: "
+}
+
+
+~~~~~
+//##5. uncuaght exceptions in init and iterator
+from com.concurnas.tests.helpers.langExt using ThrowsExceptionInit, ThrowsExceptionIer
+
+def doings(){
+	res1 = ThrowsExceptionInit||(+ 1 2 3 )||;
+	res2 = ThrowsExceptionIer||(+ 1 2 3 )||;
+	
+	"ok: "
+}
+
+~~~~~
+//##6. needs zero arg constructor
+from com.concurnas.tests.helpers.langExt using NoZeoArg
+from com.concurnas.tests.helpers.langExt using NoZeoArgPriv
+
+def doings(){
+	res1 = NoZeoArg||(+ 1 2 3 )||;
+	res1 = NoZeoArgPriv||(+ 1 2 3 )||;
+	
+	"ok: "
+}
+
+~~~~~
+//##7. no empty string output
+from com.concurnas.tests.helpers.langExt using RetNothing
+
+def doings(){
+	res1 = RetNothing||(+ 1 2 3 )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##8. throw normal errors - iter
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def doings(){
+	n=3L
+	res1 = SimpleLisp||(+ 1 2 m )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##9. throw normal errors - init
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def doings(){
+	n=3L
+	res1 = SimpleLisp||n (+ 1 2 n )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##10. type checking
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def doings(){
+	n='33'
+	res1 = SimpleLisp||(+ 1 2 n )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##11. methods
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp as Imp
+
+def thing(a int, b int) => a+b
+
+def doings(){
+	xx = "ok"
+	
+	res1 = Imp||(asd 4 	)||;
+	
+	res2 = Imp||(thing 4  
+	)||;
+	
+	res3 = Imp||(thing 4
+		4 
+	)||;//ok
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##12. errors reported with lang prefix
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def asd(a String) => 12
+
+def doings(){
+	xx = "ok"
+	
+	res1 = SimpleLisp||(asd 4 	)||;
+	
+	"ok: " + res1
+}

@@ -1,0 +1,212 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+\chapter{Overview}
+
+This is a high level introductory overview of the Concurnas syntax written to give the reader a basic understanding of the core structure of code which can be written in Concurnas.
+
+Broadly speaking, a Concurnas program consists of one or more \lstinline{.conc} source files expressed in a directory structure (the organization of which denotes the 'package' structure of the code). The source code within these source files may be in Unicode format (i.e. permitting non-English/mathematical variable and method names) and consist of the following sorts of entities:
+
+
+\begin{itemize}
+	\item \textbf{Functions and methods:}
+	\begin{lstlisting}
+def sum(a int, b int){
+	return a+b
+}
+
+@Annotated(param=2)
+def plusTwo(a int) => sum(a, 2)
+	\end{lstlisting}
+	
+	\item \textbf{Unicode:}
+	\begin{lstlisting}[escapeinside={(*}{*)}]
+	(*$\pi$*) = Math.PI
+	(*$\pi$*)Str = "(*$\pi$*)=" + (*$\pi$*)//(*$\pi$*)=3.141592653589793 
+	\end{lstlisting}
+		
+	
+	\item \textbf{Expressions:}
+	\begin{lstlisting}
+callAFunction()
+[1 2 3 4] //an integer array
+[1 2 ; 3 4] //an integer matrix definition
+[1, 2, 3, 4]//an integer list
+2+2
+2 if eval() else 15
+n+1 for n in [1 2 3]//list comprehension
+	\end{lstlisting}
+	
+	\item \textbf{Statements.} Such as assignments:
+	\begin{lstlisting}
+a = 8
+anint int = 99
+aref := 21 //a reference
+	\end{lstlisting}
+	
+	\item \textbf{Control flow statements:}
+	\begin{lstlisting}
+for(a in [1 2 3]){
+	  processIt(a)
+}
+while(xyz()){ 
+  doSomething() 
+} 
+if(a){
+		doThis()
+} elif(b){
+		doAnother()
+} else {
+		another() 
+}
+	\end{lstlisting}
+	
+	\item \textbf{Long lines.} Code which would otherwise make for a very wide line of code may be split up for aesthetic purposes using a backslash, \lstinline{\}:
+		\begin{lstlisting}
+a = 8 \
+	+ \
+	10
+	\end{lstlisting}
+	
+	\item \textbf{Blocks.} A series of entities as par above surrounded by curly braces {}
+\begin{lstlisting}
+{
+//many lines of code go here...
+}	
+\end{lstlisting}
+
+	
+	\item \textbf{Exceptions:}
+\begin{lstlisting}
+try{
+	  soemthing()
+} catch(e AnException){
+	  //react as approperiate...
+}catch(all){
+	  //catchall
+}
+\end{lstlisting}
+
+	\item \textbf{Core object oriented components:}
+\begin{lstlisting}
+class MyClass
+trait MyTrait
+annotation MyAnnotation
+actor MyActor
+actor AnotherActor of MyClass
+enum MyEnum{ONE, TWO, THREE}
+\end{lstlisting}
+			
+	\item \textbf{Reactive concurrent statements:}
+	\begin{lstlisting}
+onchange(x){ doSomething()}//on change of x preform an action
+every(x){ doSomething()}//as above but including initial value
+await(x; x > 2)//pause execution until the condition is met
+trans{//a transaction acting upon two references
+	a -= 10
+	b += 10
+}
+z <= a+b//shorthand for onchange
+	\end{lstlisting}
+	
+	\item \textbf{Object providers:}
+	\begin{lstlisting}
+provider TestTweeterClient{
+	provide TweeterClient
+	Shortener => new TestShortner()
+	Tweeter => new MockTweeter()
+}
+	\end{lstlisting}
+	
+	\item \textbf{GPU computing:}
+	\begin{lstlisting}
+//a simple kernel for performing matrix multiplication...
+gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out resultMat float[2]) {
+	globalRow = get_global_id(0) 
+	globalCol = get_global_id(1) 
+	acc = 0.0f;
+	for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+	}
+	resultMat[globalCol*M + globalRow] = acc;
+} 
+\end{lstlisting}
+
+	\item \textbf{Comments and documentation blocks:}
+\begin{lstlisting}
+//This is a one line comment
+
+/* This is a multi-
+line Comment */
+
+/** 
+A documentation block 
+*/
+
+/*
+Comment here
+/*
+A nested comment
+*/
+*/	
+\end{lstlisting}
+	
+\end{itemize}
+
+
+Concurnas is an optionally semicolon terminated/separated language. The newline character operates to signify the end of a line of code. For example, the following function definitions are identical:
+
+\begin{lstlisting}
+def helloWorld1(){
+	ret = "hello World";
+	return ret
+}
+
+def helloWorld2(){
+	ret = "hello World"
+	return ret
+}
+
+def helloWorld3(){	
+	(*\aftergroup\bfseries*) ret = "hello World"; return ret (*\aftergroup\mdseries*)
+}
+\end{lstlisting}
+
+Concurnas usually offers a compact version of syntax in cases where it would otherwise be unnecessarily verbose to write (as often seen in older programming languages) for instance, for our hello world example above we could write:
+
+\begin{lstlisting}
+def helloWorld4() => "hello World"
+\end{lstlisting}
+
+Concurnas runs on the JVM and thus gains access two both the high performance runtime of the JVM as well as the JDK standard library.
+
+\section{Coding with Concurnas}
+
+The ordinary workflow when building and running programs written in Concurnas is as follows:
+
+\begin{enumerate}
+	\item Setup a project using an IDE - currently Concurnas has support for Atom, Sublime Text and planned support for VC Code.
+	\item Write code as appropriate saved into .conc files within a directory structure appropriately reflective of our desired packaged hierarchy.
+	\item Debug said code if a debugger is provided in our chosen IDE. (optional step)
+	\item Compile using the Concurnas command line compiler: \hyperref[ch:concc]{concc}, or via our IDE if it is integrated as such.
+	\item Execute the program using the Concurnas command line: conc.
+\end{enumerate}
+
+Concurnas also offers the following 'lightweight' approaches.
+
+\begin{itemize}
+	\item Concurnas REPL. The \lstinline{conc} program can will spawn an interactive shell. This is discussed in \hyperref[ch:repl]{the REPL chapter}.
+	\item Jupyter notebooks. Concurnas integrates well with Jupyter.
+\end{itemize}
+
+Both of the lightweight approaches above are great for trying out features of Concurnas in a scriptable manner, and also writing real software.
+
+
+\section{Requirements}
+Concurnas is a JVM language, as such it requires at least Java 1.8 to be accessible.
+
+\section{Compatibility}
+Concurnas has been verified as compatible with Java 1.8 to 13. Any system upon which these versions of Java runs on,  Concurnas can also run on (i.e. Windows and Linux)
+
+\end{document}

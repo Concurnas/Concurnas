@@ -1,0 +1,137 @@
+f=d; 
+
+;;
+
+a=4
+
+a2=g; f=g;
+
+
+
+f=g;
+ s=g;
+f = g;
+g;
+
+def a() void
+{
+a = 7;
+return e;
+}
+
+f=9;
+
+def a() void
+{
+return e;
+}
+
+def a() void { e=5; 
+return e;}
+
+
+  { f=d;
+  f=h ;
+  d=f;
+}
+
+class A(a int, ~y int) extends A.B with Po, Sht
+{
+	this(a int)
+	{//oha
+		this(a,99);
+		s=8;
+	}
+	
+	def something(a int) void
+	{
+	this.a=g + a;
+	}
+}
+
+
+
+
+
+
+
+import x;
+from b import x;
+from b import x,y as s,z;
+
+from java.awt import Checkbox;
+
+a int = 4;
+z boolean= false;
+g = true and false and 1 > 3;
+b int = a + 2;
+b = (a+2) - 1;
+b = 4 as long;
+
+g = new Objo();
+
+xxx Objo.Sube = g.new Sube();
+
+a String = "hello";
+basas String= "bazzas"+"qpid";
+
+def func1(a int, b int) int
+{
+	return a + b;
+}
+
+def _func2( a int,  b int, c String) String
+{
+	return (""+c)+func1(a + b);
+}
+
+MASTER_C int = func1(2,3)+func1(2, 3);
+
+class A(a int, ~y int) extends A.B with Po, Sht
+{
+	this(a int)
+	{
+		this(a,99);
+		s=8;
+	}
+	def something(a int) void
+	{
+		//nice and complex...
+		this.f == (a.d()(2).s[3]);
+		this.gg = something&(2,3);
+		this.hh = somotherting&(2,? int);
+	}
+	
+	~g int = 77;
+	~f int= 12;
+	
+	-g=68.0;
+
+	{//is this a static block?
+		f += f+g;
+	}
+	def a() int
+   	{
+   		if(1==1)
+   		{
+   			 a int = 4;
+   		}
+   		n = System.getLatestTime();
+   		h int = a.s(234,true).hh();
+	    g int;
+	    ga int = this.a + super.a()!;
+	    g = ga;
+		return 23**g;
+	}
+
+	
+	def f(val thing String) String
+	{
+		"funnyBusiness" + thing;
+		if(rand(1.0) > 0.5)
+		{
+			throw new String("oh noes") if 1==1 else null;
+		}
+	}
+
+}

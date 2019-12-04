@@ -1,0 +1,2932 @@
+//##1 copy on actors
+
+private class MyClass(x int){
+	def plus(b int) =>  x += b; x 
+}
+
+def doings(){
+	my = actor MyClass(12)
+	
+	my2 = my@
+	
+	"" + [my2 &== my]//+ got
+}
+
+
+~~~~~
+//##2 priority queue
+
+from com.concurnas.runtime.channels import PriorityQueue
+
+def doings(){
+	pq = PriorityQueue<String>()
+	
+	isDone:=false
+	cnt:=0
+	{
+		while(2>1)
+		{
+			got String? = pq.pop()
+			cnt++;
+			if(null == got){
+				isDone = true
+			}
+		}
+	}!
+	
+	pq.add(1, "one")
+	pq.add(1, null)
+	
+	await(isDone ; isDone)
+	
+	"nice " + cnt
+}
+
+~~~~~
+//##3 basic default actor implementation
+
+private class MyClass(~x int){
+	def plus(b int) =>  a=x; x += b; a//[a, b];
+	def nop(an Object) => an 
+}
+
+private class MyClass2(x int){}
+
+def doings(){
+	my = actor MyClass(12)
+	
+	got = my.plus(8)
+	myThing = new MyClass2(8)
+	ret = my.nop(myThing)
+	
+	"" + [got, my.x, ret &== myThing] //myThing gets copied
+}
+
+~~~~~
+//##4 some more smart actor stuff
+private class MyClass(~x int){
+	def plus(b int) =>  a=x; x += b; a//[a, b];
+}
+
+private class MyClass2(x int){}
+
+def doings(){
+	my = actor MyClass(12)
+	
+	secstart = try{
+		my.start(); ""
+	}catch(e){
+		"err as expected on second start " + e.getMessage()
+	}
+	
+	got = my.plus(8)
+	my.stop()
+	
+	got2 = try{
+		"fail " + my.plus(8)
+	}catch(e){
+		"err as expected " + e.getMessage()
+	}
+	
+	secstop = try{
+		my.stop(); ""
+	}catch(e){
+		"err as expected on second stop " + e.getMessage()
+	}
+	
+	my.start()
+	my.plus(8)
+	got3 = my.plus(8)
+	
+	//state transition and various calls
+	
+	"" + [got, secstart, got2, secstop, got3, my.x]
+}
+
+~~~~~
+//##5 misc bugfix
+
+private class MyClass(~x int){
+	def plus(b int) =>  a=x; x += b; [a, b]; //pretty printer was double printing the [] array levels
+}
+
+
+def doings(){
+	my = actor MyClass(12)
+	got = my.plus(8)
+	
+	"" + [got, my.x]
+}
+
+~~~~~
+//##6 creating these constructors was being a problem previously
+
+class MyClass<T>{
+	def  getLa<XXX>(a XXX) => [a,a]
+	override toString() => "hi"
+}
+
+def taker( dower ()MyClass<String>  ){
+	dower()
+}
+
+def doings(){
+	ma ()MyClass<String> = MyClass<String>&()
+	ma2  = MyClass<String>&()
+	x = taker(ma)!
+	x2 = taker(ma2)!
+	"" + [x, x2]
+}
+
+~~~~~
+//##7 actor calls return refs
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my =  actor MyClass(12)
+	
+	d = my.plus(8)
+		
+	"" + [d, my.plus(2)] 
+}
+
+~~~~~
+//##8. doing an async block on an agent
+//looks rather alot like this as far as the await code is concerned, i.e. the ref may not ahve been set on init invocation on the await
+
+def doings(){
+	d = {999:}!//d is not origonally set to something
+	
+	await(d  ;  d==999)
+	
+	"" +d//+ my.plus(2) 
+}
+
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x 
+}
+
+~~~~~
+//##9. broke before now ok
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my = actor MyClass(10)
+	
+	d = {g=my.plus(8):; g:}!
+	
+	await(d ; d==18)
+	
+	"" + d
+}
+
+~~~~~
+//##10. was busted, now ok
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+
+def doings(){
+	
+	my = actor MyClass(10)
+	
+	d = {my.plus(8)}!
+	
+	await(d ; d==18)
+	
+	"" + d
+}
+
+~~~~~
+//##11. was busted, now ok2
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+def doings(){
+	
+	my = actor MyClass(10)
+	
+	//d = {my.plus(8)}!
+	d = my.plus(8)!
+	//d = my.plus(8)!:
+	//d = my.plus(8):!
+	
+	await(d ; d==18)
+	
+	"" + d
+}
+
+~~~~~
+//##12. was busted, now ok3
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+def doings(){
+	
+	my = actor MyClass(10)
+	
+	//d = {my.plus(8)}!
+	//d = my.plus(8)!
+	//d = my.plus(8)!:
+	d = my.plus(8):!
+	
+	await(d ; d==18)
+	
+	"" + d
+}
+
+~~~~~
+//##13. unlock on asyncrefref
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+def sss() => 18::
+	
+def doings(){
+	my = actor MyClass(10)
+		
+	d = (18::):
+	d2 = ( sss() ):
+	d3 = {18::}:
+	d4 = {my.plus(8)!}:
+	//above used to fail, as :: was locked
+	await(d4 ; d4==18)
+	
+	"" + [d, d2, d3, d4]
+}
+
+~~~~~
+//##14. two actors - same stuff
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+private class MyClass2(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+	
+def doings(){
+	my = actor MyClass(10)
+	my2 = actor MyClass2(10)
+	
+	d = my.plus(8)
+	d2 = my2.plus(8)
+	
+	
+	"" + [d, d2]
+}
+
+~~~~~
+//##15. two actors - same class two refs
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+	
+def doings(){
+	my = actor MyClass(10)
+	my2 = actor MyClass(10)
+	
+	d = my.plus(8)
+	d2 = my2.plus(8)
+		
+	"" + [d, d2]
+}
+
+~~~~~
+//##16. actor at module level - still an issue
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x
+}
+
+private def getMy()  {
+	//System.err.println("hi"); 
+	g= new Double(8)
+	x = actor MyClass(10); 
+	//System.err.println("hi2"); 
+	x
+}
+
+def doings(){
+	my = getMy()//TODO: make this module level
+	//i think the bug is that global code is being incorrectly conc-ed or not conced at all
+	//System.err.println("enter doings")
+	d = my.plus(8)
+		
+	"end " + d
+}
+
+~~~~~
+//##17. just works no issues
+
+d= {12}!
+	
+def doings(){
+	
+	"" + d
+}
+
+~~~~~
+//##18. used to wait forever
+
+private class MyClass(x int){
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my =  actor MyClass(12)
+	
+	d = my.plus(8):!
+		
+	"" + [d, my.plus(2)] 
+}
+
+~~~~~
+//##19. ensure special methods called correctly
+
+private open class Sup{
+	override toString() => "toStringCalled"
+}
+
+private class MyClass(x int) < Sup{
+	def plus(b int)  =>  x += b; x 
+	//override toString() = "hiu"
+}
+
+private class MyClassOver(x int) < Sup{
+	def plus(b int)  =>  x += b; x 
+	override toString() => "onover hit"
+}
+
+def pres(){
+
+	my =  actor MyClass(12)
+	
+	d = {my.plus(8)}!
+	
+	await(d)//ensure above has completed
+
+	my
+}
+
+
+def doings(){
+	my = pres()
+	my2 =  actor MyClassOver(12)
+	"" + [my.toString(), my2.toString()]//toStringcalledcorrectly
+}
+
+
+~~~~~
+//##20. call default actor manager methods - easy ones
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+	override toString() => "toString on myclass hit"
+}
+
+
+def doings(){
+	my =  actor MyClass(12)
+	x = my:toString()//shouldnt cause a crash
+	"" + [my.toString(), my.plus(222)]
+}
+
+~~~~~
+//##21. ensure correct toStirng variant called
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my =  actor MyClass(12)
+	"" + [my.toString() <> my:toString(), my.plus(222)]
+}
+
+~~~~~
+//##22actor is the gen type for all
+
+open class MySuperClass(){
+	def something(a int) => a + 1
+}
+
+private class MyClass(x int) < MySuperClass {
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my actor MyClass =  actor MyClass(12)
+	"" + my.plus(222)
+}
+
+~~~~~
+//##23. as above but more elaborate
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+}
+
+//plus is not a method here...
+def doings(){
+	my com.concurnas.lang.TypedActor<MyClass> =  actor MyClass(12)
+	x="" + my.plus(222)
+	my:stop()
+	x
+}
+
+~~~~~
+//##24. probably a problem before
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my  =  actor MyClass(12)
+	"" + my.plus(222)
+}
+
+~~~~~
+//##25. probably a problem before 2
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+}
+
+def doings(){
+	my  =  actor MyClass(12)
+	"" + (my.toString() <> my:toString())
+}
+
+~~~~~
+//##26. stop when closed already both variants
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+	def hi() => x
+}
+
+def doings(){
+	my actor MyClass  =  actor MyClass(12)
+	my.stop()
+	
+	errs = ["", ""]
+	
+	try{
+		my.hi()
+	}
+	catch(e ){
+		errs[0] += e
+	}
+	
+	try{
+		my:stop()//alternative form, to foce calling via actor
+	}
+	catch(e ){
+		errs[1] += "err"
+	}
+		
+	"" + errs
+}
+
+~~~~~
+//##27. bring that all together
+
+private class MyClass(x int) {
+	def plus(b int)  =>  x += b; x 
+	def hi() => x
+	def stop() => "ok"//defines its own stop method
+}
+
+def doings(){
+	my actor MyClass  =  actor MyClass(12)
+	
+	my.restart()//parent call
+	my:restart()//parent call
+	
+	ok = my.hi()//child call
+	got= my.stop()//child call
+	my:stop()//parent call
+	"" + [ok, got]
+}
+
+~~~~~
+//##28. equals
+
+private class MyClass(x int) {
+}
+
+def doings(){
+	my actor MyClass  = actor MyClass(12)
+	
+	"" + (my==my)
+}
+
+~~~~~
+//##29. some more stuff
+
+private class MyClass(x int) {
+	def plus(b int) =>  x += b; x 
+}
+
+def doings() String {
+	my  =  actor MyClass(12)
+	val ret = "" + my.plus(12)
+	val ret2 = "" + my.plus(12)!
+	dread = my.isRunning&()
+	wasrunning = dread()
+	my:stop();
+	""+[ret, ret2, wasrunning, dread()]
+}
+
+~~~~~
+//##30 field getters and setters
+
+private class MyClass(~x int) {
+}
+
+	
+def doings(){
+	my actor MyClass  = actor MyClass(12)
+	was = my.x
+	my.x=9
+	"" + [was, my.x]//should go via getter
+}
+
+~~~~~
+//##31 field getters and setters pre postfix ops
+
+private class MyClass(~x int) {
+}
+	
+def doings(){
+	my actor MyClass  = actor MyClass(12)
+	posi = my.x++
+	prei = ++my.x
+	now = my.x
+	my.x++
+	++my.x
+	"" + [posi, prei, now, my.x]//should go via getter
+}
+
+~~~~~
+//##32 sort out toString
+
+private class MyClass(~a String) {
+	override toString() => "ok-> " + a
+	def stop() => "ok-> " + a
+}
+
+private class MyClass2(~a String) {
+	def stop() => "ok-> " + a
+}
+
+
+def doings(){
+	a =  actor String("there") //func invoke...
+	asStr = ""+a.toString()
+	r1 = "hi " + [asStr <> a:toString(), asStr == "" + a]
+	
+	a2 =  actor MyClass("there") //func invoke...
+	asStr2 = ""+a2.toString()
+	r2 = "hi " + [asStr2 <> a2:toString(), asStr2 == "" + a2]
+	
+	a3 =  actor MyClass2("there") //func invoke...
+	asStr3 = ""+a3.toString()
+	r3 = "hi " + [asStr3 <> a3:toString(), asStr3 == "" + a3]
+	
+	"" + [r1, r2, r3]
+}
+
+~~~~~
+//##33 sort out toString x2 alt syntax
+
+private class MyClass(~a String) {
+	override toString() => "ok-> " + a
+	def stop() => "ok-> " + a
+}
+
+private class MyClass2(~a String) {
+	def stop() => "ok-> " + a
+}
+
+def doings(){
+	a actor String =  actor String("there") //func invoke...
+	asStr = ""+a.toString()
+	r1 = "hi " + [asStr <> a:toString(), asStr == "" + a]
+	
+	a2 actor MyClass =  actor MyClass("there") //func invoke...
+	asStr2 = ""+a2.toString()
+	r2 = "hi " + [asStr2 <> a2:toString(), asStr2 == "" + a2]
+	
+	a3 actor MyClass2 =  actor MyClass2("there") //func invoke...
+	asStr3 = ""+a3.toString()
+	r3 = "hi " + [asStr3 <> a3:toString(), asStr3 == "" + a3]
+	
+	"" + [r1, r2, r3]
+}
+
+~~~~~
+//##34 implicit to string
+
+private class MyClass(~a String) {
+	def doStuff() => "ok -> " + a
+	override toString() => doStuff()
+}
+
+def doings(){
+	a1 actor MyClass = actor MyClass("hi")
+	
+	a1 + ""+a1 //implicit toString call used to be a problem
+}
+
+~~~~~
+//##35 correct routing with 4 different creation methods
+
+private class MyClass(~a String) {
+	def doStuff() => "ok -> " + a
+	override toString() => doStuff()
+}
+
+def doings(){
+	a1 = actor MyClass("hi")
+	a2 = new actor MyClass("hi")
+	a3 actor MyClass = actor MyClass("hi")
+	a4 com.concurnas.lang.TypedActor<MyClass> = actor MyClass("hi")
+	
+	got = "" + [a1.doStuff(), a2.doStuff(), a3.doStuff(), a4.doStuff()]
+	
+	a1:stop()
+	a2:stop()
+	a3:stop()
+	a4:stop()
+	
+	a1:start()
+	a2:start()
+	a3:start()
+	a4:start()
+	
+	par1 = a1:toString()
+	par2 = a2:toString()
+	par3 = a3:toString()
+	par4 = a4:toString()
+	
+	got +":" + "" + [a1, a2, a3, a4] + [par1 <> ""+a1, par2 <> ""+a2, par3 <> ""+a3, par4 <> ""+a4] \
+		+ [par1 <> a1+"", par2 <> a2+"", par3 <> a3+"", par4 <> a4+""]
+}
+
+~~~~~
+//##36. ensure iface gennerates for actor correct methods
+
+private open class Par{
+	def something() => "hi there"
+}
+
+private class MyClass2(~a String) < Par{
+}
+
+def doings(){
+	a3 actor MyClass2 =  actor MyClass2("there")
+	//one call to actee toString and one to actor toString
+	"" + [[""+a3 <> a3:toString()], a3.something()]
+}
+
+~~~~~
+//##37. rather complex but operational
+
+private class MyClass(~a String) {
+	override toString() => "ok-> " + a
+	def stop() => "ok-> " + a
+}
+
+private class MyClass2(~a String) {
+	def stop() => "ok-> " + a
+}
+
+def doings(){
+	a actor String =  actor String("there") //a bit slow...
+	asStr = ""+a.toString()
+	r1 = "hi " + [asStr <> a:toString(), asStr == "" + a]
+	
+	a2 actor MyClass =  actor MyClass("there") //func invoke...
+	asStr2 = ""+a2.toString()
+	r2 = "hi " + [asStr2 <> a2:toString(), asStr2 == "" + a2]
+	
+	a3 actor MyClass2 =  actor MyClass2("there") //func invoke...
+	asStr3 = ""+a3.toString()
+	r3 = "hi " + [asStr3 <> a3:toString(), asStr3 == "" + a3]
+	
+	a4 com.concurnas.lang.TypedActor<MyClass2> =  actor MyClass2("there") //func invoke...
+	asStr4 = ""+a4.toString()
+	r4 = "hi " + [asStr4 <> a4:toString(), asStr4 == "" + a4]
+	
+	"" + [r1, r2, r3, r4]
+}
+
+~~~~~
+//##38. simple little case
+
+def doings(){
+	a actor String =  actor String("there") //so slow why? profile me
+	"hi " + a.toString()
+}
+
+~~~~~
+//##39. hashcode and equals
+
+private class MyClass(x int) {
+	def plus(b int) =>  x += b; x 
+}
+
+def doings() String {
+	my  =  actor MyClass(12)
+	my2  =  actor MyClass(12)
+	"" + [my.equals(my), my.equals(my2), my:equals(my), not(my:equals(my2))] + [my.hashCode(), my.hashCode() <> my:hashCode()] 
+}
+
+
+~~~~~
+//##39. generic actors simple
+
+class MyClass<X>(~x X){}
+
+def doings(){
+	mc = actor MyClass<String>("stuff")
+	mc2 = actor MyClass("ooh stuff")
+	
+	"ok" + [mc.x, mc2.x]
+}
+
+~~~~~
+//##40. generic actors more than one
+
+class MyClass<X>(~x X){}
+
+def doings(){
+	mc = actor MyClass<String>("stuff")
+	mc2 = actor MyClass("ooh stuff")
+	var2 = actor MyClass(100)
+	
+	"ok" + [mc.x, mc2.x, var2.x]
+}
+
+~~~~~
+//##41. instanceof simple
+
+class MyClass{}
+
+def getStuff() Object => new actor MyClass()
+
+def doings(){
+	mc = getStuff()
+	
+	"" + [mc is not actor String, mc is actor MyClass] 
+}
+
+~~~~~
+//##42. instanceof simple - with generic params
+
+class MyClass<X>{}
+
+def getStuff() Object => actor MyClass<int>()
+
+def doings(){
+	mc = getStuff()
+	
+	"" + [mc is not actor MyClass<String>, mc is actor MyClass<int>]
+}
+
+~~~~~
+//##43. infer type from generic parameter passed to actor
+
+class MyClass<X, Y, ZZ>( a X?, b Y?, cool double, c ZZ?){
+	this(){ this(null, null, 11., null) }//stick a double in their cos two slottage consumption
+}
+
+
+def getStuff2<Y, Z>(a Y, g Z) Object => new actor MyClass<Y, double, Z>(a, 69., 50., g)
+//this is ok, we can infer the type at runtime!
+//note that we cannot do this with refs at the moment, meh
+//in hindsight, a slightly pointless feature
+
+def doings(){
+	thing = getStuff2("hi", 22)
+	asACtor = thing as actor MyClass<String, double, Integer>
+	test = "" + (thing is actor MyClass<String, double, Integer>)
+	
+	"" + [asACtor:getType(), test]
+}
+
+~~~~~
+//##44. cast types must match exactly
+
+class MyClass<X>(~x X)
+
+def maker() Object => return actor MyClass<int>(12)
+
+def doings(){
+	thing = maker()
+	qual1 = thing as actor MyClass<int>
+	
+	f1 = try{	
+		qual2 = thing as actor MyClass<String>//no - not exact match
+		"fail"
+	}catch(e){ "ok" }
+	
+	f2 = try{	
+		qual3 = thing as actor MyClass<Object>//ok! - no superclass for you
+		"ok"
+	}catch(e){ "fail" }
+	
+	"" + [qual1.x, f1, f2]
+}
+
+~~~~~
+//##45. this actor can be created ok
+
+class MyClass<X, X2>( a X, b X2)
+
+def getStuff2<Y>(a Y, b Y) => new actor MyClass(a, b) //this is ok, type inferable
+
+def doings(){
+	thing = getStuff2("12", 13)
+	
+	"" + thing:getType()
+}
+
+
+~~~~~
+//##46. is actor
+
+class MyClass<X, X2>( a X, b X2)
+
+def getStuff2<Y>(a Y, b Y) Object => new actor MyClass(a, b) //this is ok
+
+def doings(){
+	thing = getStuff2("12", 13)
+	truth = thing is actor
+	
+	"" + [truth]
+}
+
+~~~~~
+//##47. as actor
+
+class MyClass<X, X2>( a X, b X2)
+
+def getStuff2<Y>(a Y, b Y) Object => new actor MyClass(a, b) //this is ok
+
+def thatsnice(a actor) => a
+
+def doings(){
+	thing = getStuff2("12", 13)
+	
+	act = thing as actor
+	still = thatsnice(act)
+	
+	"" + [act is actor, still is actor]
+}
+
+~~~~~
+//##48. references to actor constructors
+
+class MyClass<X>(~a X)
+
+def maker() => return new actor MyClass<int>&(12)
+def maker2() => return actor MyClass<int>&(12)
+
+def doings(){
+	thing = maker()()
+	thing2 = maker2()()
+	
+	"" + [thing.a, thing2.a]
+}
+
+~~~~~
+//##49. references to actor constructors correct types
+
+class MyClass<X>(~a X)
+
+def maker() => return new actor MyClass<int>&(12)
+def maker2() => return actor MyClass<int>&(12)
+
+def doings(){
+	thing  Object = maker()() 
+	thing2 Object = maker2()() 
+	
+	truth1 = thing is actor MyClass<int>
+	truth2 = thing2 is actor MyClass<int>
+		
+	"" + [truth1, truth2]
+}
+
+~~~~~
+//##50. bugfix, used to fail on sueprclass generics
+
+class MyClass<X>(~a X)
+
+def maker() => return new actor MyClass<int>(12)
+
+def doings(){
+	thing actor MyClass<int> = new actor MyClass<int>(12)
+	
+	"" + thing.a
+}
+
+~~~~~
+//##x51 actors on nested inner classes
+
+class Outer<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	class Inner<Y>{
+		def stuff() => "hi"
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+
+def doings(){
+	\out Outer<int> = new Outer<int>()
+	rawActor  = \out.actor Inner<double>()
+
+	"" + rawActor.stuff()
+}
+
+~~~~~
+//##x52 actors on nested inner classes with correct instantiation of parent
+
+class Outer<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def hithere()  =>  "from outer"
+	class Inner<Y>(y Y){
+		def stuff() => "hi"
+		def fromOuter() => hithere() + y
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+\out Outer<int> = new Outer<int>()
+
+def doings(){
+	rawActor  = \out.actor Inner<double>(12.)
+	rawActorInf  = \out.actor Inner(12.)
+
+	"" + [rawActor.fromOuter(), rawActorInf.fromOuter()]
+}
+
+~~~~~
+//##53 actors on nested inner classes with correct instantiation of parent - 3x
+
+class Outer<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def hithere()  => "from outer"
+	public class Inner<Y>(y Y){
+		def fromOuter() => hithere() + y
+		override equals(a Object) => false
+		override hashCode() => 1
+		
+		public class Inner2<YY>(y YY){
+			def fromOuter2() => fromOuter() + y
+			override equals(a Object) => false
+			override hashCode() => 1
+		}
+		
+	}
+}
+
+\out = new Outer<int>()
+iin = \out.Inner(14.)
+
+
+def doings(){
+	rawActor  = iin.actor Inner2<double>(12.)
+	rawActorInf  = iin.actor Inner2(12.)
+
+	"" + [rawActor.fromOuter2(), rawActorInf.fromOuter2()]
+}
+
+~~~~~
+//##54 references to actor functions
+
+class MyClass<X>(~a X)
+
+def maker() => return new actor MyClass<int>(12)
+
+def doings(){
+	thing = maker()
+	
+	ff = thing.getA&()
+	
+	ff2 = (actor MyClass<int>).getA&()
+	ff2.bind(thing)
+	
+	"" + [ff(), ff2()]
+}
+
+~~~~~
+//##55 references to actor functions non generic
+
+class MyClass(~a int)
+
+def maker() => return new actor MyClass(12)
+
+def doings(){
+	thing = maker()
+	
+	ff = thing.getA&()
+	
+	ff2 = (actor MyClass).getA&()
+	ff2.bind(thing)
+	
+	"" + [ff(), ff2()]
+}
+
+~~~~~
+//##56. more ref generic stuff
+
+class MyClass(~a int){
+	def stop() => "hi"
+
+}
+
+def maker() => return new actor MyClass(12)
+
+def doings(){
+	thing = maker()
+	thing2 = maker()
+	
+	ff = thing.stop&()
+	
+	ff2 = (actor MyClass).stop&()
+	ff2.bind(thing)
+	
+	def ru() => [thing.isRunning(), thing2.isRunning()]
+	
+	runs = ru()
+	got = [ff(), ff2()]
+	
+	//call actor stop
+	
+	fu = thing:stop&()
+	
+	fu2 = (actor MyClass):stop&()
+	fu2.bind(thing2)
+	
+	fu()
+	fu2()
+	
+	"" + got + runs + ru()
+}
+
+~~~~~
+//##57 double check on above
+
+class MyClass(~a int){
+}
+
+def maker() => return new actor MyClass(12)
+
+def doings(){
+	thing = maker()
+	thing2 = maker()
+	//call actor stop
+	
+	fu = thing.stop&()
+	
+	fu2 = (actor MyClass).stop&()
+	fu2.bind(thing2)
+	
+	fu()
+	fu2()
+	
+	"" + [thing.isRunning(), thing2.isRunning()]
+}
+
+~~~~~
+//##58. instanceof and cast on actors 
+
+class MyClass(xa int){
+	public this(){
+		this(99)
+	}	
+	def funcla () => "hi " + xa
+	override hashCode() => 100
+	override toString() => "hey"
+}
+
+actor MyActor of MyClass{
+}
+
+def maker() Object => new MyActor(12)
+
+def doings(){
+	
+	oo = maker()
+	
+	check1 = oo is actor MyClass
+	check2 = oo is MyActor
+	as1 = oo as actor MyClass
+	as2 = oo as MyActor
+	
+	"" + [check1, check2, as1, as2]
+}
+
+~~~~~
+//##59. default methods for custom actors
+
+class MyClass(xa int){
+	private this(){
+		this(99)
+	}	
+	def funcla () => "hi " + xa
+	override hashCode() => 100
+}
+
+actor MyActor of MyClass
+
+def doings(){
+	xxx = new MyActor(12)
+	xxx2 = new MyActor(12)
+	ss = [xxx.toString().startsWith("x59defaultmethodsforcustomactors$MyClass"), xxx:toString().startsWith("x59defaultmethodsforcustomactors$MyActor")]
+	hcs = [xxx.hashCode(), (xxx:hashCode() as Object) is Integer]
+	//equals
+	
+	gc = [xxx.getClass(), xxx:getClass()]
+	eqs = [xxx.equals(xxx), xxx:equals(xxx)]
+	eqs2 = [xxx.equals(xxx2), xxx:equals(xxx2)]//probably right for actor itself to return false in this case
+	
+	//getclass
+	"" + [xxx.funcla(), ss, hcs, gc, eqs, eqs2]
+} 
+
+~~~~~
+//##60. actor has its own state
+
+class MyClass(xa int){
+	private this(){
+		this(99)
+	}	
+	def funcla () => "hi " + xa
+	override hashCode() => 100
+}
+
+actor MyActor of MyClass{
+	~a = 9
+	~b=[1,2]
+	~c="hi"
+	~d=12: //this produces two setters
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	xxx2 = new MyActor(12)
+	ss = [xxx.toString().startsWith("x60actorhasitsownstate$MyClass"), xxx:toString().startsWith("x60actorhasitsownstate$MyActor")]
+	hcs = [xxx.hashCode(), (xxx:hashCode() as Object) is Integer]
+	//equals
+	
+	gc = [xxx.getClass(), xxx:getClass()]
+	eqs = [xxx.equals(xxx), xxx:equals(xxx)]
+	eqs2 = [xxx.equals(xxx2), xxx:equals(xxx2)]//probably right for actor itself to return false in this case
+	
+	//getclass
+	"" + [xxx.funcla(), ss, hcs, gc, eqs, eqs2]
+} 
+
+~~~~~
+//##61. actor and actee calls
+
+class MyClass(xa int){
+	private this(){ 	this(99)	}	
+	def stuff() => "actee stuff call: " + xa
+	def mything() => "actee mything"
+	def mything2() => "actee mything2"
+}
+
+def mything2() => "got Caugt"
+
+actor MyActor of MyClass{
+	a = 0
+	def changeState(a int){
+		this.a = a
+	}
+	def stuff() => "actor call: " + a
+	
+	def moi() => 12
+	def moi2() => this.stuff()//direct to own one
+	def moi3() => stuff()//direct to own one
+	def moi3b() => of.stuff()//direct to one on actee
+	def moi4() => of.mything()//direct to own one explicit
+	def moi5() => mything()//gain access to mything on actor implicitly
+	def moi6() => mything2()//route as normal to the module level instance
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	xxx.changeState(9)
+	"" + [xxx.stuff(), xxx:stuff(), xxx.moi(), xxx:moi2(), xxx.moi3(), xxx.moi3b(), xxx.moi4(), xxx.moi5(), xxx.moi6()]
+}
+
+~~~~~
+//##62. implicit call refs
+
+class MyClass(xa int){
+	private this(){ 	this(99)	}	
+	def mything() => "actee mything"
+	def mything2() => "actee mything2"
+}
+
+def mything2() => "got Caugt"
+
+actor MyActor of MyClass{
+	def moi5() {
+		x = mything&()//gain access to mything on actor implicitly
+		x()
+	}
+	def moi6() {
+		x= mything2&()//got routed to the module level call
+		x()
+	}
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	"" + [xxx.moi5(), xxx.moi6()]
+}
+
+~~~~~
+//##63. actee constructors
+
+class MyClass(~xa int){
+	this(a int, b int){
+		this(a+b)
+	}
+}
+
+actor MyActor of MyClass{
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	xxx2 = new MyActor(12, 8)
+	"" + [xxx.xa, xxx2.xa]
+}
+
+~~~~~
+//##64. actor constructors
+
+class MyClass(~xa int){
+}
+
+actor MyActor of MyClass{
+	this(a int){
+		super( new MyClass&(a))
+	}
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	"" + xxx.xa
+}
+
+~~~~~
+//##65. custom actors, calling themselves
+
+class MyClass(~xa int){
+}
+
+actor MyActor of MyClass{
+	this(a int){
+		super( new MyClass&(a))
+	}
+	
+	this(a int, b int){
+		this(a+b)
+	}
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	xxx2 = new MyActor(12, 8)
+	"" + [xxx.xa, xxx2.xa]
+}
+
+~~~~~
+//##66. some more custom consturctors
+
+class MyClass(~xa int){
+	this() => {this(99)}//this being = {block} was a bug
+}
+
+actor MyActor of MyClass{
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	xxx2 = new MyActor()
+	"" + [xxx.xa, xxx2.xa]
+}
+
+~~~~~
+//##67. check field access to actor
+
+class MyClass(){
+	~xa=9
+	~b=99
+}
+
+actor MyActor(~a int, ~b int) of MyClass{ //fail as requires no arg constructor
+}
+
+def doings(){
+	xxx = new MyActor(12, 12)
+	xxx:a+=1 //getter and setter
+	"" + [xxx.xa, xxx.a, xxx:a, xxx.b, xxx:b] //via getters
+}
+
+~~~~~
+//##68. more field setting etc between actor and actee
+
+class MyClass(){
+	~xa=9
+	~b=99
+}
+
+actor MyActor(~a int, ~b int) of MyClass{ //fail as requires no arg constructor
+	def asd1(){
+		b=100//b is visible to itself
+	}
+	
+	def asd2(){
+		this.b=100
+	}
+	
+	def asd3(){
+		this\.b=100
+	}
+}
+
+def doings(){
+	xxx1 = new MyActor(12, 12)
+	xxx2 = new MyActor(12, 12)
+	xxx3 = new MyActor(12, 12)
+	xxx1.asd1()
+	xxx2.asd2()
+	xxx3.asd3()
+	//calling of the above should result in actor b being set only
+	
+	res1 = "" + [[xxx1.b, xxx1:b], [xxx2.b, xxx2:b], [xxx3.b, xxx3:b]]
+	
+	xxx1.b=555
+	xxx2.b=555
+	xxx3.b=555
+	
+	res2 = "" + [[xxx1.b, xxx1:b], [xxx2.b, xxx2:b], [xxx3.b, xxx3:b]]
+	"" + [res1, "|", res2]
+}
+
+~~~~~
+//##69. ok no arg constructor
+
+class MyClass(){
+	~xa Integer?
+}
+
+actor MyActor(~a int) of MyClass{ //fail as requires no arg constructor
+}
+
+def doings(){
+	xxx = new MyActor(12)
+	"" + [xxx.xa, xxx.a]
+}
+
+~~~~~
+//##70. we get it, these work now
+
+class MyClass(~xa int){
+}
+
+actor MyActor(~a int) of MyClass(a*2){ //requires no arg constructor
+}
+
+def doings(){
+	xxx = new MyActor(12)//fine
+	"" + [xxx.xa, 12]
+}
+
+~~~~~
+//##71. haha cool
+
+class MyClass(~xa int){
+}
+
+av=100
+
+actor MyActor(~a int) of MyClass(av*2){ //requires no arg constructor
+}//forgot this could be done
+
+def doings(){
+	xxx = new MyActor(12)//fine
+	"" + [xxx.xa, xxx.a]
+}
+
+~~~~~
+//##72. dont have to be arguments to the actor
+
+class MyClass(~xa int){
+}
+
+av=100
+
+actor MyActor of MyClass(av*2){ //requires no arg constructor
+}
+
+def doings(){
+	xxx = new MyActor()//fine
+	"" + [xxx.xa]
+}
+
+~~~~~
+//##73. typed abstract actor of something yet to be defined
+
+abstract actor AbstractActor of XXX {//nice thing is that we can define upper bounds here and be able to call stuff
+	this(xxx () XXX ){
+		super(xxx)
+	}
+	def something() => "hi there"
+}
+
+def doings()=>"happy"
+
+~~~~~
+//##74. simple inheritance of abstract typed actor
+
+class MyClass(){
+	~xa int = 100
+}
+
+abstract actor AbstractActor of XXX {
+	this(xxx () XXX ){
+		super(xxx)
+	}
+	def something() => "hi there"
+}
+
+actor MyActor of MyClass < AbstractActor {}
+
+def doings(){
+	xxx = new MyActor()//fine
+	"" + [xxx.xa, xxx.something()]
+}
+
+~~~~~
+//##75. chain of actors
+
+class MyClass(){
+	~xa int = 100
+}
+
+abstract actor AbstractActorSup of XXX {
+	this(xxx () XXX ){
+		super(xxx)
+	}
+	def something() => "works ok"
+}
+
+abstract actor AbstractActor of XXX < AbstractActorSup{
+	this(xxx () XXX ){
+		super(xxx)
+	}
+	override something() => "hi there " + super.something()
+	
+}
+
+actor MyActor of MyClass < AbstractActor {}
+
+def doings(){
+	xxx = new MyActor()//fine
+	"" + [xxx.xa, xxx.something()]
+}
+
+~~~~~
+//##76. abstract actor default constructor simple
+
+class MyClass(){
+	~xa int = 100
+}
+
+actor AbstractActor of XXX{ //add one no arg
+	def something() => "hi there"
+	
+}
+
+actor MyActor of MyClass < AbstractActor {}
+
+def doings(){
+	xxx = new MyActor()//fine
+	"" + [xxx.xa, xxx.something()]
+}
+
+~~~~~
+//##77. abstract actor default constructor stuff to super
+
+class MyClass(){
+	~xa int = 100
+}
+
+actor AbstractActor(a int, b int) of XXX{//add an arged one
+	def something() => "hi there " + [a,b]
+	
+}
+
+actor MyActor(b int) of MyClass < AbstractActor(b+1, 12) {}
+
+def doings(){
+	xxx = new MyActor(2)//fine
+	"" + [xxx.xa, xxx.something()]
+}
+
+~~~~~
+//##78. abstract actor default constructor stuff to super chain
+
+class MyClass(){
+	~xa int = 100
+}
+
+actor AbstractActorSup(a int) of XXX{//add an arged one
+	def something() => "hi there " + a
+}
+
+
+actor AbstractActor(a int) of XXX < AbstractActorSup(a+1){//add an arged one
+	override something() => "hi there " + super.something() + a
+	
+}
+
+actor MyActor of MyClass < AbstractActor(12) {}
+
+def doings(){
+	xxx = new MyActor()//fine
+	"" + [xxx.xa, xxx.something()]
+}
+
+~~~~~
+//##79. abstract actor overrides stuff cool
+
+from java.util import ArrayList
+from com.concurnas.bootstrap.runtime.ref import DefaultRef
+
+class MyClass(){
+	~xa int = 100
+}
+
+abstract actor AbstractActor of XXX {
+	this(xxx () XXX ){
+		super(xxx)
+	}
+	def something() => "hi there"
+	
+	-tracker = new ArrayList<String>()
+	
+	 override def recieve(ret Object:DefaultRef, func Object){
+		tracker.add("call on a lambda: " + (func is lambda))
+		super.recieve(ret, func)
+	}
+}
+
+actor MyActor of MyClass < AbstractActor {}
+
+def doings(){
+	xxx = new MyActor()//fine
+	"" + [xxx.xa, xxx.something(), xxx.tracker]
+}
+
+~~~~~
+//##80. actors can be created like this too...
+
+class MyClass(){
+	~xa int = 100
+}
+
+actor MyActor of MyClass  {}
+
+def doings(){
+	xxx = actor MyActor()//fine
+	"" + [xxx.xa]
+}
+
+~~~~~
+//##81. actors can inherit from other actors
+
+class MyClass(){
+	~xa int = 100
+}
+
+abstract actor MyActor of MyClass 
+
+actor MyActor2 < MyActor {}
+
+def doings(){
+	xxx = actor MyActor2()//ensure correct line
+	"" + [xxx.getXa(), xxx.xa]
+}
+
+~~~~~
+//##82. lovely actors can inheirt and pass args up chain
+
+class MyClass(){
+	~xa int = 100
+}
+
+abstract actor MyActor(~a int) of MyClass 
+
+actor MyActor2(a int) < MyActor(a+1) {}
+
+def doings(){
+	xxx = actor MyActor2(12)//ensure correct line
+	"" + [xxx.xa, xxx.a]
+}
+
+~~~~~
+//##83. generic actors part 1 simple
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyActor<Axx> of MyClass<Axx>
+
+def doings(){
+	xxx = actor MyActor<String>()//ensure correct line
+	o Object = xxx
+	"" + [xxx.xa, o is MyActor<String>, o is not MyActor<int>,  o is actor MyClass<String>,  o is not actor MyClass<int>, (o as MyActor<String>).xa]
+}
+
+~~~~~
+//##84. wow bugfix on generic supertype class definition
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyActor<Axx> of MyClass<Axx>
+//the above previously was being incorrectly set with supertype Object in the generic description
+//werid this never came up as a bug before...
+
+def maker() => new actor MyActor<String>()
+
+def doings(){
+	o  = maker()
+	"" + MyActor<String>.class.getGenericSuperclass()
+}
+
+~~~~~
+//##85. thing is not an actor of an actor
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyInterceptor<Y> of SSS
+
+actor MyActor<Yxx, Axx > of MyClass<Axx> < MyInterceptor<Yxx>
+
+def doings(){
+	xxx = actor MyActor<String, String>()//ensure correct line
+	o Object = xxx
+	"" + (o is not actor MyActor<String, String>)
+}
+
+~~~~~
+//##86. use of abstract actor of xxx syntax for is and as
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyInterceptor<Y> of SSS{
+
+	def hi() => "hi"
+}
+
+actor MyActor<Yxx, Axx > of MyClass<Axx> < MyInterceptor<Yxx>
+
+def doings(){
+	xxx = actor MyActor<String, String>()//ensure correct line
+	o Object = xxx
+	"" + [o is MyInterceptor<String> of MyClass<String>, (o as MyInterceptor<String> of MyClass<String>).hi()]
+}
+
+~~~~~
+//##87. generic typed actors
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyInterceptor<Y> of SSS{
+	def hi() => "hi mum"
+}
+
+actor MyActor<Yxx, Axx> of MyClass<Axx> < MyInterceptor<Yxx>
+
+def doings(){
+	xxx = actor MyActor<String, String>()//ensure correct line
+	o Object = xxx
+	"" + [xxx.xa, o is MyActor<String, String>, o is not MyActor<int, int>, 
+	 		o is actor MyClass<String>, 
+	  		o is not actor MyClass<int>,
+	  		(o as MyActor<String, String>).xa,
+	  		o is not MyInterceptor<String> of MyClass<int>,
+	  		o is MyInterceptor<String> of MyClass<String>,
+	  		(o as MyInterceptor<String> of MyClass<String>).hi()//note u cannot call the methods of MyClassDirectly
+	  	 ]
+}
+
+~~~~~
+//##89. generic typed actors 2
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyInterceptor<Y> of SSS{
+	def hi() => "hi mum"
+}
+
+actor MyActor<Yxx, Axx>(~a Yxx, ~b Axx) of MyClass<Axx> < MyInterceptor<Yxx>
+
+def doings(){
+	xxx = actor MyActor<String, String>("hi", "there")//ensure correct line
+	o Object = xxx
+	"" + [xxx.xa, o is MyActor<String, String>, o is not MyActor<int, int>, 
+	 		o is actor MyClass<String>, 
+	  		o is not actor MyClass<int>,
+	  		(o as MyActor<String, String>).xa,
+	  		o is not MyInterceptor<String> of MyClass<int>,
+	  		o is MyInterceptor<String> of MyClass<String>,
+	  		(o as MyInterceptor<String> of MyClass<String>).hi(),//note u cannot call the methods of MyClassDirectly
+	  		xxx.a, xxx.b
+	  	 ]
+}
+
+~~~~~
+//##90. generic typed actors 3
+
+class MyClass<X>{
+	~xa = 99
+}
+
+actor MyInterceptor<Y>(~a Y) of SSS{
+	def hi() => "hi mum"
+}
+
+actor MyActor<Yxx, Axx>(a Yxx, ~b Axx) of MyClass<Axx> < MyInterceptor<Yxx>(a)
+
+def doings(){
+	xxx = actor MyActor<String, String>("hi", "there")//ensure correct line
+	o Object = xxx
+	"" + [xxx.xa, o is MyActor<String, String>, o is not MyActor<int, int>, 
+	 		o is actor MyClass<String>, 
+	  		o is not actor MyClass<int>,
+	  		(o as MyActor<String, String>).xa,
+	  		o is not MyInterceptor<String> of MyClass<int>,
+	  		o is MyInterceptor<String> of MyClass<String>,
+	  		(o as MyInterceptor<String> of MyClass<String>).hi(),//note u cannot call the methods of MyClassDirectly
+	  		xxx.a, xxx.b
+	  	 ]
+}
+
+~~~~~
+//##91. generic typed actors 4
+
+class MyClass<X>(~b X){
+	~xa = 99
+}
+
+actor MyInterceptor<Y>(~a Y) of SSS{
+	def hi() => "hi mum"
+}
+
+actor MyActor<Yxx, Axx>(a Yxx, b Axx) of MyClass<Axx>(b) < MyInterceptor<Yxx>(a)
+
+def doings(){
+	xxx = actor MyActor<String, String>("hi", "there")//ensure correct line
+	o Object = xxx
+	"" + [xxx.xa, o is MyActor<String, String>, o is not MyActor<int, int>, 
+	 		o is actor MyClass<String>, 
+	  		o is not actor MyClass<int>,
+	  		(o as MyActor<String, String>).xa,
+	  		o is not MyInterceptor<String> of MyClass<int>,
+	  		o is MyInterceptor<String> of MyClass<String>,
+	  		(o as MyInterceptor<String> of MyClass<String>).hi(),//note u cannot call the methods of MyClassDirectly
+	  		xxx.a, xxx.b
+	  	 ]
+}
+
+
+~~~~~
+//##92. generic typed actors 5 cool example i thought up first
+
+class MyClass<X>(~a X)
+
+abstract actor AbsActor<Y>(~y Y) of XXX
+
+actor MyActor<A,B>(a A, b B) of MyClass<A>(a) extends AbsActor<B>(b)//should be able to infer A and B qualifciations
+
+def doings(){
+	xxx = actor MyActor<int, int>(12, 12)//ensure correct line
+	"" + [xxx.a, xxx.y]
+}
+
+~~~~~
+//##100. typed actors on nested types
+
+class Outer{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def ok() => "there"
+	class Inner{
+		def stuff() => "hi " + ok()
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+class Outer2{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def ok() => "there"
+	class Inner2(~xa int){
+		def stuff() => "hi " + ok() + " " + xa
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+actor RealActor of Outer.Inner
+actor RealActor2(a int) of Outer2.Inner2(a+1)
+
+def doings(){
+	\out Outer = new Outer()
+	rawActor  = \out.actor RealActor()
+	
+	out2 Outer2 = new Outer2()
+	rawActor2  = out2.actor RealActor2(69)
+
+	"" + [rawActor.stuff(), rawActor2.stuff()]
+}
+
+~~~~~
+//##101. typed actors on nested types inc generics
+
+class Outer<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def ok() => "there"
+	class Inner<Y>{
+		def stuff() => "hi " + ok()
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+class Outer2<X>{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def ok() => "there"
+	class Inner2<Y>(~xa Y){
+		def stuff() => "hi " + ok() + " " + xa
+		override equals(a Object) => false
+		override hashCode() => 1
+	}
+}
+
+actor RealActor<LA, LB> of Outer<LA>.Inner<LB>
+actor RealActor2<LA>(a int) of Outer2<LA>.Inner2<int>(a+1)
+
+def doings(){
+	\out  = new Outer<int>()
+	rawActor  = \out.actor RealActor<int, int>()
+	
+	out2  = new Outer2<int>()
+	rawActor2  = out2.actor RealActor2<int>(69)//should be able to infer this... even better generics
+
+	"" + [rawActor.stuff(), rawActor2.stuff()]
+}
+
+~~~~~
+//##102. custom actor of normal stuff
+actor AnAcotr of String
+
+def doings(){
+	x = actor AnAcotr("hi")
+	"" + x
+}
+
+~~~~~
+//##103. make sure simple actors works again
+
+class DatCls(a int){
+	override toString() => "ok: " + a
+}
+
+def doings(){
+	x = actor DatCls(12)
+	
+	"" + x
+}
+
+~~~~~
+//##104. untyped actors
+
+actor MyUntyped  {
+	def something() => "hi"
+}
+
+actor MyUntyped2(~xa int)   {
+	def something() => "hi " + xa
+}
+
+def doings(){
+	xxx = new MyUntyped()
+	xxx2 = new MyUntyped2(29)
+	"" + [xxx.something(), xxx2.something(), xxx2.xa]//, o is actor, o is actor MyUntyped]
+}
+
+~~~~~
+//##105. untyped actors as simple
+
+actor MyUntyped  {
+	def something() => "hi"
+}
+
+def doings(){
+	xxx = new MyUntyped()
+	o Object = xxx
+	"" + [o is actor, o is MyUntyped, o is not actor MyUntyped, (o as  MyUntyped).something() ]
+}
+
+~~~~~
+//##106. typed actor custom stuff
+
+class Boring{
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+
+actor MyActor(~ax int) of Boring {
+	this(a int) { 
+		super(new Boring&()); 
+		ax=a;
+	}//pointless, should auto gennerate
+	
+	this(a String, b String){
+		this(88)
+	}
+	
+	this(a String){
+		super(new Boring&())
+		ax = 9
+	}
+}
+
+
+def doings(){
+	xx1 = new MyActor("","")
+	xx2 = new MyActor("")
+	xx3 = new MyActor(99)
+	
+	"" + [xx1.ax, xx2.ax, xx3.ax]
+}
+
+~~~~~
+//##107. untyped actors implicit super called as approperiate
+
+actor MyActor(~ax int) {
+	this(a int) { ax=a;}//pointless
+	this(a String, b String){
+		this(88)
+	}
+	this(a String){
+		ax = 9
+	}
+}
+
+
+def doings(){
+	xx1 = new MyActor("","")
+	xx2 = new MyActor("")
+	xx3 = new MyActor(99)
+	
+	"" + [xx1.ax, xx2.ax, xx3.ax]
+}
+
+~~~~~
+//##108. auto create defualt constructor
+
+actor MyActor(~ax int) {
+	//this(a int) { ax=a;}//created automatically
+	this(a String, b String){
+		this(88)
+	}
+	this(a String){
+		ax = 9
+	}
+}
+
+
+def doings(){
+	xx1 = new MyActor("","")
+	xx2 = new MyActor("")
+	xx3 = new MyActor(99)
+	
+	"" + [xx1.ax, xx2.ax, xx3.ax]
+}
+
+~~~~~
+//##109. manual create of default constructor
+
+actor MyActor(~ax int) {
+	this(a int) { ax=a;}//we dont add defualt constructor cos we have one already
+	this(a String, b String){
+		this(88)
+	}
+	this(a String){
+		ax = 9
+	}
+}
+
+
+def doings(){
+	xx1 = new MyActor("","")
+	xx2 = new MyActor("")
+	xx3 = new MyActor(99)
+	
+	"" + [xx1.ax, xx2.ax, xx3.ax]
+}
+
+~~~~~
+//##110. manual create of default constructor typed
+
+class Boring{
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+
+actor MyActor(~ax int) of Boring {
+	//this(a int){ super(new Boring&()); ax = a }
+	
+	this(a String, b String){
+		this(88)
+	}
+	
+	this(a String){
+		super(new Boring&())
+		ax = 9
+	}
+}
+
+
+def doings(){
+	xx1 = new MyActor("","")
+	xx2 = new MyActor("")
+	xx3 = new MyActor(99)
+	
+	"" + [xx1.ax, xx2.ax, xx3.ax]
+}
+
+~~~~~
+//##111. manual create of default constructor typed 2
+
+class Boring{
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+
+actor MyActor(~ax int) of Boring {
+	this(a int){ super(new Boring&()); ax = a }//supress auto create
+	
+	this(a String, b String){
+		this(88)
+	}
+	
+	this(a String){
+		super(new Boring&())
+		ax = 9
+	}
+}
+
+
+def doings(){
+	xx1 = new MyActor("","")
+	xx2 = new MyActor("")
+	xx3 = new MyActor(99)
+	
+	"" + [xx1.ax, xx2.ax, xx3.ax]
+}
+
+~~~~~
+//##112. untyped actor constructors correct
+
+actor MyUntyped(~ax int)  {
+	this() { }
+	this(a String, b String){this(12)}
+	def something() => "hi" + ax
+}
+
+def doings(){
+	xxx1 = actor MyUntyped(12)
+	xxx2 = actor MyUntyped("12", "")
+	xxx3 = actor MyUntyped()
+	
+	
+	"" + for(x in [xxx1, xxx2, xxx3]) { x.something() } 
+}
+
+~~~~~
+//##113. correct instance types for untyped actors
+
+actor MyUntyped<X>(~ax X)   {
+	def something() => "hi" + ax
+}
+
+def doings(){
+	xxx = actor MyUntyped<int>(12)
+	o Object = xxx
+	"" + [o is actor, o is MyUntyped<int>, o is not MyUntyped<String>, (o as  MyUntyped<int>).something(), (o as  MyUntyped<int>).ax ]
+}
+
+~~~~~
+//##114. can correctly infer types now
+
+actor MyUntyped<X>(~ax X)  {
+	def something() => "hi" + ax
+}
+
+def doings(){
+	xxx = actor MyUntyped(12) //infer
+	o Object = xxx
+	"" + [o is actor, o is MyUntyped<int>, o is not MyUntyped<String>, (o as  MyUntyped<int>).something(), (o as  MyUntyped<int>).ax ]
+}
+
+~~~~~
+//##115. custom hashcode eq and toString etc
+
+actor MyUntyped<X>(~ax X)  {
+	def something() => "hi" + ax
+	override equals(a Object) => false//overriden incorrectly
+	override hashCode() => 1
+	override toString() => "asd"
+}
+
+def doings(){
+	xxx = actor MyUntyped<int>(33)
+	xxx2 = actor MyUntyped<int>(33)
+	
+	"stuff" + [xxx == xxx2, xxx.equals(xxx2), xxx:equals(xxx2), xxx:hashCode(), xxx.hashCode(), xxx:toString(), xxx.toString()] 
+}
+
+~~~~~
+//##116. untyped actors can inherit
+
+open actor MyUntyped<X>(~ax X)  {
+	def something() => "hi " + ax
+}
+
+actor Kid < MyUntyped<String>("hi"){
+	override something() => super.something() + "jj"
+}
+
+
+def doings(){
+	xxx = actor Kid()
+	xxx.something()
+}
+
+~~~~~
+//##117. actor copy in and out
+
+from java.util import Arrays, HashSet
+
+class ClassWithAnId(x int){
+	def myID() => System.identityHashCode(this)
+}
+
+actor MyActor(inst ClassWithAnId){//should be a copy going in on constructor
+	def getTheId() => inst.myID() //validate above
+	def getIdForRequested(inst2 ClassWithAnId) => inst2.myID() //copy going in
+	def id(inst2 ClassWithAnId) => inst2 //copy going in and out
+	def inner() => inst//inner state should be copied out
+}
+
+def doings(){
+	inp = ClassWithAnId(12)
+	act = MyActor(inp)//try func as actor constructor
+	xx = Arrays.asList([new Integer(inp.myID()) act.getTheId() act.getIdForRequested(inp) act.id(inp).myID() act.inner().myID()])
+	hs = HashSet(xx)
+	
+	"" + (hs.size() == 5)//should differ probably
+}
+
+~~~~~
+//##118. copy an actor returns self
+
+actor MyActor(){
+	def myID() => System.identityHashCode(this)
+}
+
+def doings(){
+	inp = MyActor()
+	inp2 = inp//@ //no cannot do this!
+	
+	"" + (inp &== inp2)
+}
+
+~~~~~
+//##119. untyped ref
+
+actor MyActor<X>(~a X)  {
+}
+
+def doings(){
+	create = actor MyActor&(100)
+	athing = create()
+	ooo Object= athing
+	
+	"ok " + [ooo is actor, ooo is MyActor<int>, ooo is not MyActor<String>, (ooo as MyActor<int>).a]
+}
+
+~~~~~
+//##120. instanceof actor bugfix
+
+class MyClass(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	an Object = actor MyClass('hi')
+	
+	tf = an is actor
+	
+	"" + tf
+}
+
+~~~~~
+//##121. another instanceof actor bugfix
+
+class MyClass(x String){
+	this(a int) => this("" + a)
+	override toString() => "got: " + x
+	override hashCode() => 1
+	override equals(a Object) => false
+}
+
+def doings(){
+	w="weird"
+	hmm  = actor MyClass&('ok')
+	
+	what = hmm()//ref should return only one item in declaration type list
+	what2 = actor MyClass('ok')
+	"" + [what is actor, 
+		  what2 is actor,
+		  what2 is actor MyClass]
+}
+
+~~~~~
+//##122. double check this works
+
+class MyClass(g String){
+	this(a int){
+		this("" + a)
+	}
+	override toString() => "got: " + g
+	override hashCode() => 1
+	override equals(an Object) => (an is MyClass) and (an as MyClass).g==g
+}
+
+
+def doings(){
+	mc = MyClass&
+	
+	inst = new com.concurnas.lang.TypedActor<MyClass>(33)
+	//inst2 = actor mc(33)
+	
+	"" +inst //+ [inst, inst2]
+}
+
+~~~~~
+//##123. agents on private classes
+
+private class MyClass{
+	def stuff() => "hi"
+}
+
+def doings(){
+	aa = actor MyClass()
+	//yes! you can have actors of private classes
+	""+ aa.stuff()
+}
+
+~~~~~
+//##124. bugfix you can create instances of nested static classes now
+
+from com.concurnas.lang.precompiled import APrivateClassHolder
+
+def doings(){
+	ins = new APrivateClassHolder.PublicClass&()
+	pub = ins()
+	
+	bok = pub.stuff()
+	
+	"k" + bok
+}
+
+~~~~~
+//##125. actor of static nested class lovely
+
+from com.concurnas.lang.precompiled import APrivateClassHolder
+
+def doings(){
+	//priv = actor APrivateClassHolder.PrivateClass()
+	pub = actor APrivateClassHolder.PublicClass()
+	
+	//a = priv.something()
+	//b = pub.something()
+	
+	//aok = priv.stuff()
+	bok = pub.stuff()
+	
+	"k" + bok
+}
+
+~~~~~
+//##126. can create actors of private classes cool
+
+from com.concurnas.lang.precompiled import APrivateClassHolder
+
+def doings(){
+	priv = actor APrivateClassHolder.PrivateClass()
+	pub = actor APrivateClassHolder.PublicClass()
+	
+	//a = priv.something()
+	//b = pub.something()
+	
+	aok = priv.stuff()
+	bok = pub.stuff()
+	
+	"k" + [aok, bok]
+}
+
+~~~~~
+//##127. seems ok
+
+def doings(){
+	an Object = new actor String('hi')
+	
+	tf = an is actor
+	
+	"" + tf
+}
+
+~~~~~
+//##128. actor of generic type unbound
+import java.util.ArrayList
+
+actor MyActor of ArrayList<String>{
+
+}
+
+def doings() {
+	stuff1 = MyActor()//was not being correctly created
+	stuff1.add('hi')
+	stuff1.add('hi2')
+	
+	"k: " + stuff1 
+}
+
+~~~~~
+//##129. actor of generic type unbound
+
+import java.util.ArrayList
+
+actor MyActor<F> of ArrayList<F>{
+
+}
+
+def doings() {
+	stuff1 = MyActor<String>()//was not being correctly created
+	stuff1.add('hi')
+	stuff1.add('hi2')
+	
+	"k: " + stuff1 
+}
+
+~~~~~
+//##130. actor of generic type unbound and bound
+
+import java.util.ArrayList
+
+actor MyActor of ArrayList<String>{
+
+}
+
+def doings() {
+	stuff1 = MyActor()//was not being correctly created
+	stuff2 = actor ArrayList<String>()//was not being correctly created
+	
+	allfellas = [stuff1, stuff2]
+	
+	for(thing in allfellas){
+		thing.add('hi')
+		thing.add('there')
+	}
+	
+	"k: " +allfellas
+}
+
+~~~~~
+//##131. pre qualified generic actor args need not be qualificed at genneration time to comply with iface rep
+
+import java.util.ArrayList
+
+actor MyActor of ArrayList<String>{
+
+}
+
+def doings() {
+	stuff1 actor ArrayList<String> = MyActor()
+	stuff1.add('ok')
+	gg = stuff1.get(0)
+	
+	"k: " + [stuff1, gg]
+}
+
+~~~~~
+//##132. nice now these work ok
+
+import java.util.ArrayList
+
+actor MyActor of ArrayList<String>{
+
+}
+
+def doings() {
+	stuff1 = MyActor()//was not being correctly created
+	stuff2 = actor ArrayList<String>()//was not being correctly created
+	
+	allfellas = [stuff1 stuff2]//bug in extracting type before
+	allfellas2 actor ArrayList<String>[] = [stuff1 stuff2]//check this works ok
+	
+	addball actor ArrayList<String> = stuff1
+	addball.add('ok')
+	
+	addball2  = allfellas[1]
+	addball2.add('ok')
+	
+	for(thing in allfellas){//bug in extracting type
+		thing.add('hi')
+		thing.add('there')
+	}
+	
+	"k: " +allfellas
+}
+
+~~~~~
+//##133. enmsure error propgated back to caller
+
+import java.util.ArrayList
+
+actor MyActor of ArrayList<String>{
+	
+}
+
+def doings() {
+	orig = MyActor()
+	gg2 = try{
+		orig.get(0)//should be captured on return ref...
+	} catch(e){
+		"" + e
+	}
+	
+	"k: " +gg2//+stuff1
+}
+
+~~~~~
+//##134. actors implicit interfaces
+
+trait ID{
+	def operate(a int) int => a
+}
+
+class Myclass ~ ID
+actor MyActor of Myclass
+
+def doings(){
+	mc = Myclass()
+	ma = MyActor()
+	ids ID[] = [mc as ID ma]
+	 
+	"" + ids^operate(10)
+}
+
+~~~~~
+//##135. actors implicit interfaces with generics
+
+trait ID<X>{
+	def operate(a int) int => a
+}
+
+class Myclass ~ ID<int>
+actor MyActor of Myclass ~ ID<int>//and duplicated def
+
+def doings(){
+	mc = Myclass()
+	ma = MyActor()
+	ids ID<int>[] = [mc as ID<int> ma]
+	 
+	"" + ids^operate(10)
+}
+
+~~~~~
+//##136. used to fail oninit on actor due to psar genneration
+
+inject class Userclass(a Integer, b String) {
+	def getter() => "{a, b}"
+}
+
+class Thing{
+	def sf(){
+		x = actor Userclass(1, "k")
+		"" + x.getter()
+	}
+}
+
+def doings(){
+	"" + new Thing().sf()
+}
+
+~~~~~
+//##137. this was a bug before
+shared xxx Integer = 12
+//concerning psar's on actor methods
+actor TaskStore{
+	private def removeFromStore( ){//can be accessed via psar due to access from lambda below
+		xxx = 100		
+	}
+	
+	def onClientReconnect(){
+		removeFromStore&()
+	}
+}
+
+def doings(){
+	ts = new TaskStore()
+	ts.onClientReconnect()()
+	"ok" + xxx
+}
+
+~~~~~
+//##138. actor constructor having default params
+from com.concurnas.lang.dist import startRemoteServer
+from com.concurnas.lang.dist import LoggerProvider
+
+shared events Integer=0;
+
+actor Something(a String, port = 999, b = "ok"){
+	override toString() => "port: {port}"
+}
+
+def doings(){
+	//remServer = startRemoteServer(port=42315)
+	
+	rm = Something('localhost', port=42315)
+	//rm.connect()
+	
+	//rm.disconnect()
+	//remServer.shutdown()
+	
+	"ok" +rm//+ (events > 0)
+}
+
+~~~~~
+//##139. actor can return refs
+class MyActor(){
+	def thing() {
+		12:
+	}
+}
+
+def doings(){
+	ma = actor MyActor()
+	"" + ma.thing()
+}
+
+~~~~~
+//##140. ensure actor call within async gets routed to actor 
+actor MyActor(){
+	def thing(){
+		correct = false
+		for(item in new RuntimeException().getStackTrace()){
+			if(item.toString().contains("com.concurnas.lang.Actor$ActorManager.apply")){
+				correct = true
+				break
+			}
+			
+		}
+		correct
+	}
+	
+	def thing2(){
+		{thing()}!
+	}
+}
+
+def doings(){
+	ma = MyActor()
+	"" + ma.thing2()
+}
+
+~~~~~
+//##141. ensure actor call within async gets routed to actor funcref 
+actor MyActor(){
+	def thing(){
+		correct = false
+		for(item in new RuntimeException().getStackTrace()){
+			if(item.toString().contains("com.concurnas.lang.Actor$ActorManager.apply")){
+				correct = true
+				break
+			}
+			
+		}
+		correct
+	}
+	
+	def thing2(){
+		def asd(){thing()}
+		asd()!
+	}
+}
+
+def doings(){
+	ma = MyActor()
+	"" + ma.thing2()
+}
+
+~~~~~
+//##142. ensure external funcref goes via actor
+class MyClass<X>(~a X){
+	def getA(){
+		correct = false
+		for(item in new RuntimeException().getStackTrace()){
+			if(item.toString().contains("com.concurnas.lang.Actor$ActorManager.apply")){
+				correct = true
+				break
+			}
+			
+		}
+		correct
+	}
+}
+
+def maker() => return new actor MyClass<int>(12)
+
+def doings(){
+	thing = maker()
+	
+	ff = thing.getA&()
+	
+	ff2 = (actor MyClass<int>).getA&()
+	ff2.bind(thing)
+	
+	"" + [ff(), ff2()]
+}
+
+~~~~~
+//##143. func invokation of actor with default param copied into final block 
+actor AThing{
+	def ss(onp = false) => onp
+}
+
+def doings(){
+	
+	at = AThing()
+	
+	res = try{
+		"ok"
+	}finally{
+		at.ss()		
+	}
+	
+	
+	"ok" +  res
+}
+
+~~~~~
+//##144. actor return ref of array
+inject class Myclass(pp Providexx){
+	~xxx = 0
+	
+	def setThing(what byte[]){
+		xxx = 344
+	}
+	
+	def doit(){
+		x = pp.something()
+		setThing(x)
+	}
+}
+
+actor Providexx{
+	def something() byte[]: => null
+}
+
+provider XXX{
+	provide Myclass
+	Providexx => new Providexx()
+}
+
+def doings(){
+	ma = new XXX().Myclass()
+	ma.doit()
+	
+	"" +ma.xxx 
+}
+
+
+~~~~~
+//##145. actor return ref of array
+inject class Myclass(pp Providexx){
+	~xxx = 0
+	
+	def setThing(what byte[2]){
+		xxx = 344
+	}
+	
+	def doit(){
+		x = pp.something()
+		setThing(x)
+	}
+}
+
+actor Providexx{
+	def something() byte[2]: => null
+}
+
+provider XXX{
+	provide Myclass
+	Providexx => new Providexx()
+}
+
+def doings(){
+	ma = new XXX().Myclass()
+	ma.doit()
+	
+	"" +ma.xxx 
+}
+
+~~~~~
+//##146. actor return ref of array
+inject class Myclass(pp Providexx){
+	~xxx = 0
+	
+	def setThing(what Byte[]){
+		xxx = 344
+	}
+	
+	def doit(){
+		x = pp.something()
+		setThing(x)
+	}
+}
+
+actor Providexx{
+	def something() Byte[]: => null
+}
+
+provider XXX{
+	provide Myclass
+	Providexx => new Providexx()
+}
+
+def doings(){
+	ma = new XXX().Myclass()
+	ma.doit()
+	
+	"" +ma.xxx 
+}
+
+
+~~~~~
+//##147. actor return ref of array
+inject class Myclass(pp Providexx){
+	~xxx = 0
+	
+	def setThing(what Byte[2]){
+		xxx = 344
+	}
+	
+	def doit(){
+		x = pp.something()
+		setThing(x)
+	}
+}
+
+actor Providexx{
+	def something() Byte[2]: => null
+}
+
+provider XXX{
+	provide Myclass
+	Providexx => new Providexx()
+}
+
+def doings(){
+	ma = new XXX().Myclass()
+	ma.doit()
+	
+	"" +ma.xxx 
+}
+
+~~~~~
+//##148. actor return not locked as ref
+inject class Myclass(pp Providexx){
+	~xxx = 0
+	
+	
+	def setThing(what byte[]){
+		xxx = 344
+	}
+	
+	def doit(){
+		x byte[] = pp.something()
+		setThing(x)
+	}
+}
+
+actor Providexx{
+	def something() byte[]: => null
+}
+
+
+provider XXX{
+	provide Myclass
+	Providexx => new Providexx()
+}
+
+def doings(){
+	ma = new XXX().Myclass()
+	ma.doit()
+	
+	"" +ma.xxx 
+}
+
+~~~~~
+//##149. actor being called with shared variable argumnet
+class ToBeShared(a int)
+
+actor MyActor(tbs ToBeShared){
+	def getIHC() => System identityHashCode tbs
+	def getIHC(tbsme ToBeShared) => System identityHashCode tbsme
+	def hashCode() => 1
+	def equals(an Object) => false
+}
+
+def doings(){
+	shared inst = new ToBeShared(16)
+	act = MyActor(inst)//constructor
+	
+	ihc = System identityHashCode inst
+	//getIHC -> method call should copy anyway
+	"" + [ihc == act.getIHC(), ihc <> act.getIHC(inst)]
+}

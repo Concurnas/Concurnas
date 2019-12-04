@@ -1,0 +1,1417 @@
+//##1. basic direct lambda and static ref lambdas
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hey");
+ar.add("you");
+ar.add("wassup");
+ar.add("yeah");
+
+def gettot() (int) String{
+	return ar.get&(? int)
+}
+
+def doings() String {
+	nonStaticFuncRef = gettot()
+	nonStaticFuncRef2 = ar.get&(? int)
+	nonStaticFuncRef3 (int) String = gettot()
+	nonStaticFuncRef4 (int) String = ar.get&(? int)
+	ret= ""+ [nonStaticFuncRef(0), nonStaticFuncRef2(1), nonStaticFuncRef3(2), nonStaticFuncRef4(3)]
+	
+	for(dude in [nonStaticFuncRef, nonStaticFuncRef2, nonStaticFuncRef3, nonStaticFuncRef4]){
+		ret += dude(0)
+	}
+	
+	return ret
+}
+
+~~~~~
+//##2. lambda from field in class
+
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hey"); 
+
+class MM{
+	def gettot() (int) String{
+		return ar.get&(? int)
+	}
+}
+
+def doings() String {
+	nonStaticFuncRef = new MM().gettot()
+	return nonStaticFuncRef(0)
+}
+
+~~~~~
+//##3. lambda from static module var
+from java.util import ArrayList
+
+ar = new ArrayList<String>()
+ar.add("hey"); 
+nonStaticFuncRef = ar.get&(? int)
+nonStaticFuncRef2 (int) String = ar.get&(? int)
+
+def doings() String {
+	return ""+  [nonStaticFuncRef(0), nonStaticFuncRef2(0)]
+}
+
+~~~~~
+//##4. more complex dual arg lambda
+
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Integer, Integer>()
+	ref = hm.put&(? int, ? int)
+	ref(2,3)
+	return "" + hm.get(2)
+}
+
+~~~~~
+//##5. more complex dual arg lambda - curry one param
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Integer, Integer>()
+	ref2 = hm.put&(? int, 55)
+	ref2(9)
+	return "" + hm.get(9)
+}
+
+~~~~~
+//##6. more complex dual arg lambda - dual arg case
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Double, Double>()
+	ref2 = hm.put&(? double, 55)//input argument is of type Double NOT int
+	ref2(9)
+	ref2(9.)
+	ref2(12)
+	return "" + [hm.get(9.0), hm.get(9.0), hm.get(12.)]
+}
+
+~~~~~
+//##6b. more complex dual arg lambda - dual arg case -explicit type
+
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Double, Double>()
+	ref2 (double) Double = hm.put&(? double, 55)//input argument is of type Double NOT int
+	ref2(9)
+	ref2(9.)
+	ref2(12)
+	return "" + [hm.get(9.0), hm.get(9.0), hm.get(12.)]
+}
+
+~~~~~
+//##6c. more complex dual arg lambda - dual arg case - explicit to unboxed
+
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Double, Double>()
+	ref2 (double) double = hm.put&(? double, 55)//input argument is of type Double NOT int
+	ref2(9)
+	ref2(9.)
+	ref2(12)
+	return "" + [hm.get(9.0), hm.get(9.0), hm.get(12.)]
+}
+
+~~~~~
+//##6d. more complex dual arg lambda - dual arg case - autocast arg
+
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Double, Double>()
+	//hm = new HashMap<Double, Integer>()
+	ref2 (double) double = hm.put&(? double, 55)//input argument is of type Double NOT int
+	ref2(19.)
+	ref2(12.)
+	d double = ref2(12)
+	return "" + [hm.get(19.0), hm.get(12.0)] + [d]
+}
+
+~~~~~
+//##7 input should be cast to correct type
+
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Integer, Double>()
+	ref2 (int) double = hm.put&(? int, 55)
+	ref2(19)
+	return "" + hm.get(19)
+}
+
+~~~~~
+//##8 more than one
+
+from java.util import HashMap
+
+def doings() String {
+	hm = new HashMap<Integer, Integer>()
+	
+	ref = hm.put&(? int, ? int)
+	ref2 = hm.put&(? int, 55)
+	
+	ref(2,3)
+	ref2(9)
+	return "" + [hm.get(2) , hm.get(9)]
+}
+
+~~~~~
+//##9 custom class with fixing of var and pass in ref
+
+class MyClass(x int) {
+	def something(a int, b int) int {
+		return (a+b)*x
+	}
+}
+
+from java.util import HashMap
+
+def doings() String {
+	myref = new MyClass(2).something&(2, ? int)
+	return "" + myref(2)
+}
+
+~~~~~
+//##10 custom class with fixing of var and pass in ref, also special cast and assingments
+
+class MyClass(x int) { def something(a int, b int) int { 	return (a+b)*x } }
+
+from java.util import HashMap
+
+def doings() String {
+	myref (int) int = new MyClass(2).something&(2, ? int)
+	myref2 (int) Integer = myref 
+	myref3 = myref  as (int) Integer //cast
+	myref4 = myref  as (int) int
+		
+	return "" + [myref(2), myref2(2), myref3(2), myref4(2)]
+}
+
+~~~~~
+//##11 module func lambda
+
+x = 23
+def something(a int, b int) int { return (a+b)*x}
+
+def doings() String {
+	myref = something&(2, ? int)
+		
+	return "" + myref(9)
+}
+
+~~~~~
+//##12 headless lambda function
+
+masterSimple = def (a int, b int, c int) int { return a+b+c; }
+
+xxx = masterSimple(1,2,3)
+
+def retOne() (int,int,int) int{
+	return masterSimple //return ret to func
+}
+
+masterSimple2 = retOne()
+xxx2 = masterSimple2(1,2,3)
+
+def doings() String {
+	return "" + [ xxx , xxx2]
+}
+
+~~~~~
+//##13 lambda var ref init and invokation
+
+class MyCls{
+public masterSimple = def (a int, b int, c int) int { return a+b+c; }
+}
+
+def doings() String {
+	cls = new MyCls()
+	return "" +cls.masterSimple(4,5,6)
+}
+
+~~~~~
+//##13 exceptions in lambdas
+
+class MyCls{
+public masterSimple = def (a int, b int, c int) int {
+try{	if(a==4){		throw new Exception("fail")	}}
+catch(e Exception){ return 56 }
+return a+b+c; 
+}
+}
+
+def doings() String {
+	cls = new MyCls()
+	return "" +[cls.masterSimple(4,5,6), cls.masterSimple(2,5,6)]
+}
+
+
+~~~~~
+//##14 the glorious map function
+//funcref to map function
+//also: funcref within method arg
+//also: see if u can define lambdas within methods
+from java.util import ArrayList
+
+def map(func (Integer) Integer, inputs ArrayList<Integer>) ArrayList<Integer> {
+	ret = new ArrayList<Integer>()//still sucks, not generical at all
+	for(x in inputs){
+		ret.add(func(x))
+	}
+	return ret
+}
+
+def mappey(y int, x int) int{ return x+y;}
+
+class InCls(inputs ArrayList<Integer>){
+	def doit() ArrayList<Integer>{
+		return map( def (x int) int{ return x+12;} , inputs )
+	}
+}
+
+
+def doings() String {
+	inputs = new ArrayList<Integer>()
+	inputs.add(10)
+	inputs.add(20)
+	funcola = mappey&(12, ? int)
+	return "" + [map(funcola, inputs ), map(mappey&(12, ? int), inputs ), new InCls(inputs).doit()]
+}
+
+~~~~~
+//##15 funcrefinvoke
+def retLambda() (int) int{
+	return def (a int) int { return a+ 12;}
+}
+
+class MyClass{
+
+	def retLambda() (int) int{
+		return def (a int) int { return a+ 12;}
+	}
+}
+
+def doings() String{
+	i = new Integer(8)
+	return "" + [retLambda()(2), new MyClass().retLambda()(new Integer(8))]
+}
+
+~~~~~
+//##16 arrays of lambdas
+
+class AsCls{
+	a = def () int { return 45; }
+	b = def () int { return 6267; }
+	public c = [a,b]
+}
+
+
+def doings() String {
+	funcs = [ def () int { return 67; }, def () int { return 627; } ]
+	w = (funcs[0])()
+	w2 = funcs[0]() //FFS!
+	
+	a1 =  [(funcs[0])(), (funcs[1])()]
+	clz = new AsCls()
+	a2 = [(clz.c[0])(), (clz.c[1])()  ]
+	v = clz.c[0]
+	
+	return "" +  [a1,a2] + ", " + v() + ", " + w
+}
+
+~~~~~
+//##17 arrays of lambdas - check syntax err
+
+def doings() String {
+	funcs = [ def (x int) int { return 67 + x; }, def (x int) int { return 627 + (x**2); } ]//also test args
+	
+	arrayErr = funcs[0](22) //was once a syntax err
+	arrayErr2 = funcs[0](3) //was once a syntax err
+	
+	return "" + [arrayErr ,arrayErr2]
+}
+
+~~~~~
+//##18.a various curry flavour - in static meth 
+
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+
+def doings() String {
+	conventionalCurry = afuncy&(4)
+
+	gotnorm = normalIer()
+	classicRef = gotnorm&(6)
+	
+	inplaceNorm = (normalIer())&(6)
+	inplaceNorm2 = normalIer()&(6)
+	
+	arrayDef = [normalIer()]
+	fromArray1 = arrayDef[0]&(6)
+	fromArray2 = (arrayDef[0])&(6)
+	
+	inplacecur = (def (x int ) int { return x+67; })&(6)
+	inplacecur2 = def (x int ) int { return x+67; }&(6)
+	return "" +  [conventionalCurry(), classicRef(), inplaceNorm(), inplaceNorm2(), fromArray1(), fromArray2(), inplacecur(), inplacecur2() ] 
+}
+
+~~~~~
+//##18.b various curry flavour - in class method
+
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+
+class Cls{
+	def doings() String {
+		conventionalCurry = afuncy&(4)
+	
+		gotnorm = normalIer()
+		classicRef = gotnorm&(6)
+		
+		inplaceNorm = (normalIer())&(6)
+		inplaceNorm2 = normalIer()&(6)
+		
+		arrayDef = [normalIer()]
+		fromArray1 = arrayDef[0]&(6)
+		fromArray2 = (arrayDef[0])&(6)
+		
+		inplacecur = (def (x int ) int { return x+67; })&(6)
+		inplacecur2 = def (x int ) int { return x+67; }&(6)
+		return "" +  [conventionalCurry(), classicRef(), inplaceNorm(), inplaceNorm2(), fromArray1(), fromArray2(), inplacecur(), inplacecur2() ] 
+	}
+}
+def doings() String {
+	return new Cls().doings()
+}
+
+~~~~~
+//##18.c various curry flavour - calling class method
+class Cls{
+	def normalIer() (int) int{
+		return def (x int ) int { return x+67; }
+	}
+
+	def afuncy(x Integer) int{
+		return x+69
+	}
+
+	def doings() String {
+		conventionalCurry = afuncy&(4)
+	
+		gotnorm = normalIer()
+		classicRef = gotnorm&(6)
+		
+		inplaceNorm = (normalIer())&(6)
+		inplaceNorm2 = normalIer()&(6)
+		
+		arrayDef = [normalIer()]
+		fromArray1 = arrayDef[0]&(6)
+		fromArray2 = (arrayDef[0])&(6)
+		
+		inplacecur = (def (x int ) int { return x+67; })&(6)
+		inplacecur2 = def (x int ) int { return x+67; }&(6)
+		return "" +  [conventionalCurry(), classicRef(), inplaceNorm(), inplaceNorm2(), fromArray1(), fromArray2(), inplacecur(), inplacecur2() ] 
+	}
+}
+
+def doings() String {
+	return new Cls().doings()
+}
+
+
+~~~~~
+//##18.d various curry flavour - calling module level vars
+
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+
+conventionalCurry = afuncy&(4)
+
+gotnorm = normalIer()
+classicRef = gotnorm&(6)
+
+inplaceNorm = (normalIer())&(6)
+inplaceNorm2 = normalIer()&(6)
+
+arrayDef = [normalIer()]
+fromArray1 = arrayDef[0]&(6)
+fromArray2 = (arrayDef[0])&(6)
+
+inplacecur = (def (x int ) int { return x+67; })&(6)
+inplacecur2 = def (x int ) int { return x+67; }&(6)
+
+def doings() String {
+	return "" +  [conventionalCurry(), classicRef(), inplaceNorm(), inplaceNorm2(), fromArray1(), fromArray2(), inplacecur(), inplacecur2() ] 
+}
+
+~~~~~
+//##18.e various curry flavour - set vars as class fields
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+class Myclass{
+	public conventionalCurry = afuncy&(4)
+
+	public gotnorm = normalIer()
+	public classicRef = gotnorm&(6)
+	
+	public inplaceNorm = (normalIer())&(6)
+	public inplaceNorm2 = normalIer()&(6)
+	
+	public arrayDef = [normalIer()]
+	public fromArray1 = arrayDef[0]&(6)
+	public fromArray2 = (arrayDef[0])&(6)
+	
+	public inplacecur = (def (x int ) int { return x+67; })&(6)
+	public inplacecur2 = def (x int ) int { return x+67; }&(6)
+	
+	public def doings() String {
+		return "" +  [conventionalCurry(), classicRef(), inplaceNorm(), inplaceNorm2(), fromArray1(), fromArray2(), inplacecur(), inplacecur2() ] 
+	}
+}
+
+def doings2(cls Myclass) String {
+	return "" +  [cls.conventionalCurry(), cls.classicRef(), cls.inplaceNorm(), cls.inplaceNorm2(), cls.fromArray1(), cls.fromArray2(), cls.inplacecur(), cls.inplacecur2() ] 
+}
+
+def doings() String {
+	cls=new Myclass()
+	return cls.doings() + doings2(cls)
+}
+
+~~~~~
+//##18.f various curry flavour - set vars as class fields - calling local methods
+class Myclass{
+
+	def normalIer() (int) int{
+		return def (x int ) int { return x+67; }
+	}
+
+	def afuncy(x Integer) int{
+		return x+69
+	}
+
+	public conventionalCurry = afuncy&(4)
+
+	public gotnorm = normalIer()
+	public classicRef = gotnorm&(6)
+	
+	public inplaceNorm = (normalIer())&(6)
+	public inplaceNorm2 = normalIer()&(6)
+	
+	public arrayDef = [normalIer()]
+	public fromArray1 = arrayDef[0]&(6)
+	public fromArray2 = (arrayDef[0])&(6)
+	
+	public inplacecur = (def (x int ) int { return x+67; })&(6)
+	public inplacecur2 = def (x int ) int { return x+67; }&(6)
+	
+	def doings() String {
+		return "" +  [conventionalCurry(), classicRef(), inplaceNorm(), inplaceNorm2(), fromArray1(), fromArray2(), inplacecur(), inplacecur2() ] 
+	}
+}
+
+def doings2(cls Myclass) String {
+	return "" +  [cls.conventionalCurry(), cls.classicRef(), cls.inplaceNorm(), cls.inplaceNorm2(), cls.fromArray1(), cls.fromArray2(), cls.inplacecur(), cls.inplacecur2() ] 
+}
+
+def doings() String {
+	cls=new Myclass()
+	return cls.doings() + doings2(cls)
+}
+
+
+~~~~~
+//##19.a various curry flavour - in static meth -FuncRefInvoke
+
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+
+def doings() String {
+	conventionalCurry = afuncy&(4)()
+
+	gotnorm = normalIer()
+	classicRef = gotnorm&(6)()
+	
+	inplaceNorm = (normalIer())&(6)()
+	inplaceNorm2 = normalIer()&(6)()
+	
+	arrayDef = [normalIer()]
+	fromArray1 = arrayDef[0]&(6)()
+	fromArray2 = (arrayDef[0])&(6)()
+	
+	inplacecur = (def (x int ) int { return x+67; })&(6)()
+	inplacecur2 = def (x int ) int { return x+67; }&(6)()
+	return "" +  [conventionalCurry, classicRef, inplaceNorm, inplaceNorm2, fromArray1, fromArray2, inplacecur, inplacecur2 ] 
+}
+
+~~~~~
+//##19.b various curry flavour - in class method -FuncRefInvoke
+
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+
+class Cls{
+	def doings() String {
+		conventionalCurry = afuncy&(4)()
+	
+		gotnorm = normalIer()
+		classicRef = gotnorm&(6)()
+		
+		inplaceNorm = (normalIer())&(6)()
+		inplaceNorm2 = normalIer()&(6)()
+		
+		arrayDef = [normalIer()]
+		fromArray1 = arrayDef[0]&(6)()
+		fromArray2 = (arrayDef[0])&(6)()
+		
+		inplacecur = (def (x int ) int { return x+67; })&(6)()
+		inplacecur2 = def (x int ) int { return x+67; }&(6)()
+		return "" +  [conventionalCurry, classicRef, inplaceNorm, inplaceNorm2, fromArray1, fromArray2, inplacecur, inplacecur2 ] 
+	}
+}
+def doings() String {
+	return new Cls().doings()
+}
+
+~~~~~
+//##19.c various curry flavour - calling class method -FuncRefInvoke
+class Cls{
+	def normalIer() (int) int{
+		return def (x int ) int { return x+67; }
+	}
+
+	def afuncy(x Integer) int{
+		return x+69
+	}
+
+	def doings() String {
+		conventionalCurry = afuncy&(4)()
+	
+		gotnorm = normalIer()
+		classicRef = gotnorm&(6)()
+		
+		inplaceNorm = (normalIer())&(6)()
+		inplaceNorm2 = normalIer()&(6)()
+		
+		arrayDef = [normalIer()]
+		fromArray1 = arrayDef[0]&(6)()
+		fromArray2 = (arrayDef[0])&(6)()
+		
+		inplacecur = (def (x int ) int { return x+67; })&(6)()
+		inplacecur2 = def (x int ) int { return x+67; }&(6)()
+		return "" +  [conventionalCurry, classicRef, inplaceNorm, inplaceNorm2, fromArray1, fromArray2, inplacecur, inplacecur2 ] 
+	}
+}
+
+def doings() String {
+	return new Cls().doings()
+}
+
+
+~~~~~
+//##19.d various curry flavour - calling module level vars -FuncRefInvoke
+
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+
+conventionalCurry = afuncy&(4)()
+
+gotnorm = normalIer()
+classicRef = gotnorm&(6)()
+
+inplaceNorm = (normalIer())&(6)()
+inplaceNorm2 = normalIer()&(6)()
+
+arrayDef = [normalIer()]
+fromArray1 = arrayDef[0]&(6)()
+fromArray2 = (arrayDef[0])&(6)()
+
+inplacecur = (def (x int ) int { return x+67; })&(6)()
+inplacecur2 = def (x int ) int { return x+67; }&(6)()
+
+def doings() String {
+	return "" +  [conventionalCurry, classicRef, inplaceNorm, inplaceNorm2, fromArray1, fromArray2, inplacecur, inplacecur2 ] 
+}
+
+~~~~~
+//##19.e various curry flavour - set vars as class fields -FuncRefInvoke
+def normalIer() (int) int{
+	return def (x int ) int { return x+67; }
+}
+
+def afuncy(x Integer) int{
+	return x+69
+}
+class Myclass{
+	public conventionalCurry = afuncy&(4)()
+
+	public gotnorm = normalIer()
+	public classicRef = gotnorm&(6)()
+	
+	public inplaceNorm = (normalIer())&(6)()
+	public inplaceNorm2 = normalIer()&(6)()
+	
+	public arrayDef = [normalIer()]
+	public fromArray1 = arrayDef[0]&(6)()
+	public fromArray2 = (arrayDef[0])&(6)()
+	
+	public inplacecur = (def (x int ) int { return x+67; })&(6)()
+	public inplacecur2 = def (x int ) int { return x+67; }&(6)()
+	
+	def doings() String {
+		return "" +  [conventionalCurry, classicRef, inplaceNorm, inplaceNorm2, fromArray1, fromArray2, inplacecur, inplacecur2 ] 
+	}
+}
+
+def doings2(cls Myclass) String {
+	return "" +  [cls.conventionalCurry, cls.classicRef, cls.inplaceNorm, cls.inplaceNorm2, cls.fromArray1, cls.fromArray2, cls.inplacecur, cls.inplacecur2 ] 
+}
+
+def doings() String {
+	cls=new Myclass()
+	return cls.doings() + doings2(cls)
+}
+
+~~~~~
+//##19.f various curry flavour - set vars as class fields - calling local methods -FuncRefInvoke
+class Myclass{
+
+	def normalIer() (int) int{
+		return def (x int ) int { return x+67; }
+	}
+
+	def afuncy(x Integer) int{
+		return x+69
+	}
+
+	public conventionalCurry = afuncy&(4)()
+
+	public gotnorm = normalIer()
+	public classicRef = gotnorm&(6)()
+	
+	public inplaceNorm = (normalIer())&(6)()
+	public inplaceNorm2 = normalIer()&(6)()
+	
+	public arrayDef = [normalIer()]
+	public fromArray1 = arrayDef[0]&(6)()
+	public fromArray2 = (arrayDef[0])&(6)()
+	
+	public inplacecur = (def (x int ) int { return x+67; })&(6)()
+	public inplacecur2 = def (x int ) int { return x+67; }&(6)()
+	
+	def doings() String {
+		return "" +  [conventionalCurry, classicRef, inplaceNorm, inplaceNorm2, fromArray1, fromArray2, inplacecur, inplacecur2 ] 
+	}
+}
+
+def doings2(cls Myclass) String {
+	return "" +  [cls.conventionalCurry, cls.classicRef, cls.inplaceNorm, cls.inplaceNorm2, cls.fromArray1, cls.fromArray2, cls.inplacecur, cls.inplacecur2 ] 
+}
+
+def doings() String {
+	cls=new Myclass()
+	return cls.doings() + doings2(cls)
+}
+
+~~~~~
+//##20. getter setter mapping a
+
+class MyClass{
+	public ~funcTo = def (a int, b int, c int) int{  return a+b+c; }
+}
+
+def doings() String{
+	myCls = new MyClass()
+	waz = [myCls.funcTo(2,3,4), myCls\.funcTo(2,3,4)]
+	myCls.funcTo = def (a int, b int, c int) int{  return (a+b+c)*2; }
+	return "" + [waz, [myCls.funcTo(2,3,4), myCls\.funcTo(2,3,4)]]
+}
+
+~~~~~
+//##20. getter setter mapping b
+
+class MyClass{
+	public funcTo = def (a int, b int, c int) int{  return a+b+c; }
+	public functoGetCnt = 0
+	public 	functoSetCnt = 0
+	
+	def getFuncTo() ( int,  int,  int) int {
+		functoGetCnt += 1
+		return this.funcTo
+	}
+	
+	def setFuncTo(newFuncto ( int,  int,  int) int)  {
+		functoSetCnt += 1
+		this.funcTo = newFuncto
+	}
+}
+
+def doings() String{
+	myCls = new MyClass()
+	waz = [myCls.funcTo(2,3,4), myCls\.funcTo(2,3,4)]
+	myCls.funcTo = def (a int, b int, c int) int{  return (a+b+c)*2; }
+	return "" + [waz, [myCls.funcTo(2,3,4), myCls\.funcTo(2,3,4)]] + "" + [myCls.functoGetCnt, myCls.functoSetCnt ]
+}
+
+
+~~~~~
+//##21.a simple nested class stuff
+class Master{
+	parentInt = 99
+	public class MyClass{
+		public funcTo = def (a int, b int, c int) int{  return a+b+c + parentInt; }
+		def normFunc(a int) double { return (a**2 )+ parentInt;}
+	}
+}
+
+def doings() String{
+	myCls = new Master().new MyClass()
+	
+	return "" + [myCls.funcTo(2,3,4), myCls.normFunc&(7)()]
+}
+
+~~~~~
+//##21.b advanced nested class stuff
+class Master{
+	parentInt = 99
+	def parFunc(x int, y int, d int) int { return x/2 + parentInt +y + d;}
+	public class MyClass{
+		myI = 5;
+		def childF(x int) (int) int { return parFunc&(x, 12 + myI, ? int);}
+	}
+}
+
+
+def doings() String{
+	myCls = new Master().new MyClass()
+	
+	xxx = myCls.childF(2)(5)
+	
+	return "" + xxx
+}
+
+~~~~~
+//##22.a lambda of a lambda
+
+from java.util import ArrayList
+
+y = new ArrayList<String>();
+y.add("hi mate")
+z = "helloo there"
+
+def normalFunc(a ArrayList<String>) String { return ""+a;}
+
+def normalFunc(a String) String { return ""+a;}
+
+def doings() String {
+	aLambda = normalFunc&(? String)
+	anotherLambda1 = aLambda&(z)
+	
+	anotherLambda2 = normalFunc&(? String)&(z)
+
+	aLambdaTricky = normalFunc&(? ArrayList<String>)
+	anotherLambda3 = aLambdaTricky&(y)
+	
+	anotherLambda4 = normalFunc&(? ArrayList<String>)&(y)
+	
+	return "" + [anotherLambda1(), anotherLambda2(), anotherLambda3(), anotherLambda4()]
+}
+
+~~~~~
+//##22.b lambda of a lambda
+from java.util import ArrayList
+
+def aaa(a String) String { return ""+a;}
+def aaa(a ArrayList<String>) String { return ""+a;}
+
+def doings() String {
+	x = "hi"
+	y = new ArrayList<String>();
+	y.add("haisd")
+	functola  = aaa&(? String)
+	functola2 = aaa&(x)
+	functola3 = aaa&(? ArrayList<String>)
+	functola4 = aaa&(? ArrayList<String>)&(y)
+	return "" + [functola("hi"), functola2(), functola3(y), functola4()   ]
+}
+
+~~~~~
+//##23. funcrefs on generics, yes!
+
+class MyCls<XXX>{
+	public masterSimple = def (a XXX) XXX { return a; }
+	
+	def aFunc(ina XXX) XXX{
+		return ina
+	}
+	
+	def giveFref() (XXX) XXX{
+		return aFunc&(? XXX)
+	}
+}
+
+def doings() String {
+	cls = new MyCls<String>()
+	norm = cls.aFunc("")
+	a = cls.masterSimple("hi 1")
+	b = cls.aFunc&(? String)("hi 2")
+	c = cls.aFunc&("hi 3")()
+	d = cls.giveFref()("hi 4")
+	formalName (String) String = cls.giveFref()
+	d2 = formalName("hi 4")
+	
+	return "" + [a,b,c,d, d2]
+}
+
+~~~~~
+//##24. functions returning void
+
+y = 9
+def funto(x int ) {  y += x }
+
+def doings() String {
+	funto&(? int)(6)
+	//a = funto&(? int)(6) //- syntax err
+	return "" + y
+}
+
+
+~~~~~
+//##25. zero arg funcref
+def funto() () int{
+	return def () int { return 7;}
+}
+
+def doings() String {
+	b = funto()
+	return "" + b()
+}
+
+~~~~~
+//##26. a big chain
+
+def inner2(z int) int {
+	return z+1
+}
+
+def inner(y int) () int {
+	return inner2&(y)
+}
+
+def funto(x int ) () int {
+	return inner(12)&()
+}
+
+def doings() String {
+	b = funto(5)()
+	return "" + b
+}
+
+~~~~~
+//##27. two ways of expresing void, ugh
+
+cool = 0
+
+def fvoid1(a int){
+	cool +=a
+}
+
+def doings() String{
+	v1 (int) void = fvoid1&(? int)
+	//v2 (int)  = fvoid1&(int) - this syntax would be beter but i dunno how to do it
+	v1(12)
+	//v2(12) -:(
+	return "" + cool 
+}
+
+~~~~~
+//##28. child class calling parent class funcrefs lambda creation
+
+open class Parent{
+	public lam = def (x int) int { return x*2; }
+	def norm(x int) int { return x*2; }
+	public lam2 = norm&(? int)
+}
+
+class Child extends Parent{
+
+	def inme(x int) int{
+		return lam(x) + norm(x) + lam2(x)
+	}
+	
+	def refPar1() (int) int{
+		return lam&(? int)
+	}
+
+	
+	def refPar2() (int) int{
+		return norm&(? int)
+	}
+	
+	
+	def refPar3() (int) int{
+		return lam2&(? int)
+	}
+}
+
+def outsideMe(c Child, x int) int {
+	return c.lam(x) + c.norm(x) + c.lam2(x)
+}
+
+
+def doings() String {
+	chil = new Child()
+	x=12
+	a = outsideMe(chil, x)
+	b = chil.inme(x)
+	c = chil.lam(x) + chil.norm(x) + chil.lam2(x)
+	d = chil.refPar1()(x) +  chil.refPar3()(x) + chil.refPar2()(x)
+	return "" +[a,b, c, d]
+}
+
+~~~~~
+//##30. SATTtests - 1
+
+masterSimple = def (a int, b int, c int) int { return a+b+c; }
+child (int, int) int = masterSimple&(? int, 66, ? int)
+child2 () int = child&(2,3)
+childweirdo (int, int, int) int = masterSimple&(? int, ? int, ? int)
+childweirdo2 (int, int, int) int = masterSimple&(? int, ? int, ? int)
+
+masterNoArg = def () double { return 4.3; }
+noChilldArg () double = masterNoArg&()
+
+noChilldArgarr (() double) [] = [masterNoArg&()  masterNoArg&()  masterNoArg&()]
+
+
+def doings() String {
+	a1 = masterSimple(1,2,3)
+	a2 = child(1,2)
+	a3 = child2()
+	a4 = childweirdo(1,2,3)
+	a5 = childweirdo2(1,2,3)
+	a6 = masterNoArg()
+	a7 = noChilldArg()
+	a8 = noChilldArgarr[0]()
+	
+	return "" + [a1,a2,a3,a4,a5,a6,a7,a8]
+}
+
+~~~~~
+//##30. SATTtests - 2
+
+x = 23
+def something(a int, b int) int { return (a+b)*x}
+
+class Checker{
+	def getter1() (int) int{
+		return something&(? int, 5)
+	}
+	
+	def getter2() (int) Integer{
+		return something&(? int, 5)
+	}
+	
+	def getter3() () int{
+		return something&(4, 5)
+	}
+	
+	def getter4() () Integer{
+		return something&(4, 5)
+	}
+}
+
+def getter1() (int) int{
+	return something&(? int, 5)
+}
+
+def getter2() (int) Integer{
+	return something&(? int, 5)
+}
+
+def getter3() () int{
+	return something&(4, 5)
+}
+
+def getter4() () Integer{
+	return something&(4, 5)
+}
+
+
+def doings() String {
+	c1 = new Checker().getter1()
+	c2 = new Checker().getter2()
+	c3 = new Checker().getter3()
+	c4 = new Checker().getter4()
+	
+	d1 = getter1()
+	d2 = getter2()
+	d3 = getter3()
+	d4 = getter4()
+		
+	return "" + [ c1(2), c2(3), c3(), c4() ] + [ d1(2), d2(3), d3(), d4() ]
+}
+
+
+~~~~~
+//##30. SATTtests - 3
+
+s = "";
+funcRef (float) String = s.valueOf&(? float)
+res  String = funcRef(5.6f)
+
+
+class Child{
+	def aFun() int { return 66; }
+	def funRefRet() () int { return aFun&() }
+}
+
+def doings() String {
+	child = new Child()
+	return "" + [child.funRefRet()(), res]
+}
+
+~~~~~
+//##30. SATTtests - 4
+
+a  = def (a int) int { return a**a as int; }
+b lambda = a as lambda
+c (int) int = b as (int) int
+xx = "" + c(8)
+
+
+fff = def (a int) int { return a**a as int; }
+namedFFF (int) int  = def (a int) int { return a**a as int; }
+
+def doings() String{
+	a lambda = def (a int) int { return a**a as int; }
+	b lambda = a as lambda
+	co (int) int = b as (int) int
+	
+	return "" + [fff(9), namedFFF(9), co(8), xx]
+}
+
+~~~~~
+//##30. SATTtests - 5
+
+x (String) void = def (x String) void {  } //OK, - note cannot be a subtype. TODO: when proper generics do ? < String etc
+x  = def (x String)  {  } //OK, as subtype
+
+some3 ((int) double) [] = [def (x int) double { return x;}  def (x int) double { return x;}  def (x int) double { return 55;} ]
+
+open class Gen<X>(~x X){}
+class Chil(f (double) float ) extends Gen< (double) float >(f) {}
+
+child = new Chil( def ( x double) float { return 4.5f;});
+ff (double) float = child.getX();
+
+fun1 = def (a int) int { return a**a as int; }
+def fun2(a int, d double) int { return a*a as int;}
+something = fun1&(6)
+something2 = fun2&(6, ? double)//TODO: really shoulnt need to define this when there is only one and there is no ambigiuity at all
+
+def doings() String{
+	x("")
+	a = ff(2.0)
+	b = "" + [something(), something2(1.0)]
+	
+	return "" + [a,b]
+}
+
+~~~~~
+//##30. SATTtests - 6
+
+masterchain (int, int, int) int = def (x int, y int, z int) int { return x+y+z; }
+
+xxx int = 0;//ugh
+
+{//JPT: really need to make blocks able to return stuff
+	child () int = masterchain&(1,? int, ? int)&(2,? int)&(3)
+	xxx = child()
+}
+
+
+def top(x int) double { return x+6.0; } 
+
+def ff( top (int) int ) int
+{
+	res int = top(6)//takes arg
+	return res
+}
+
+class HasTop
+{
+	def top(x int) boolean { return false; } 
+
+	def ff(  ) boolean
+	{
+		res boolean = top(6) //takes class def
+		return res
+	}
+}
+
+def doings() String{
+	a1 = xxx
+	a2 = ff(def (a int) int { return a**2 as int})
+	a3 = new HasTop().ff()
+
+	return "" + [a1,a2] + [a3,]
+}
+
+~~~~~
+//##30. SATTtests - 7
+//ensure that func repoint works ok even with no subsequent caling of the function
+class Nestor{
+
+	~foo ((int) int)?;
+}
+
+def doings() String {
+	nest = new Nestor()
+	nest.foo = def (a int) int { return a*10 }
+	return "its ok"
+} 
+
+
+~~~~~
+//##30. SATTtests - 8
+class Nestor{
+
+	public ~foo ((int) int)?;
+
+	public class Neste
+	{
+		def doing() int
+		{
+			got int = foo&(? int)(5)
+			return got
+		}
+	}	
+}
+
+class Child{
+	def adef () int { return 66; }
+	def funRefRet() () int { return adef&() }
+}
+
+def doings() String {
+	nest = new Nestor()
+	neste = nest.new  Neste()
+	
+	nest\.foo = def (a int) int { return a*10 } 
+	a1 = neste.doing()
+	
+	nest.foo = def (a int) int { return a*10 } 
+	a2 = neste.doing()
+	
+	child = new Child()
+	b = child.funRefRet()()
+	
+	return "" + [a1, a2,  b] 
+}
+
+~~~~~
+//##30. SATTtests - 9
+class Cls<X> {
+	~ss ((X, int) X)?
+}
+
+def doings() String{
+	my = new Cls<String>()
+	my.ss = def (xx String, x int) String { return xx + "" + x; }
+	return "" + my.ss("one", 2)
+}
+
+
+~~~~~
+//##30. SATTtests - 10 - can u map a generical lambda exp
+class Nice<X>(~ff X){
+}
+
+def doings() String{
+	nice = new Nice<(int) int>(def (a int) int{ return a+2; })
+	return "" +[nice.ff(1), nice.ff(2)]	
+}
+
+~~~~~
+//##31. Functions where u need to cast away from lambda
+
+hhh = 99
+inca = 9
+
+ff lambda = def () int{ hhh++; return 22; }
+xxx lambda = def () { inca++; }
+
+def doings() String{
+	(ff as (() String))()
+	reso = (ff as (() int))()
+	(xxx as (() String))()  //xxx()
+	
+	return "" + [reso, hhh, inca]
+}
+
+
+~~~~~
+//##32. elif bug doesnt belong here meh
+xxx = 0
+def elsa() => true
+def justOnce() void{
+	if(elsa()){		xxx++;	} //have to declaire void else ambig
+	elif(elsa()){		xxx++;	}
+}
+
+def doings() String{
+	justOnce()
+	return "" + xxx
+}
+
+~~~~~
+//##33. lambda func genneral call stuff
+a1 = 0
+a2 = 0
+a3 = 0
+
+f1 lambda = def () int{ a1++; return 22; }
+f2 lambda = def () { a2++; }
+
+def enactor(l lambda) {
+	if(l is lambda){ 
+		a = l as lambda 
+		if(l is () void){
+			(l as () void)()
+		}
+		elif(l is () int){
+			(l as () int)()
+		}
+	}
+}
+
+def enactor(l () int){
+	a3++
+}
+
+def doings() String{
+	enactor(f1)
+	enactor(f2)
+	enactor(f1 as () int)
+	enactor(f1 as () int)
+	return "" + [ a1, a2, a3]
+}
+
+
+~~~~~
+//##34. lambda field assignment and deassignment
+class Gen<X>(public ~x X) {}
+
+def doings() String{
+	mine = new Gen<(int) String>(def (s int) String { return ""+s*2;} )
+	
+	def itera() String{//eat ur own dogfood
+		access1 = mine.getX()(4)
+		access2 = mine.x(4)
+		access3 = mine\.x(4)//JPT to get this to work i had to introduct some MHA into FuncInvoke with the CHECKCAST copy past code (sorry!)
+		return  "" +  [access1, access2, access3]
+	}
+
+	one = itera()
+
+	mine.setX( def (s int) String { return ""+s*4;} )
+	one += itera()
+	mine.x =  def (s int) String { return ""+s*6;} 
+	one += itera()
+	mine\.x =  def (s int) String { return ""+s*8;} 
+	one += itera()
+	
+	return "" + one
+}
+
+~~~~~
+//##35. misc cases
+
+a lambda = def (a int) int { return a**a as int; }
+b = a as lambda
+c (int) int = b as (int) int
+cFails (int) int = b as (int) int //this should be alright
+z = b as Object
+z2 = (b as Object) as (int) double
+y = z as lambda
+x = c as Function1<Integer, int>
+j = "" + c(3)
+//j3 = "" + cFails(4) //should be alright
+//j2 = "" + x(3) //cannot do Double to Integer at the moment
+
+def doings() => j
+
+~~~~~
+//##36. lambdas ret void
+
+f1 = ""
+
+x1 (String) void = def (x String) void { f1+="one" }
+x2 com.concurnas.bootstrap.lang.Lambda.Function1v<String> = def (x String) void { f1+="two" }
+
+def doings(){
+	x1("")
+	x2("")
+	"{f1}"
+}
+
+~~~~~
+//##37. funcref void ret
+
+f1 = ""
+
+def xx(x String) void { f1+="one" }
+
+x1 (String) void = xx&
+x2 com.concurnas.bootstrap.lang.Lambda.Function1v<String> = xx&
+
+def doings(){
+	x1("")
+	x2("")
+	"{f1}"
+}

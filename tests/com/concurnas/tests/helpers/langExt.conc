@@ -1,0 +1,187 @@
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class MyHiLang ~ LanguageExtension{
+	line int
+	col int
+	location SourceLocation?
+	source String?
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.line = line
+		this.col = col
+		this.location = location
+		this.source = source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		x={"'hello world: {line, col, location, source}'"}!
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), x)
+	}
+}
+
+class SimpleLang ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "'hello world'")
+	}
+}
+
+class InvalidCodeOutput ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "s><s")
+	}
+}
+
+class ThrowsExceptionInit ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+		throw new Exception("unexpected in init")
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "2+1")
+	}
+}
+
+class ThrowsExceptionIer ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		throw new Exception("unexpected in iterate")
+	}
+}
+
+
+class NoZeoArg(a int) ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "")
+	}
+}
+
+class NoZeoArgPriv ~ LanguageExtension{
+	private this(){
+		
+	}
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "")
+	}
+}
+
+class RetNothing ~ LanguageExtension{
+	
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "")
+	}
+}
+
+class Normal
+
+class ClassExplorer ~ LanguageExtension{
+	
+	source List<String> = new ArrayList<String>();
+	line int
+	col int
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.line = line
+		this.col = col
+		this.source =  for(item in source.split(" ")){
+			item.trim()
+		}
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'"
+		for( inst in source ){
+			cls = ctx.getclass(inst)
+			if(cls){
+				fields = sorted("{f.name, f.type}" for f in cls.getFields())
+				methds = sorted("{m.name}" for m in cls.getMethods())
+				cons = sorted("const" for cons in cls.getConstructors())
+				clses = sorted("{c.name}" for c in cls.getNestedClasses())
+				ret += "{cls.name}: {cons}, {fields}, {methds}, {clses}"
+			}else{
+				errors.add(new ErrorOrWarning(line, col, "missing class: {inst}"))
+			}
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+}
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			if(loc is com.concurnas.lang.LangExt.Class){
+				ret += (loc as com.concurnas.lang.LangExt.Class).name
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				ret += (loc as com.concurnas.lang.LangExt.Method).name
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+}
+
+
+
+class VarMaker  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		ret="xx = 12"
+		
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), ret)
+	}
+}

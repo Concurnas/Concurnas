@@ -1,0 +1,99 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Datautils]{Datautils}
+
+Concurnas includes a number of commonly used data related utility typedefs and functions which can be used to make writing programs using the common data structures: list, map and set easier and more succinct. These are defined in: \lstinline{com.concurnas.lang.datautils} and \textbf{are automatically imported}. Most of these data related utility functions are generic and so we're able to take advantage of Concurnases advanced usage based type inference functionality to enable us to write concise programs where this generic type information can largely be omitted and left to the compiler to infer.
+
+\section{Lists}
+The \lstinline{list} functions and typedefs defined within \lstinline{datautils} create instances of \lstinline{java.util.ArrayList}
+
+\begin{lstlisting}
+alist list = list()//generic type infered as Integer
+alist.add([1 2 3]^)
+//alist is equvilent to: [1,2,3]
+
+another = list<String>()//generic type information provided
+\end{lstlisting}
+
+\section{Sets}
+The \lstinline{set} functions and typedefs defined within \lstinline{datautils} create instances of \lstinline{java.util.HashSet}
+
+\begin{lstlisting}
+aset set = set()//generic type infered as Integer
+aset.add([1 2 3]^)
+
+another = set<String>()//generic type information provided
+\end{lstlisting}
+
+\section{Maps}
+The \lstinline{map} functions and typedefs defined within \lstinline{datautils} create instances of \lstinline{java.util.HashMap}. The map function may consume a lambda which can be used in order to to populate the map with a default value for missing keys.
+
+\begin{lstlisting}
+amap map = map()//generic type infered as String, Integer
+amap["auspicious"] = 108
+//amap is equvilent to: {"auspicious" -> 108}
+
+another = map<String, Integer>()//generic type information provided
+
+counter = map(a => 0)//with default value mapping
+counter[0]++
+counter[0]++
+counter[10]++
+
+//counter == {0 -> 2, 10 -> 1}
+\end{lstlisting}
+
+\section{Other utilities}
+Concurnas offers a few basic utilities for working with collections of data, these basic utilities are often used as the basis of more complex and specific data related algorithms.
+
+\subsection{Sorted}
+The \lstinline{sorted} function may be used to sort an ordered collection (e.g. a list) in place or as a copy. It can consume an optional comparator - itself a SAM class thus permitting the definition of a lambda in its place:
+
+\begin{lstlisting}
+xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+xyz2 = xyz1@//deep copy of xyz1
+xyz3 = xyz1@
+xyz4 = xyz1@
+
+xyz1sorted = sorted(xyz1)
+
+sorted(xyz2, inplace=true)
+
+xyz3reversed = sorted(xyz3, java.util.Collections.reverseOrder())
+xyz4reversed = sorted(xyz4, (o1 , o2) => o2-o1)
+\end{lstlisting}
+
+\subsection{Reversed}
+The \lstinline{reversed} function reverses an ordered collection and can act in place or return a copy of the input collection:
+
+\begin{lstlisting}
+xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+xyz2 = xyz1@//deep copy of xyz1
+
+xyz1reversed = reversed(xyz1)
+reversed(xyz2, inplace=true)
+\end{lstlisting}
+
+\subsection{Enumerations}
+The \lstinline{enumerate} function adds counter to a \lstinline{java.lang.Iterable<X>} instance object (including lists, sets, ranges etc) and returns it as a list of tuples. The returned type is: \lstinline{java.util.List<(Integer, X)}.
+
+\begin{lstlisting}
+mylist=[1, 2, 400, 4, 5]
+
+res = enumerate(mylist)
+//res == [(0, 1), (1, 2), (2, 400), (3, 4), (4, 5)]
+\end{lstlisting}
+
+\subsection{Zips}
+The \lstinline{zip} function creates a \lstinline{java.lang.List<(X, ..., X)>} of n dimensional tuples from the provided n \lstinline{java.lang.List<X>} instances. The i-th tuple contains the i-th element from each of the input arguments. The length of the returned list equals the length of the first input argument list. The \lstinline{zip} function may consume up to 10 input arguments.
+
+\begin{lstlisting}
+x = zip([1, 2, 3, 4], [4, 3, 2, 1])
+y = zip([1, 2, 3, 4], [4, 3, 2, 1],[4, 3, 2, 1],[4, 3, 2, 1] )
+
+//x == [(1, 4), (2, 3), (3, 2), (4, 1)]
+//y == [(1, 4, 4, 4), (2, 3, 3, 3), (3, 2, 2, 2), (4, 1, 1, 1)]
+\end{lstlisting}
+
+\end{document}

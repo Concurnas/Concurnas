@@ -1,0 +1,127 @@
+//##1. basic with
+
+class Person(~age int){
+	name String?
+	public favColor String?
+	
+	def myFunc(a String){
+		name = a
+	}
+	
+	override toString() =>"{name}: {age} : {favColor}"
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def doings(){
+	pp = Person(31)
+	
+	with(pp){
+		myFunc("dave")
+		age = 45
+		favColor = "blue"
+	}
+	
+	"" + pp
+}
+
+
+~~~~~
+//##2. basic with return
+
+class Person(~age int){
+	name String?
+	public favColor String?
+	
+	def myFunc(a String){
+		name = a
+	}
+	
+	override toString() =>"{name}: {age} : {favColor}"
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+
+def doings(){
+	pp = Person(31)
+	
+	what = with(pp){
+		myFunc("dave")
+		age = 45
+		favColor = "blue"
+		53
+	}
+	
+	"" + [pp, what]
+}
+
+~~~~~
+//##3. nested with
+
+class Person(~age int){
+	name String?
+	public favColor String?
+	
+	def myFunc(a String){
+		name = a
+	}
+	
+	override toString() =>"{name}: {age} : {favColor}"
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+class Another(){
+	def item() => 'another item'
+}
+
+def doings(){
+	pp = Person(31)
+	aan = Another()
+	
+	
+	what = with(pp){
+		with(aan){
+			myFunc("dave")
+			age = 45
+			favColor = "blue"
+			aan.item()
+		}
+	}
+	
+	"" + [pp, what]
+}
+
+~~~~~
+//##4. cool
+
+enum Color{ Blue, Green, Yellow }
+
+class Record(-age int, -friendcnt int, -name String, -favColor Color){
+	override toString() => "{age}, {friendcnt}, {name}, {favColor}" 
+}
+
+def doings() {
+	"" + with(new Record(2, 3, "Dave", Color.Blue)){ age }
+}
+
+~~~~~
+//##5. bugfix redirection of block only
+
+trait IndAncDec{
+	-count int
+	-countdown int =0
+	def inc() => ++count + countdown
+	def dec() => --countdown + count
+}
+
+def doings(){
+	"" + with(new IndAncDec{ //this used to be being redirected, it should not, only the block should
+		override count = 0
+	}){ inc(), inc(), dec(), count, countdown }
+}
+ 
+

@@ -1,0 +1,2376 @@
+//##1. big ArrayTest
+
+/*
+define test cases
+1d, 2d, 2d->1d, 2d->2d, combined arr 2d, seperate 2d
+reference (to fmt string)
+assignment straight, diff type with cast, special ops(+=, -=, *=, **=)
+*/
+
+def doings1() 
+{ 
+	res = ""
+
+	ar1d = [1 2 3 4 5 6 7]
+	ar2d = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	r1d = ar1d[0]
+	r2d = ar2d[0][1]
+	r2dc = ar2d[0, 1]
+	
+	res += r1d + "\n"
+	res += r2d + "\n"
+	res += r2dc + "\n"
+	
+	conv1 = [1 2 4 5.]
+	
+	res += conv1 + "\n"
+	r1drange = ar1d[0 ... 4]
+	res += r1drange + "\n"
+	
+	ar1dToAss1 = [1 2 3 4 5 6 7]
+	ar2dToAss1 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss1c = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss1[0] = 99
+	ar2dToAss1[0][1] = 99
+	ar2dToAss1c[0, 1] = 99
+	
+	res += ar1dToAss1 + "\n"
+	res += ar2dToAss1 + "\n"
+	res += ar2dToAss1c + "\n"
+	
+	res
+}
+
+
+def doings2(){
+	res = ""
+	
+	ar1dToAss2 = [1 2 3 4 5 6 7]
+	ar2dToAss2 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss2c = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss7v2 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss2[0] += 99
+	ar2dToAss2[0][1] += 99
+	ar2dToAss2c[0, 1] += 99
+	ar2dToAss7v2[1]= [44 55 66 77]
+	
+	res += ar1dToAss2 + "\n"
+	res += ar2dToAss2 + "\n"
+	res += ar2dToAss2c + "\n"
+	res += ar2dToAss7v2 + "\n"
+	
+	ar1dToAss3 = [1 2 3 4 5 6 7]
+	ar2dToAss3 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss3c = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss3[3] **= 2
+	ar2dToAss3[0][2] **= 2
+	ar2dToAss3c[0, 2] **= 2
+	
+	res += ar1dToAss3 + "\n"
+	res += ar2dToAss3 + "\n"
+	res += ar2dToAss3c + "\n"
+
+	res
+}
+
+def doings3() { 
+	res = ""
+
+	ar1dToAss4 = [1 2 3 4 5 6 7]
+	ar2dToAss4 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss4c = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss5 = [1 2 3 4 5 6 7]
+	ar2dToAss5 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss6 = [1 2 3 4 5 6 7]
+	ar2dToAss6 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss7 = [1 2 3 4 5 6 7]
+	ar2dToAss7 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss7v = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss7v2 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss7[0 ... 3] = [99 88 77]
+	ar2dToAss7[1][0 ... 3] = [99 88 77]
+	ar2dToAss7v[1, 0 ... 3]= [99 88 77]
+	ar2dToAss7v2[1 ... 3]= [99 88 77 ; 234 5235 55]
+	
+	res += ar1dToAss7 + "\n"
+	res += ar2dToAss7 + "\n"
+	res += ar2dToAss7v + "\n"
+	res += ar2dToAss7v2 + "\n"
+	
+	res 
+}
+
+def doings4() { 
+	res = ""
+	ar1dToAss8 = [1 2 3 4 5 6 7]
+	ar2dToAss8 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss8v = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss8[4 ... ] = [99 88 77 99]
+	ar2dToAss8[1][1 ... ] = [99 88 77]
+	ar2dToAss8v[1, 1 ... ]= [99 88 77]
+	
+	ar1dToAss9 = [1 2 3 4 5 6 7]
+	ar2dToAss9 = [1 2 3 ; 1 2 3 ; 1 2 3]
+	ar2dToAss9v = [1 2 3 ; 1 2 3 ; 1 2 3]
+	
+	ar1dToAss9[ ... 4] = [99 88 77 99]
+	ar2dToAss9[1][ ... 1] = [99 88 77]
+	ar2dToAss9v[1,  ... 1]= [99 88 77]
+	
+	res += ar1dToAss8 + "\n"
+	res += ar2dToAss8 + "\n"
+	res += ar2dToAss8v + "\n"
+	
+	res += ar1dToAss9 + "\n"
+	res += ar2dToAss9 + "\n"
+	res += ar2dToAss9v + "\n"
+	
+	res
+}
+
+def doings() String
+{ 
+	res = doings1()
+	res += doings2()
+	res += doings3()
+	res += doings4()
+	
+	
+	lastOn1 = [1 2 3 4 5 6]
+	ok = lastOn1[1 ... 3]
+	
+	res += ok  + "\n"
+	
+	return res
+}
+
+
+/*
+TODO: arrays: 
+Arary sublist operations:
+2d arraycopy stuff etc
+lists araycopy
+negative numbers in array indexes and sublist operations
+
+ARRAYS:
+support for a = [[1,2,3], [1,2,3], [1,2,3]]; xxx = a[1 ... 2,1 ... 2]
+
+should be able to do this: [1,2,3] + 4, etc
+[1,2,3] + [4,5,6]
+s2[2 ... 4, 2 ... 5] = [[44,55],[66,77.]] //not only should these get cast, but u need to ensure that you set the sublist of the lhs matrix (or 3rdix, ndix etc)
+*/
+
+
+~~~~~
+//##2. big ArrayTest factor pre and postfix
+def doings1() String
+{ 
+	ones = [1 1 1 1 1 1 1 1 1 1]
+	ones2 = [1 1 1 1 1 1 1 1 1 1.]
+	ones2d = [[1 1 1 1 1 1 1 1 1 1]]
+	ones2d2 = [[1 1 1 1 1 1 1 1 1 1.]]
+	
+	ones[0]++
+	ones[1]--
+	++ones[2]
+	--ones[3]
+	
+	ones2[0]++
+	ones2[1]--
+	++ones2[2]
+	--ones2[3]
+	
+	ones2d[0][0]++
+	ones2d[0][1]--
+	++ones2d[0][2]
+	--ones2d[0][3]
+	
+	ones2d2[0][0]++
+	ones2d2[0][1]--
+	++ones2d2[0][2]
+	--ones2d2[0][3]
+	
+	str = ""
+	str += ones + "\n"	
+	str += ones2 + "\n"	
+	str += ones2d + "\n"	
+	str += ones2d2
+	
+	return str
+}
+
+def doings2() String
+{//assignment
+	ones = [1 1 1 1 1 1 1 1 1 1]
+	ones2 = [1 1 1 1 1 1 1 1 1 1.]
+	ones2d = [[1 1 1 1 1 1 1 1 1 1] ]
+	ones2d2 = [[1 1 1 1 1 1 1 1 1 1.] ]
+	
+	a1 = ones[0]++
+	a2 = ones[1]--
+	a3 = ++ones[2]
+	a4 = --ones[3]
+	
+	a5 = ones2[0]++
+	a6 = ones2[1]--
+	a7 = ++ones2[2]
+	a8 = --ones2[3]
+	
+	a9 = ones2d[0][0]++
+	a10 = ones2d[0][1]--
+	a11 = ++ones2d[0][2]
+	a12 = --ones2d[0][3]
+	
+	a13 = ones2d2[0][0]++
+	a14 = ones2d2[0][1]--
+	a15 = ++ones2d2[0][2]
+	a16 = --ones2d2[0][3]
+		
+	return "" + [a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16]
+}
+
+def doings3() String
+{//neg
+	ones = [1 1 1 1 1 1 1 1 1 1]
+	neg = -ones[1]
+	return ""+neg
+}
+
+def doings4() String
+{//misc stuff
+	ones = [1 1 1 1 1 1 1 1 1 1]
+	pigs = [99 99 99]
+	pigs[0] = --ones[0]
+	pigs[0] = ones[0]--
+	return ""+pigs
+}
+
+def doings() String
+{
+	return doings1() +  "\n~~~\n" + doings2()+  "\n~~~\n" + doings3()
+}
+
+
+~~~~~
+//##3. arrays in functions
+def dd(ax int[]) int[]
+{
+	return ax
+}
+
+def reverse(ax int[], len int) int[]
+{
+	ret = new int[len]
+	for( n = 0 ; n < len; n++)
+	{
+		ret[n] = ax[len-1-n]
+	}
+	return ret
+}
+
+def doings() String {
+	pigs = [99 99 99]
+	piglets = dd(pigs)
+	rev = reverse([1 2 3], 3)
+	
+	return "" + piglets + ":" + rev
+}
+
+~~~~~
+//##3. arrays in funcs 2 - something sexy - wow, amazing this works
+def copy(b int[], len int) int[]
+{
+	ret = new int[len]
+	for( n = 0 ; n < len; n++)
+	{
+		ret[n] = b[n]
+	}
+	return b
+}
+
+def doings() String {
+	pigs = [1 2 3]
+	
+	ycopy = ++copy(pigs, ++pigs[1])[0];
+	
+	return "" + pigs + ":" + ycopy
+}
+
+~~~~~
+//##4 array length field
+
+def doings()  {
+	a = [1 2 3]
+	"" + a.length
+}
+
+
+~~~~~
+//##5 array str assignment
+
+def doings() String {
+	oops = ["" ""]
+	oops[0] += "hi"
+	
+	oops2d  = ["" "" ; "1" ""]
+	oops2d[0] = ["2d hello"  ""]
+	oops2d[1,0] += "hi there"
+	
+	return "" + oops + oops2d
+}
+
+
+~~~~~
+//##6 acting on arraylist
+
+from java.util import ArrayList, List
+
+myList = new ArrayList<Integer>()
+for(x in [1 2 3 4 5]){
+	myList.add(x)
+}
+
+def doings() String{//nice little ninja test of modulo operator there...
+	a = "" + [myList[4], myList[5 mod myList.size() ] ]
+	b = "" + myList[1 ... 3]
+	prefix = "" + myList[ ... 3]
+	postfix = "" + myList[1 ... ]
+	return "" + [a,b, prefix, postfix]
+}
+
+
+~~~~~
+//##7 acting on arraylist ret arraylist, works ok
+
+from java.util import ArrayList, List
+
+myList = new ArrayList<ArrayList<Integer>>()
+for(y in [1,2,3,4]){
+	myLista = new ArrayList<Integer>();
+	for(x in [1,2,3,4,5]){
+		myLista.add(x+y)
+	}
+	myList.add(myLista)
+}
+
+def join(ass String[]) String {
+	xxx = ""
+	for(a in ass){
+		xxx += a + "\n"
+	}
+	return xxx
+}
+
+def doings() String{//nice little ninja test of modulo operator there...
+	justone  = "" +  myList[3]
+	onedude = "" + myList[3][1]
+	rng = ""+ myList[1 ... ]
+	return join([ ""+myList justone onedude rng] )
+}
+
+~~~~~
+//##8 use of Integer in place of int - ar const
+def doings() String{
+	a int[] = new int[new Integer(4)];
+	return  ""  + a
+}
+
+~~~~~
+//##8 use of Integer in place of int - ar ref
+
+def doings() String{//nice little ninja test of modulo operator there...
+	ax = [1 2 3 4 5 6 7 8 9 10]
+	\single = "" + ax[new Integer(1)]
+	sublist1 = "" + ax[new Integer(1) ... ]
+	sublist2 = "" + ax[ ... new Integer(5)]
+	sublist3 = "" + ax[new Integer(1) ...  new Integer(4)]
+	return  ""  + \single + sublist1 + sublist2 + sublist3
+}
+
+~~~~~
+//##8 use of Integer in place of int - list ref
+
+from java.util import ArrayList
+
+def doings() String{//nice little ninja test of modulo operator there...
+	ax = new ArrayList<String>()
+	for(s in [1,2,3,4,5,6,7,8,9,10]){
+		ax.add(""+s)
+	}
+		 
+	\single = "" + ax[new Integer(1)]
+	sublist1 = "" + ax[new Integer(1) ... ]
+	sublist2 = "" + ax[ ... new Integer(5)]
+	sublist3 = "" + ax[new Integer(1) ...  new Integer(4)]
+	return  ""  + \single + sublist1 + sublist2 + sublist3
+}
+
+~~~~~
+//##9 all the list assignment fiddles etc
+from java.util import ArrayList, List
+
+open class MyClas(n int){
+	this(){ this(10);}
+	override def toString() String{ return ""+n;}
+}
+
+class MyClasChi(n int) extends MyClas(n){ }
+
+def outsource(c List<Integer> , d List<Integer>, e List<Integer>, f List<String>, g Long[]){
+
+	c[0] -= 100 ; c[1] -= new Integer(100)
+	d[0] -= 100 ; d[1] -= new Integer(100)
+	e[1] **= 2; e[2] **= new Integer(2)
+	f[0] = "wassup"; f[1] += "hi"; f[2] += 600d; f[3] += 600; f[4] += new Float(700)
+	g[0] = 100; g[1] += 100//sneak this check in here
+
+}
+
+def doings() String{//nice little ninja test of modulo operator there...
+	arr = new ArrayList<Integer>()
+	for(s in [1 2 3 4 5 6 7 8 9 10]){
+		arr.add(s)
+	}
+	arrStr = new ArrayList<String>()
+	for(s in [1 2 3 4 5 6 7 8 9 10]){
+		arrStr.add(""+s)
+	}
+	asLongArr = new ArrayList<Long>()
+	for(s in [1 2 3 4 5 6 7 8 9 10]){
+		asLongArr.add(new Long(s))
+	}
+	
+	ax = arr.clone() as List<Integer>
+	b = arr.clone() as List<Integer>
+	c = arr.clone() as List<Integer>
+	d = arr.clone() as List<Integer>
+	e = arr.clone() as List<Integer>
+	f = arrStr.clone() as List<String>
+	g = [new Long(2) new Long(2)]//sneky check
+	h = asLongArr.clone() as List<Long>
+	
+	custObjsAr = [new MyClas()  new MyClas()  new MyClas()]
+	custObjsLi = new ArrayList<MyClas>();
+	custObjsLi.add(new MyClas()); custObjsLi.add(new MyClas()); custObjsLi.add(new MyClas())
+	
+	ax[0] = 100; ax[1] = new Integer(100)
+	b[0] += 100 ; b[1] += new Integer(100)
+	
+	outsource(c,d,e,f,g)
+	
+	startLong =  h[0] is Long; startLong2 =  h[1] is Long
+	h[0] = 100;	h[1] += 100 
+	stilllong =  h[0] is Long; stilllong2 =  h[1] is Long
+	
+	hres = "" + h + [startLong, startLong2] + [stilllong, stilllong2]
+	
+	custObjsAr[0] = new MyClas(99); custObjsAr[0] = new MyClasChi(88)
+	custObjsLi[0] = new MyClas(99);	custObjsLi[1] = new MyClasChi(88)
+	
+	custObjArAndLi = "" + custObjsAr + custObjsLi
+	
+	return  "" + [ax  b  c   d   e  f   g   hres   custObjArAndLi]
+}
+
+~~~~~
+//##10 list pre postfix operations
+from java.util import ArrayList, List
+
+def doings() String{//nice little ninja test of modulo operator there...
+	arr = new ArrayList<Integer>()
+	for(s in [1 2 3 4 5 6 7 8 9 10]){
+		arr.add(0)
+	}
+	
+	asLongArr = new ArrayList<Long>()
+	for(s in [1 2 3 4 5 6 7 8 9 10]){
+		asLongArr.add(new Long(0))
+	}
+		
+	prepostOps = arr.clone() as List<Integer>
+	prepostOpswa = arr.clone() as List<Integer>
+	prepostOpsAsLong = asLongArr.clone() as List<Long>
+	prepostOpsAsLongwa = asLongArr.clone() as List<Long>
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0]
+	--prepostOps[1]
+	prepostOps[2]++
+	prepostOps[3]--
+	
+	tk1[0] = ++prepostOpswa[2]
+	tk1[1] = --prepostOpswa[3]
+	tk1[2] = prepostOpswa[2]++
+	tk1[3] = prepostOpswa[3]--
+	
+	++prepostOpsAsLong[0]
+	--prepostOpsAsLong[1]
+	prepostOpsAsLong[2]++
+	prepostOpsAsLong[3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[2]
+	tk2longs[1] = --prepostOpsAsLongwa[3]
+	tk2longs[2] = prepostOpsAsLongwa[2]++
+	tk2longs[3] = prepostOpsAsLongwa[3]--
+	
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" \ 
+			   + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+~~~~~
+//##11 set int to long casty fun
+from java.util import ArrayList, List
+
+def doings() String{
+	ar = [1l 0l]
+	arl = [new Long(1) new Long(2)]
+	asList = new ArrayList<Long>();
+	asList.add(new Long(0))
+	asList.add(new Long(0))
+	
+	ar[0] = 5 as int
+	arl[0] = 5 as int
+	asList[0] = 5 as int
+	
+	ar[1] = new Integer(2)
+	//arl[1] = new Integer(2)
+	//asList[1] = new Integer(2) //oh, not subtype
+	
+	return "" + ar + arl + asList
+}
+
+~~~~~
+//##2d 6 acting on arraylist
+
+from java.util import ArrayList, List
+
+myLista = new ArrayList<ArrayList<Integer>>()
+myList = new ArrayList<Integer>()
+for(x in [1 2 3 4 5]){
+	myList.add(x)
+}
+myLista.add(myList)
+
+def doings() String{//nice little ninja test of modulo operator there...
+	a = "" + [myLista[0][4], myList[5 mod myLista[0].size() ] ]
+	b = "" + myLista[0][1 ... 3]
+	prefix = "" + myLista[0][ ... 3]
+	postfix = "" + myLista[0][1 ... ]
+	return "" + [a,b, prefix, postfix]
+}
+
+~~~~~
+//##2d 9 all the list assignment fiddles etc
+from java.util import ArrayList, List
+
+open class MyClas(n int){
+	this(){ this(10);}
+	override def toString() String{ return ""+n;}
+}
+
+class MyClasChi(n int) extends MyClas(n){ }
+
+def doings() String{//nice little ninja test of modulo operator there...
+
+	def getArr() ArrayList<ArrayList<Integer>> {
+		arr = new ArrayList<ArrayList<Integer>>()
+		arra = new ArrayList<Integer>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			arra.add(s)
+		} arr.add(arra)
+		
+		return arr
+	}
+	
+	def getarrStr() ArrayList<ArrayList<String>> {
+		arrStr = new ArrayList<ArrayList<String>>()
+		arrStra = new ArrayList<String>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			arrStra.add(""+s)
+		} arrStr.add(arrStra)
+		return arrStr
+	}
+	def getasLongArr() ArrayList<ArrayList<Long>>{
+		asLongArr = new ArrayList<ArrayList<Long>>()
+		asLongArra = new ArrayList<Long>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			asLongArra.add(new Long(s))
+		} asLongArr.add(asLongArra)
+		return asLongArr
+	}
+	
+	ax = getArr()
+	
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getarrStr()
+	h = getasLongArr()
+	
+	custObjsAr = [new MyClas()  new MyClas()  new MyClas()]
+	custObjsLi = new ArrayList<MyClas>();
+	custObjsLi.add(new MyClas()); custObjsLi.add(new MyClas()); custObjsLi.add(new MyClas())
+	
+	ax[0][0] = 100; ax[0][1] = new Integer(100)
+	
+	b[0][0] += 100 ; b[0][1] += new Integer(100)
+	c[0][0] -= 100 ; c[0][1] -= new Integer(100)
+	d[0][0] -= 100 ; d[0][1] -= new Integer(100)
+	e[0][1] **= 2; e[0][2] **= new Integer(2)
+	f[0][0] = "wassup"; f[0][1] += "hi"; f[0][2] += 600d; f[0][3] += 600; f[0][4] += new Float(700)
+	
+	startLong =  h[0][0] is Long; startLong2 =  h[0][1] is Long
+	h[0][0] = 100;	h[0][1] += 100 
+	stilllong =  h[0][0] is Long; stilllong2 =  h[0][1] is Long
+	
+	hres = "" + h + [startLong  startLong2] + [stilllong  stilllong2]
+	
+	return  ""  + ax + "\n" + b + "\n" + c + "\n" + d + "\n" + e + "\n" + f + "\n" + hres
+}
+
+~~~~~
+//##2d 10 list pre postfix operations
+from java.util import ArrayList, List
+
+def doings() String{//nice little ninja test of modulo operator there...
+
+	def getArr()  ArrayList<ArrayList<Integer>>{
+		ret = new ArrayList<ArrayList<Integer>>()
+		arr = new ArrayList<Integer>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			arr.add(0)
+		}ret.add(arr)
+		
+		return ret
+	}
+	
+	def getasLongArr() ArrayList<ArrayList<Long>>{
+		ret = new ArrayList<ArrayList<Long>>()
+		asLongArr = new ArrayList<Long>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			asLongArr.add(new Long(0))
+		}ret.add(asLongArr)
+		return ret
+	}
+		
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getasLongArr()
+	prepostOpsAsLongwa = getasLongArr()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0][0]
+	--prepostOps[0][1]
+	prepostOps[0][2]++
+	prepostOps[0][3]--
+	
+	tk1[0] = ++prepostOpswa[0][2]
+	tk1[1] = --prepostOpswa[0][3]
+	tk1[2] = prepostOpswa[0][2]++
+	tk1[3] = prepostOpswa[0][3]--
+	++prepostOpsAsLong[0][0]
+	--prepostOpsAsLong[0][1]
+	prepostOpsAsLong[0][2]++
+	prepostOpsAsLong[0][3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0][2]
+	tk2longs[1] = --prepostOpsAsLongwa[0][3]
+	tk2longs[2] = prepostOpsAsLongwa[0][2]++
+	tk2longs[3] = prepostOpsAsLongwa[0][3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+~~~~~
+//##12a all the array types
+from java.util import ArrayList, List
+class Child<X, Y> {}
+
+def doings() String{
+	try{
+	x=2; y=3
+	g1 = new Integer[2, 3]
+	g2 = new Integer[x,y]
+	g3 List<String>[] = new ArrayList<String>[y]
+	g4 = new ArrayList<String>(3)
+	g5 = new ArrayList<Integer>( 1 ) ;
+	
+	thisisOk  Child<float[], int[]> = new Child<float[], int[]>()
+	alsoOK    Child<Float[], Integer[]> = new Child<Float[], Integer[]>()
+	
+	g6 = new ArrayList<String[]>()
+		
+	h1 = new ArrayList<int[]>[4]  
+	h2 = new ArrayList<String[]>[4] 
+	
+	return "" + [""+g1, "\n"+g2, "\n"+g3, "\n"+g4, "\n"+g5, "\n"+g6, "\n" + h1, "\n" + h2  ]
+	  
+	}
+	catch(e ){
+		return "FAIL: " + e.getMessage()
+	} 
+}
+
+~~~~~
+//##12 array of lists
+
+from java.util import ArrayList, List
+
+myLista = [new ArrayList<ArrayList<Integer>>()]
+myList = new ArrayList<Integer>()
+{
+	for(x in [1 2 3 4 5]){
+		myList.add(x)
+	}
+	myLista[0].add(myList)
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	ax = "" + [myLista[0][0][4]  myList[5 mod myLista[0].size() ] ]
+	b = "" + myLista[0][0][1 ... 3]
+	prefix = "" + myLista[0][0][ ... 3]
+	postfix = "" + myLista[0][0][1 ... ]
+	return "" + [ax b  prefix  postfix]
+}
+
+open class MyClas(n int){
+	this(){ this(10);}
+	override def toString() String{ return ""+n;}
+}
+
+class MyClasChi(n int) extends MyClas(n){ }
+
+def assignment() String{//nice little ninja test of modulo operator there...
+
+	def getArr() ArrayList<ArrayList<Integer>>[] {
+		arr = [new ArrayList<ArrayList<Integer>>()]
+		arra = new ArrayList<Integer>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			arra.add(s)
+		} arr[0].add(arra)
+		
+		return arr
+	}
+	
+	def getarrStr() ArrayList<ArrayList<String>>[] {
+		arrStr = [new ArrayList<ArrayList<String>>()]
+		arrStra = new ArrayList<String>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			arrStra.add(""+s)
+		} arrStr[0].add(arrStra)
+		return arrStr
+	}
+	def getasLongArr() ArrayList<ArrayList<Long>>[]{
+		asLongArr = [new ArrayList<ArrayList<Long>>()]
+		asLongArra = new ArrayList<Long>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			asLongArra.add(new Long(s))
+		} asLongArr[0].add(asLongArra)
+		return asLongArr
+	}
+	
+	ax = getArr()
+	
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getarrStr()
+	h = getasLongArr()
+	
+	custObjsAr = [new MyClas()  new MyClas()  new MyClas()]
+	custObjsLi = new ArrayList<MyClas>();
+	custObjsLi.add(new MyClas()); custObjsLi.add(new MyClas()); custObjsLi.add(new MyClas())
+	
+	ax[0][0][0] = 100; ax[0][0][1] = new Integer(100)
+	b[0][0][0] += 100 ; b[0][0][1] += new Integer(100)
+	c[0][0][0] -= 100 ; c[0][0][1] -= new Integer(100)
+	d[0][0][0] -= 100 ; d[0][0][1] -= new Integer(100)
+	e[0][0][1] **= 2; e[0][0][2] **= new Integer(2)
+	f[0][0][0] = "wassup"; f[0][0][1] += "hi"; f[0][0][2] += 600d; f[0][0][3] += 600; f[0][0][4] += new Float(700)
+	
+	startLong =  h[0][0][0] is Long; startLong2 =  h[0][0][1] is Long
+	h[0][0][0] = 100;	h[0][0][1] += 100 
+	stilllong =  h[0][0][0] is Long; stilllong2 =  h[0][0][1] is Long
+	
+	hres = "" + h + [startLong  startLong2] + [stilllong  stilllong2]
+	
+	return  ""  + ax + "\n" + b + "\n" + c + "\n" + d + "\n" + e + "\n" + f + "\n" + hres
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+
+	def getArr()  ArrayList<ArrayList<Integer>>[]{
+		ret = [new ArrayList<ArrayList<Integer>>()]
+		arr = new ArrayList<Integer>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			arr.add(0)
+		}ret[0].add(arr)
+		
+		return ret
+	}
+	
+	def getasLongArr() ArrayList<ArrayList<Long>>[]{
+		ret = [new ArrayList<ArrayList<Long>>()]
+		asLongArr = new ArrayList<Long>()
+		for(s in [1 2 3 4 5 6 7 8 9 10]){
+			asLongArr.add(new Long(0))
+		}ret[0].add(asLongArr)
+		return ret
+	}
+		
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getasLongArr()
+	prepostOpsAsLongwa = getasLongArr()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	//a[0 ... 1] = [100  200]
+	//a[ ... 1] = [100  200]
+	//a[1 ... ] = [100  200]
+	
+	++prepostOps[0][0][0]
+	--prepostOps[0][0][1]
+	prepostOps[0][0][2]++
+	prepostOps[0][0][3]--
+	
+	tk1[0] = ++prepostOpswa[0][0][2]
+	tk1[1] = --prepostOpswa[0][0][3]
+	tk1[2] = prepostOpswa[0][0][2]++
+	tk1[3] = prepostOpswa[0][0][3]--
+	++prepostOpsAsLong[0][0][0]
+	--prepostOpsAsLong[0][0][1]
+	prepostOpsAsLong[0][0][2]++
+	prepostOpsAsLong[0][0][3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0][0][2]
+	tk2longs[1] = --prepostOpsAsLongwa[0][0][3]
+	tk2longs[2] = prepostOpsAsLongwa[0][0][2]++
+	tk2longs[3] = prepostOpsAsLongwa[0][0][3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+def doings() String{
+//array of lists
+	return "" + obtination() + "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+
+~~~~~
+//##12 list of array
+from java.util import ArrayList, List
+
+
+myLista = new ArrayList<int[2]>()
+myList = [[1 2 3 4 5]]
+{
+	myLista.add(myList)//interesting test here
+	//because the thing we're adding is a object even though it a primative
+	//because arrays are objects.... - pointers rather
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	a = "" + [""+myLista[0][0][4]   ""+myList[5 mod myLista[0].length ] ]
+	b = "" + myLista[0][0][1 ... 3]
+	prefix = "" + myLista[0][0][ ... 3]
+	postfix = "" + myLista[0][0][1 ... ]
+	return "" + [a b  prefix  postfix]
+}
+
+myLista2 = new ArrayList<Integer[2]>()
+myList2 = [[new Integer(1) new Integer(2) new Integer(3) new Integer(4) new Integer(5) ]]
+{
+	myLista2.add(myList2)//interesting test here
+	//because the thing we're adding is a object even though it a primative
+	//because arrays are objects.... - pointers rather
+}
+
+def obtination2() String{//try boxed type: Integer
+	a = "" + [""+myLista2[0][0][4]  ""+myList2[5 mod myLista2[0].length ] ]
+	b =  myLista2[0][0][1 ... 3]
+	prefix = "" + myLista2[0][0][ ... 3]
+	postfix = "" + myLista2[0][0][1 ... ]
+	return "" + [a b  prefix  postfix]
+}
+
+def getArr() ArrayList<Integer[2]> {
+	arr = new ArrayList<Integer[2]>()
+	
+	def makeIt(x int, y int, withint boolean) Integer[2] {
+		ret = new Integer[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=0
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrStr() ArrayList<String[2]> {
+	arr = new ArrayList<String[2]>()
+	
+	def makeIt(x int, y int, withint boolean) String[2] {
+		ret = new String[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=""
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrLong() ArrayList<Long[2]> {
+	arr = new ArrayList<Long[2]>()
+	
+	def makeIt(x int, y int, withint boolean) Long[2] {
+		ret = new Long[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=0
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def assignment() String{//nice little ninja test of modulo operator there...
+
+	e = getArr()
+
+	e[0][0][0] = 100; e[0][0][1] = new Integer(100)
+	
+	a = getArr()
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getArrStr()
+	
+	for(eg in [a b c d e]){ //ensure initial elements are not null
+		eg[0][0][0] = 100; eg[0][0][1] = new Integer(100)
+	}
+	
+	b[0][0][0] += 66 ; b[0][0][1] += new Integer(66)
+	c[0][0][0] -= 66 ; c[0][0][1] -= new Integer(66)
+	d[0][0][0] *= 3 ; d[0][0][1] *= new Integer(3)
+	
+	
+	e[0][0][1] **= 2; e[0][0][2] **= new Integer(2)
+	
+	
+	f[0][0][0] = "wassup"; f[0][0][1] += "hi"; f[0][0][2] += 600d; f[0][1][0] += 600; f[1][0][1] += new Float(700)
+
+	return "" + a + "\n" + b+ "\n" +c+ "\n" +d+ "\n" +e + "\n" +f
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getArrLong()
+	prepostOpsAsLongwa = getArrLong()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0][0][0]
+	--prepostOps[0][0][1]
+	prepostOps[0][0][2]++
+	prepostOps[0][0][3]--
+	
+	
+	tk1[0] = ++prepostOpswa[0][0][2]
+	tk1[1] = --prepostOpswa[0][0][3]
+	tk1[2] = prepostOpswa[0][0][2]++
+	tk1[3] = prepostOpswa[0][0][3]--
+	++prepostOpsAsLong[0][0][0]
+	--prepostOpsAsLong[0][0][1]
+	prepostOpsAsLong[0][0][2]++
+	prepostOpsAsLong[0][0][3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0][0][2]
+	tk2longs[1] = --prepostOpsAsLongwa[0][0][3]
+	tk2longs[2] = prepostOpsAsLongwa[0][0][2]++
+	tk2longs[3] = prepostOpsAsLongwa[0][0][3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+def doings() String{
+//list of arrays
+	return "" + obtination() + "\n::\n" +obtination2()+ "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+~~~~~
+//##12 list of array - with prim type
+
+from java.util import ArrayList, List
+
+myLista = new ArrayList<int[2]>()
+myList = [[1 2 3 4 5]]
+{
+	myLista.add(myList)//interesting test here
+	//because the thing we're adding is a object even though it a primative
+	//because arrays are objects.... - pointers rather
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	a = "" + [""+myLista[0][0][4]   ""+myList[5 mod myLista[0].length ] ]
+	b = "" + myLista[0][0][1 ... 3]
+	prefix = "" + myLista[0][0][ ... 3]
+	postfix = "" + myLista[0][0][1 ... ]
+	return "" + [a b  prefix  postfix]
+}
+
+myLista2 = new ArrayList<int[2]>()
+myList2 = [[1 2 3 4 5 ]]
+{
+	myLista2.add(myList2)//interesting test here
+	//because the thing we're adding is a object even though it a primative
+	//because arrays are objects.... - pointers rather
+}
+
+def obtination2() String{//try boxed type: Integer
+	a = "" + [""+myLista2[0][0][4]  ""+myList2[5 mod myLista2[0].length ] ]
+	b =  ""+ myLista2[0][0][1 ... 3]
+	prefix = "" + myLista2[0][0][ ... 3]
+	postfix = "" + myLista2[0][0][1 ... ]
+	return "" + [a b  prefix  postfix]
+}
+
+def getArr() ArrayList<int[2]> {
+	arr = new ArrayList<int[2]>()
+	
+	def makeIt(x int, y int, withint boolean) int[2] {
+		ret = new int[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=0
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrStr() ArrayList<String[2]> {
+	arr = new ArrayList<String[2]>()
+	
+	def makeIt(x int, y int, withint boolean) String[2] {
+		ret = new String[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=""
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrLong() ArrayList<long[2]> {
+	arr = new ArrayList<long[2]>()
+	
+	def makeIt(x int, y int, withint boolean) long[2] {
+		ret = new long[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=0
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def assignment() String{//nice little ninja test of modulo operator there...
+
+	e = getArr()
+
+	e[0][0][0] = 100; e[0][0][1] = new Integer(100)
+	
+	a = getArr()
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getArrStr()
+	
+	for(eg in [a b c d e]){ //ensure initial elements are not null
+		eg[0][0][0] = 100; eg[0][0][1] = new Integer(100)
+	}
+	
+	b[0][0][0] += 66 ; b[0][0][1] += new Integer(66)
+	c[0][0][0] -= 66 ; c[0][0][1] -= new Integer(66)
+	d[0][0][0] *= 3 ; d[0][0][1] *= new Integer(3)
+	
+	
+	e[0][0][1] **= 2; e[0][0][2] **= new Integer(2)
+	
+	
+	f[0][0][0] = "wassup"; f[0][0][1] += "hi"; f[0][0][2] += 600d; f[0][1][0] += 600; f[1][0][1] += new Float(700)
+
+	return "" + a + "\n" + b+ "\n" +c+ "\n" +d+ "\n" +e + "\n" +f
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getArrLong()
+	prepostOpsAsLongwa = getArrLong()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [9.9 99. 99. 99.]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0][0][0]
+	--prepostOps[0][0][1]
+	prepostOps[0][0][2]++
+	prepostOps[0][0][3]--
+	
+	
+	tk1[0] = ++prepostOpswa[0][0][2]
+	tk1[1] = --prepostOpswa[0][0][3]
+	tk1[2] = prepostOpswa[0][0][2]++
+	tk1[3] = prepostOpswa[0][0][3]--
+	++prepostOpsAsLong[0][0][0]
+	--prepostOpsAsLong[0][0][1]
+	prepostOpsAsLong[0][0][2]++
+	prepostOpsAsLong[0][0][3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0][0][2]
+	tk2longs[1] = --prepostOpsAsLongwa[0][0][3]
+	tk2longs[2] = prepostOpsAsLongwa[0][0][2]++
+	tk2longs[3] = prepostOpsAsLongwa[0][0][3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+def doings() String{
+//list of arrays
+	return "" + obtination() + "\n::\n" +obtination2()+ "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+~~~~~
+//##12 list of array - with alternative array syntax
+
+from java.util import ArrayList, List
+
+myLista = new ArrayList<int[2]>()
+myList = [[1 2 3 4 5]]
+{
+	myLista.add(myList)//interesting test here
+	//because the thing we're adding is a object even though it a primative
+	//because arrays are objects.... - pointers rather
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	a = "" + [""+myLista[0,0,4]   ""+myList[5 mod myLista[0].length ] ]
+	b = "" + myLista[0, 0, 1 ... 3]
+	prefix = "" + myLista[0, 0  ... 3]
+	postfix = "" + myLista[0, 0, 1 ... ]
+	return "" + [a b  prefix  postfix]
+}
+
+
+myLista2 = new ArrayList<int[2]>()
+myList2 = [[1 2 3 4 5 ]]
+{
+	myLista2.add(myList2)//interesting test here
+	//because the thing we're adding is a object even though it a primative
+	//because arrays are objects.... - pointers rather
+}
+
+def obtination2() String{//try boxed type: Integer
+	a = "" + [""+myLista2[0, 0, 4]  ""+myList2[5 mod myLista2[0].length ] ]
+	b =  ""+ myLista2[0, 0, 1 ... 3]
+	prefix = "" + myLista2[0, 0  ... 3]
+	postfix = "" + myLista2[0, 0, 1 ... ]
+	return "" + [a b  prefix  postfix]
+}
+
+def getArr() ArrayList<int[2]> {
+	arr = new ArrayList<int[2]>()
+	
+	def makeIt(x int, y int, withint boolean) int[2] {
+		ret = new int[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=0
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrStr() ArrayList<String[2]> {
+	arr = new ArrayList<String[2]>()
+	
+	def makeIt(x int, y int, withint boolean) String[2] {
+		ret = new String[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=""
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrLong() ArrayList<long[2]> {
+	arr = new ArrayList<long[2]>()
+	
+	def makeIt(x int, y int, withint boolean) long[2] {
+		ret = new long[x,y]
+		if(withint){
+			n=0; m=0
+			for(j in new int[x]){
+				m=0
+				for(k in new int[y]){
+					ret[n,m++]=0
+				}
+				n++
+			}
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def assignment() String{//nice little ninja test of modulo operator there...
+
+	e = getArr()
+
+	e[0,0,0] = 100; e[0,0,1] = new Integer(100)
+	
+	a = getArr()
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getArrStr()
+	
+	for(eg in [a,b,c,d,e]){ //ensure initial elements are not null
+		eg[0,0,0] = 100; eg[0,0,1] = new Integer(100)
+	}
+	
+	b[0,0,0] += 66 ; b[0,0,1] += new Integer(66)
+	c[0,0,0] -= 66 ; c[0,0,1] -= new Integer(66)
+	d[0,0,0] *= 3 ; d[0,0,1] *= new Integer(3)
+	
+	
+	e[0,0,1] **= 2; e[0,0,2] **= new Integer(2)
+	
+	
+	f[0,0,0] = "wassup"; f[0,0,1] += "hi"; f[0,0,2] += 600d; f[0,1,0] += 600; f[1,0,1] += new Float(700)
+
+	return "" + a + "\n" + b+ "\n" +c+ "\n" +d+ "\n" +e + "\n" +f
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getArrLong()
+	prepostOpsAsLongwa = getArrLong()
+	
+	tk1 = [99,99,99,99]
+	tk2longs = [9.9,99.,99.,99.]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0,0,0]
+	--prepostOps[0,0,1]
+	prepostOps[0,0,2]++
+	prepostOps[0,0,3]--
+	
+	
+	tk1[0] = ++prepostOpswa[0,0,2]
+	tk1[1] = --prepostOpswa[0,0,3]
+	tk1[2] = prepostOpswa[0,0,2]++
+	tk1[3] = prepostOpswa[0,0,3]--
+	++prepostOpsAsLong[0,0,0]
+	--prepostOpsAsLong[0,0,1]
+	prepostOpsAsLong[0,0,2]++
+	prepostOpsAsLong[0,0,3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0,0,2]
+	tk2longs[1] = --prepostOpsAsLongwa[0,0,3]
+	tk2longs[2] = prepostOpsAsLongwa[0,0,2]++
+	tk2longs[3] = prepostOpsAsLongwa[0,0,3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+def doings() String{
+	return "" + obtination() + "\n::\n" +obtination2()+ "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+
+~~~~~
+//##13 dict standard put get
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{
+	xxx = {"hi" -> "there", "hi2" -> "there2"}
+	xxx.put("one", "direction") //standard put
+	return "" +  xxx.get("one") //standard get
+}
+
+
+~~~~~
+//##14 dict posh put get
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{
+	xxx = {"hi" -> "there", "hi2" -> "there2"}
+	xxx.put("one", "direction")
+	xxx["two"] = "direction2"
+	
+	return "" +  xxx["one"] + ":: "+ xxx["two"] + ":: "+ xxx
+}
+
+~~~~~
+//##14 dict posh put get int Int
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{
+	xxxInts = {1->0, 2->0}
+	xxxInts2 = {new Integer(1)->0, new Integer(2)->0}
+	xxxInts3 = {new Integer(1)->new Integer(0), new Integer(2)->new Integer(0)}
+	xxxInts4 = {new Integer(1)->0 ,2->new Integer(0)}
+	xxxInts[3] = 99
+	xxxInts2[3] = 99
+	xxxInts3[3] = 99
+	xxxInts4[3] = 99
+	xxxInts[4] = new Integer(99)
+	xxxInts2[4] = new Integer(99)
+	xxxInts3[4] = new Integer(99)
+	xxxInts4[4] = new Integer(99)
+		
+	return "" +  xxxInts + xxxInts[3] + xxxInts[new Integer(4)] + \ 
+		   "\n" +  xxxInts2 + xxxInts2[3] + xxxInts2[new Integer(4)] + \ 
+		   "\n" +  xxxInts3 + xxxInts3[3] + xxxInts3[new Integer(4)] + \ 
+		   "\n" +  xxxInts4 + xxxInts4[3] + xxxInts4[new Integer(4)]
+}
+
+~~~~~
+//##14 put variants plus minus etc
+from java.util import ArrayList, List, Map, HashMap
+
+def outsource(xxxLongs HashMap<int, long>, xxxLongs2 HashMap<long, long>){
+	xxxLongs[1] += 10
+	xxxLongs[1] += new Long(10)
+	xxxLongs[2] *= 2
+	xxxLongs[3] **= 2
+	xxxLongs2[1l] += 10
+	xxxLongs2[1l] += new Long(10)
+	xxxLongs2[2l] *= 2
+	xxxLongs2[3l] **= 2
+}
+
+
+def doings() String{
+	xxxStr = {"hi" -> "there", "hi2" -> ""}
+	xxxInts = {1->5, 2->5, 3->5}
+	xxxInts2 = {new Integer(1)->new Integer(5), new Integer(2)->new Integer(5), new Integer(3)->new Integer(5)}
+	xxxLongs = {1->5l, 2->5l, 3->5l}
+	xxxLongs2 = {new Long(1)->new Long(5), new Long(2)->new Long(5), new Long(3)->new Long(5)}
+	
+	xxxStr["hi"] += " bobbins"
+	xxxStr["hi"] += 12
+	xxxStr["hi"] += new Integer(12)
+	
+	xxxInts[1] += 10
+	xxxInts[1] += new Integer(10)
+	xxxInts[2] *= 2
+	xxxInts[3] **= 2
+	xxxInts2[1] += 10
+	xxxInts2[1] += new Integer(10)
+	xxxInts2[2] *= 2
+	xxxInts2[3] **= 2
+	
+	outsource(xxxLongs, xxxLongs2)
+
+		
+	return "" +  xxxStr + "\n" + xxxInts + "\n" + xxxInts2 + "\n" + xxxLongs + "\n" + xxxLongs2
+}
+
+
+~~~~~
+//##15 map prefix and postfix operations
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{//nice little ninja test of modulo operator there...
+	
+	prepostOps = {0->0, 1->0, 2->0, 3->0}
+	prepostOpswa = {0->0, 1->0, 2->0, 3->0}
+	prepostOpsAsLong = {0->0l, 1->0l, 2->0l, 3->0l}
+	prepostOpsAsLongwa = {0->0l, 1->0l, 2->0l, 3->0l}
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99l 99l 99l 99l]
+	
+	++prepostOps[0]
+	--prepostOps[1]
+	prepostOps[2]++
+	prepostOps[3]--
+	
+	tk1[0] = ++prepostOpswa[2]
+	tk1[1] = --prepostOpswa[3]
+	tk1[2] = prepostOpswa[2]++
+	tk1[3] = prepostOpswa[3]--
+	++prepostOpsAsLong[0]
+	--prepostOpsAsLong[1]
+	prepostOpsAsLong[2]++
+	prepostOpsAsLong[3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[2]
+	tk2longs[1] = --prepostOpsAsLongwa[3]
+	tk2longs[2] = prepostOpsAsLongwa[2]++
+	tk2longs[3] = prepostOpsAsLongwa[3]--
+	
+	return  "" + prepostOps +", " + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong +", " + prepostOpsAsLongwa + tk2longs
+}
+
+
+~~~~~
+//##16 hashmap via a generic holder
+from java.util import ArrayList, List, Map, HashMap
+
+class Gen<X>(~x X){}
+
+def doings() String{
+	gen = new Gen<HashMap<String, String>>({"one" -> "xxx1", "two"-> "xxx2"})
+	gen2 = new Gen<Map<String, String>>({"one" -> "xxx1", "two"-> "xxx2"}) //as Map interface call
+	return "" + gen.x["one"] + ":" + gen2.x["one"]
+}
+
+~~~~~
+//##17 dict access to contents via nesting simple case
+
+from java.util import ArrayList, List, Map, HashMap
+
+
+def doings() String{
+	xxx1 = {"hi" -> "there", "hi2" -> "there2"}
+	xxx2 = {"has" -> "bosco", "moi" -> "heart"}
+	
+	mmap = {"one" -> xxx1, "two"-> xxx2}
+	
+	return "" +mmap + "\n" + mmap["one"]["hi"] + "\n" + mmap["one","hi"]
+}
+
+~~~~~
+//##18 dict of arrays simple
+
+from java.util import ArrayList, List, Map, HashMap
+
+
+def doings() String{
+	xxx1 = [1 2 3 4 5]
+	xxx2 = [10 20 30 40 50]
+	
+	mmap = {"one" -> xxx1, "two"-> xxx2}
+	
+	return "" +mmap + "\n" + mmap["one"][0] + "\n" + mmap["two"][1] \ 
+			+ "\n" + mmap["one",0] + "\n" + mmap["two",1] //alt syntax
+}
+
+~~~~~
+//##19 array of dicts
+from java.util import ArrayList, List, Map, HashMap
+
+myLista = [new HashMap<Integer, Map<Integer, String>>()]
+myList = new HashMap<Integer, String>()
+{
+	for(x in [0 1 2 3 4 5]){
+		myList[x] = "" + x
+	}
+	myLista[0][0] = (myList)
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	xxx = 3 mod myLista[0][0].size()
+	return "" +xxx +" ::  "+myLista + [myLista[0][0][4]  myList[xxx] ]
+}
+
+def outsource(ax Map<Integer, Map<Integer, Integer>>[],b Map<Integer, Map<Integer, Integer>>[],c Map<Integer, Map<Integer, Integer>>[],d Map<Integer, Map<Integer, Integer>>[],e Map<Integer, Map<Integer, Integer>>[],f Map<Integer, Map<Integer, String>>[]){
+
+	ax[0][0][0] = 100; ax[0][0][1] = new Integer(100)
+	b[0][0][0] += 100 ; b[0][0][1] += new Integer(100)
+	c[0][0][0] -= 100 ; c[0][0][1] -= new Integer(100)
+	d[0][0][0] -= 100 ; d[0][0][1] -= new Integer(100)
+	e[0][0][1] **= 2; e[0][0][2] **= new Integer(2)
+	f[0][0][0] = "wassup"; f[0][0][1] += "hi"; f[0][0][2] += 600d; f[0][0][3] += 600; f[0][0][4] += new Float(700)
+	
+}
+
+
+def assignment() String{//nice little ninja test of modulo operator there...
+	
+	def getArr() Map<Integer, Map<Integer, Integer>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Integer>>()]
+		arra = new HashMap<Integer, Integer>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s
+		} arr[0][0] = arra
+		
+		return arr
+	}
+	
+	def getarrStr() Map<Integer, Map<Integer, String>>[] {
+		arrStr = [new HashMap<Integer, Map<Integer, String>>()]
+		arrStra = new HashMap<Integer, String>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arrStra[s] = ""+s
+		} arrStr[0][0] = arrStra
+		return arrStr
+	}
+	
+	def getasLongArr() Map<Integer, Map<Integer, Long>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Long>>()]
+		arra = new HashMap<Integer, Long>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s //cast to long then cast to Long
+		} arr[0][0] = arra
+		
+		return arr
+	}
+	
+	a = getArr()
+	
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getarrStr()
+	h = getasLongArr()
+	
+	outsource(a,b,c,d,e,f)
+	
+	startLong =  h[0][0][0] is Long; startLong2 =  h[0][0][1] is Long
+	h[0][0][0] = 100;	h[0][0][1] += 100 
+	stilllong =  h[0][0][0] is Long; stilllong2 =  h[0][0][1] is Long
+	
+	hres = "" + h + [startLong  startLong2] + [stilllong  stilllong2]
+	
+	return  ""  + a + "\n" + b + "\n" + c + "\n" + d + "\n" + e + "\n" + f + "\n" + hres
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+
+def getArr() Map<Integer, Map<Integer, Integer>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Integer>>()]
+		arra = new HashMap<Integer, Integer>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s
+		} arr[0][0] = arra
+		
+		return arr
+	}
+	
+	
+	def getasLongArr() Map<Integer, Map<Integer, Long>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Long>>()]
+		arra = new HashMap<Integer, Long>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s //cast to long then cast to Long
+		} arr[0][0] = arra
+		
+		return arr
+	}
+		
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getasLongArr()
+	prepostOpsAsLongwa = getasLongArr()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	++prepostOps[0][0][0]
+	--prepostOps[0][0][1]
+	prepostOps[0][0][2]++
+	prepostOps[0][0][3]--
+	
+	tk1[0] = ++prepostOpswa[0][0][2]
+	tk1[1] = --prepostOpswa[0][0][3]
+	tk1[2] = prepostOpswa[0][0][2]++
+	tk1[3] = prepostOpswa[0][0][3]--
+	++prepostOpsAsLong[0][0][0]
+	--prepostOpsAsLong[0][0][1]
+	prepostOpsAsLong[0][0][2]++
+	prepostOpsAsLong[0][0][3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0][0][2]
+	tk2longs[1] = --prepostOpsAsLongwa[0][0][3]
+	tk2longs[2] = prepostOpsAsLongwa[0][0][2]++
+	tk2longs[3] = prepostOpsAsLongwa[0][0][3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+def doings() String{
+//array of maps
+	return "" + obtination() + "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+~~~~~
+//##20 list of array of hashmap
+
+from java.util import ArrayList, List, Map, HashMap
+
+
+myLista = new ArrayList<Map<Integer, Integer>[]>()
+myList = [new HashMap<Integer, Integer>()]
+{
+	myList[0][0]=0
+	myList[0][1]=1
+	myList[0][2]=3
+	myList[0][3]=4
+	myList[0][4]=5
+	myList[0][6]=6
+}
+{
+	myLista.add(myList)//interesting test here
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	a = "" + [""+myLista[0][0][4],  ""+myList[5 mod myLista[0].length ] ]
+	return "" + a
+}
+
+
+def getArr() List<Map<Integer, Integer>[]> {
+	arr = new ArrayList<Map<Integer, Integer>[]>()
+	
+	def makeIt(x int, y int, withint boolean) HashMap<Integer, Integer> [] {
+		ret = new HashMap<Integer, Integer>[x]
+		for(n =0; n < x; n++){ 
+			my = new HashMap<Integer, Integer>()
+			for(k =0; k < y; k++){
+				my[k]=k
+			}
+			ret[n] = my
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrStr() List<Map<Integer, String>[]> {
+	arr = new ArrayList<Map<Integer, String>[]>()
+	
+	def makeIt(x int, y int, withint boolean) HashMap<Integer, String> [] {
+		ret = new HashMap<Integer, String>[x]
+		for(n =0; n < x; n++){ 
+			my = new HashMap<Integer, String>()
+			for(k =0; k < y; k++){
+				my[k]=""+k
+			}
+			ret[n] = my
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+
+def getArrLong() List<Map<Integer, Long>[]> {
+	arr = new ArrayList<Map<Integer, Long>[]>()
+	
+	def makeIt(x int, y int, withint boolean) HashMap<Integer, Long> [] {
+		ret = new HashMap<Integer, Long>[x]
+		for(n =0; n < x; n++){ 
+			my = new HashMap<Integer, Long>()
+			for(k =0; k < y; k++){
+				my[k]=k
+			}
+			ret[n] = my
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def assignment() String{//nice little ninja test of modulo operator there...
+	e = getArr()
+
+	e[0][0][0] = 100; e[0][0][1] = new Integer(100)
+	
+	a = getArr()
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getArrStr()
+	
+	for(eg in [a b c d e]){ //ensure initial elements are not null
+		eg[0][0][0] = 100; eg[0][0][1] = new Integer(100)
+	}
+	
+	b[0][0][0] += 66 ; b[0][0][1] += new Integer(66)
+	c[0][0][0] -= 66 ; c[0][0][1] -= new Integer(66)
+	d[0][0][0] *= 3 ; d[0][0][1] *= new Integer(3)
+	
+	
+	e[0][0][0] **= 2; e[0][0][1] **= new Integer(2)
+	
+	
+	f[0][0][0] = "wassup"; f[0][0][1] += "hi"; f[0][0][2] += 600d; f[0][1][0] += 600; f[1][0][1] += new Float(700)
+
+	return "" + a + "\n" + b+ "\n" +c+ "\n" +d+ "\n" +e + "\n" +f
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getArrLong()
+	prepostOpsAsLongwa = getArrLong()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0][0][0]
+	--prepostOps[0][0][1]
+	prepostOps[0][0][2]++
+	prepostOps[0][0][3]--
+	
+	
+	tk1[0] = ++prepostOpswa[0][0][2]
+	tk1[1] = --prepostOpswa[0][0][3]
+	tk1[2] = prepostOpswa[0][0][2]++
+	tk1[3] = prepostOpswa[0][0][3]--
+	++prepostOpsAsLong[0][0][0]
+	--prepostOpsAsLong[0][0][1]
+	prepostOpsAsLong[0][0][2]++
+	prepostOpsAsLong[0][0][3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0][0][2]
+	tk2longs[1] = --prepostOpsAsLongwa[0][0][3]
+	tk2longs[2] = prepostOpsAsLongwa[0][0][2]++
+	tk2longs[3] = prepostOpsAsLongwa[0][0][3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+def doings() String{
+	//list of array of hashmap
+	return "" + obtination() + "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+~~~~~
+//##19 array of dicts - alt syntax
+
+from java.util import ArrayList, List, Map, HashMap
+
+
+myLista = [new HashMap<Integer, Map<Integer, String>>()]
+myList = new HashMap<Integer, String>()
+{
+	for(x in [0 1 2 3 4 5]){
+		myList[x] = "" + x
+	}
+	myLista[0,0] = (myList)
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	xxx = 3 mod myLista[0,0].size()
+	return "" +xxx +" ::  "+myLista + [myLista[0,0,4], myList[xxx] ]
+}
+
+def outsource(ax Map<Integer, Map<Integer, Integer>>[],b Map<Integer, Map<Integer, Integer>>[],c Map<Integer, Map<Integer, Integer>>[],d Map<Integer, Map<Integer, Integer>>[],e Map<Integer, Map<Integer, Integer>>[],f Map<Integer, Map<Integer, String>>[]){
+
+	ax[0][0][0] = 100; ax[0][0][1] = new Integer(100)
+	b[0][0][0] += 100 ; b[0][0][1] += new Integer(100)
+	c[0][0][0] -= 100 ; c[0][0][1] -= new Integer(100)
+	d[0][0][0] -= 100 ; d[0][0][1] -= new Integer(100)
+	e[0][0][1] **= 2; e[0][0][2] **= new Integer(2)
+	f[0][0][0] = "wassup"; f[0][0][1] += "hi"; f[0][0][2] += 600d; f[0][0][3] += 600; f[0][0][4] += new Float(700)
+	
+}
+
+
+def assignment() String{//nice little ninja test of modulo operator there...
+	
+	def getArr() Map<Integer, Map<Integer, Integer>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Integer>>()]
+		arra = new HashMap<Integer, Integer>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s
+		} arr[0,0] = arra
+		
+		return arr
+	}
+	
+	def getarrStr() Map<Integer, Map<Integer, String>>[] {
+		arrStr = [new HashMap<Integer, Map<Integer, String>>()]
+		arrStra = new HashMap<Integer, String>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arrStra[s] = ""+s
+		} arrStr[0,0] = arrStra
+		return arrStr
+	}
+	
+	def getasLongArr() Map<Integer, Map<Integer, Long>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Long>>()]
+		arra = new HashMap<Integer, Long>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s //cast to long then cast to Long
+		} arr[0,0] = arra
+		
+		return arr
+	}
+	
+	a = getArr()
+	
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getarrStr()
+	h = getasLongArr()
+	
+	outsource(a,b,c,d,e,f)
+	
+	
+	startLong =  h[0,0,0] is Long; startLong2 =  h[0,0,1] is Long
+	h[0,0,0] = 100;	h[0,0,1] += 100 
+	stilllong =  h[0,0,0] is Long; stilllong2 =  h[0,0,1] is Long
+	
+	hres = "" + h + [startLong, startLong2] + [stilllong, stilllong2]
+	
+	return  ""  + a + "\n" + b + "\n" + c + "\n" + d + "\n" + e + "\n" + f + "\n" + hres
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+
+def getArr() Map<Integer, Map<Integer, Integer>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Integer>>()]
+		arra = new HashMap<Integer, Integer>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s
+		} arr[0,0] = arra
+		
+		return arr
+	}
+	
+	
+	def getasLongArr() Map<Integer, Map<Integer, Long>>[] {
+		arr = [new HashMap<Integer, Map<Integer, Long>>()]
+		arra = new HashMap<Integer, Long>()
+		for(s in [0 1 2 3 4 5 6 7 8 9 10]){
+			arra[s] = s //cast to long then cast to Long
+		} arr[0,0] = arra
+		
+		return arr
+	}
+		
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getasLongArr()
+	prepostOpsAsLongwa = getasLongArr()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	++prepostOps[0,0,0]
+	--prepostOps[0,0,1]
+	prepostOps[0,0,2]++
+	prepostOps[0,0,3]--
+	
+	tk1[0] = ++prepostOpswa[0,0,2]
+	tk1[1] = --prepostOpswa[0,0,3]
+	tk1[2] = prepostOpswa[0,0,2]++
+	tk1[3] = prepostOpswa[0,0,3]--
+	++prepostOpsAsLong[0,0,0]
+	--prepostOpsAsLong[0,0,1]
+	prepostOpsAsLong[0,0,2]++
+	prepostOpsAsLong[0,0,3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0,0,2]
+	tk2longs[1] = --prepostOpsAsLongwa[0,0,3]
+	tk2longs[2] = prepostOpsAsLongwa[0,0,2]++
+	tk2longs[3] = prepostOpsAsLongwa[0,0,3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+def doings() String{
+//array of maps
+	return "" + obtination() + "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+
+~~~~~
+//##20 list of array of hashmap -use alt syntax
+
+from java.util import ArrayList, List, Map, HashMap
+
+myLista = new ArrayList<Map<Integer, Integer>[]>()
+myList = [new HashMap<Integer, Integer>()]
+{
+	myList[0,0]=0
+	myList[0,1]=1
+	myList[0,2]=3
+	myList[0,3]=4
+	myList[0,4]=5
+	myList[0,6]=6
+}
+{
+	myLista.add(myList)//interesting test here
+}
+
+def obtination() String{//nice little ninja test of modulo operator there...
+	a = "" + [""+myLista[0,0,4],  ""+myList[5 mod myLista[0].length ] ]
+	return "" + a
+}
+
+
+def getArr() List<Map<Integer, Integer>[]> {
+	arr = new ArrayList<Map<Integer, Integer>[]>()
+	
+	def makeIt(x int, y int, withint boolean) HashMap<Integer, Integer> [] {
+		ret = new HashMap<Integer, Integer>[x]
+		for(n =0; n < x; n++){ 
+			my = new HashMap<Integer, Integer>()
+			for(k =0; k < y; k++){
+				my[k]=k
+			}
+			ret[n] = my
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def getArrStr() List<Map<Integer, String>[]> {
+	arr = new ArrayList<Map<Integer, String>[]>()
+	
+	def makeIt(x int, y int, withint boolean) HashMap<Integer, String> [] {
+		ret = new HashMap<Integer, String>[x]
+		for(n =0; n < x; n++){ 
+			my = new HashMap<Integer, String>()
+			for(k =0; k < y; k++){
+				my[k]=""+k
+			}
+			ret[n] = my
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+
+def getArrLong() List<Map<Integer, Long>[]> {
+	arr = new ArrayList<Map<Integer, Long>[]>()
+	
+	def makeIt(x int, y int, withint boolean) HashMap<Integer, Long> [] {
+		ret = new HashMap<Integer, Long>[x]
+		for(n =0; n < x; n++){ 
+			my = new HashMap<Integer, Long>()
+			for(k =0; k < y; k++){
+				my[k]=k
+			}
+			ret[n] = my
+		}
+		return ret
+	}
+	
+	arr.add(makeIt(2, 4, true))		
+	arr.add(makeIt(2, 4, false))	
+	return arr
+}
+
+def assignment() String{//nice little ninja test of modulo operator there...
+	e = getArr()
+
+	e[0,0,0] = 100; e[0,0,1] = new Integer(100)
+	
+	a = getArr()
+	b = getArr()
+	c = getArr()
+	d = getArr()
+	e = getArr()
+	f = getArrStr()
+	
+	for(eg in [a,b,c,d,e]){ //ensure initial elements are not null
+		eg[0,0,0] = 100; eg[0,0,1] = new Integer(100)
+	}
+	
+	b[0,0,0] += 66 ; b[0,0,1] += new Integer(66)
+	c[0,0,0] -= 66 ; c[0,0,1] -= new Integer(66)
+	d[0,0,0] *= 3 ; d[0,0,1] *= new Integer(3)
+	
+	
+	e[0,0,0] **= 2; e[0,0,1] **= new Integer(2)
+	
+	
+	f[0,0,0] = "wassup"; f[0,0,1] += "hi"; f[0,0,2] += 600d; f[0,1,0] += 600; f[1,0,1] += new Float(700)
+
+	return "" + a + "\n" + b+ "\n" +c+ "\n" +d+ "\n" +e + "\n" +f
+}
+
+def prepost() String{//nice little ninja test of modulo operator there...
+	prepostOps = getArr()
+	prepostOpswa = getArr()
+	prepostOpsAsLong = getArrLong()
+	prepostOpsAsLongwa = getArrLong()
+	
+	tk1 = [99 99 99 99]
+	tk2longs = [99 99 99 99]
+		
+	//a[0 ... 1] = [100, 200]
+	//a[ ... 1] = [100, 200]
+	//a[1 ... ] = [100, 200]
+	
+	++prepostOps[0,0,0]
+	--prepostOps[0,0,1]
+	prepostOps[0,0,2]++
+	prepostOps[0,0,3]--
+	
+	
+	tk1[0] = ++prepostOpswa[0,0,2]
+	tk1[1] = --prepostOpswa[0,0,3]
+	tk1[2] = prepostOpswa[0,0,2]++
+	tk1[3] = prepostOpswa[0,0,3]--
+	++prepostOpsAsLong[0,0,0]
+	--prepostOpsAsLong[0,0,1]
+	prepostOpsAsLong[0,0,2]++
+	prepostOpsAsLong[0,0,3]--
+	
+	tk2longs[0] = ++prepostOpsAsLongwa[0,0,2]
+	tk2longs[1] = --prepostOpsAsLongwa[0,0,3]
+	tk2longs[2] = prepostOpsAsLongwa[0,0,2]++
+	tk2longs[3] = prepostOpsAsLongwa[0,0,3]--
+	
+	return  "" + prepostOps + prepostOpswa+ tk1 +"\n" + prepostOpsAsLong + prepostOpsAsLongwa + tk2longs
+}
+
+def doings() String{
+	//list of array of hashmap
+	return "" + obtination() + "\n::\n" + assignment() + "\n::\n" + prepost()
+}
+
+~~~~~
+//##21 ensure all key types are as expected
+from java.util import ArrayList, Set
+
+def doings() String{
+	a1 = {1-> 3, 2-> new Long(4)}
+	a2 = {1-> 3, new Long(2)->4}
+	a3 = [new Long(1), 2, 3]
+	a4 =  new ArrayList<Long>(); a4.add(4)
+	
+	
+	a1keys = new ArrayList<Integer>(a1.keySet())
+	a1vals = new ArrayList<Number>(a1.values())
+	
+	a2keys = new ArrayList<Number>(a2.keySet())
+	a2vals = new ArrayList<Integer>(a2.values())
+	
+	
+	//checks
+	a1v = a1keys[0] is Integer
+	a1v2 = a1vals[0] is Number
+	
+	a2v = a2keys[0] is Number
+	a2v2 = a2vals[0] is Integer
+		
+	a3v = a3[1] is Number and a3[0] is Number
+	a4v = a4[0] is Long
+	
+	tests = [a1v, a1v2, a2v, a2v2,  a3v, a4v, ]
+	
+	return "" +a1keys + ""+a1vals + tests +"\n"+ [""+a1, ""+a2, ""+a3, ""+a4]
+}
+
+~~~~~
+//##22 map put stuff more of a reflection code test really
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{
+	xxx = {"hi" -> "there", "hi2" -> "there2"}
+	xxx.putAll({"add" -> "more"})
+	return "" + xxx 
+}
+
+
+~~~~~
+//##23 string to object map
+//had to fiddle with the get most generic code in order to do this...
+
+from java.util import ArrayList, List, Map, HashMap
+
+def doings() String{
+	xxx = {"one"-> 3, "three"-> {1-> [1,2,3], 2-> [2,3,4] } }//common type is Object
+	return "" + xxx //actually ma
+}
+
+~~~~~
+//##24 dict custom functions
+
+from java.util import ArrayList, List, Map, HashMap
+
+class MyDict extends HashMap<String, Integer>{
+	/*
+	override def put(x X, y Y) Y{
+		return super.put(x,y)
+	}
+	*/
+	
+	public whoGotCalled =""
+	
+	def put(x String, y String) Integer{//ok as non generic
+		whoGotCalled += "put(x String, y String), "
+		return super.put(""+x,12)
+	}
+	
+	def put(x int, y Integer) Integer{//ok as non generic
+		whoGotCalled += "put(x int, y Integer), "
+		return super.put(""+x,y)
+	}
+	
+	def put(x int, y int) Integer{//ok as non generic
+		whoGotCalled += "put(x int, y int), "
+		return super.put(""+x,y)
+	}
+	
+	def put(x int, y String) Integer{//ok as non generic
+		whoGotCalled += "put(x int, y String), "
+		return super.put(""+x,12)
+	}
+	
+	def get(x int) Integer{
+		whoGotCalled += "get(x int), "
+		return super.get(""+x)
+	}
+	
+	def get(x Integer) Integer{
+		whoGotCalled += "get(x Integer), "
+		return super.get(""+x)
+	}
+}
+
+def prefixpostfix() String{
+	my = new MyDict()
+	my.putAll({"1" -> 10, "2" -> 10, "3" -> 10, "4"-> 10, "5"-> 10})
+	my["1"]++
+	my[2]++
+	--my[3]
+	
+	return "" + my	
+}
+
+def othereqops() String{
+	my = new MyDict()
+	my.putAll({"1" -> 10, "2" -> 10, "3" -> 10, "4"-> 10, "5"-> 10})
+	my["1"] += 99
+	my[2] += 99
+	my[3] **= new Integer(2)
+	my[4] **= 2
+	my[5] **= 2.
+	
+	return ""+ my
+}
+
+def getPutOverride() String{
+	my = new MyDict()
+	my["hi"] = 99
+	my[12] = new Integer(99)
+	my[13] = 88
+	my[10] = 10
+	my[50] = "10"
+	//getters->
+	g1 = my[10]
+	g2 = my[new Integer(12)]
+	
+	return "" + my + "Called:\n" + my.whoGotCalled + "\n:: " + g1 + g2
+}
+
+def doings() String{
+	return getPutOverride() + "\n" + othereqops() + "\n" + prefixpostfix()
+}
+
+~~~~~
+//##25 dict doesnt intefere with erasure 
+from java.util import ArrayList, List, Map, HashMap
+
+class MyDict<X> extends HashMap<X, Integer>{
+
+	def put(x X, y String) Integer{//this is ok, doesnt hit erasure rules
+		return super.put(x,12)
+	}
+}
+
+def doings() String{
+	my = new MyDict<String>();
+	my["hi"] = 10
+	my["there"] = "12asd"
+	return "" + my
+}
+
+~~~~~
+//##26 lists can have custom set functions too
+
+from java.util import ArrayList, List, Map, HashMap
+
+class MyList(x int) extends ArrayList<String>(x){
+	def set(x int, y Integer) {//ok as non generic
+		super.set(x, ""+y)
+	}
+	
+	def set(x String, y Integer) {//ok as non generic
+		super.set(0, ""+y)
+	}
+	//also i define void as return type, which is ok	
+	def get(x String) Integer {//ok as non generic
+		return 30
+	}
+}
+
+def doings() String{
+	my = new MyList(10)
+	for(a in new int[10]){ my.add(""+a)}
+	my[5] = "3"
+	my[6] = 3 //this should be ok as we have a custom handler for it
+	my[7] = new Integer(3)  //this should be ok as we have a custom handler for it
+	my["7"] = new Integer(3)  //this should be ok as we have a custom handler for it
+	my["7"] = 4  //this should be ok as we have a custom handler for it
+	
+	x = my["0"]
+	v = my["0"]++
+	f = ++my["0"]
+	//good enough, too tired/bored to test more
+	return "" +  my + v+f
+}
+

@@ -1,0 +1,3962 @@
+//##1 try catch stack status final throws
+
+class IntExcep(~valu int) extends Exception{ override equals(o Object) boolean{return true;} }
+cnt = 0; fincnt = 0; catchCall = 0;
+def callCatch1() { catchCall++ }
+def mycall(fail boolean) int {
+	if(fail){ throw new Exception("") }
+	return ++cnt; }
+
+
+def callOnFinal1(){	fincnt+=1 }
+@com.concurnas.lang.Uninterruptible
+def da2(fail boolean, f2 boolean) int{
+	try{ 
+		return mycall(fail)//should be popped
+	}
+	finally{
+		//callOnFinal1()//return 8
+		throw new IntExcep(80) 
+	}
+}
+
+def runner(a boolean, b boolean) int{
+	try{ return da2(a,b) }
+	catch(e IntExcep){ return e.valu } }
+
+def doings() String{
+	return "" + [ runner(true, true), runner(false, true),
+				runner(true, false), runner(false, false),
+				  cnt, fincnt, catchCall];
+}
+
+
+~~~~~
+//##2 try catch stack status final throws
+
+class IntExcep(~valu int) extends Exception{ override equals(o Object) boolean{return true;} }
+cnt = 0; fincnt = 0; catchCall = 0;
+def callCatch1() { catchCall++ }
+def mycall(fail boolean) int {
+	if(fail){ throw new Exception("") }
+	return ++cnt; }
+
+
+def callOnFinal1(){	fincnt+=1 }
+@com.concurnas.lang.Uninterruptible
+def da2(fail boolean, f2 boolean) int{
+	try{ 
+		mycall(fail)//should be popped
+	}
+	finally{
+		//callOnFinal1()//return 8
+		throw new IntExcep(80) 
+	}
+}
+
+def runner(a boolean, b boolean) int{
+	try{ return da2(a,b) }
+	catch(e IntExcep){ return e.valu } }
+
+def doings() String{
+	return "" + [ runner(true, true), runner(false, true),
+				runner(true, false), runner(false, false),
+				  cnt, fincnt, catchCall];
+}
+
+~~~~~
+//##3 try catch stack status final throws applies to catch also
+
+class IntExcep(~valu int) extends Exception{ override equals(o Object) boolean{return true;} }
+cnt = 0; fincnt = 0; catchCall = 0;
+def callCatch1() { catchCall++ }
+def mycall(fail boolean) int {
+	if(fail){ throw new Exception("") }
+	return ++cnt; }
+
+def callOnFinal1(){	fincnt+=1 }
+@com.concurnas.lang.Uninterruptible
+def da2(fail boolean, f2 boolean) int{
+	try{ 
+		mycall(fail)//popped
+	}
+	catch(e Throwable){
+		callCatch1(); //popped
+	}
+	finally{
+		callOnFinal1()//return 8
+		throw new IntExcep(80) 
+	}
+}
+
+def runner(a boolean, b boolean) int{
+	try{ return da2(a,b) }
+	catch(e IntExcep){ return e.valu } }
+
+def doings() String{
+	return "" + [ runner(true, true), runner(false, true),
+				runner(true, false), runner(false, false),
+				  cnt, fincnt, catchCall];
+}
+
+~~~~~
+//##4 vararg generics
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList<Integer>([Integer(1) 2 3 4 5])
+}
+
+~~~~~
+//##5 vararg generics type inference infer type
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList([Integer(1) Integer(2) Integer(3) Integer(4) Integer(5)])
+}
+
+~~~~~
+//##6 vararg simple needs boxing
+
+from java.util import ArrayList, List
+
+def asList(ts Integer...)  {
+    result List<int> = ArrayList<int>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList(1, 2, 3, 4, 5)
+}
+
+~~~~~
+//##7 vararg simple no boxing
+
+from java.util import ArrayList, List
+
+def asList(ts Integer...)  {
+    result List<Integer> = ArrayList<Integer>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList(Integer(1), Integer(2), Integer(3), Integer(4), Integer(5))
+}
+
+~~~~~
+//##8. when quailifying generic types used to not include source generic array level count
+
+def asList<T>(a T[]) => a
+
+def doings(){
+	xx  = asList<int[]>([12 13 ; 12])//used to think this was int[] instead of int[2]
+	"" + xx
+}
+
+~~~~~
+//##9. qualify generic varag with 1:1 non vararg mathc 
+
+def asList<T>(a T[]) => a
+
+def doings(){
+	xx  = asList(['hi', 'there'])
+	"" +xx
+}
+
+~~~~~
+//##10. qualify generic vararg with boxed param
+
+def asList<T>(a T[]) => a
+
+h = new Integer(12)
+
+def doings(){
+	xx  = asList([h, h])
+	"" + xx
+}
+
+~~~~~
+//##11. qualify generic vararg with unboxed param
+
+from java.util import Arrays, List, HashSet
+
+def doings(){
+	xx  = Arrays.asList(1,2,3)
+	"" + xx
+}
+
+~~~~~
+//##12. qualify generic vararg with boxed param
+
+def asList<T>(a T...) => a
+
+h = new Integer(1)
+
+def doings(){
+	xx  = asList(h,h,h)
+	"" + xx
+}
+
+~~~~~
+//##13. qualify generic vararg with boxed param box up
+
+def asList<T>(a T...) => a
+
+def doings(){
+	xx  = asList(1,2,3)
+	"" + xx
+}
+
+~~~~~
+//##14. qualify generic implicit vararg with boxed param box up
+
+def asList<T>(a T[]) => a
+
+def doings(){
+	xx  = asList(1,2,3)
+	"" + xx
+}
+
+~~~~~
+//##15. qualify generic implicit vararg with free vars boxing
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	xx =  asList(1,2,3,4,5)
+	""+xx
+}
+
+~~~~~
+//##16. qualify generic implicit vararg with free vars already boxed 
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList(Integer(1), Integer(2), Integer(3), Integer(4), Integer(5))
+}
+
+~~~~~
+//##17. qualify generic implicit vararg with free vars already boxed generic declared
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList<Integer>([Integer(1) 2 3 4 5])
+}
+
+~~~~~
+//##18. generic vararg more
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList(Integer(1), Integer(2), Integer(3), Integer(4), Integer(5))
+}
+
+~~~~~
+//##19. generic vararg more 2
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList<int>(1, 2, 3, 4, 5)
+}
+
+~~~~~
+//##20. generic vararg more 3
+
+from java.util import ArrayList, List
+
+def asList<T>(ts T...)  {
+    result List<T> = ArrayList<T>()
+    for (t in ts) { result.add(t) } 
+    result
+}
+
+def doings() {
+	"" + asList(1, 2, 3, 4, 5)
+}
+
+~~~~~
+//##21. cast elements to char not int
+
+def thing(a char...){ "" + a}
+
+def doings(){
+	g1 = thing(77,87)	
+ 
+	"" + g1
+}
+
+~~~~~
+//##22. double check this works vararg is null
+
+def something(a String, b int...) => a + b
+
+def doings() => something('ok')//vararg is null
+
+~~~~~
+//##23. static methods were being missing from the origonal class - now we redirect
+
+from com.concurnas.lang.precompiled import ClassWithStaticClinit
+
+def doings(){
+	meths = ClassWithStaticClinit.class.getMethods()
+	
+	res = 'isFiberNotNull' in for(m in meths){ m.name}
+
+	"" + res
+}
+
+~~~~~
+//##24. Fiber used to be uncreatable and now on reflection we find fiberized version if approperiate
+
+from com.concurnas.lang.precompiled import ClassWithStaticClinit
+
+def doings(){
+	meths = ClassWithStaticClinit.class.getMethods()
+	
+	res = for(m in meths){ if('getTheCurrentFiber' in m.name) { m } }
+
+	//next line didnt used to work as Fibers cannot be created
+	one = ClassWithStaticClinit.class.getMethod('getTheCurrentFiber')
+
+	"" + [res, one]
+}
+
+~~~~~
+//##25. reflect to remove fiber parameter from method
+
+from com.concurnas.lang.precompiled import ClassWithStaticClinit
+
+def doings(){
+	one = ClassWithStaticClinit.class.getMethod('getTheCurrentFiber')
+
+	//list args, hide the fiber
+
+	//stuff = one.invoke(null, com.concurnas.bootstrap.runtime.cps.Fiber.getCurrentFiber())
+
+	"" + [one.getParameterTypes(), one.getParameterCount()]
+}
+
+~~~~~
+//##26. reflect to splice in fiber to invokation
+
+from com.concurnas.lang.precompiled import ClassWithStaticClinit
+
+def doings(){
+	one = ClassWithStaticClinit.class.getMethod('getTheCurrentFiber')
+
+	stuff = one.invoke(null) <> null
+
+	"" + stuff
+}
+
+~~~~~
+//##27. tricky problem with reflection and enums and fibers
+
+want := 2
+
+j='bananana'
+inited = 0	
+
+enum MYE(a int){
+	OP(2), NO(1)
+
+	init{
+		f = "wellhellothere"
+		inited++
+	}
+	
+	init{
+		inited++
+	}
+}
+
+def doings() {
+	x = inited
+	a=MYE.OP
+	l='lovely'
+	v = MYE.values()
+	k=MYE.class.getMethod("values").invoke(null)
+	c=MYE.valueOf('NO')
+	
+	"" + [x, k, c, inited, want]
+}
+
+~~~~~
+//##28. method does not exist exception thrown correctly
+
+from com.concurnas.lang.precompiled import ClassWithStaticClinit
+
+def doings(){
+	res = try{
+		ClassWithStaticClinit.class.getMethod('doesntexist')
+	}catch(e){""+e}
+
+	"" + res
+}
+
+~~~~~
+//##29. bug concerning local arrays
+
+class GenParaInOut<X>(public ~x X[]){//gets stored as Object[] - but if its an array we need to explicitly convert this into a localarray[int:]
+	override hashCode() => 69
+	override equals(a Object) => true
+	override toString() => "has: " + x
+}
+
+
+la = [100: 200:]
+
+gp = new GenParaInOut(la)//turned out to be a problem with subtyping of generic types and refs
+
+def doings(){
+	got =  gp.x
+	got2  =  gp\.x//type was also not correctly extracted here
+	
+	"" + [got, got2]
+}
+
+~~~~~
+//##30. can use js style setter when no getter defined
+
+class Complex(real double, imag double){
+	public myMap = {"-" -> 1}
+	def put(a String, b int) {
+	 myMap[a] = b;
+	}
+}
+
+
+
+c2 = Complex(2,2)
+
+def doings(){
+	c2.one = 101
+	"" + c2.myMap
+}
+
+~~~~~
+//##31.a broken before now ok
+
+calls := 0
+
+def doingsx()  {
+	trans{calls++}
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def doings(){
+	a=0
+	while(a++< 1000){
+		parfor(b in mtay){//used to attempt to return something when nothing expected
+			doingsx()
+		}
+	}
+	await(calls; calls == 10000)
+	
+	"" + calls
+}
+
+~~~~~
+//##31.b broken before now ok
+calls := 0
+def doingsx()  {
+	trans{calls++}
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def doings(){
+	a=0
+	sync{
+		while(a++< 1000){
+			parfor(b in mtay){
+				doingsx()
+			}
+		}
+	}
+	
+	"" + calls
+}
+
+~~~~~
+//##31.c broken before now ok
+calls := 0
+def doingsx()  {
+	trans{calls++}
+}
+
+mtay = [1,2,3,4,5,6,7,8,9,10]
+
+def doings(){
+	a=0
+	while(a++< 1000){
+		parforsync(b in mtay){
+			doingsx()
+		}
+	}
+	
+	"" + calls
+}
+
+~~~~~
+//##32. ensure function invokation locks ref
+
+origa = 12:
+origb = 12:
+
+def doingsa()  {
+	origa:
+}
+
+def doingsb() Integer: {
+	origb:
+}
+
+def doings(){
+	a=doingsa()
+	b=doingsb()//neither return refs natively
+	
+	"" + [a:&<>origa:, b:&<>origb:]
+}
+
+~~~~~
+//##33. used to incorrectly call generic version
+
+class MyClass<X>{
+	public var x X?
+	public var y = "no set"
+
+	this(x X){
+		this.x = x
+	}
+	
+	this(a int[]){
+		this.x = null
+		this.y="set"
+	}
+
+	override toString() => "" + [x,y] //respects fact that x is not bound at this point so points to Object
+	//thus returned as an object array
+	
+	//above is ambigious
+	
+}
+
+def doings() {
+	mc2 = new MyClass([1,2])
+	
+ 	"" + mc2
+}
+
+~~~~~
+//##34. object is supertype of primatives
+
+def doings(){
+	an Object = 69
+	"" + an
+}
+
+~~~~~
+//##35. didnt used to work
+
+class MyClass(a int, b int){
+	override equals(a Object) => false
+	override hashCode() => 1
+	override toString() => getClass().getSimpleName() + " " + [a,b]
+}
+
+clnam = MyClass.class.name
+
+class MyProvider{
+	def \new(className String, args Object...){
+		match(className){
+			//case('MyClass' and args.length == 2){ new MyClass(args[0] as int, args[1] as int) }
+			case(clnam){ new MyClass(args[0] as int, args[1] as int) }
+			else{ null }
+		}
+	
+	}
+}
+
+
+def doings(){
+	mp = MyProvider()
+	"" + mp.new MyClass(1,2)
+}
+
+~~~~~
+//##36. funcref arg being arrayref on non array
+
+def myfunct(b int, a int) => a+ 100 + b
+
+from com.concurnas.lang.precompiled.ListMaker import intList, intMatrix
+myAr1 =  intList(1, 2)
+
+def doings(){
+	res  = myfunct&(? int, myAr1.get(0))
+	res2 = myfunct&(? int, myAr1[0])
+
+	"" + [res(1), res2(1)]
+}
+
+~~~~~
+//##37. labels here were a problme, now they are ok
+
+erin = [true true false]
+
+def doings() {
+	
+	res1 =  not  y for y in (x for x in erin)
+	
+	res2 = for( y in (for( x in erin) {x})) { not y }
+	
+	"" + [res1 , res2]
+}
+
+~~~~~
+//##38. lists vs arrays
+
+myar = [1 2 3]
+myar2d = [1 2 3 ; 1 2 3]
+
+mylist = [1, 2, 3, 4]
+mylist2d = [[1, 2, 3], [1, 2, 3]]
+
+
+def doings(){
+	a1 = "" + myar + "\n"
+	a2 = "" + myar2d + "\n"
+	a3 = "" + mylist + "\n"
+	a4 = "" + mylist2d
+	
+	"" + a1 + a2 + a3 +a4
+}
+
+~~~~~
+//##39 broken before now ok array version
+
+calls := 0
+
+def doingsx()  {
+	trans{calls++}
+}
+
+mtay = [1 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	a=0
+	while(a++< 1000){
+		parfor(b in mtay){//used to attempt to return something when nothing expected
+			doingsx()
+		}
+	}
+	await(calls; calls == 10000)
+	
+	"" + calls
+}
+
+~~~~~
+//##40 tidy up on array decl
+
+f double[]? = null
+def doings(){
+	bug1 = [ 23.34  666.78 ; null ]
+	bug2 = [23.34  666.78 ; [1.] ]
+	bug3 = [23.34  666.78 ; [] ]
+	"" + [bug1, bug2, bug3]
+}
+
+~~~~~
+//##41 tidy up on array decl - like above
+
+def doings(){
+	bug1 = [ 23.34  666.78 ; null ]//should be 2d arry with null row
+	bug2 = [23.34  666.78 ; [1.] ]
+	bug3 = [23.34  666.78 ; [] ]
+	bug4 = [null null]
+	bug5 = [23.34  666.78 ; [null] ]
+	bug6 = [23.34  666.78 ; [null null] ]
+	"" + [bug1, bug2, bug3, bug4, bug5, bug6]
+}
+
+~~~~~
+//##42. problem with generic upper bounds for list iterator variables
+
+valu int: = 0
+
+def dosomework(a int) {
+	trans{ valu += a }
+}
+
+
+def doings() {
+	sync{
+		//prevsouly the local vars declared within for loops were not being captured
+		//TODO: any more like this? - check...
+		for( b in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]){
+			dosomework(b)!
+		}
+		
+		for(h =1; h <== 15; h++){
+			dosomework(h)!
+		}
+		
+		h2 =1
+		for(; h2 <== 15; h2++){
+			dosomework(h2)!
+		}
+	}
+
+	await(valu ; 360 == valu)
+
+	"" + valu// (valu == 360)
+}
+
+~~~~~
+//##43. problem as above
+
+def doings(){
+	
+	parfor(a in [1,2,3,4,5]){
+		g=a
+	}
+
+	"ok" 
+}
+
+~~~~~
+//##44. list with no items
+ 
+def String join(delim String, items Object...){
+	""+delim.join('hi', 'there')
+}
+
+def doings(){
+	e1 = [1]
+	e2 = a[1]
+	e3 = [,]//empty list
+	e3 add "hi"
+
+	"" + [e1, e2, e3]
+}
+
+~~~~~
+//##45. default value for array creation bug advanced
+
+class MyClass(a int){
+	override toString() => 'MyClass {a}'
+}
+
+
+h1 = new MyClass[3](new MyClass(6))
+
+def doings(){
+
+	"" + h1
+}
+
+~~~~~
+//##46. default value for array creation bug simple
+
+h1 = new int[2](9)
+
+def doings(){
+
+	"" + h1
+}
+
+~~~~~
+//##47. default value for array creation bug v advanved
+
+from java.util import ArrayList
+
+h1 = new ArrayList<int[]>[4](new ArrayList<int[]>(0))
+
+def doings(){
+
+	"" + h1
+}
+
+~~~~~
+//##48. default value for array creation bug v advanved ciool
+
+from java.util import ArrayList
+
+h1 = new ArrayList<int[]>[4](new ArrayList<int[]>(0))
+
+def doings(){
+	
+	h1^add( [66] ) 
+	
+	shoulderr =  h1^get(0) 
+
+	"" + shoulderr
+}
+
+~~~~~
+//##49. bug on type resolution
+
+def fib(n int) => 1 if (n <== 1) else (fib(n - 1) + fib(n - 2))
+//used to be unable to infir the return type of the above as genmore generic was not fitering nulls and resolving them to Object (nasty!)
+def doings(){
+	
+	 "" + (fib 4)
+}
+
+~~~~~
+//##50. looks cool
+
+import java.math.BigDecimal
+
+def doings(){
+	"" + (BigDecimal(12) ** 1989)
+}
+
+~~~~~
+//##51. globalization of static final fields
+
+from com.concurnas.lang.precompiled import HoldingAStaticVar
+from com.concurnas.lang.precompiled import HoldingAStaticVarWithNonFinal
+
+def doings(){//we used to not inialize final static fileds correctly
+	a = [HoldingAStaticVar.CL_INVALID_VALUE, HoldingAStaticVar getInvalidValue]
+	b = [HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE, HoldingAStaticVarWithNonFinal getInvalidValue]
+	"" + [a,b]
+}
+
+~~~~~
+//##52. imported local generic
+
+from com.concurnas.lang.precompiled import LocalGenericMethods
+   
+def doings(){
+	LocalGenericMethods<String>().alocalGeneric<int[]>([1 2], 'ok')//should be ok
+	"ok"
+}
+
+~~~~~
+//##53. clean up stack on naught static call
+from com.concurnas.lang.precompiled import NoStaticCall
+
+def getIt() => NoStaticCall()
+
+def doings(){
+	what = getIt().theCall()
+	getIt().thing = 'yaya'
+	p=getIt().thing
+	getIt().thing2 += 100
+	
+	getIt().thing2++
+	++getIt().thing2
+
+	"fine" + [what, p, getIt().thing2]
+}
+
+~~~~~
+//##54. incorrect inference of return type bugfix
+
+def xxx(wc bool:){//was err here
+	{wc=true}!
+}
+
+def doings(){
+	wc bool:
+	xxx(wc)
+	"" + wc
+}
+
+~~~~~
+//##55. add bridge method for virtual call with differing return type signature
+
+abstract class AbsCls{
+	def getFella() {
+		this
+	}
+	
+	def myMethod(){
+		getFella()
+	}
+}
+
+class Inst(a int) < AbsCls{
+	override getFella() {
+		this
+	}
+}
+
+def doings(){
+	mc = Inst(2)
+	"" + mc.myMethod().\class.name //ensure childclass method is called
+}
+
+~~~~~
+//##56. add bridge method for copier
+
+abstract class AbsCls{
+	def myMethod(){
+		this@//dont call own copier
+	}
+}
+
+class Inst(a int) < AbsCls
+
+def doings(){
+	mc = Inst(2)
+	"" + mc.myMethod().\class.name //ensure childclass method is copied
+}
+
+~~~~~
+//##57. ensure invoke special called for super invocation as part of asyncref  
+
+abstract class SupClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	def leMethod(){
+		"sup":
+	}
+}
+
+class ChildClass < SupClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	override leMethod(){
+		super.leMethod()://bug was here
+	}
+}
+
+def doings(){
+	cc = ChildClass()
+	"" + cc.leMethod()
+}
+
+~~~~~
+//##58. nasty fiber bug concerning System calls inside try catch blocks
+
+from com.concurnas.lang.precompiled.HoldingAStaticVar import CL_INVALID_VALUE 
+from org.jocl.CL import  CL_COMPLETE
+
+def xxx(writeComplete bool:) void{
+	{
+		java.util.concurrent.TimeUnit.SECONDS.sleep(1); writeComplete=true; 
+	}!
+}
+
+private abstract class SupClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	protected def leMethod(){
+		toRet bool:
+		xxx(toRet)
+		toRet:
+	}
+}
+
+private class ChildClass < SupClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	override leMethod(){
+		super.leMethod():
+	}
+}
+
+def doings(){
+	//f=CL_INVALID_VALUE	
+	f2=CL_COMPLETE	
+	cc = ChildClass()
+	"" + cc.leMethod()
+}
+
+~~~~~
+//##59. list comprehensions on arrays 1
+def doings(){
+	xxx = a[1, 2, 3, 4, 5, 6]
+	ff  =xxx.length
+	
+	sdf = "hithere"
+	res = x + 10 for x in xxx
+	"" + res
+}
+
+~~~~~
+//##60. list comprehensions on arrays 2
+
+def doings(){
+	xxx = a[1, 2, 3, 4, 5, 6]
+	ff  =xxx.length
+	
+	sdf = "hithere"
+	res  = [x + 10] for x in xxx
+	"" + res
+}
+
+~~~~~
+//##61. parfor on array
+
+def doings(){
+	xxx = a[1, 2, 3, 4, 5, 6]
+	
+	sdf = "hithere"
+	res  = x + 10 parfor x in xxx
+	"" + res[1]//its fine
+}
+
+~~~~~
+//##62. magic hack concerning static fibers and native code opencl specificially 
+
+from org.jocl import Sizeof
+private val sizeof_boolean = Sizeof.cl_int
+
+def doings(){//magic hack here - concerning static, fibers and native code
+	r = { true} !
+	"hi" + [sizeof_boolean, r]
+}
+
+~~~~~
+//##63. a short array
+
+def doings(){
+	ok short[] = [1s 2s 3s]
+	"" + ok
+}
+
+~~~~~
+//##64. lets fix chars
+
+def doings(){
+	achar char = 'c'
+	aString String = "X"
+	normalString String = 'astring'
+	anotherNormalString String = "astring"
+	
+	"" + [achar, aString, normalString, anotherNormalString]
+}
+
+~~~~~
+//##65. weird
+
+open class Parent(an int)
+
+class Child(an int) < Parent(an){
+
+	def uusing(){
+		an
+	}
+}
+
+def doings(){
+	cm = Child(12)
+	"" + cm.uusing()
+}
+
+~~~~~
+//##66. subclass of Ref has self copier
+
+def waitwaiter(cl int:gpus.GPURef){
+	await(cl) //await on subtype of Local is a problem
+}
+
+def doings(){
+	what = int:gpus.GPURef(null)
+	{what = 800}!//ensure that the ref is not copied
+	waitwaiter(what)
+	"ok" 
+}
+
+~~~~~
+//##67. problem where we were cleaning up the stack and pop off value
+
+from com.concurnas.lang.precompiled import ClassNeedingDeleteOnUnused
+
+delCall =0
+
+class MyClassHavingDeleteSubclass{
+	def accessStaticVar() {
+		ClassNeedingDeleteOnUnused.delCount++;;
+		++ClassNeedingDeleteOnUnused.delCount;;
+	}
+}
+
+def doings(){
+	mc = MyClassHavingDeleteSubclass()
+	mc.accessStaticVar()
+	"" + ClassNeedingDeleteOnUnused.delCount
+}
+
+~~~~~
+//##68. problem where we were cleaning up the stack and pop off value - where value wanted
+
+from com.concurnas.lang.precompiled import ClassNeedingDeleteOnUnused
+
+delCall =0
+
+class MyClassHavingDeleteSubclass{
+	def accessStaticVar() {
+		a=ClassNeedingDeleteOnUnused.delCount++;;//we want the value on the stack
+		b=++ClassNeedingDeleteOnUnused.delCount;;
+	}
+}
+
+def doings(){
+	mc = MyClassHavingDeleteSubclass()
+	mc.accessStaticVar()
+	"" + ClassNeedingDeleteOnUnused.delCount
+}
+
+~~~~~
+//##69. implicit ref creation needs zero arg constructor
+
+class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+	public this(type Class<?>[]){
+		this(type, 0)
+	}
+
+}
+
+class NoZeroARgOne<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type)
+
+
+def ok(a Object) Object:GPURef {
+	null//no cannot do this
+}
+
+def fail(a Object) Object:NoZeroARgOne {
+	null//no cannot do this
+}
+
+def doings(){
+	what1 = try{ok("fail"); 'ok'}catch(e){'fail' + e}
+	what2 = try{fail("fail"); 'fail' }catch(e){e.getMessage()}
+	"" + [what1, what2] 
+}
+
+~~~~~
+//##70. double check this works
+def doings(){
+	"" + int.class
+}
+
+~~~~~
+//##71. fwd ref failure
+
+class MyClass{
+	thing ATHing[]?
+	
+	def getThing(){
+		if(null == thing){//fwd def not found, used to consider this to be a new value
+			thing = new ATHing[2]
+		}
+		
+		thing
+	}
+
+}
+
+class ATHing
+
+
+def doings(){
+	mc = MyClass()
+	"ok"
+}
+
+~~~~~
+//##72. ignore generic when testing to see if we can do an equals on a type
+
+class GenCls<X>{
+	def checker<Y>(compto GenCls<Y> ) => this &== compto
+}
+
+
+def doings(){
+	inst = GenCls<String>()
+	"ok " + inst.checker<String>(inst)
+}
+
+~~~~~
+//##73. indirect abstract classes bug
+
+abstract class SimpleAbstractClass{
+	def getThing() String
+}
+
+abstract class Holder(-thing String) < SimpleAbstractClass//com.concurnas.lang.precompiled.SimpleAbstractClass
+
+class AlmostHolder(thingx String) < Holder(thingx){
+}
+
+
+def doings(){
+	tt = AlmostHolder("hi")
+	tt.thing
+}
+
+~~~~~
+//##74. define a stub function
+
+from com.concurnas.lang import GPUStubFunction
+
+@GPUStubFunction
+def get_work_dim() int 
+
+def doings() => "ok"
+
+~~~~~
+//##75. private class mapping when there is a choice
+
+from com.concurnas.lang.precompiled.PrivateClassHeirarchy import ClType1, ClType2
+from com.concurnas.lang.precompiled.PrivateClassHeirarchy import ClTypeB1, ClTypeB2
+
+def doings(){
+	t1 = new ClType1()
+	t2 = new ClType2()
+	things1 = [t1 t2]//not MyAbstract since it's private outside the declaration
+	//maps to ParentOne
+	tb1 = ClTypeB1()
+	tb2 = ClTypeB2()
+	
+	things2 = [tb1 tb2]
+	//maps to Object
+	
+	r1 = "" + (x.getClass().simpleName for x in things1)
+	r2 = "" + (x.getClass().simpleName for x in things2)
+	
+	"" + [ r1 r2]
+}
+
+~~~~~
+//##76. private class can be used like this
+
+def doings(){
+	xx Object = com.concurnas.lang.precompiled.PrivateClassHeirarchy.getInstance()
+	
+	"" + xx.getClass().getSimpleName()
+}
+
+~~~~~
+//##77. local class wrong package name format
+
+//##MODULE com.myorg.code2
+from com.concurnas.lang import GPUKernelFunctionDependancy
+
+def afunc(){
+	class SrcAndDeps(source String, dependancies String[]?)
+	inst = new SrcAndDeps("hi", null)
+	"hi"
+}
+
+//##MODULE
+
+from com.myorg.code2 import afunc
+
+def doings(){
+	"ok" + afunc()
+}
+
+~~~~~
+//##78. bug when defining default map lambda
+
+//##MODULE com.myorg.code
+from java.util import Map
+def myThing(srctoNode Map<String, int>){
+	
+	nodeCounter = { default -> def (a int) { 0 } }
+	for(node in srctoNode.values()){
+		nodeCounter[node]++
+	}
+	
+	nodeCounter
+}
+
+//##MODULE
+from com.myorg.code import myThing
+
+def doings(){
+	mmap = {"hi" -> 1 , "there" -> 2 ,"mane" -> 1}
+	"ok " + myThing(mmap)[1]
+}
+
+~~~~~
+//##79. wrong assign type being used on array default values
+
+def id(a float[2]) => a
+
+def doings(){
+	a = [1.f 3; 4.f 5]
+	ret=id(a)
+	value = 79
+	conventional = float[2, 2](0) //bug
+	
+	"" + [ret, conventional, value]
+}
+
+~~~~~
+//##80. fix generics on generic types upper bounded when multi chooice
+
+def doings(){
+	xxx1 = [int.class  float.class String.class]
+	xxx2 Class<?>[] = [int.class  bool.class]
+	kk = [xxx1, xxx2]
+	'ok' + kk//ok
+} 
+
+~~~~~
+//##81. fix generics above use case
+
+private def typeEqual(a Class<?>, b Class<?>){
+	def unbox(type Class<?>) Class<?> {
+		wtf = match(type){
+			case(Boolean.class)	  => boolean.class
+			case(Byte.class)      => byte.class
+			case(Character.class) => char.class
+			case(Double.class) 	  => double.class
+			case(Float.class) 	  => float.class
+			case(Integer.class)   => int.class
+			case(Long.class)	  => long.class
+			case(Short.class)	  => short.class
+			else 				  => type
+		}
+		wtf
+	}
+	
+	unbox(a) == unbox(b)
+}
+
+
+def doings(){
+	'ok' + [typeEqual(int.class, bool.class), typeEqual(int.class, Integer.class)]
+} 
+
+~~~~~
+//##82. bug with type convertion for primative type comparison operators
+
+public def comp1(a long, b int) {
+	return a > b;
+}
+
+public def comp2(a double, b long) {
+	return a > b;
+}
+
+public def comp3(a int, b long) {
+	return a > b;//LCMP not IF_ICMPLE
+}
+
+public def comp4(a int, b int) {
+	return a > b;
+}
+
+//if either is long then use correct one
+
+
+def doings(){
+	a = 40
+	b = Long(4261620736)
+	"{b as int} " + [comp1(a, b as int), comp2(a, b), comp3(a, b), comp4(a, b as int)] 	
+}
+
+~~~~~
+//##83. bug concerning setting of wanted on stack or not on ast override for funcinvoke which is really a constructor
+
+def doings(){
+	try{
+		Integer(99)
+		'ok'
+	}catch(e){
+		e.message
+	}
+}
+
+~~~~~
+//##84. was a bug with accessability
+
+class StatHolder{
+	
+	package this(timestamp String){
+	} 
+	
+	package this(error int){
+	}
+	
+	
+	override toString() String => "hi"
+}
+
+
+class ProfilingInfo{
+	
+	@com.concurnas.lang.Uninterruptible
+	def statExtractor(a int) StatHolder {
+		if(a <> 1){ 
+			StatHolder("hi")
+		}else{
+			StatHolder(0)
+		}
+	}
+	
+}
+
+def doings(){
+	mc = ProfilingInfo().statExtractor(1)
+	'ok'+ mc
+}
+
+~~~~~
+//##85. incorrectly filling in missing value for thing of array type
+
+def myThing(a String, b int[], c int[]? = null, d String...){
+	
+}
+
+def doings(){
+	myThing("hi", [1 2])
+	"ok"
+}
+
+~~~~~
+//##86. null to ref with no zero arg constructor cannot do
+
+class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+}
+
+
+def ok<Typex>(a Typex) Typex: {
+	null
+}
+
+def fail<Typex>(a Typex) Typex:GPURef {
+	null//no cannot do this
+}
+
+def doings(){
+	ok("hi")
+	msg = try{
+		fail("hi"); 'fail'
+	}catch(e) { e getMessage }
+	"fine " + msg 
+}
+
+~~~~~
+//##87. del npe
+
+an Object? = null
+
+def rem(){
+	anx = an 
+	del anx//check its not null before del to avoid npe
+}
+
+def doings(){
+	rem()
+	"ok"
+}
+
+~~~~~
+//##88. bridge method genneration
+
+open class AbstracParent<T>{//abstract class
+	def getT(a T) T//abastract
+}
+
+class ImpClass < AbstracParent<Integer>{
+	def getT(an Integer) Integer{//requires a bridge method else moan about missing definition
+		an
+	}
+}
+
+def doings(){
+	im AbstracParent<Integer> = ImpClass()
+	"" + im.getT(12)//call goes via bridge method
+}
+
+~~~~~
+//##89. assertion string incorrectly processed
+def thing(a int, b int){
+	assert a < b "{a} should be less than {b}"
+	"fail"
+}
+
+def doings(){
+	try{
+		thing(10, 3)
+	}catch(e){
+		e getMessage
+	}
+}
+
+~~~~~
+//##90. this ref on prefix op
+
+def myFunc(a int, v1 int){
+	xxx = class(a int, v1 int){
+		override hashCode() => 1
+		override equals(an Object) => false
+		
+		def nexter(){
+			ret = v1
+			v1 += v1 if a==1 else -v1//was being double visited this ref on second arg cuausing stack frame inconsistancy
+			ret
+		}
+	}
+	xxx(a, v1)
+}
+
+def doings(){
+	"cool" + [myFunc(1, 44).nexter()]
+}
+
+~~~~~
+//##91. error on null type tagging
+
+def ttt() => true
+myPiggie1 = [null  null] if ttt() else [null  null]
+myPiggie2 Object?[] = [null  null] if ttt() else [null  null]
+myPiggie3 Integer?[] = [null  null] if ttt() else {f=9; [null  null]}//was failing to set on else block
+
+def doings() String{
+	return ""+ [myPiggie1, myPiggie2, myPiggie3]
+}
+
+~~~~~
+//##92. problem with label alocation on if else and try catch
+
+engine = null
+
+def doings(){
+	xx={
+		if(null == engine){
+			'engine is null'
+		}else{
+			'TURDS'
+		}
+	}!
+	xx.get()
+	
+}
+
+~~~~~
+//##93. neg in things
+
+decc2 = [-10 1 2 3 4 5]
+flaotz = [-10. 1 2 3 4 5]
+flaotz2 = [-10.f 1 2 3 4 5]
+
+def doings(){
+	res1 = -10 in decc2//- was being captured as part of expr
+	res2 = -10. in flaotz
+	res3 = -10.f in flaotz2
+	"ok: " + [res1, res2, res3] 
+}
+
+~~~~~
+//##94. neg for ints in exprlists
+
+def int thing(a int){
+	this + a
+}
+
+def doings(){
+	x = 10 thing (-1)//only way we can do this
+	"" + x
+}
+
+~~~~~
+//##95. add getter setter if parent class has field accessable
+
+open class Sup(protected field int)
+
+class Child(val -field int) < Sup(field)
+
+def doings(){
+	c = Child(23)
+	"" + c.field
+}
+
+~~~~~
+//##96. imply generics of argument returning local generic when used in callsite
+
+class Maker<T>{
+	def doer(a T) => a
+}
+
+def getMaker<XXX>() => new Maker<XXX>()
+
+class MakerTaker<MyT>(a MyT){
+	def take(mm Object)  => false//mm.doer(a)
+}
+
+def doings(){
+	mt = MakerTaker<Integer>(12)
+	res = mt.take(getMaker())//can ignore here
+	
+	"" + res
+}
+
+~~~~~
+//##97. imply generics of argument returning local generic when used in callsite v2
+
+class Maker<T>{
+	def doer(a T){
+		a
+	}	
+}
+
+def getMaker<XXX>() => new Maker<XXX>()
+
+class MakerTaker<MyT>(a MyT){
+	def take(mm Maker<MyT>) MyT => mm.doer(a)
+}
+
+def doings(){
+	mt = MakerTaker<Integer>(12)
+	res = mt.take(getMaker())//this needs its generic argument qualified
+	
+	"" + res
+}
+
+~~~~~
+//##98. bug fixed relating to generics
+
+class GenParaInOut<X>(public ~x X[]){//gets stored as Object[] - but if its an array we need to explicitly convert this into a localarray[int:]
+	override hashCode() => 69
+	override equals(a Object) => true
+	override toString() => "has: " + x
+}
+
+
+la = [100, 200]
+
+
+def doings(){
+	gp = new GenParaInOut(la)//turned out to be a problem with subtyping of generic types and refs
+	//cannot qualify with the above
+	got =  gp.x
+	got2  =  gp\.x//type was also not correctly extracted here
+	
+	"" + [got, got2]
+}
+
+~~~~~
+//##99. bug since vectorized code was not being copied
+
+def doings(){
+	shared numbers = [1, 2, 3, 4, 5, 6]
+
+	complete = {numbers += 1; true}! //add one to each element
+	
+	await(complete)
+	""+numbers 
+}
+
+~~~~~
+//##100. bug with defo assignment use within block
+
+def tt() => false
+
+def doings(){
+	a String
+	if(tt()){
+		a = "hi"
+		g=a//used to think it as unset
+	}else{
+		a = "its false"
+	}
+	
+	"" + a
+}
+
+~~~~~
+//##101. idx fix
+def doings(){
+	indxes =0
+	for(x in 1 to 10; idx){ 
+		indxes += idx
+		if(idx == 0){
+			continue
+		}
+		f=9999
+	}
+	
+	"ok" + indxes
+}
+
+~~~~~
+//##102. idx fix on while
+
+def doings(){
+	indxes =0L
+	x=0
+	while(x++ <== 10; idx){
+		indxes += idx
+		if(idx == 0L){
+			continue
+		}
+		f=9999
+	}
+	
+	"ok" + indxes
+}
+
+~~~~~
+//##103. idx fix on while with ret
+
+def doings(){
+	indxes =0L
+	x=0
+	meme = while(x++ <== 10; idx){
+		indxes += idx
+		if(idx == 0L){
+			continue
+		}
+		9999
+	}
+	
+	"ok" + [indxes, meme]
+}
+
+~~~~~
+//##104. while ret
+
+def doings(){
+	indxes =0L
+	x=0
+	meme = while(x++ <== 10){
+		9999
+	}else{
+		null
+	}
+	
+	"ok" + [indxes, meme]
+}
+
+~~~~~
+//##105. while ret 2
+
+def doings(){
+	indxes =0L
+	x=0
+	meme = while(x++ <== 10){
+		9999
+	}
+	
+	"ok" + [indxes, meme]
+}
+
+~~~~~
+//##106. if used to nop
+def doings(){
+	indxes =0
+	for(x in 1 to 10; idx){ 
+		indxes += idx
+		if(idx == 0){
+			continue
+		}
+	}
+	
+	"ok" + indxes
+}
+
+~~~~~
+//##107. if used to nop 2
+def doings(){
+	indxes =0
+	for(x in 1 to 10; idx){ 
+		indxes += idx
+		if(idx == 0){
+			break
+		}
+	}
+	
+	
+	"ok" + indxes
+}
+
+~~~~~
+//##108. another one
+
+def doings(){
+	indxes =0
+	motto = for(x in 1 to 10; idx){ 
+		indxes += idx
+		if(idx == 0){
+			continue
+		}
+		idx
+	}
+	
+	"ok" + [indxes, motto]
+}
+
+~~~~~
+//##109. while idx variable problem when defined at module level
+
+from java.util import Arrays
+
+mm=1000;
+def doings(){
+	x=0
+	one4 = ""+ while(x++ <10; mm) { [mm, mm+x] }
+	
+	"" + one4
+}
+
+~~~~~
+//##110. for idx variable problem when defined at module level
+
+from java.util import Arrays
+	mm=1000;
+
+thing = Arrays.asList([new Integer(1) 1 2 2 3 3 4 4 5 5 10])
+def doings(){
+	x=0
+	one4 = ""
+	for(x in thing; mm) { one4+=[mm  mm+x] }
+	
+	"" + one4
+}
+
+~~~~~
+//##111. ast redirect of expr list needs should be preserved on stack call
+
+from java.util import ArrayList
+
+def doings(){
+	range = 0 to 25
+	az = 'a' + x as char for x in range
+	prefixes = new ArrayList<String>()
+	for(l1 in az){
+		for(l2 in az){
+			prefixes add ("" + l1 + l2)
+		}
+	}
+	"" + prefixes.size()
+}
+
+~~~~~
+//##112. ensure idx for for loop is captured correctly
+
+def something(a long, b int) =>	a+b
+
+items = 0 to 10
+
+def doings(){
+	dude = 10
+	xx = for(x in items; idx){
+		something(idx, dude)!		
+	}
+	
+	"" + (x for x in xx)
+}
+
+~~~~~
+//##113. ensure idx for while loop is captured correctly
+
+def something(a long, b int) =>	a+b
+
+items = 0 to 10
+
+def doings(){
+	dude = 10
+	a=0
+	xx = while(a++ < 10; idx){
+		something(idx, dude)!		
+	}
+	
+	"" + (x for x in xx)
+}
+
+~~~~~
+//##114. parfor list compre works
+
+def something(){
+	"ok"
+}
+
+items = 0 to 10
+
+def doings(){
+	
+	res2 = sync{something()! for a in items}
+	res1 = something() parforsync a in items
+	
+	"" + (res1, res2)
+}
+
+~~~~~
+//##115. used to incorrectly store state
+
+def doings(){
+
+	x3b = ""+sync{888 }
+
+	"" + x3b
+} 
+
+~~~~~
+//##116. and so this is fine now 
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = ""+sync{
+					for(n in ar){ {n + 10}! }
+				}
+	//}
+
+	"" + x3b
+} 
+
+~~~~~
+//##117. try catch label allocator needs to ignore things inside async blocks
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = try{for(na in ar){
+		{try{  "fine" }finally{p=3}}!
+	}}finally{o=9}
+
+	"" + x3b
+} 
+
+~~~~~
+//##118. try catch label allocator needs to ignore things inside async blocks
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+		try{  "fine" }finally{p=3}
+	}
+
+	"" + x3b
+} 
+
+~~~~~
+//##119. bug with nested sync not setting should be kept on stack correctly
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = for(na in ar){
+			(sync{for(n in ar){ "x" }})!
+	}
+
+	"" + x3b
+} 
+
+~~~~~
+//##120. set nested ret type
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = parforsync(na in ar){
+			""+parforsync(n in ar){
+			n + 10
+		}
+	}
+
+	"" + x3b
+} 
+
+~~~~~
+//##121. nested for list comprehension with parforsync
+
+ar = [1 2 3 4]
+
+def doings(){
+
+	x3b = (a, b) parforsync a in 0 to 1 parforsync b in 0 to 3
+
+	"" + x3b
+} 
+
+~~~~~
+//##122. bug with imm loader
+
+//##MODULE com.myorg.code2
+class AbstractClass{
+	def aMethod() int
+}
+
+
+//##MODULE
+from com.myorg.code2 import AbstractClass
+
+class MyClass < AbstractClass {//}~ MyTrait
+	def aMethod() => 56
+}
+
+def doings(){
+	thing AbstractClass = MyClass()
+	"" + with(thing){ aMethod(), aMethod()}
+}
+
+~~~~~
+//##123. type not being directed to asttype
+
+enum Color{ Blue, Green, Yellow }
+
+class Record(public age int, public friendcnt int, public name String, public favColor Color){
+	override toString() => "{age}, {friendcnt}, {name}, {favColor}" 
+}
+
+def matcher(an Object){
+	/*match(an){
+		Record(age == 2, friendcnt > age) => "record: {an.age}"
+		x => x
+	}*/
+	with(an as Record)
+	{
+		 cpobjCheck = 2 == age;
+	 	//cpobjCheck and=  2 > age ;
+		 cpobjCheck ;
+	 }
+	
+}
+
+
+def doings() {
+	"" + matcher( new Record(2, 3, "Dave", Color.Blue) )
+}
+
+~~~~~
+//##124. function defined at module leve within a block
+
+f=7
+
+x = {
+		def thing(aa int, bb int) => aa+bb + f
+		thing(2, 3)
+	} 	
+
+def doings(){
+
+	"" + x
+}
+
+~~~~~
+//##125. function defined at module level within block using external deps
+
+f=7
+
+x = {
+		z=100
+		def thing(aa int, bb int) => aa+bb + f + z
+		thing(2, 3)
+	} 	
+
+def doings(){
+
+	"" + x
+}
+
+~~~~~
+//##126. function defined at module level within block using external deps - if stmts 
+f=7
+
+def dd() => true
+
+x = {
+		z=100
+		def thing(aa int, bb int) => aa+bb + f + z
+		thing(2, 3)
+	} if dd() else 3333//ensure that block is correctly marked for capture
+
+def doings(){
+
+	"" + x
+}
+
+~~~~~
+//##127. looks cool
+
+//##MODULE com.myorg.code
+from com.concurnas.lang.precompiled import JustAClass
+y boolean:
+
+class MyClass
+
+def weirf(){
+	
+	{
+		y=true
+	}!
+	mm = JustAClass.aMethod()
+	y.get()
+}
+
+//##MODULE
+from com.myorg.code import weirf, MyClass
+def doings(){
+	mc = MyClass()
+	"" + weirf()
+}
+
+~~~~~
+//##128. problem with fiberization of globalized clinit
+
+//##MODULE com.myorg.code
+from com.concurnas.lang.precompiled import JustAClass
+y boolean:
+
+def weirf(){
+	
+	{
+		y=true
+	}!
+	mm = JustAClass.aMethod()
+	y.get()//used to hate this
+}
+
+public xx = weirf()
+
+//##MODULE
+from com.myorg.code import xx
+def doings(){
+	"" + xx
+}
+
+~~~~~
+//##129. module level actors
+
+class MyClass(a int, b int){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => "cool"
+}
+
+actor X of MyClass{}; 
+
+def wtf(){
+	new X(1, 2)
+}
+
+	x = wtf()
+
+def doings(){
+	"ok: " + x
+}
+
+~~~~~
+//##130. more module level actors
+
+open class ID{
+	def operate(a int) int => a
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+x = {class Henry < ID{};
+	actor X of Henry{}; 
+	c = new X()
+	c
+} 
+
+def doings(){
+
+	"" + x.operate(10)
+}
+
+~~~~~
+//##131. try catch labels when wrapping loops etc
+
+def sxt1(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		//j=99999
+	}
+	catch(e){
+		x=10
+	}//finally{x=666}
+	(h, x)
+}
+
+def sxt2(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		j=99999
+	}
+	catch(e){
+		x=10
+	}//finally{x=666}
+	(h, x)
+}
+
+def sxt3(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		//j=99999
+	}
+	catch(e){
+		x=10
+	}finally{x=666}
+	(h, x)
+}
+
+def sxt4(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		j=99999
+	}
+	catch(e){
+		x=10
+	}finally{x=666}
+	(h, x)
+}
+
+def doings() String{
+	"ok: " + [sxt1() sxt2() sxt3() sxt4()]
+}
+
+~~~~~
+//##132. branch implicit and explicit returns
+
+def ff()=> false
+def sdf() void{}
+
+def doer1(){
+	if(ff()){
+		return 9
+	}else{
+		20//ok
+	}
+}
+
+def doings(){
+	"" + doer1()
+}
+
+~~~~~
+//##133. constructor ref on new op overload bug on vars
+
+class MyGenClass(x String, y String){
+	override toString() => "MyGenClass " + [x,y]
+}
+
+class MyProvider{
+	override equals(a Object) => false
+	override hashCode() => 1
+	def \new(className String, x String, y String)  {
+		MyGenClass(x, y)
+	}
+}
+
+def doings(){
+	a=1
+	b=2 
+	d=4
+	mp = MyProvider()
+	what = mp.new MyGenClass&("77", ? String)
+	
+	"" + what('lovely')
+} 
+
+~~~~~
+//##134. bridge method not needed for notify below
+
+from java.util import ArrayList
+
+trait NotificationService<X>{
+	def notifyx(msg X) 
+}
+
+class MessageCapture<X> ~ NotificationService<X>{
+	public items = new ArrayList<X>()
+	def notifyx(msg X){
+		items.add(msg);;
+	}
+}
+
+
+inject class Client<X>(public noti NotificationService<X>){
+	def doperation(thing X){
+		noti.notifyx(thing)
+	}
+}
+
+def doings(){
+	cl Client<String> = new Client<String>(new MessageCapture<String>())
+	cl.doperation("hi")
+	"ok" + (cl.noti as MessageCapture<String>).items
+}
+
+~~~~~
+//##135. field created by default creator when referenced in supercon
+
+avar = 88
+
+open class MyClass( operate int){
+	override toString() => ""+[avar operate avar]
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class SubMyClass < MyClass({f = "ok";  222}){//used to accidentally create a field
+	override toString() => super.toString()
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def doings(){
+	xx = SubMyClass()
+	"" + xx
+}
+
+~~~~~
+//##136. lets estimate pi
+
+cnt = 20
+repeats = 20 
+
+def esimatePI(){
+	incir = 0.
+	x=0
+	xs = java.util.Random().doubles().iterator()
+	while(x++ <== cnt){
+		if((xs.next()**2 + xs.next()**2)**.5 <== 1){
+			incir++
+		}
+	}
+	(incir/cnt)*4
+}
+
+actor Accumilator(stopon int){
+	~done boolean:
+	~sofar double:
+	private accumilatedAnswer double=0
+	private resCnt=0
+	def addRes(ans double){
+		if(resCnt < stopon){
+			accumilatedAnswer += ans
+			sofar = accumilatedAnswer/++resCnt
+			if(resCnt == stopon){
+				done=true
+			}
+		}
+		resCnt == stopon
+	}
+}
+
+def doings(){
+	acc = Accumilator(repeats)
+	for(n = 0; n < Concurnas.cores(); n++){
+		{
+			loop{
+				if(acc.addRes(esimatePI())){
+					break
+				}
+			}
+		}!
+	}
+	
+	await(acc.done)
+	//await(acc.done; acc.done as boolean)
+	//await(acc.done; acc.done)
+	
+	"complete: {acc.sofar:get() as int}"
+}
+
+~~~~~
+//##137. fix locked ref cast
+
+actor Thing{
+	~a boolean: = false
+}
+
+def doings(){
+	t = Thing()
+	"ugh" + (t.a as boolean)//unsed to be unable to cast in this way as ref from function call is locked
+}
+
+~~~~~
+//##138. fix locked ref cast 2
+
+cnt = 10
+repeats = 10 
+
+def esimatePI(){
+	incir = 0.
+	x=0
+	xs = java.util.Random().doubles().iterator()
+	while(x++ <== cnt){
+		if((xs.next()**2 + xs.next()**2)**.5 <== 1){
+			incir++
+		}
+	}
+	(incir/cnt)*4
+}
+
+actor Accumilator(stopon int){
+	~done boolean:
+	~sofar double:
+	private accumilatedAnswer double=0
+	private resCnt=0
+	def addRes(ans double){
+		if(resCnt < stopon){
+			accumilatedAnswer += ans
+			sofar = accumilatedAnswer/++resCnt
+			if(resCnt == stopon){
+				done=true
+			}
+		}
+		resCnt == stopon
+	}
+}
+
+def doings(){
+	acc = Accumilator(repeats)
+	for(n = 0; n < Concurnas.cores(); n++){
+		{
+			loop{
+				if(acc.addRes(esimatePI())){
+					break
+				}
+			}
+		}!
+	}
+	
+	//await(acc.done)
+	await(acc.done; acc.done as boolean)
+	//await(acc.done; acc.done)
+	got = "{acc.sofar:get() as int}"
+	"complete: " + (got in ["2", "3"])
+}
+
+~~~~~
+//##139. can extend Function0
+
+cnt = 0
+
+class Thing < com.concurnas.bootstrap.lang.Lambda.Function0<Void?>(null){//ignore InvokeUncreatable object
+	def apply() Void? => cnt++; null
+}
+
+def doings(){
+	inst = Thing()
+	inst.apply()
+	"" + cnt
+}
+
+~~~~~
+//##140. five ways to access a thing exending function0
+
+cnt = 0
+
+class Thing < com.concurnas.bootstrap.lang.Lambda.Function0<Void?>(null){
+	def apply() Void? => cnt++; null
+}
+
+def doings(){
+	inst = Thing()
+	inst.apply()
+	(inst as Object as () Void)()
+	(inst as Object as com.concurnas.bootstrap.lang.Lambda.Function0<Void>)()
+	(inst as Object as () Void)()
+	(inst as com.concurnas.bootstrap.lang.Lambda.Function0<Void>)()
+	
+	"" + cnt
+}
+
+~~~~~
+//##141. generic type upper bound on rhs can be set to type of upper bound on lhs
+
+class TakesGen<X Number>{
+	def thing(an Another<X>) => an
+	
+	def xxx(an X){
+		b Number = an //used to extract X as Object which is incorrect as upper bound is Number
+	}
+	
+}
+
+class Another<X Number>{
+	override toString()=> "hi"
+}
+
+def doings() => ""+TakesGen<int>().thing(Another<int>())
+
+~~~~~
+//##142. has line number for lambda
+
+def doer(thing (String?) String ) => thing(null)
+
+def doings(){
+	"has line number for lambda " + try{
+		doer(a String? => "" + a??.charAt(0))
+	}catch(e){
+		e.getStackTrace()[0].getLineNumber() > 0
+	}
+}
+
+~~~~~
+//##143. local class may have references to external vars
+
+trait AThing{
+	def doit(an int) int	
+}
+
+def doings(){
+	bb=90
+	xx = new AThing{
+		def doit(an int) => an + bb
+	}
+	
+	
+	"ok" + xx.doit(10)
+}
+
+~~~~~
+//##144. nested inner var use default var
+
+trait AThing{
+	def doit(an int) int	
+}
+
+def maker(attempts = 10) AThing{
+	attemptsn = attempts
+	xx = new AThing{
+		def doit(an int) => an + attempts//n
+	}
+	xx
+}
+
+def doings(){
+	bb=90
+	xx = maker()
+	"ok" + xx.doit(10)
+}
+
+~~~~~
+//##145. nested inner var use default var 2
+trait AThing{
+	def doit(an int) int	
+}
+
+def maker(attempts int = 10) AThing{//?
+	attemptsn = attempts
+	xx = new AThing{
+		def doit(an int) => an + attempts//n
+	}
+	xx
+}
+
+def doings(){
+	bb=90
+	xx = maker()
+	"ok" + xx.doit(10)
+}
+
+~~~~~
+//##146. bug with funcrefs with no args having captured vars
+
+def provideLoggerFor(middle String) (String) String{
+	def defaultLogger(msg String) => "{middle} {msg}"
+	return defaultLogger&//(String)
+}
+
+
+def doings(){
+	thing = provideLoggerFor("hi")
+	"" + thing("message")
+}
+
+~~~~~
+//##147. actor constructor with default args
+
+actor MyActor1(a int, b =100){
+	override hashCode () => 1
+	override equals(an Object) => false
+}
+
+
+def doings(){
+	ma = MyActor1(12)
+	"ok"
+}
+
+~~~~~
+//##148. actor method with default args
+
+actor MyActor2{
+	override hashCode () => 1
+	override equals(an Object) => false
+	def something(attempts = 10) => attempts
+}
+
+
+
+
+def doings(){
+	ma = MyActor2()
+	"ok" + ma.something()
+}
+
+~~~~~
+//##149. local class as default param
+
+DEFAULT_CONC_PORT = 42000
+
+trait LoggerProvider(){
+	def provideLoggerFor(theClass Class<?>) (String) void
+}
+
+private shared dateLog = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS Z");
+private defaultLoggerProvider = new LoggerProvider{
+	def provideLoggerFor(theClass Class<?>) (String) void{
+		className String = theClass getSimpleName
+		def defaultLogger(msg String){
+			System.out.println("{dateLog.format(new java.util.Date())} {className} {msg}")
+		}
+		return defaultLogger&
+	}
+} 
+
+class MyClass(~thing int = DEFAULT_CONC_PORT, dlx = defaultLoggerProvider){
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def doings(){
+	mc = new MyClass()
+	""+mc.thing
+}
+
+~~~~~
+//##150. override trait method differing ret type
+trait MyTrait{
+	def echo() MyTrait
+}
+
+class MyClass ~ MyTrait{
+	def echo() MyClass => this
+	override toString() => "its ok"
+}
+
+def doings(){
+	mc= new MyClass()
+	"ok " + mc.echo()
+}
+
+~~~~~
+//##151. override super method differing ret type
+open class MyTrait{
+	def echo() MyTrait
+}
+
+class MyClass < MyTrait{
+	def echo()  => this
+	override toString() => "its ok"
+}
+
+def doings(){
+	mc= new MyClass()
+	"ok " + mc.echo()
+}
+
+~~~~~
+//##152. override super method differing ret type - both
+trait MyTrait{
+	def echo1() MyTrait
+}
+
+open class SupClass{
+	def echo2() SupClass
+}
+
+class MyClass < SupClass ~ MyTrait{
+	def echo1()  => this
+	def echo2()  => this
+	override toString() => "its ok"
+}
+
+def doings(){
+	mc= new MyClass()
+	"ok " + [mc.echo1() mc.echo2()]
+}
+
+~~~~~
+//##153. catch blocks throwing bug
+
+tt = 9
+
+def thing(){
+	try{
+		while(tt++ < 12){
+			if(tt){
+				12
+			}
+		}
+	}catch(e){
+		throw e
+	}
+}
+
+def doings() => "uh oh" + thing()
+
+~~~~~
+//##154. bc genneration for await was incorrect 
+
+//##MODULE com.myorg.code2
+
+def domthins(an int:){
+	await(an)//was gennerated wrong code path
+}
+
+//##MODULE
+
+def doings(){
+	com.myorg.code2.domthins(12:)
+	"ok"
+}
+
+~~~~~
+//##155. bc genneration for classreferences was incorrect
+
+//##MODULE com.myorg.code2
+from java.util import Iterator
+
+x=0
+
+def iterator() Iterator<Integer>{
+	ret = class() ~ Iterator<Integer>{
+		def hasNext(){
+			x++ < 10
+		}
+		
+		def next() Integer{
+			x
+		}
+	}
+	ret()
+}
+
+
+//##MODULE
+
+def doings(){
+	com.myorg.code2.iterator()
+	"ok"
+}
+
+~~~~~
+//##156. ret lambda ok
+
+def mayRetLAmbda() (String) String{
+	def (a String) => a
+}
+
+
+def doings(){
+	"" + mayRetLAmbda()("ok")
+}
+
+~~~~~
+//##157. do things with pre compiled variable the long way
+
+//##MODULE com.myorg.code2
+public shared a Integer = 100
+
+//##MODULE
+com.myorg.code2.a = 23//the long way
+
+def doings(){
+	"ok" + com.myorg.code2.a
+}
+
+~~~~~
+//##158. functype needs to treat int params as Integer etc
+
+from com.concurnas.tests.helpers.traits import OperationOnIntList
+from java.util import List
+
+class Imp ~ OperationOnIntList{
+	def ack1(input List<int>) (int) int => input.get&(int)
+	def ack2(input List<int>)  => input.get&(int)
+}
+
+input = [1, 2, 3]
+
+def doings(){
+	ii = Imp()
+	"" + [ii.ack1(input)(0) ii.ack2(input)(0)]
+}
+
+~~~~~
+//##159. from primative to other boxed type
+ 
+an = 2
+
+def doings(){
+	x1 double = an
+	x2 = an as double
+	
+	t1 Double = an
+	t2 = an as Double
+	
+	"" + [x1 x2 t1 t2]
+}
+
+~~~~~
+//##160. from boxed to other boxed type
+
+an = Integer(2)
+
+def doings(){
+	x1 double = an
+	x2 = an as double
+	
+	t1 Double = an
+	t2 = an as Double
+	
+	"" + [x1 x2 t1 t2]
+}
+
+~~~~~
+//##161. check protected
+open class Sup{
+	protected def prot() => 1
+	private def priv() => 1
+}
+
+class Child < Sup{
+	def somet(supinst Sup){
+		a = super.prot()
+		b = supinst.prot()//same package so ok
+		(a, b)
+	}
+}
+
+def doings(){
+	cc = Child()
+	"" + cc.somet(cc)
+}
+
+~~~~~
+//##162. injectable actor double create constructor err
+
+inject actor TaskStore {//used to genenrate two injectable methods
+	def setSuccess(taskId long, another long, something Object ){
+		
+	}
+}
+
+
+def doings(){
+	ts = new TaskStore()
+	"ok"
+}
+
+~~~~~
+//##163. inf loop bug
+res boolean:
+done boolean:=false
+
+def thing(){
+	x=0
+	while(true){//for(x in 0 to 10){//TODO: why loop fails?
+		if(x==10){
+			res=true;
+		}
+		
+		if(done){
+			return
+		}
+		
+		x++;;
+	}
+}
+
+
+def doings(){
+	thing()!
+	
+	await(res)
+	done = true
+	"ok" 
+}
+
+~~~~~
+//##164. reset local var counter at end of isolated block with direct parent being module level
+from java.util import HashMap, HashSet 
+
+enum Protocol{
+	sERROR, cERROR, 
+	cCONNECT, sCONNECT_OK, sCONNECT_AUTH_NEEDED,
+	cDISCONNECT,
+	cSUBMIT,
+	sRESPONSE,
+	cHEARTBEAT,
+	sHEARTBEAT,
+	sREQUESTDEPENDENCY,
+	cPROVIDEDEPENDENCY;
+	def getCode() long => this.ordinal()
+}
+
+codeToProtocol = new HashMap<long, Protocol>()
+{//this block was affecting the local variable counter
+	for(p in Protocol.values()){
+		codeToProtocol[p.code] = p
+	}
+}
+
+enum TaskStatus{
+	PENDING, FAIL, SUCCESS
+	def getCode() long => this.ordinal()
+}
+
+
+def doings(){
+	ts = TaskStatus.SUCCESS
+	"" + ts
+}
+
+~~~~~
+//##165. can throw thing held in ref
+def what(){
+	tothrow Throwable: = new RuntimeException("hi")
+	throw tothrow
+}
+
+
+def doings(){
+	"" + try{
+		what()
+		"fail"
+	}catch(e){
+		e
+	}
+}
+
+~~~~~
+//##166. custom ref param convertion for primative array types 
+from com.concurnas.lang import BlockingLocalRef
+from java.util import HashMap 
+
+
+class DistClassStore{
+	private nameToBytecode = new HashMap<String, byte[]:BlockingLocalRef>()//TODO: default map would be better here
+	
+	def getBytecode(name String) byte[]:BlockingLocalRef {
+		if(name not in nameToBytecode){
+			toFetch byte[]:BlockingLocalRef
+			nameToBytecode[name] = toFetch
+			//nameToBytecode.put(name, toFetch:)
+		}
+		
+		nameToBytecode[name]
+	}
+	
+	def onClientDisconnect(){
+		for(name in nameToBytecode){
+			nameToBytecode[name]:setException(null)
+		}
+	}
+	
+	def onClientRespond(name String, code byte[]){
+		if(name in nameToBytecode){
+			nameToBytecode[name] = code
+		}else{
+			br byte[]:BlockingLocalRef
+			br = code
+			nameToBytecode[name] := br
+		}
+		
+	}
+	
+	def onClientMissingClass(name String){
+		if(name not in nameToBytecode){
+			toFetch byte[]:BlockingLocalRef
+			nameToBytecode[name] = toFetch
+		}
+		nameToBytecode[name]:setException(null)	
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##167. bugfix try catch label nested in if
+def tt() => false
+
+def tryme(){
+	if(tt()){
+		try{
+			12
+		}catch(e){
+			13
+		}
+	}else{
+		999
+	}
+}
+
+
+def doings(){
+	"ok"
+}
+
+
+~~~~~
+//##168. catch may return something
+def something(name String) byte[] => null
+def somethingelse(name String) byte[] => throw new Exception("uh oh")
+def getBytecode(name String) Object{//check parent first
+	fromParent = something(name)
+	if(fromParent == null){
+		try{
+			somethingelse(name)
+		}catch(e){
+			return null
+		}
+	}else{
+		"clive"
+	}
+}
+
+def doings() {
+	"ok" + (getBytecode "ok")
+}
+
+~~~~~
+//##169. checkcast on array return type bugfix
+def thing() Integer[] {
+	things = [Integer(1) 2 3 4]
+	things[0 ... 2] //before this was not being checkcasted to the correct expected type
+}
+
+def doings(){
+	"ok"+thing()
+}
+
+~~~~~
+//##170. bug on idx casting type
+
+def getThings() {
+	rtest = [1 2 3 4 5]
+	
+	gens = new int[rtest.length]
+	
+	for(x in 0 to rtest.length-1){
+		gens[x] = 0//x is an Integer, so we cast to int
+	}
+	
+	gens
+}
+
+def doings(){
+	"" + getThings()
+}
+
+~~~~~
+//##171. bug on position of created for loop variable with same name
+
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.lang import DependencyAnalyzer
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap, Set, HashSet, List, ArrayList
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+
+private class Dependancy(public val depName String, public val code byte[]){
+	public def getSucess() => code <> null
+} 
+
+
+log (String) void = def(a String){ System.out.println(a); }
+connected = true
+
+def connect() => ;;
+
+def gennerateRequestId(task IsoTask<Object:>) => 1l
+
+def request(task IsoTask<Object:>){
+	taskName = "jobName"
+	cls = 'cls'
+	clsName = 'clsName'
+				
+	depKeys Set<String>? = null
+	ohkevin = "ohkevin"
+	
+	for(clsName in depKeys??){//was casuing origonal var to be created in wrong slot
+		//mostDeps.add(new Dependancy(clsName, depMap[clsName] as byte[]))
+	}
+			
+	ohkevin = "kevinwhy"
+		
+	
+	log("...Request submit for iso: {clsName}  with Jobname: {taskName}, requestId: , with dependencies: {depKeys}")
+	
+	//submit request and run
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##172. catch can return
+
+what=9
+
+def thing(){
+	what = try{
+		12
+	}catch(e){
+		return// doesnt adversly affect the return value of the try block - thats still int
+	}
+	
+	//what
+}
+
+
+def doings(){
+	"ok" + [what, { thing(); what}]
+}
+
+~~~~~
+//##173. lca type of tuples defined as par below
+from java.util import Set, List, ArrayList, HashSet
+
+
+class Dependency(name String, code byte[])
+
+
+def thingy() (Set<String>, ArrayList<Dependency>){
+	new HashSet<String>(), new ArrayList<Dependency>()
+}
+
+def tt() => true
+
+def user(a Set<String>, b ArrayList<Dependency>){
+	"ok"
+}
+
+
+def doings(){
+	(a, b) = if(tt()){
+		thingy()
+	}else{
+		new HashSet<String>(), new ArrayList<Dependency>()
+	}
+	user(a, b)
+}
+
+~~~~~
+//##174. lambda gen signature corrected for arrays
+class OnCopy(-x = 0){
+	def inc() => x++
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def runIncer(a OnCopy[]) => a^inc()
+def runIncerSingle(a OnCopy) => a.inc()
+
+
+def doings(){
+	shared oc1 = OnCopy()
+	shared oc2 = OnCopy()
+	
+	x1 = {f = 100; runIncer&([oc1 oc2])}!
+	x2 = {f = 100; runIncerSingle&(oc1)}!
+	
+	res1 = x1()
+	res2 = x2()
+	
+	"" + [oc1.x, oc2.x, res1, res2]
+}//0,0
+ 
+~~~~~
+//##175. return from catch needs convertion to object type
+def something(){
+	throw new Exception("me")
+}
+
+def callanother() void{}
+
+def doings(){
+	res = try{
+		something()
+		"fail"
+	}catch(e){
+		'me' in '{e}'//needs convertion to object
+	}
+	finally{
+		callanother()
+	}
+	"ok" + res
+}
+
+~~~~~
+//##176. trans block missing isolated=true on main work block
+def tt() => true
+
+def doings(){
+	x := {
+		if(tt()){
+			throw new Exception("uh oh")
+		}
+		
+		22
+	}!
+	
+	await(x)
+	
+	trans{
+		if(not x:hasException()){
+			x:setException(new Exception("another"))
+		}
+	}
+	try{
+		"fail: " + x
+	}catch(e){
+		"" + e.getMessage()
+	}
+}
+
+~~~~~
+//##177. allow dot over multiple lines
+from java.util.stream import Collectors
+from java.util import List
+
+def doings(){
+	mylist = [1, 2, 3, 4, 5]
+	a1 = mylist.stream()
+		.map( def (a int) { a+10 } )
+		.collect(Collectors.toList())
+	a2 = mylist.stream().map( def (a Integer) { a+10 } ).collect(Collectors.toList())
+	a3 = mylist.stream().map(a int => a+10).collect(Collectors.toList())
+	a4 = mylist.stream().map(a => a+10).collect(Collectors.toList())
+	
+	"" + [a1 a2 a3 a4]
+}
+
+~~~~~
+//##178. transactions is closed
+def doings(){
+	ok String:
+	done int:
+	every(ok){
+		trans{
+			ok.close()
+			done = 1
+		}
+	}
+	ok = ""
+	await(done)
+	"" + ok:isClosed()
+}
+
+~~~~~
+//##179. sub string expressions - nested
+def doings(){
+	f=9
+	g=8
+	""+for(x in [false true]){
+		"hey: {'one:{f}' if x else 'two:{g}'} nice {6} ok"
+	}
+}
+
+~~~~~
+//##180. sub string expressions - none
+def doings(){
+	f=9
+	g=8
+	""+for(x in [false true]){
+		"hey: "
+	}
+}
+
+~~~~~
+//##181. sub string expressions - starts with thing
+def doings(){
+	f=9
+	g=8
+	""+for(x in [false true]){
+		"{2+2}"
+	}
+}
+
+~~~~~
+//##182. sub string expressions - escape char
+def doings(){
+	f=9
+	g=8
+	""+for(x in [false true]){
+		"\{2+2}"
+	}
+}
+
+~~~~~
+//##183. sub string expressions - failed
+def doings(){
+	f=9
+	g=8
+	""+for(x in [false true]){
+		"f {2+2 sdf"
+	}
+}
+
+~~~~~
+//##184. neste neste
+def tt()=> true
+
+def doings(){
+	avar = "something"	
+	//"result is: {'got: {avar}' if tt() else 'nope'}"	
+	//"result is: {avar}"
+	"result{ {avar} }"
+}  
+
+~~~~~
+//##185. bugfix on op overload redirect
+def doings() {
+
+	 
+	InitialA = 100
+	
+	b := 0
+	a := InitialA
+	
+	
+	calls := ""
+	done :=false
+	
+	cnt:=0
+	xx = async{
+		pre{ lastVal Integer? = null }
+		onchange(a,b){ 
+			if(null <> lastVal){
+				if(lastVal <== a)//op overload - was not being nested repointed as op overload was being overwritten
+				{
+					return false
+				}
+			}
+			lastVal = a
+			
+			cnt++
+			true
+		}
+	}
+	
+	n=0
+	while(n++<InitialA){
+		{
+			trans{
+				a--;
+				b++;
+			}
+		}!
+	}
+	
+	await(cnt, xx ; (not xx) or cnt==InitialA)
+	
+	
+	"" + [a,b, xx]
+}
+
+~~~~~
+//##186. bugfix on op overload redirect pt 2
+InitialA = 100
+b := 0
+
+def doings() {
+
+	 
+	a := InitialA
+	
+	
+	calls := ""
+	done :=false
+	
+	cnt:=0
+	xx = async{
+		pre{ lastVal Integer? = null }
+		onchange(a,b){ 
+			if(null <> lastVal){
+				if(lastVal <== a)
+				{
+					return false
+				}
+			}
+			lastVal = a
+			
+			cnt++
+			true
+		}
+	}
+	
+	n=0
+	while(n++<InitialA){
+		{
+			trans{
+				a--;
+				b++;
+			}
+		}!
+	}
+	
+	await(cnt, xx ; (not xx) or cnt==InitialA)
+	
+	
+	"" + [a,b, xx]
+}
+
+~~~~~
+//##187. loop idx ddefault to int
+from java.util import List
+
+def doings(){
+	alist = 0 to 20 step 4
+	
+	what List<(int, int)> = for(a in alist; idx ){
+		(idx, a)
+	}
+	"ok: " + what
+}
+
+~~~~~
+//##188. loop idx take thing on righ
+from java.util import List
+
+def doings(){
+	alist = 0 to 20 step 4
+	
+	what0 List<(int, int)>  = for(a in alist; idx ){ (a, idx) }
+	what1 List<(int, long)> = for(a in alist; idx = 0l){ (a, idx) }
+	what2 List<(int, long)> = for(a in alist; idx long = 0l){ (a, idx) }
+	what3 List<(int, long)> = for(a in alist; idx long){ (a, idx) }
+	
+	"ok: " + [what0, what1, what2, what3]
+}
+
+~~~~~
+//##189. loop idx take thing on righ - while
+
+from java.util import List
+
+def doings(){
+	n=0; what0 List<(int, int)>  = while(n++ < 4; idx ){ (n, idx) }
+	n=0; what1 List<(int, long)> = while(n++ < 4; idx = 0l){ (n, idx) }
+	n=0; what2 List<(int, long)> = while(n++ < 4; idx long = 0l){ (n, idx) }
+	n=0; what3 List<(int, long)> = while(n++ < 4; idx long){ (n, idx) }
+	n=0; what4 List<(int, int)> = while(n++ < 4; idx int){ (n, idx) }
+	
+	"ok: " + [what0, what1, what2, what3, what4]
+}
+
+~~~~~
+//##190. loop idx take thing on righ - loop
+from java.util import List
+
+def doings(){
+	n=0; what0 List<(int, int)>  = loop(idx ){ if(n++ > 4){ break}; (n, idx) }
+	n=0; what1 List<(int, long)> = loop(idx = 0l){ if(n++ > 4){ break}; (n, idx) }
+	n=0; what2 List<(int, long)> = loop(idx long = 0l){if(n++ > 4){ break};  (n, idx) }
+	n=0; what3 List<(int, long)> = loop(idx long){if(n++ > 4){ break};  (n, idx) }
+	n=0; what4 List<(int, int)> = loop(idx int){if(n++ > 4){ break};  (n, idx) }
+	
+	"ok: " + [what0, what1, what2, what3, what4]
+}
+
+~~~~~
+//##191. example from book
+def doings(){
+	items = [2 3 4 5 2 1 3 4 2 2 1]
+	
+	res1 = for(x in items; idx) { "{x, idx}" }//idx implicitly set to 0
+	res2 = for(x in items; idx long) { "{x, idx}" }//idx implicitly set to 0L
+	res3 = for(x in items; idx = 100) { "{x, idx}" }
+	res4 = for(x in items; idx long = 100) { "{x, idx}" }
+	
+	alreadyIdx = 10//index defined outside of loop
+	res5 = for(x in items; alreadyIdx) { "{x, alreadyIdx}" }
+	
+	"ok: " + [res1, res2, res3, res4, res5]
+}
+
+~~~~~
+//##192. example from book 2
+def doings(){
+	items = [2 3 4 5 2 1 3 4 2 2 1]
+	n=0; res1 = while(n++ < 10; idx) { "{n, idx}" }//idx implicitly set to 0
+	n=0; res2 = loop(idx) {if(n++ > 10){break} "{n, idx}" }//idx implicitly set to 0L
+	
+	"ok: " + [res1, res2]
+}
+
+~~~~~
+//##193. null on funcref used to blow up
+def funcNullable(a String?){
+	
+}
+
+def doings(){
+	y=funcNullable&(null)//ok now
+	
+	"err" 
+}
+
+~~~~~
+//##194. tests from manual
+class Complex(real double, imag double){
+	def +(other Complex) => new Complex(this.real + other.real, this.imag + other.imag)
+	def +(other double) => new Complex(this.real + other, this.imag)
+	def +=(other Complex) => this.real += other.real;  this.imag += other.imag
+	def +=(other double) => this.real += other
+	override toString() => "Complex({real}, {imag})"
+}
+
+c1 = Complex(2, 3)
+c2 = c1@
+c3 = c1@
+c4 = Complex(3, 4)
+
+result1 = c1 + c4
+result2 = c1 + 10.
+c2 += c4 //compound plus assignment
+c3 += 10.//compound plus assignment
+
+def doings(){
+	"" + [result1, result2, c2, c3]
+}
+
+~~~~~
+//##195. used to blow up
+def int gbp() => this
+def long mil() => this*1000000L
+
+def doings(){
+	"ok" + 1 .. mil ( ) . gbp ( )
+}
+
+~~~~~
+//##196. bug on choice of items if one or more void
+def dsf() => true
+
+def thing(){//returns void now
+	if(dsf()){
+		a = 9
+	}else{
+		dsf()
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##197. similar bug to above unecisary cast
+trait NotificationService{
+	def notify(msg String) 
+}
+
+def sdf() => false
+
+class ConsoleNotify ~ NotificationService{
+	def notify(msg String){
+		if(sdf()){
+			a=3
+		}else{
+			System err println msg
+		}
+		
+	}
+}
+
+
+def doings() => "oh"
+
+~~~~~
+//##198. nice little filter and lazy example
+from java.util import Iterator, NoSuchElementException
+
+private class Filtered(src Iterator<int>, op (int) boolean) ~ Iterator<Integer>{//TODO allow prim here
+	nextVal  Integer?
+	
+	def hasNext(){
+		null <> obtainNext()
+	}
+	
+	def obtainNext(){
+		if(nextVal == null){
+			while(src.hasNext()){
+				candi = src.next()
+				if(op(candi)){
+					nextVal = candi
+					break
+				}//bug here with loop jump
+			}
+		}
+		nextVal
+	}
+	
+	def next() Integer{
+		ret = obtainNext()
+		this.nextVal = null
+		if(null == ret){
+			throw new NoSuchElementException();
+		}
+		ret?? as int
+	}
+}
+
+class Thing(me Iterable<int>, op (int) boolean) ~ Iterable<int>{
+		def iterator() => Filtered(me.iterator(), op)
+	}
+
+def Iterable<int> filter(op (int) boolean) Iterable<int> {
+	new Thing(this, op)
+}
+
+def Iterable<int> sum(){
+	ret = 0L; for(x in this){ ret += x}
+	ret
+}
+
+lazy slowValue = {(1 to 1000).filter(x => x mod 113 == 0).sum()}
+
+def doings(){
+	"" + slowValue
+}
+
+~~~~~
+//##199. bug concerning local classes in extension functions
+from java.util import Iterator, NoSuchElementException
+
+private class Filtered(src Iterator<int>, op (int) boolean) ~ Iterator<Integer>{//TODO allow prim here
+	def hasNext(){
+		true
+	}
+	
+	def next() Integer{
+		1
+	}
+}
+
+def Iterable<int> filter(op (int) boolean) Iterable<int> {
+	
+	class Thing(me Iterable<int>, op (int) boolean) ~ Iterable<int>{
+		def iterator() => Filtered(me.iterator(), op)
+	}//due to this
+	
+	new Thing(this, op)
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##200. ext funcs lazy eval with anon class
+from java.util import Iterator, NoSuchElementException
+private class Filtered(src Iterator<int>, op (int) boolean) ~ Iterator<Integer>{//TODO allow prim here
+	nextVal  Integer?
+	
+	def hasNext(){
+		null <> obtainNext()
+	}
+	
+	def obtainNext(){
+		if(nextVal == null){
+			while(src.hasNext()){
+				candi = src.next()
+				if(op(candi)){
+					nextVal = candi
+					break
+				}//bug here with loop jump
+			}
+		}
+		nextVal
+	}
+	
+	def next() Integer{
+		ret = obtainNext()
+		this.nextVal = null
+		if(null == ret){
+			throw new NoSuchElementException();
+		}
+		ret?? as int
+	}
+}
+
+def Iterable<int> filter(op (int) boolean) Iterable<int> {
+	me = this
+	new Iterable<int>{
+		def iterator() => Filtered(me.iterator(), op)
+	}
+}
+
+def Iterable<int> sum(){
+	ret = 0L; for(x in this){ ret += x}
+	ret
+}
+
+
+lazy slowValue = {(1 to 1000).filter(x => x mod 113 == 0).sum()}
+
+def doings(){
+	"" + slowValue
+}
+
+~~~~~
+//##201. ext funcs lazy eval with anon class and local class
+from java.util import Iterator, NoSuchElementException
+
+def Iterable<int> filter(op (int) boolean) Iterable<int> {
+	src = this
+	new Iterable<int>{
+		def iterator(){
+			class Filtered(src Iterator<int>, op (int) boolean) ~ Iterator<int>{//trait quali can be prim which gets boxed
+				nextVal  Integer?
+				
+				def hasNext(){
+					null <> obtainNext()
+				}
+				
+				def obtainNext(){
+					if(nextVal == null){
+						while(src.hasNext()){
+							candi = src.next()
+							if(op(candi)){
+								nextVal = candi
+								break
+							}//bug here with loop jump
+						}
+					}
+					nextVal
+				}
+				
+				def next() Integer{
+					ret = obtainNext()
+					this.nextVal = null
+					if(null == ret){
+						throw new NoSuchElementException();
+					}
+					ret?? as int
+				}
+			}
+			
+			new Filtered(src.iterator(), op)
+		}
+	}
+}
+
+def Iterable<int> sum(){
+	ret = 0L; for(x in this){ ret += x}
+	ret
+}
+
+
+lazy slowValue = {(1 to 1000).filter(x => x mod 113 == 0).sum()}
+
+def doings(){
+	"" + slowValue
+}
+
+~~~~~
+//##202. bug now ok
+from com.concurnas.tests.helpers.distHelpers import EverythingToParentButClassLoader
+
+def doings(){
+	ebcl = EverythingToParentButClassLoader()
+	"ok"
+}
+
+~~~~~
+//##203. jumps bug
+from java.util import ArrayList
+
+def matcher(a Object){
+	kk=""
+	match(a){
+		case(x int){
+			kk="small"
+		}
+		case(x String){
+			kk="said hi"
+		}
+	}
+	kk
+}
+
+def doings(){
+	"" + [matcher(2), matcher(3), matcher("hello"), matcher(new ArrayList<String>())] 
+}
+
+
+~~~~~
+//##204. invokedynamic was not passing the fiber
+from com.concurnas.lang.precompiled import TestInvokeDynamic
+
+def doings(){
+	TestInvokeDynamic.runIt()
+		
+	"ok"
+}
+
+~~~~~
+//##205. invokedynamic bugfix
+from java.nio.file import Paths, Path, Files
+from java.util.stream import Collectors
+
+def readFile(ppath Path) {
+	try(lines = Files.lines(ppath)){
+		String.join("\n", lines.collect(Collectors.toList()))
+	}    
+}
+
+private def processFile(ppath Path){
+	data String = readFile(ppath)
+	data
+}
+
+
+def convertDoc(fname String){
+	ppath = Paths.get(fname)
+	processFile ppath
+} 
+
+def doings(){
+	"" + convertDoc("./tests/assets/text.txt")
+}
+
+~~~~~
+//##206. invokedynamic bugfix - alt method
+from java.nio.file import Paths, Path, Files
+from java.util.stream import Collectors
+
+
+dx=Collectors.joining("\n")
+
+def readFile(ppath Path) {
+	try(lines = Files.lines(ppath)){
+		lines.collect(dx)
+		//lines.collect(Collectors.toList())
+	}    
+}
+
+def doings(){
+	"" + readFile(Paths.get("./tests/assets/text.txt"))
+}
+
+~~~~~
+//##207. partially qualified lambda expr
+import java.util.stream.Collectors;
+
+def doings(){
+	
+	ret = (1 to 15).stream().map((a int) => "{a}").collect(Collectors.toList())
+	
+	"" + ret 
+} 
+
+~~~~~
+//##208. nested inner func mapping with default params
+
+def myMethod(){
+	ar = new list<String>()
+	def processTextNode(line String, sec = false) void {
+		ar.add(line)
+	}//nested inner function with default params being incorrectly created
+	
+	processTextNode("")
+}
+
+def doings(){
+	myMethod()
+	"fine"
+}
+
+~~~~~
+//##209. bug on tuplederef within for loop
+things = zip([1, 2, 3], [4, 5, 6])
+
+def doings(){
+ 	res1= for( (a, b) in things){//foreced as new now
+		b
+	}
+	
+	res2=for( (a, b) in things){
+		a
+	}
+	
+	"" + [res1, res2]
+}

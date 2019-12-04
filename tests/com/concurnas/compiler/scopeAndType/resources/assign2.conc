@@ -1,0 +1,31 @@
+//check types on mod + - operations etc
+a = 2.0;
+a mod= 4.0;
+a -= 4.;
+b = 6;
+b += 1 + 5;//check that we can do assingment increment and also plus operation is supported
+
+
+//check simple scopes..
+{
+	c=5;
+};
+
+d = c;//cannot exist
+h int=d;//also cannot exist
+g = h;//this is ok as type of h defined
+
+{
+	c=a;//new one
+	h = a;//no h already defined as int, but a is double
+}
+
+{
+	c = h;
+}!
+
+
+z = 5 as long;//cast the int to a long check!
+zz = z + 3.0; //and then try to create new var called zz, this is ok
+zzz long = 5.0 + 4l;//bit this is not, cos assignee is expecting a long
+

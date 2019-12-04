@@ -1,0 +1,434 @@
+//##1. simple translate to getter
+
+class Cls(){ public ~x int  }
+
+def doings() {
+	cls = new Cls()
+	a = cls.x; 
+	b = cls\.x; //no translate
+	
+	many = [cls cls];
+	a2 = many[0].x; 
+	b2 = many[0]\.x; //no translate
+}
+
+~~~~~
+//##2. advanced translate to getter
+
+class Cls(){ public ~y int  }
+class Cls2(){ public ~x = new Cls() }
+
+def doings() {
+	obj = new Cls2()
+	a = obj.x.y
+	b = obj\.x.y
+	c = obj.x\.y
+	d = obj\.x\.y
+}
+
+~~~~~
+//##2b. advanced translate to getter - arrays
+
+class Cls(){ public ~y int  }
+class Cls2(){ public ~x = [new Cls() new Cls()] }
+
+def doings() {
+	obj = new Cls2()
+	a = obj.x[0].y
+	b = obj\.x[0].y
+	c = obj.x[0]\.y
+	d = obj\.x[0]\.y
+	
+}
+
+~~~~~
+//##3. setter - simple
+
+class Cls(){ public ~x int  }
+
+def doings() {
+	cls = new Cls()
+	cls.x = 99;
+	cls\.x = 99;//no translate
+}
+
+~~~~~
+//##3b. setter - simple arrays
+
+class Cls(){ public ~x int  }
+
+def doings() {
+	cls = [new Cls() new Cls()]
+	cls[0].x = 99;
+	cls[0]\.x = 99;//no translate
+}
+
+~~~~~
+//##3c. setter - simple arrays rhs
+
+class Cls(){ public ~x =[1 2 3]  }
+
+def doings() {
+	cls = new Cls()
+	cls.x[0] = 99;
+	cls\.x[0] = 99;//no translate
+}
+
+
+~~~~~
+//##4. setter - advanced
+
+class Cls(){ public ~y int  }
+class Cls2(){ public ~x = new Cls() }
+
+def doings() {
+	obj = new Cls2()
+	obj.x.y = 12
+	obj\.x.y = 12
+	obj.x\.y = 12
+	obj\.x\.y = 12
+}
+
+
+~~~~~
+//##5. no setter, no getter defined
+
+class Cls(){ public x int  }
+
+def doings() {
+	cls = new Cls()
+	a = cls.x; 
+	cls.x = a;
+	
+	a = cls\.x; 
+	cls\.x = a;
+}
+
+~~~~~
+//##6. no setter, no getter if in self
+
+class Cls(){ 
+	~x int
+	
+	def doWork(){
+		this.x = 88
+		y = this.x
+		
+		x = 99
+		y = x
+	}
+}
+
+~~~~~
+//##7. no setter, no getter if reference to self
+
+class Cls(){ 
+	~x int
+	
+	def doWork(arg Cls){
+		arg.x = 88
+		y = arg.x
+	}
+}
+
+
+~~~~~
+//##7b. do setter and gett if refernce to a super or a different child
+
+open class Sup{ public ~x int }
+
+class ClsOther extends Sup{}
+
+class Cls extends Sup{ 
+	~x int
+	
+	def doWork(arg Sup){
+		arg.x = 88
+		y = arg.x
+	}
+	
+	def doWork(arg ClsOther){
+		arg.x = 88
+		y = arg.x
+	}
+}
+
+~~~~~
+//##7c. no setter and getter if ref via super
+
+open class Sup{ public ~x int }
+
+
+class Cls extends Sup{ 
+	~x int
+	
+	def doWork(){
+		super.x = 88
+		y = super.x
+	}
+	
+}
+
+~~~~~
+//##10.1. non eq setters
+
+class Cls{ public ~x int }
+
+def doings() {
+	obj = new Cls()
+	obj.x += 69 // -> obj.setX(obj.getX() + 69)
+}
+
+~~~~~
+//##10.2 advanced non eq setters
+
+class Held { public ~y int }
+class Cls{ public ~x = new Held() }
+
+def doings() {
+	obj = new Cls()
+	obj.x.y += 69 // -> obj.getX.SYN-getXSetX(PLUS, pre, 69) [duffassign]
+	obj.x.y *= 2 // -> obj.getX.SYN-getXSetX(MUL, pre, 69) [duffassign]
+}
+
+~~~~~
+//##10.3 advanced non eq setters via arrastuff
+
+class Holder{ public ~x int }
+
+def funcCall() Holder[]
+{
+	return [new Holder() new Holder()] 
+}
+
+def doings() {
+	funcCall()[0].x += 12 //->  funcCall()[0].SYN-getXSetX(PLUS, pre, 69) [duffassign]
+}
+
+~~~~~
+//##10.3b advanced non eq setters via otherarray stuff
+
+class Holder{ public ~x =[1 2 3] }
+
+def funcCall() Holder[]
+{
+	return [new Holder() new Holder()] 
+}
+
+def doings() {
+	funcCall()[0].x[0] += 12 //->  funcCall()[0].getX()[0] += 12
+}
+
+
+~~~~~
+//##10.4 inc dec operations
+
+class Cls{ public ~x int=10; public ~y int = 10 }
+
+def doings() {
+	cls = new Cls()
+	cls.x++
+	++cls.x
+	
+	a=cls.x++
+	b=++cls.x
+	
+	cls.y--
+	--cls.y
+	
+	a2=cls.y--
+	b2=--cls.y	
+}
+
+~~~~~
+//##10.4a advanced inc dec operations
+
+class A{ ~x int }
+
+class B{ ~h int }
+
+def functo( inp int ) B {
+	return new B();
+}
+
+def doings()
+{
+	a = new A()
+	functo(a.x++).h = 9 //-> def (a.SYN-getXSetX(PLUS, POST, 1)).setX(9); [duffassign]
+}
+
+~~~~~
+//##10.4b advanced inc dec operations
+
+class A{ ~x int }
+
+class B{ ~h int=90 }
+
+def functo( inp int ) B{
+	return new B();
+}
+
+def doings()
+{
+	a = new A()
+	res = functo(a.x++).h-- //-> res = def (a.SYN-getXSetX(PLUS, POST, 1)).SYN-getXSetX(PLUS, POST, 1)
+}
+
+
+~~~~~
+//##10.5 neg should be left as a pre-post op
+
+class Cls{ ~x int=10}
+
+def doings() {
+	cls = new Cls()
+	x = -cls.x
+}
+
+~~~~~
+//##10.6 string add
+
+class Cls{ ~x String="hi"}
+
+def doings() {
+	cls = new Cls()
+	cls.x += " there"
+}
+
+~~~~~
+//##11 array length remains the same
+
+def doings(){
+	ar = [1 2 3 4]
+	ll = ar.length
+	//ar.length = 9
+}
+
+~~~~~
+//##12.1 setter and getter different types - ok case
+
+class Cls{
+	x int = 89
+	def getX() String{
+		return "" + x	
+	}
+	
+	def setX(wow String) {
+		x = 99
+	}
+}
+
+def doings(){
+	cc = new Cls()
+	hi String = cc.x
+	cc.x = "hi"
+}
+
+~~~~~
+//##12.2 setter and getter different types - error case
+
+class Cls{
+	x int = 89
+	def getX() String{
+		return "" + x	
+	}
+	
+	def setX(wow String) {
+		x = 99
+	}
+}
+
+def doingsfail(){
+	cc = new Cls()
+	hi int = cc.x
+	cc.x = 99
+}
+
+~~~~~
+//##12.3 setter and getter different types - increment ok case
+
+class Cls{
+	x int = 89
+	def getX() String
+	{
+		return "" + x	
+	}
+	
+	def setX(wow String) 
+	{
+		x = 99
+	}
+}
+
+def doings() Object{
+	cc = new Cls()
+	cc.x += "hi"
+	//this is also ok because we're doing a string addition operation: - brilliant!
+	cc.x += 99
+	cc.x++
+}
+
+
+~~~~~
+//##12.4 setter and getter different types - increment error case
+
+class AnotherM{}
+
+class Cls{
+	x int = 89
+	def getX() AnotherM
+	{
+		return null;
+	}
+	
+	def setX(wow AnotherM) 
+	{
+		x = 99
+	}
+}
+
+def doingsfail(){
+	cc = new Cls()
+	cc.x += 99
+	cc.x++
+}
+
+~~~~~
+//##13 def with ifexpr
+
+class Cls{ ~x int = 89 }
+z=5
+def doingsfail(){
+	cc = new Cls()
+	
+	ag = cc.x++ if 4>z else cc.x
+}
+
+~~~~~
+//##14 lambda setter getter with invoke
+
+class MyClass{
+	~funcTo = def (a int, b int, c int) int{  return a+b+c; }
+}
+
+def doings() String{
+	myCls = new MyClass()
+	myCls.funcTo = def (a int, b int, c int) int{  return (a+b+c)*2; }
+	return "" + myCls.funcTo(2,3,4)
+}
+
+~~~~~
+//##15 bugfix direct to setter or getter 
+//even if there is one even if the associated var does not match up name wize
+class MyClass(){
+	private ab=9//its not a!
+	def getA() => ab
+	def setA(a int) { ab = a}
+}
+
+def doings(){
+	mc=MyClass() 
+	//redirect to getter/setter as approperiate
+	mc.a=99
+	"" + mc.a
+}

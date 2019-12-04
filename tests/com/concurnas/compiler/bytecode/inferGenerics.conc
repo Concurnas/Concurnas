@@ -1,0 +1,1363 @@
+//##1. simple infer rhs
+
+something=false
+
+def doings(){
+	mylist java.util.ArrayList<String> = new java.util.ArrayList()
+	mylist.add("item")
+	"res: " + mylist
+}
+
+~~~~~
+//##2. simple infer rhs no new
+something=false
+
+def doings(){
+	mylist java.util.ArrayList<String> = java.util.ArrayList()
+	mylist.add("item")
+	
+	"res: " + mylist
+}
+
+~~~~~
+//##3. simple infer from typdef
+
+
+something=false
+
+def doings(){
+	mylist java.util.ArrayList<String> = new list()
+	mylist.add("item")
+	"res: " + mylist
+}
+
+~~~~~
+//##4. simple infer from typdef no new
+
+
+something=false
+
+def doings(){
+	mylist java.util.ArrayList<String> = list()
+	mylist.add("item")
+	"res: " + mylist
+}
+
+~~~~~
+//##5. two typedefs can coexist
+
+
+
+
+something=false
+
+def doings(){
+	mylist1 java.util.ArrayList<String> =  list<String>()
+	mylist2 java.util.ArrayList<String> =  list<String>()
+	mylist1.add("item")
+	mylist2.add("item")
+	
+	"res: " + [mylist1 mylist2]
+}
+
+~~~~~
+//##6. bind to more than one thing needing qualification
+
+
+something=false
+
+def doings(){
+	//myset = list()
+	mylist java.util.ArrayList<String> = new list() if something else new java.util.ArrayList()
+	mylist.add("item")
+	
+	"res: " + mylist
+}
+
+~~~~~
+//##7. bind to more than one thing needing qualification - array
+
+
+something=false
+
+def doings(){
+	//myset = list()
+	mylist java.util.ArrayList<String>[] = [new list() new list()]
+	mylist[0].add("item")
+	
+	"res: " + mylist
+}
+
+~~~~~
+//##8. var later assigned
+
+
+
+def doings(){
+	mylist = new list()
+	
+	mylist = new list<String>()
+	mylist.add("ok")
+		
+	"res: " + mylist
+}
+
+~~~~~
+//##9. var depends on another do it in one pass
+
+
+
+def doings(){
+	a = new list()
+	b = new list()
+	a = b
+	b = list<String>()
+	
+	b.add("ok")
+		
+	"res: " + (a, b)
+}
+
+~~~~~
+//##10. var depends on another loops
+
+
+
+def doings(){
+	a = new list()
+	b = new list()
+	a = b
+	b = a //capture this cluster and use line below to qualify
+	b = list<String>()
+	
+	b.add("ok")
+		
+	"res: " + (a, b)
+}
+
+~~~~~
+//##11. var depends on another loops self ref
+
+
+
+def doings(){
+	a = new list()
+	b = new list()
+	a = b
+	a = a //ignore this
+	b = list<String>()
+	
+	b.add("ok")
+		
+	"res: " + (a, b)
+}
+
+~~~~~
+//##12. partial looping of dependants
+
+
+
+something=true
+
+def doings(){
+	a = new java.util.ArrayList()
+	b = new java.util.ArrayList()
+	a = b if something else a
+	b = list<String>()
+	
+	b.add("ok")
+		
+	"res: " + (a, b)
+}
+
+~~~~~
+//##13. partial looping of dependants via typedef
+
+
+
+something=true
+
+def doings(){
+	a = new list()
+	b = new list()
+	a = b if something else a
+	b = list<String>()
+	
+	b.add("ok")
+		
+	"res: " + (a, b)
+} 
+
+~~~~~
+//##14. qualify a lhs gen type
+
+
+
+something=true
+
+def doings(){
+	a = new list()
+	b list = a
+	
+	a = list<String>()
+	b.add("ok")
+		
+	"res: " + (a, b)
+} 
+
+~~~~~
+//##15. complex inference
+
+//more than one?
+
+
+
+something=true
+
+def doings(){
+	a = new list()
+	b  = a
+	c = b
+	b = c
+	d = c
+	e = d
+	b = d
+	b = e
+	f = c
+	a = list<String>()
+	f.add("ok")
+		
+	"res: " + (a, b, c, d, e, f)
+} 
+
+~~~~~
+//##16. use qualification from usage in method
+
+
+
+
+def addsToList(inst list<String>){
+	inst.add("hey there")
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	
+	addsToList(mylist)
+		
+	"res: " + mylist
+}
+
+~~~~~
+//##17. use qualification from usage in method with some local generics
+
+
+
+
+def addsToList<X>(inst list<X>, something X){
+	inst.add(something)
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	addsToList(mylist, "three")
+		
+	"res: " + mylist
+}
+
+
+~~~~~
+//##18. use qualification from usage in constructor
+
+
+
+class TakesAList(inp list<String>){
+	init{
+		inp.add("great")
+	}
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	isnt = new TakesAList(mylist)
+	
+	"res: " + mylist
+}
+
+~~~~~
+//##19. use qualification from usage in funcref
+
+
+
+
+
+def addsToList(inst list<String>){
+	inst.add("hey there")
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	
+	xxx = addsToList&(mylist)
+	xxx()
+		
+	"res: " + mylist
+}
+
+~~~~~
+//##20. return type qualification
+
+
+
+def thing() list<String>{
+	return new list()
+}
+
+def doings(){
+	inst = thing()
+	
+	inst.add("hey there")
+		
+	"res: " + inst
+}
+
+~~~~~
+//##21. qualification by setting field
+
+
+
+class HasOne{
+	public instance list<String>?
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings(){
+	ho = new HasOne()
+	xyz = new list()
+	ho.instance = xyz
+	
+	ho.instance?.add("hey there")
+		
+	"res: " + xyz
+}
+
+~~~~~
+//##22. via array usage
+
+
+
+
+def doings(){
+	xyz = new list()
+	
+	zz list<String>[] = [xyz xyz]
+	
+	zz[0].add("hey there")
+		
+	"res: " + zz
+}
+
+~~~~~
+//##23. complex inference
+
+
+//requires two passes, can it be done in one?
+class TakesList<X>(~takes list<X>){
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString() => "nice: " + takes
+}
+
+def doings(){
+	mylist = list()
+	has TakesList<String> =  \
+		new TakesList(mylist)
+	has.takes.add("nice")
+	"ok: " + has
+}
+
+~~~~~
+//##24. infer list elements
+
+
+
+def doings(){
+	xyz = new java.util.ArrayList()
+	
+	zz java.util.ArrayList<java.util.ArrayList<String>> = [xyz, xyz]
+	
+	zz[0].add("hey there")
+		
+	"res: " + zz
+}
+
+~~~~~
+//##25. infer list elements via typedef
+
+
+
+def doings(){
+	xyz = new list()
+	
+	zz list<list<String>> = [xyz, xyz]
+	
+	zz[0].add("hey there")
+		
+	"res: " + zz
+}
+
+~~~~~
+//##26. infer list elements via typedef - just one
+
+
+
+def doings(){
+	xyz = new list()
+	
+	zz list<list<String>> = [xyz,]
+	
+	zz[0].add("hey there")
+		
+	"res: " + zz
+} 
+
+~~~~~
+//##27. quliafy via funcinvoke method arg names
+
+
+
+
+
+def addsToList(inst list<String>){
+	inst.add("hey there")
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	
+	addsToList(inst=mylist)
+		
+	"res: " + mylist
+}
+
+~~~~~
+//##28. quliafy via funcinvoke consturctor arg names
+
+
+
+class TakesAList(inp list<String>){
+	init{
+		inp.add("great")
+	}
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	isnt = new TakesAList(inp=mylist)
+	
+	"res: " + mylist
+}
+
+~~~~~
+//##29. quliafy via funcref
+
+
+
+
+def addsToList(inst list<String>){
+	inst.add("hey there")
+}
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	
+	xxx = addsToList&(inst=mylist)
+	xxx()
+		
+	"res: " + mylist
+}
+
+~~~~~
+//##30. multi choice to infer generics
+
+
+
+
+
+def doings(){
+	//myset = list()
+	mylist = new list()
+	
+	mylist = new list<Object>()
+		
+	mylist.add(12)//ok since its object
+		
+	"res: " + mylist
+}
+
+~~~~~
+//##31. implicit return
+
+
+
+def thing() list<String>{
+	new list()
+}
+
+def doings(){
+	inst = thing()
+	
+	inst.add("hey there")
+		
+	"res: " + inst
+}
+
+~~~~~
+//##32. implicit return w branching
+
+
+somethign=false
+def thing() list<String>{
+	new list() if somethign else new list()
+}
+
+def doings(){
+	inst = thing()
+	
+	inst.add("hey there")
+		
+	"res: " + inst
+}
+
+
+~~~~~
+//##33. partial qualification of generic types via usage on methods
+
+
+
+class MyGenericClass<X, Y>(){
+	~x X?
+	~y Y?
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}, y: {y}]"
+	}
+	
+}
+
+def doings(){
+	//myset = list()
+	mygen = new MyGenericClass()
+	
+	mygen.x = "hey" 
+	mygen.y = 18 
+		
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##34. partial qualification of generic types via usage on methods one full
+
+
+
+class MyGenericClass<X, Y>(){
+	~x X?
+	~y Y?
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}, y: {y}]"
+	}
+	
+}
+
+def doings(){
+	//myset = list()
+	mygen = new MyGenericClass()
+	
+	mygen.x = "hey" 
+	
+	mygen = new MyGenericClass<Object, String>()
+	mygen.x = 12 
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##35. partial qualification of generic types via usage on methods multi quali
+
+
+
+class MyGenericClass<X, Y>(){
+	~x X?
+	~y Y?
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}, y: {y}]"
+	}
+	
+}
+
+def doings(){
+	//myset = list()
+	mygen = new MyGenericClass()
+	
+	mygen.x = "hey" 
+	mygen.x = 12 
+	mygen.y = 12 
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##36. set x and y at same time
+
+
+
+class MyGenericClass<X, Y>(){
+	~x X?
+	~y Y?
+	
+	def xandy(x X, y Y){
+		this.x = x
+		this.y = y
+	}
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}, y: {y}]"
+	}
+	
+}
+
+def doings(){
+	//myset = list()
+	mygen = new MyGenericClass()
+	
+	mygen xandy "hey" 12
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##37. method call indirect gen type association
+class MyGenericClass<X>(){
+	~x X?
+	
+	def takesList(alist java.util.List<X>){
+		x = alist[0]
+	}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+def doings(){
+	//myset = list()
+	mygen = new MyGenericClass()
+	
+	mygen.takesList(["hey",])//indirect List<X> => List<String>
+		
+	"res: " + mygen
+}
+
+
+~~~~~
+//##38. qulaified with a primative
+class MyGenericClass<X>(){
+	~x X?
+	
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+def doings(){
+	//myset = list()
+	mygen = new MyGenericClass()
+	
+	mygen.x = 12
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##39. watch out for generic bindings
+class MyGenericClass<X>(){
+	~x X?
+	
+	def localGen<X>(thing X){}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+def doings(){
+	mygen = new MyGenericClass()
+	
+	mygen.x = 12
+	
+	mygen.localGen<String>("ok")
+	
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##40. bind generic field being set
+class MyGenericClass<X>(){
+	public x X?
+	
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+def doings(){
+	mygen = new MyGenericClass()
+	
+	mygen.x = 12
+		
+	"res: " + mygen
+}
+
+
+~~~~~
+//##41. bind when qualified via a funcref
+class MyGenericClass<X>(){
+	-x X?
+	def takesX(an X){
+		this.x = an	
+	}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+def doings(){
+	mygen = new MyGenericClass()
+	
+	xxx = mygen.takesX&("ok")
+	xxx()
+		
+	"res: " + mygen
+}
+
+~~~~~
+//##42. bind when qualified via a funcref with type qualification
+class MyGenericClass<X>(){
+	-x X?
+	def takesX(an X){
+		this.x = an	
+	}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+def doings(){
+	mygen = new MyGenericClass()
+	
+	xxx = mygen.takesX&(String)
+	xxx("nice")
+		
+	"res: " + mygen
+}
+
+
+~~~~~
+//##43. module level qualificaiton
+class MyGenericClass<X>(){
+	-x X?
+	def takesX(an X){
+		this.x = an	
+	}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"MyGenericClass[x: {x}]"
+	}
+}
+
+mygen = new MyGenericClass()
+
+def qualify(){
+	mygen = new MyGenericClass<String>()
+	mygen takesX 'thing'
+}
+
+def doings(){
+	ts = "" + mygen
+	qualify()
+	"res: " + [ts mygen]
+}
+
+~~~~~
+//##44. inference of local class level fields
+class DoWork{
+	ma = list()
+	
+	def doit(x String){
+		ma.add(x)
+	}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"DoWork[x: {ma}]"
+	}
+}
+
+
+def doings(){
+	dw = DoWork()
+	dw doit 'ok'
+	"res: " + dw
+}
+
+~~~~~
+//##45. inference of local class level fields prefix this
+
+
+
+class DoWork{
+	ma = list()
+	
+	def doit(x String){
+		this.ma.add(x)
+	}
+	
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString(){
+		"DoWork[x: {ma}]"
+	}
+}
+
+
+def doings(){
+	dw = DoWork()
+	dw doit 'ok'
+	"res: " + dw
+}
+
+~~~~~
+//##46. qualify a method argument
+
+def mything(ma list){
+	ma.add("lovely")
+}
+
+def doings(){
+	something = list()
+	dw = mything(something)
+	"res: " + something
+}
+
+~~~~~
+//##47. subsequent assinment to something which is not new
+def doings(){
+	something list//uninitialized
+	something = list()
+	something add 'nice'
+	"res: " + something
+}
+
+~~~~~
+//##48. qualify a nested method argument
+def doings(){
+	something = list()
+	def mything(ma list){
+		ma.add("lovely")
+	}
+	dw = mything(something)
+	"res: " + something
+}
+
+~~~~~
+//##49. qualify a nested lambda
+def doings(){
+	something = list()
+	mything = def (ma list){//lambda
+		ma.add("lovely")
+	}
+	dw = mything(something)
+	"res: " + something
+}
+
+~~~~~
+//##50. nested things ok
+def doings(){
+	a = list();
+ 	{
+ 		a list<String> = list() //different instance
+ 	}
+ 
+ 	a = list<Boolean>();
+ 
+	"res: " + a
+}
+
+~~~~~
+//##51. map short cuts
+def doings(){
+	mm = map()//was having trouble interpreting thsi as a new consturcotor since name clash with typedef vs the map function
+ 	mm[12] = "ok"
+	
+	
+	"res: " + mm
+}
+
+~~~~~
+//##52. list short cuts
+def doOp(on list){
+	on[0] = on[0] + "ok"
+}
+
+def doings(){
+	li = list()//<Object, Object>();
+	li.add("ok")
+ 	doOp(li)
+	
+	"res: " + li
+}
+
+~~~~~
+//##53. use pythonic - basic import and use of typedef
+
+from com.concurnas.lang.datautils import set
+
+def doings(){
+	alsoworks = new set<String>()
+	mymap = new set()
+	mymap.add("ok")
+	"ok" + mymap
+}
+
+~~~~~
+//##54. map from list of tuples
+from com.concurnas.lang.datautils import map
+
+def doings(){
+	xyz = [(1, 2), (3, 4)]
+	mymap = map(xyz)
+	"ok" + mymap
+}
+
+~~~~~
+//##55. bugfix on default values and local generics qualification
+from java.util import List, Collections, Comparator
+
+def takesThing<X>(alist List<X>, blist List<X>? = null) X{//defualt value ignored for local gen qualification
+	alist.get(0)//doesnt make sense otherwise, qualifying itself!?
+}
+
+
+def doings(){
+	abc = [1, 2, 3]
+	"" + takesThing(abc)//default argument was being mapped to X
+}
+
+~~~~~
+//##56.  use pythonic - sorted no comparitors
+from com.concurnas.lang.datautils import sorted
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	xyz2 = xyz1@
+	res1 = sorted(xyz1)//had throuble importing compiled default types (set types were incorrect)
+	res2 = sorted(xyz2, inplace=true)
+	"" + [res1, res2, res1 &<> xyz1, res2 &== xyz2]
+}
+
+~~~~~
+//##57. bugfix on unknown generic return type
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+
+def sorted<X>(what List<X>, comparator Comparator<X>?=null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret, Collections.reverseOrder())//dont use unknown generic return type in qualification
+	ret
+}
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	res1 = sorted(xyz1)
+	"" + res1
+} 
+
+~~~~~
+//##58. bugfix on more than one default param with unbounded generics
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+
+def sorted<X>(what List<X>, comparator Comparator<X>?=null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret) if comparator == null else Collections.sort(ret, comparator) 
+	ret
+}
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	res1 = sorted(xyz1, Collections.reverseOrder()
+	)
+	"" + res1
+}
+
+~~~~~
+//##59. bugfix on comparitors SAM type
+from java.util import Comparator
+
+trait MyTrait<X>{
+	def thing(a X, b X) int
+}
+
+def doings(){
+	
+	inst MyTrait<int> = (o1 , o2) => (o1-o2) as int
+	reve Comparator<int> = (o1 , o2) => (o1-o2) as int
+	//used to not regocnised Comparator as sam type because it defines an abstract equals method
+	
+	"ok"
+}
+
+~~~~~
+//##60. explicit local generics comparitor
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+
+def sorted<X>(what List<X>, comparator Comparator<X>?=null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret) if comparator == null else Collections.sort(ret, comparator) 
+	ret
+}
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	
+	reve Comparator<Integer> = (o1 , o2) => o2-o1
+	
+	res1 = sorted<int>(xyz1, reve)
+	"" + res1
+}
+
+~~~~~
+//##61. infer sorted type from comparitor and other input
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+
+def sorted<X>(what List<X>, comparator Comparator<X>?=null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret) if comparator == null else Collections.sort(ret, comparator) 
+	ret
+}
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	
+	reve Comparator<int> = (o1 , o2) => o2-o1
+	
+	res1 = sorted(xyz1, reve)
+	"" + res1
+}
+
+~~~~~
+//##62. infer comparitor
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+
+def sorted<X>(what List<X>, comparator Comparator<X>? = null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret) if comparator == null else Collections.sort(ret, comparator) 
+	ret
+}//didnt used to like the default value at all
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	res1 = sorted(xyz1, (o1 , o2) => o2-o1)
+	"" + res1
+}
+
+~~~~~
+//##63. comparitor and args
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+
+def sorted<X>(what Collection<X>, comparator Comparator<X>?=null) List<X> {
+	return sorted(new ArrayList<X>(what), comparator, false)
+}
+
+def sorted<X>(what List<X>, comparator Comparator<X>?=null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret) if comparator == null else Collections.sort(ret, comparator) 
+	ret
+}
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	
+	res1 = sorted(xyz1, {(o1 , o2) => o2-o1}, true)
+	"" + res1
+} 
+
+~~~~~
+//##64. datautils sorted list and set
+from com.concurnas.lang.datautils import sorted, set
+
+def doings(){
+	xyz1 = [1, 4, 3, 2, 5, 4, 3, 2]
+	xyz2 = xyz1@
+	
+	res1 = sorted(xyz1, {(o1 , o2) => o2-o1}, true)
+	res2 = sorted(xyz2, {(o1 , o2) => o2-o1}, false)
+	
+	myset = set([1, 3, 4, 5, 23, 1, 2, 3, 4])
+	sortedmyset = sorted(myset, {(o1 , o2) => o2-o1})
+	
+	
+	"" + [res1, res2, sortedmyset, xyz1&==res1, xyz2&<>res2]
+} 
+
+~~~~~
+//##65. sorted mix list etc
+from com.concurnas.lang.datautils import sorted, set, list
+def doings(){
+	"" + sorted(list(set([1, 4, 3, 3, 3, 2, 1])))
+}
+
+~~~~~
+//##66. reversed
+from com.concurnas.lang.datautils import sorted, set, list, reversed
+def doings(){
+	"" + reversed(sorted(list(set([1, 4, 3, 3, 3, 2, 1]))))
+}
+
+~~~~~
+//##67. zip
+from com.concurnas.lang.datautils import zip
+
+def doings(){
+	x = zip([1, 2, 3, 4], [4, 3, 2, 1])
+	y = zip([1, 2, 3, 4], [4, 3, 2, 1],[4, 3, 2, 1],[4, 3, 2, 1] )
+	"{x}, {y}"
+}
+
+~~~~~
+//##68. range map list
+
+from com.concurnas.lang.datautils import zip, map, reversed
+
+def doings(){
+	x = x for x in 1 to 5
+	res = map(zip(x, reversed(x)))
+	"" + res
+}
+
+~~~~~
+//##69. auto vect set add
+from com.concurnas.lang.datautils import set
+
+def doings(){
+	myset = set<int>()
+	myset.add([1 2 3 2 1 2 4 3 2 1])
+	"" + myset
+}
+
+~~~~~
+//##70. auto vect set add type infer
+from com.concurnas.lang.datautils import set
+
+def doings(){
+	myset = set()
+	myset.add([1 2 3 2 1 2 4 3 2 1]^)
+	"" + myset
+}
+
+~~~~~
+//##71. import star
+from com.concurnas.tests.helpers.testImportStar import *
+
+class MyClass ~ MyTrait
+
+def doings(){
+	x = new myset<String>()
+	cm = new CanMake()
+	res = myFunction()
+	one = MyEnum.ONE
+	ff = magicNumber
+	
+	
+	"import ok"
+} 
+
+~~~~~
+//##72. import star other way
+import com.concurnas.tests.helpers.testImportStar.*
+
+class MyClass ~ MyTrait
+
+def doings(){
+	x = new myset<String>()
+	cm = new CanMake()
+	res = myFunction()
+	one = MyEnum.ONE
+	ff = magicNumber
+	
+	
+	"import ok"
+} 
+
+~~~~~
+//##73. import star from non compiled
+
+//##MODULE com.myorg.code2
+typedef myset<X> = java.util.HashSet<X>
+typedef myset = java.util.HashSet<String>
+//not yet compiled
+class CanMake
+
+def myFunction() => 23
+
+trait MyTrait()
+
+public magicNumber = 987
+
+enum MyEnum{ONE, TWO, TRHEE, FOUR, FIVE}
+
+
+//##MODULE
+
+import com.myorg.code2.*
+
+class MyClass ~ MyTrait
+
+def doings(){
+	x = new myset<String>()
+	x2 = new myset()
+	cm = new CanMake()
+	res = myFunction()
+	one = MyEnum.ONE
+	ff = magicNumber
+	
+	"import ok"
+} 
+
+~~~~~
+//##74. set list etc auto imported
+def doings(){
+	myset = set()
+	myset.add([1 2 3 2 1 2 4 3 2 1]^)
+	"" + reversed(myset)
+}
+
+~~~~~
+//##75. partial inference from constructor and from method call
+
+class Both<X, Y>(x X){
+	def takesOne(b Y){}
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings(){
+	b = new Both(12)
+	b.takesOne("ok")
+	
+	"nice"
+}
+
+~~~~~
+//##76. partial inference from constructor and from method call more than one choice
+class Both<X, Y>(x X){
+	def takesBoth(a X, b Y){}
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings(){
+	b = new Both(12)
+	b.takesBoth("ok", 'dave')//int and String?! so X => Object
+	
+	"nice"
+}
+
+~~~~~
+//##77. infer local generics
+def meMap<X, Y>() => new map<Y, X>()
+
+def doings(){
+	counter = meMap()
+	counter[0] = "val"
+	"" + counter
+}
+
+~~~~~
+//##78. infer local generics partial
+class Holder<X>{
+	~x X?
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString() => "Holder({x})"
+}
+
+def takesTwo<A, B>(a A) => new Holder<B>()
+
+def doings(){
+	holder = takesTwo("ok")
+	holder.x = 100
+	"" + holder
+}
+
+~~~~~
+//##79. infer local gens and map anon lambda as well 
+def doings(){
+	counter = map(a => a)
+	counter[0] = 1
+	//infer to int int not K, K
+	"" + counter
+} 
+
+
+~~~~~
+//##80. infer local gens partial
+def doings(){
+	counter = map(a  => 0)
+	what = counter[0]//partial qualification only
+	
+	"" + counter
+} 
+
+~~~~~
+//##81. data utils enumerate
+def doings(){
+	mylist=[1, 2, 3, 4, 5]
+	
+	"" + enumerate(mylist)
+}

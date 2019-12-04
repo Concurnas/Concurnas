@@ -1,0 +1,565 @@
+//##1. worker count
+def doings(){
+	"" + (concurrent.workerCount() <> 0)
+}
+
+~~~~~
+//##2. basic DictTree structure
+from java.util import HashMap, Collections
+
+private class DictTree{
+	//public add
+	public children = new HashMap<char, DictTree>()
+	public isword String? = null
+	
+	def add(item String, wchar int=0){
+		if(item.length()-1 == wchar){
+			isword = item
+		}else{
+			next = item.charAt(wchar+1)
+			addTo DictTree
+			if( next not in children){
+				addTo = DictTree()
+				children[next] = addTo
+			}else{
+				addTo = children[next]
+			}
+			
+			addTo.add(item, wchar+1)
+		}
+	}
+	
+	def mergeWith(friend DictTree)	{
+		if(friend.isword <> null){
+			this.isword = friend.isword
+		}
+		
+		for(cha in friend.children.keySet()){
+			if(cha not in this.children){
+				this.children[cha] = friend.children[cha]
+			}else{
+				this.children[cha].mergeWith(friend.children[cha])
+			}
+		}
+	}
+	
+	override toString(){
+		ret = ""
+		if(isword){
+			ret += isword + " "
+		}
+		keys = k for k in children.keySet()
+		Collections.sort(keys)
+		{ret += children[k].toString()} for k in keys
+	
+		ret
+	}
+}
+
+def doings(){
+	dt = DictTree()
+	dt.add(["hi", "hello", "hip", "fred", "hips"]^, 0)
+	
+	friend = DictTree()
+	friend.add(["hellos", "alpha", "h", "fre"]^, 0)
+	
+	dt.mergeWith(friend)
+	
+	"" + dt
+}
+
+~~~~~
+//##3. a nice wordsearch
+from java.util.zip import ZipEntry, ZipFile
+from java.util import ArrayList, Collections, HashMap
+from java.io import BufferedReader, InputStreamReader
+
+dictionaryZipFileLoc = "./tests/assets/dict.zip"
+dicFileName = "dict.txt"
+
+DEBUG = false
+
+az = 'a' + x as char for x in 0 to 25
+
+private def readDictionary(){
+	zf = ZipFile(dictionaryZipFileLoc)
+    entries = zf.entries()
+   	ret = new ArrayList<String>() 
+	while(entries.hasMoreElements()) {
+		ze =  entries.nextElement() as ZipEntry
+		if(ze.getName() == dicFileName){
+			try(br = BufferedReader(InputStreamReader(zf.getInputStream(ze)))){
+				line String? = br.readLine()
+	            while (line <> null) {
+	            	ret.add(line)
+	              	line = br.readLine()
+	            }
+			}
+			
+			break
+		}
+	}
+	
+	Collections.sort(ret)//makes merge easier
+	ret
+}
+
+private class DictTree{
+	//public add
+	public children = new HashMap<char, DictTree>()
+	public isword String? = null
+	
+	def add(item String, wchar int=0){
+		if(item.length()-1 == wchar){
+			isword = item
+		}else{
+			next = item.charAt(wchar+1)
+			addTo DictTree
+			if( next not in children){
+				addTo = DictTree()
+				children[next] = addTo
+			}else{
+				addTo = children[next]
+			}
+			
+			addTo.add(item, wchar+1)
+		}
+	}
+	
+	def mergeWith(friend DictTree)	{
+		if(friend.isword <> null){
+			this.isword = friend.isword
+		}
+		
+		for(cha in friend.children.keySet()){
+			if(cha not in this.children){
+				this.children[cha] = friend.children[cha]
+			}else{
+				this.children[cha].mergeWith(friend.children[cha])
+			}
+		}
+	}
+	
+	override toString(){
+		ret = ""
+		if(isword){
+			ret += isword + " "
+		}
+		keys = k for k in children.keySet()
+		Collections.sort(keys)
+		{ret += children[k].toString()} for k in keys
+	
+		ret
+	}
+}
+
+private def buildSubTree(val words ArrayList<String>, val fromx int, val tox int){
+	n = fromx
+	ret = new DictTree()
+	while(n++ <== tox){
+		word = words[n]
+		ret.add(word)
+	}
+	ret
+}
+
+private def buildTree(shared words ArrayList<String>){
+	units = concurrent.workerCount()
+	wsize =  words.size()
+	each = wsize/units as int
+	excess = wsize - (each * units)//last one gets extra
+	
+	subtrees = for(x in 0 to units-1){
+		last = x == units-1
+		buildSubTree(words, each * x, (each * (x + 1)) - 1 + (excess-1 if last else 0))
+	}
+
+	//merge trees together
+	first = subtrees[0]
+	for(sub in subtrees; idx){
+		if(idx <> 0){
+			first.mergeWith(sub)
+		}
+	}
+	
+	first
+}
+
+private def genneratePrefixes(){
+	prefixes = new ArrayList<String>()
+	for(l1 in az){
+		for(l2 in az){
+			prefixes add ("" + l1 + l2)
+		}
+	}
+	prefixes
+}
+
+actor LongestSoFar{
+	private -longest String? = null
+	-longestLen int: = 0
+	
+	public def foundLongest(candi String){
+		if(null == longest or candi.length() > longestLen){
+			longestLen = candi.length()
+			longest = candi
+			if(DEBUG){
+				System.out.println("longest so far: {longest} [{longest??.length()} chars]")
+			}
+		}
+	}
+}
+
+
+def gennerateCharset(){
+	ret = HashMap<char, int>()
+	{ret[c] = 2} for c in az
+	ret
+}
+
+private def String get(idx int){
+	this.charAt(idx)
+}
+
+private def searcher(prefix String, treestru DictTree?, manager LongestSoFar, globalLongest int:, charset HashMap<char, int>){
+	longestSoFar = prefix.length()
+	if(longestSoFar){
+		for(idx in 0 to longestSoFar-1){
+			item char = prefix[idx]
+			charset[item]--
+			treestru = treestru?.children?[item]
+			if(null == treestru) { return }
+    	} 
+	}
+    
+	
+	def walker(currentTS DictTree) void{
+		if(currentTS.isword <> null ){
+			foundLen = currentTS.isword??.length()
+			if(foundLen > longestSoFar){ 
+				longestSoFar = foundLen; 
+				if(foundLen > globalLongest) { 
+					manager.foundLongest(currentTS.isword??)
+				}
+			}
+		}
+		
+		for(alpha in currentTS.children){
+			if(charset[alpha] > 0){
+				charset[alpha]--
+				walker(currentTS.children[alpha])
+				charset[alpha]++//restore
+			}
+		}
+	}
+	
+	walker(treestru??)
+}
+
+class TickToc(name String, tick = java.lang.System.currentTimeMillis()){
+	def close(){
+		now = java.lang.System.currentTimeMillis()
+		
+		if(DEBUG){
+			System.out.println("Ex time for: {name}: {now - tick}ms")
+		}
+	}
+}
+
+private def findLongest(shared treestru DictTree){
+	//spawn 26*26 isos to search for their local longest. First two letters instead of 1 helps to even out the work
+	prefixes = genneratePrefixes()
+	
+	manager1 = new LongestSoFar()
+	manager2 = new LongestSoFar()
+	
+	{
+		longestLen := manager1.longestLen
+		charset = gennerateCharset()
+		try(new TickToc("sync for")){
+			sync{
+				iddd long = 0
+				for(p in prefixes){
+					searcher(p, treestru, manager1, longestLen, charset)!
+				}
+			}
+		}
+	}
+	
+	{
+		longestLen := manager2.longestLen
+		charset = gennerateCharset()
+		try(new TickToc("non conc version")){
+			searcher('', treestru, manager2, longestLen, charset)
+		}
+	}
+	
+	
+	
+	manager1.longest
+}
+
+def doings(){
+	words = readDictionary()
+	trie = buildTree(words)
+	found = findLongest(trie)
+		
+	"longest: " + found
+}
+
+~~~~~
+//##4. above but with parforsync
+from java.util.zip import ZipEntry, ZipFile
+from java.util import ArrayList, Collections, HashMap
+from java.io import BufferedReader, InputStreamReader
+
+dictionaryZipFileLoc = "./tests/assets/dict.zip"
+dicFileName = "dict.txt"
+
+DEBUG = false
+
+az = 'a' + x as char for x in 0 to 25
+
+private def readDictionary(){
+	zf = ZipFile(dictionaryZipFileLoc)
+    entries = zf.entries()
+   	ret = new ArrayList<String>() 
+	while(entries.hasMoreElements()) {
+		ze =  entries.nextElement() as ZipEntry
+		if(ze.getName() == dicFileName){
+			try(br = BufferedReader(InputStreamReader(zf.getInputStream(ze)))){
+				line String? = br.readLine()
+	            while (line <> null) {
+	            	ret.add(line)
+	              	line = br.readLine()
+	            }
+			}
+			
+			break
+		}
+	}
+	
+	Collections.sort(ret)//makes merge easier
+	ret
+}
+
+private class DictTree{
+	//public add
+	public children = new HashMap<char, DictTree>()
+	public isword String? = null
+	
+	def add(item String, wchar int=0){
+		if(item.length()-1 == wchar){
+			isword = item
+		}else{
+			next = item.charAt(wchar+1)
+			addTo DictTree
+			if( next not in children){
+				addTo = DictTree()
+				children[next] = addTo
+			}else{
+				addTo = children[next]
+			}
+			
+			addTo.add(item, wchar+1)
+		}
+	}
+	
+	def mergeWith(friend DictTree)	{
+		if(friend.isword <> null){
+			this.isword = friend.isword
+		}
+		
+		for(cha in friend.children.keySet()){
+			if(cha not in this.children){
+				this.children[cha] = friend.children[cha]
+			}else{
+				this.children[cha].mergeWith(friend.children[cha])
+			}
+		}
+	}
+	
+	override toString(){
+		ret = ""
+		if(isword){
+			ret += isword + " "
+		}
+		keys = k for k in children.keySet()
+		Collections.sort(keys)
+		{ret += children[k].toString()} for k in keys
+	
+		ret
+	}
+}
+
+private def buildSubTree(val words ArrayList<String>, val fromx int, val tox int){
+	n = fromx
+	ret = new DictTree()
+	while(n++ <== tox){
+		word = words[n]
+		ret.add(word)
+	}
+	ret
+}
+
+private def buildTree(shared words ArrayList<String>){
+	units = concurrent.workerCount()
+	wsize =  words.size()
+	each = wsize/units as int
+	excess = wsize - (each * units)//last one gets extra
+	
+	subtrees = for(x in 0 to units-1){
+		last = x == units-1
+		buildSubTree(words, each * x, (each * (x + 1)) - 1 + (excess-1 if last else 0))
+	}
+
+	//merge trees together
+	first = subtrees[0]
+	for(sub in subtrees; idx){
+		if(idx <> 0){
+			first.mergeWith(sub)
+		}
+	}
+	
+	first
+}
+
+private def genneratePrefixes(){
+	prefixes = new ArrayList<String>()
+	for(l1 in az){
+		for(l2 in az){
+			prefixes add ("" + l1 + l2)
+		}
+	}
+	prefixes
+}
+
+actor LongestSoFar{
+	private -longest String? = null
+	-longestLen int: = 0
+	
+	public def foundLongest(candi String){
+		if(null == longest or candi.length() > longestLen){
+			longestLen = candi.length()
+			longest = candi
+			if(DEBUG){
+				System.out.println("longest so far: {longest} [{longest??.length()} chars]")
+			}
+		}
+	}
+}
+
+
+def gennerateCharset(){
+	ret = HashMap<char, int>()
+	{ret[c] = 2} for c in az
+	ret
+}
+
+private def String get(idx int){
+	this.charAt(idx)
+}
+
+private def searcher(prefix String, treestru DictTree?, manager LongestSoFar, globalLongest int:, charset HashMap<char, int>){
+	longestSoFar = prefix.length()
+	if(longestSoFar){
+		for(idx in 0 to longestSoFar-1){
+			item char = prefix[idx]
+			charset[item]--
+			treestru = treestru?.children?[item]
+			if(null == treestru) { return }
+    	} 
+	}
+    
+	
+	def walker(currentTS DictTree) void{
+		if(currentTS.isword <> null ){
+			foundLen = currentTS.isword??.length()
+			if(foundLen > longestSoFar){ 
+				longestSoFar = foundLen; 
+				if(foundLen > globalLongest) { 
+					manager.foundLongest(currentTS.isword??)
+				}
+			}
+		}
+		
+		for(alpha in currentTS.children){
+			if(charset[alpha] > 0){
+				charset[alpha]--
+				walker(currentTS.children[alpha])
+				charset[alpha]++//restore
+			}
+		}
+	}
+	
+	walker(treestru??)
+}
+
+class TickToc(name String, tick = java.lang.System.currentTimeMillis()){
+	def close(){
+		now = java.lang.System.currentTimeMillis()
+		
+		if(DEBUG){
+			System.out.println("Ex time for: {name}: {now - tick}ms")
+		}
+	}
+}
+
+private def findLongest(shared treestru DictTree){
+	//spawn 26*26 isos to search for their local longest. First two letters instead of 1 helps to even out the work
+	prefixes = genneratePrefixes()
+	
+	manager1 = new LongestSoFar()
+	manager2 = new LongestSoFar()
+	manager3 = new LongestSoFar()
+	
+	{
+		longestLen := manager1.longestLen
+		charset = gennerateCharset()
+		try(new TickToc("sync for")){
+			sync{
+				for(p in prefixes){
+					searcher(p, treestru, manager1, longestLen, charset)!
+				}
+			}
+		}
+	}
+	
+	{
+		longestLen := manager2.longestLen
+		charset = gennerateCharset()
+		try(new TickToc("non conc version")){
+			searcher('', treestru, manager2, longestLen, charset)
+		}
+	}
+	
+	{
+		longestLen := manager3.longestLen
+		charset = gennerateCharset()
+		try(new TickToc("parforsync")){
+			parforsync(p in prefixes){
+				searcher(p, treestru, manager3, longestLen, charset)
+			}
+		}
+	}
+	
+	manager1.longest
+}
+
+def doings(){
+	words = readDictionary()
+	trie = buildTree(words)
+	found = findLongest(trie)
+		
+	"longest: " + found
+}
+
+~~~~~
+//##5. dedicated Thread
+
+def doings(){
+	adder = {100}!(concurrent.DedicatedThread())
+	
+	"got:" + adder
+	
+}

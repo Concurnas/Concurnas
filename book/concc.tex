@@ -1,0 +1,126 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Compiling Concurnas code]{Compiling Concurnas code}
+	\label{ch:concc}
+	
+
+Concurnas code can be compiled is via the \lstinline{concc} command line tool or via IDE which has support for Concurnas. Here we shall examine the \lstinline{concc} command line tool. We can compile a \lstinline{.conc} file as follows:
+
+\begin{lstlisting}[language=C]
+D:\work>concc hello.conc
+\end{lstlisting}
+
+The \lstinline{concc} command line tool has the following syntax:
+
+\begin{center}
+\lstinline{concc options sourcefiles/directories}
+\end{center}
+
+There must be at least one sourcefile or directory provided as an argument. Source code files must have the \lstinline{.conc} suffix to be compilable. If a directory reference is provided then this will be searched, including nested directories, for \lstinline{.conc} files. Multiple entries can be delimited with a space.
+
+If any \lstinline{.conc} file has a dependency on a \lstinline{.conc} file listed in the same directory, then the dependant \lstinline{.conc} file will also be compiled.
+
+By default the \lstinline{.conc} files will be compiled in to one or more .class file per source file input, into the same directory as the original sourcefile. To override the output directory of the .class files, use the -d option described below.
+
+The directory hierarchy relative to the working directory of the \lstinline{concc} call denotes the package name of the output .class files for \lstinline{.conc} files specified in the sourcefiles. The root directory is the current working directory in which \lstinline{concc} is run. The root working directory can be overridden using the -root option described below. All referenced source files are taken to be relative to this directory.
+
+Where a directory is specified for compilation, the root of the directory is taken to be root for nested \lstinline{.conc} files for the purposes of package name generation. The exception being where the specified directory path is fully qualified, in which case the base of the nested hierarchy will be taken as the root directory for package name generation purposes.
+
+Sourcefiles and directories may also be prefixed with an element specific root directory. This will override the global root directory (if specified) or default working directory. The syntax for this is as follows:
+
+\begin{center}
+	\lstinline{root[sourcefiles or directories]}
+\end{center}
+
+
+Using an element specific root is generally the easiest method by which one can perform compilation with correct package names for multiple source files existing across multiple directories.
+
+\section{Options}
+There can be zero to many options specified on a call to \lstinline{concc}
+\begin{itemize}
+	\item \textbf{-d directory}: Override the directory where .class files will be output.
+	\item \textbf{-a} or \textbf{-all}: Copy all non .conc files from source directories to provided output directory overridden with the \textbf{-d} option.
+	\item \textbf{-jar jarName[entryPoint]?}: Creates a jar file from all generated/copied files. Optional entryPoint class name may be specified which will be used to populate a META-INF/MANIFEST.MF file within the jar. Can only be used in conjunction with the \textbf{-d} option.
+	\item \textbf{-c} or \textbf{-clean}. Remove all generated files from output directory. Useful in conjunction with -jar option. Any generated jar files will not be removed.	
+	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline{;} under Windows, and \lstinline{:} under Linux. Elements may consist of directories, \lstinline{.class} file references or \lstinline{.jar} file references.
+	\item \textbf{-verbose}: Provide additional compilation information including bytecode output.
+	\item \textbf{-root directory}: Override the root directory of \lstinline{javacc}. Package names for \lstinline{.conc} files will be generated relative to this.
+	\item \textbf{-werror}: Normally, warnings do not prevent class file generation, setting this tag will treat warnings as errors, thus preventing class file generation warnings are generated for the input \lstinline{.conc} source file in question.
+	\item \textbf{-J}: JVM argument. Prefix jvm arguments with -J in order to pass them to the underlying JVM. e.g. \lstinline{-J-Xms2G -J-Xmx5G}.
+	\item \textbf{-D}: System property. Prefix system properties with -D in order to pass them to the underlying JVM. e.g. \lstinline{-Dcom.mycompany.mysetting=108}.
+	\item \textbf{--help}: List documentation for options above.
+\end{itemize}
+
+It is recommended that the \textbf{-d directory} option be used for all but the most trivial of compilations.
+
+\section{Examples}
+Compile all code in \lstinline{.src} relative to default working directory:
+\begin{lstlisting}
+concc ./src 
+\end{lstlisting}
+
+Compile all code in \lstinline{.src} relative to default working directory but override the output directory, writing output classes to \lstinline{/classes}:
+\begin{lstlisting}
+concc -d ./classes ./src 
+\end{lstlisting}
+
+As par previous example and (via \lstinline{-a} option) copying all non .conc files to \lstinline{/release} directory:
+\begin{lstlisting}
+concc -a  -d ./release ./src 
+\end{lstlisting}
+
+As par previous example but additionally packaging all files in output directory into a jar: \lstinline{release.jar} and removing all copied files from the output directory except the output jar, \lstinline{release.jar}:
+\begin{lstlisting}
+concc -a -clean -jar release.jar -d ./release ./src 
+\end{lstlisting}
+
+As par previous example but additionally specifying an entry point (\lstinline{com.mycompany.product.Start}) the main method of which will be executed in the event of execution via the \lstinline{conc} command:
+\begin{lstlisting}
+concc -a -clean -jar release.jar[com.mycompany.product.Start] -d ./release ./src 
+\end{lstlisting}
+
+Compile all code in \lstinline{.src} relative to default working directory and \lstinline{Mycode.conc} in \lstinline{extrasrc}.
+\begin{lstlisting}
+concc ./src ./extrasrc/Mycode.conc
+\end{lstlisting}
+
+As above but override the root of \lstinline{Mycode.conc} to be \lstinline{extrasrc} (thus the package name of the code in \lstinline{Mycode.conc} will not be prefixed with \lstinline{extrasrc}):
+\begin{lstlisting}
+concc ./src ./extrasrc [Mycode.conc]
+\end{lstlisting}
+
+As above but override the output directory, writing output classes to \lstinline{/classes}:
+\begin{lstlisting}
+concc -d ./classes ./src ./extrasrc [Mycode.conc]
+\end{lstlisting}
+
+As above but with custom libraries (jars and classes) set on the classpath:
+\begin{lstlisting}
+concc -cp ./include/MyLib.jar;./include/UtilClass.class -d ./classes ./src ./extrasrc [Mycode.conc]
+\end{lstlisting}
+
+\section{JVM arguments}
+Arguments (for example garbage collection and memory allocation tuning) may be applied to the underlying JVM executing \lstinline{concc} by prefixing them with \lstinline{-J}. For example:
+
+\begin{lstlisting}[language=C]
+concc -J-Xmx2g ./src ./extrasrc/Mycode.conc
+\end{lstlisting}
+
+\section{System properties}
+System properties may be specified on the command line when running \lstinline{concc} by prefixing them with \lstinline{-D}. For example:
+
+\begin{lstlisting}[language=C]
+concc -Dcom.mycompany.mysetting=108 ./src ./extrasrc/Mycode.conc
+\end{lstlisting}
+
+\section{Adding concc to the path}
+It is recommended that the \lstinline{<installDir>/bin} be added to the system path in order to permit \lstinline{concc} to be run from any path. Check your operating system documentation for details of how to do this.
+
+\section{Jar files}
+Jar’s are an excellent way of packaging code for organization and distribution. As seen above the \lstinline{concc} tool is able to create these as described previously. Additionally \href{https://docs.oracle.com/javase/tutorial/deployment/jar/build.html}{the jar tool provided as part of the JDK} can be used to achieve this objective.
+
+\section{Notes}
+The first time the \lstinline{concc} tool is executed, or when a new JVM environment upon which is its being executed is detected, an 'installation' will take place wherein Concurnas will set itself up to execute efficiently upon said JVM environment by caching a copy of the JDK. This can take up to a few minutes to complete.
+
+\end{document}

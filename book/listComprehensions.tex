@@ -1,0 +1,78 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[List Comprehensions]{List Comprehensions}
+	\label{ch:listComp}
+List comprehensions provide a convenient and concise mechanism by which lists can be created and operated upon. Typical use cases include iteration over elements of an existing iterable structure (just like a for list) with an operation applied to each element, and potentially with a filter condition resulting in a subsection of the input list being evaluated. The parallel for and synchronised parallel for variants are available in addition to conventional for. The syntax is as follows:
+
+\begin{center}
+	\lstinline{[expression or block returning a value] (for|parfor|parforsync [variable name] ([type])? in expression)+ (if [boolean expression])?}
+\end{center}
+
+
+The expression on the right hand side of the in token above must return either an n-dimensional array or an object implementing the java.util.Iterator interface. The list comprehension expression will return a type contingent upon the variant of for used:
+
+\begin{table}[H]
+	\centering
+	\resizebox{\columnwidth}{!}{
+	\begin{tabular}{llll}
+		\hline
+		&for&parfor&parforsync\\
+		\hline
+		List or iterable (of type X)&\lstinline!List (List<X>)!&\lstinline!RefArray (X:RefArray)!&\lstinline!Array (X[])!\\
+		\hline
+	\end{tabular}
+	}
+\end{table}
+
+
+Let’s say we wish to produce a list for which the values of all elements have 100 added to them:
+\begin{lstlisting}
+mylist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+mynewlist = a+100 for a in mylist
+//mynewlist == [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+\end{lstlisting}
+
+A block of code may be included in place of a single expression as above:
+\begin{lstlisting}
+mylist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+mynewlist = {x=a+100; x} for a in mylist
+//mynewlist == [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+\end{lstlisting}
+
+Now let’s say we wish to only include those items divisible by two. This is a filter condition. We can add this filter condition as follows:
+\begin{lstlisting}
+mylist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+mynewlist = a+100 for a in mylist if a mod 2 == 0
+//mynewlist  == [102, 104, 106, 108, 110]
+\end{lstlisting}
+
+List comprehensions can operate on any expressions which a for loop can - i.e. any object implementing the java.lang.Iterable interface (including maps) and arrays:
+\begin{lstlisting}
+myarray = [1 2 3 4 5 6 7 8 9 10]
+mynewlist = a+100 for a in myarray if a mod 2 == 0 //note, a list is always returned
+//mynewlist  == [102, 104, 106, 108, 110]
+\end{lstlisting}
+
+\section{Nested List Comprehensions}
+We can easily nest list comprehensions consisting of more than one for clause (though this comes at the cost of code readability so is generally not recommended):
+\begin{lstlisting}
+res = [x,y] for x in [1,2,3] for y in [3,1,4] if x <> y
+//res == [[[1, 3], [1, 4]], [[2, 3], [2, 1], [2, 4]], [[3, 1], [3, 4]]]
+\end{lstlisting}
+
+\textbf{Behind the scenes:} Concurnas implements for comprehensions by translating the defined expressions into  conventional /for loop/ compound statements. In the above example this is translated into:
+\begin{lstlisting}
+res = for( x in [1,2,3] ) {
+	for( y in [3,1,4] ) {
+		if( x <> y ) {	
+			[x, y]
+		}
+	}
+}
+//res == [[[1, 3], [1, 4]], [[2, 3], [2, 1], [2, 4]], [[3, 1], [3, 4]]]
+\end{lstlisting}
+
+
+\end{document}

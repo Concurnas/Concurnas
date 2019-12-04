@@ -1,0 +1,43 @@
+from com.concurnas.bootstrap.runtime.cps import Fiber, Worker, IsoTask, IsoCore, Scheduler
+from com.concurnas.bootstrap.runtime import CopyTracker
+from com.concurnas.runtime.cps import ISOExecutor
+
+/**
+ *	Concurrency utils 
+ */
+ 
+def getScheduler() => Fiber.getCurrentFiber().getScheduler()
+
+def workerCount() => getScheduler().getWorkerCount()
+
+def getWorkerStatus() => getScheduler().getWorkerStatus()
+
+class DedicatedThread ~ ISOExecutor<Object:>{
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void{
+		getScheduler().spawnDedicatedWorker(task, desc, ct)
+	}
+}
+
+shared class DedicatedThreadWorkerPool(workerCount int = getScheduler().getWorkerCount(), workerNamePrefix String? = null) ~ ISOExecutor<Object:>{
+	private scheduler Scheduler
+	init{
+		scheduler = getScheduler().createDedicatedThreadWorkerPool(workerCount, workerNamePrefix)
+	}
+	
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void{
+		scheduler.scheduleTask(scheduler.prepare(task, desc), ct);
+	}
+	
+	def terminate(){
+		scheduler.terminate()
+	}
+}
+
+
+def addShutdownHook(toExe () void) void{	
+	Runtime.getRuntime().addShutdownHook(new Thread{
+		override run() void {
+			toExe();
+		}
+	});
+}

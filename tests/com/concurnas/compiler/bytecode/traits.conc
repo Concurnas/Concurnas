@@ -1,0 +1,2116 @@
+//##1. simple trait
+trait MyTrait{
+	def ifaceMethod() int
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##2. trait with nothing defined
+
+trait MyTrait{
+	def ifaceMethod() int
+}
+
+class MyClass with MyTrait{
+	def ifaceMethod() => 12
+}
+
+
+def doings(){
+	thing MyTrait = MyClass()
+	"" + thing.ifaceMethod()
+}
+
+~~~~~
+//##3. trait with default impl 
+
+trait MyTrait{
+	def ifaceMethod() int => 44
+}
+
+class MyClass with MyTrait{
+	//override def ifaceMethod() => 12
+}
+
+
+def doings(){
+	thing MyTrait = MyClass()
+	"" + thing.ifaceMethod()
+}
+
+~~~~~
+//##4. just checking this works
+
+open class AbstClass{
+	def thing() int => 23
+}
+
+
+abstract class PassThrough <  AbstClass
+
+class Concrete < PassThrough{
+	override thing() => 2
+}
+
+def doings() => "ok"
+
+~~~~~
+//##5. override things defined in trait
+
+trait MyTrait{
+	def ifaceMethod() int => 44
+}
+
+class MyClass with MyTrait{
+	override def ifaceMethod() => 12
+}
+
+
+def doings(){
+	thing MyTrait = MyClass()
+	"" + thing.ifaceMethod()
+}
+
+~~~~~
+//##6. simple trait extension
+
+trait MyTrait{
+	def aMethod() => 100
+}
+
+trait MyTraitChild < MyTrait{
+	def anotherMethod() => 100
+}
+
+
+class MyClass with MyTraitChild{
+	override aMethod() => 12
+}
+
+
+def doings(){
+	thing MyTraitChild = MyClass()
+	"" + with(thing){ [aMethod(), aMethod(), anotherMethod()]}
+}
+
+~~~~~
+//##7. simple trait extension overeride
+
+trait MyTrait{
+	def aMethod() => 100
+}
+
+trait MyTraitChild < MyTrait{
+	override aMethod() => 100
+}
+
+
+class MyClass with MyTraitChild{
+}
+
+
+def doings(){
+	thing MyTraitChild = MyClass()
+	"" + with(thing){ aMethod(), aMethod()}
+}
+
+~~~~~
+//##8. basic generics
+
+trait MyTrait<T Number>{
+	def converter(t T) => t.doubleValue()
+}
+
+class ConcClass<X Number> with MyTrait<X>{
+	
+}
+
+
+def doings(){
+	cc = ConcClass<int>()
+	"" + cc.converter(22)
+}
+
+~~~~~
+//##9. basic generics 2
+
+trait MyTrait<T Number>{
+	def converter(t T) => t.doubleValue()
+}
+
+class ConcClass with MyTrait<int>{
+	
+}
+
+
+def doings(){
+	cc = ConcClass()
+	"" + cc.converter(22)
+}
+
+~~~~~
+//##10. force trait to become abstract
+
+trait MyTrait<T Number>{
+	def converter(t T) => t.doubleValue()
+}
+
+class AnotherThing with MyTrait<Double>{
+	override def converter(t Double) double//made abstract again
+}
+
+class ConcClass < AnotherThing{
+	def converter(t Double) => t*2//concrete again
+}
+
+
+def doings(){
+	cc = ConcClass()
+	"" + cc.converter(22)
+}
+
+~~~~~
+//##11. no equals no hashcode requires static mapping
+//do no equals, nohashcode trait
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class MyClass with EQHashFreee{
+	override toString() => "ok"
+}
+
+
+public def doings(){
+	me EQHashFreee = MyClass()
+	"" + with(me){ [me, me.hashCode()] }
+}
+
+~~~~~
+//##12. via iface static
+
+trait EQHashFreee<T> {
+	def bouncer(a T) => [a,a]
+}
+
+class MyClass<X> with EQHashFreee<X>{
+	def getStr(x X) => "ok: " + bouncer(x)
+}
+
+
+public def doings(){
+	me = MyClass<int>()
+	"" + with(me){ getStr(12) }
+}
+
+~~~~~
+//##13. no explicit calling on iface type
+
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class MyClass with EQHashFreee{
+	override toString() => "ok"
+}
+
+
+public def doings(){
+	me = MyClass()
+	"" + with(me){ [me, hashCode()] }
+}
+
+~~~~~
+//##14. bug used to think this was not a trait
+
+from com.concurnas.lang.precompiled.TraitHelper import MyTrait
+
+open class AnotherThing with MyTrait<double>{
+	//why of course its a trait, well an interface
+}
+
+def doings(){
+	"ok"
+} 
+
+~~~~~
+//##15. ensure upper bounc correctly captured on classDefJava instances
+
+class MyClass with com.concurnas.lang.precompiled.TraitHelper.MyTrait<int>{
+	override toString() => "ok"
+}
+
+public def doings(){
+	me = MyClass()
+	"" + with(me){ [me, me.converter(22)] }
+} 
+
+~~~~~
+//##16. super by default points to trait super not superclass plus qualified super
+
+open class SuperType{
+	def thing() => "super"
+}
+
+trait MyTrait{
+	def thing() => "trait"
+}
+
+class ConccClass < SuperType ~ MyTrait{
+	def myMethod() => [super.thing(), super[MyTrait].thing(), super[SuperType].thing()]
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ myMethod(), thing() }
+} 
+
+~~~~~
+//##17. super trait generic type is qualified with boxed type
+
+open class SuperType{
+	def thing(a double) => "super" + a
+}
+
+trait MyTrait<X>{
+	def thing(x X) => "trait" + x
+}
+
+class ConccClass < SuperType ~ MyTrait<int>{
+	def myMethod(a int) => [super.thing(a), 
+		super[MyTrait].thing(a), 
+		super[SuperType].thing(a)
+	]
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ myMethod(12), thing(2) }//[trait, trait, super], trait
+} 
+
+~~~~~
+//##18. ensure eq and hashcode gennerated
+
+open class SuperType
+
+trait MyTrait
+
+trait MyTrait2
+
+class ConccClass(a int) < SuperType ~ MyTrait, MyTrait2
+
+public def doings(){
+	me1 = ConccClass(1)
+	me2 = ConccClass(1)
+	me3 = ConccClass(10)
+	"" + (me1==me2, me1==me3)//should be true, false
+}
+
+~~~~~
+//##19. redirect super calls to correct static method
+
+open class SuperType{
+	def thing(a double) => "super " + a
+}
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait MyTrait2{
+	def thing(x int) => "trait2 " +x
+}
+
+class ConccClass < SuperType ~ MyTrait, MyTrait2{
+	override thing(x int) => "this " +x
+	def myMethod(a int) => [super.thing(a), 
+		super[MyTrait].thing(a), 
+		super[MyTrait2].thing(a), 
+		super[SuperType].thing(a),
+		this.thing(a),
+		thing(a)
+	]
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ myMethod(12), thing(2) }//[trait2, trait1, trait2, super, this, this], this
+} 
+
+~~~~~
+//##20. qualified trait can be fully defined name
+
+//##MODULE com.myorg.code2
+open class SuperType{
+	def thing(a double) => "super " + a
+}
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait MyTrait2{
+	def thing(x int) => "trait2 " +x
+}
+
+//##MODULE
+
+from com.myorg.code2 import SuperType, MyTrait, MyTrait2
+
+class ConccClass < SuperType ~ MyTrait, MyTrait2{
+	override thing(x int) => "this " +x
+	def myMethod(a int) => [super.thing(a), 
+		super[MyTrait].thing(a), 
+		super[MyTrait2].thing(a), 
+		super[SuperType].thing(a),
+		this.thing(a),
+		thing(a)
+	]
+	def myMethod2(a int) => [super.thing(a), 
+		super[com.myorg.code2.MyTrait].thing(a), 
+		super[com.myorg.code2.MyTrait2].thing(a), 
+		super[com.myorg.code2.SuperType].thing(a),
+		this.thing(a),
+		thing(a)
+	]
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ myMethod(12), myMethod2(12), thing(2) }//[trait2, trait1, trait2, super, this, this], this
+} 
+
+~~~~~
+//##21. was incorrectly gennerateing equals and hashcode
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class ConccClass ~ EQHashFreee, MyTrait{
+	def myMethod(a int) {
+		"hi" + super.thing(a)
+	} 
+}
+
+public def doings(){
+	me = ConccClass()
+	me.myMethod(12)
+}
+
+~~~~~
+//##22. used to not work now its fine
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class ConccClass ~ MyTrait, EQHashFreee{
+	def myMethod(a int) {
+		"hi" + super.thing(a)
+	} 
+}
+
+public def doings(){
+	me = ConccClass()
+	me.myMethod(12)
+}
+
+~~~~~
+//##23. works with funcrefs
+
+open class SuperType{
+	def thing(a double) => "super " + a
+}
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait MyTrait2{
+	def thing(x int) => "trait2 " +x
+}
+
+class ConccClass < SuperType ~ MyTrait, MyTrait2{
+	override thing(x int) => "this " +x
+	def myMethod(a int) {
+		f1 = super.thing&(a)
+		f2 = super[MyTrait].thing&(a) 
+		f3 = super[MyTrait2].thing&(a) 
+		f4 = super[SuperType].thing&(a)
+		f5 = this.thing&(a)
+		f6 = thing&(a)
+		
+		[f1(), f2(), f3(), f4(), f5(), f6()]
+	} 
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + me.myMethod(12)//[trait2, trait1, trait2, super, this, this]
+} 
+
+~~~~~
+//##24. unbound funcrefs
+
+open class SuperType{
+	def thing(a double) => "super " + a
+}
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait MyTrait2{
+	def thing(x int) => "trait2 " +x
+}
+
+class ConccClass < SuperType ~ MyTrait, MyTrait2{
+	override thing(x int) => "this " +x
+	def myMethod(a int) {
+		f1 = MyTrait.thing&(a) 
+		f2 = MyTrait2.thing&(a) 
+		f3 = SuperType.thing&(a)
+		f4 = ConccClass.thing&(a)
+		
+		f1.bind(this)
+		f2.bind(this)
+		f3.bind(this)
+		f4.bind(this)
+		
+		[f1(), f2(), f3(), f4()]
+	} 
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + me.myMethod(12)//[1, 2, super, this]
+} 
+
+~~~~~
+//##25. super abstract
+
+open class SuperType{
+	def thing(a int) String
+}
+
+trait MyTrait{
+	def thing(x int) => "trait1 " + x
+}
+
+trait MyTrait2{
+	def thing(x int) => "trait2 " +x
+}
+
+class ConccClass < SuperType ~ MyTrait, MyTrait2{
+	def thing(x int) => "this " +x
+	def myMethod(a int) => [super.thing(a), 
+		super[MyTrait].thing(a), 
+		super[MyTrait2].thing(a), 
+		//super[SuperType].thing(a),//no super abstract!
+		this.thing(a),
+		thing(a)
+	]
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ myMethod(12), thing(2) }//[trait2, trait1, trait2, super, this, this], this
+} 
+
+~~~~~
+//##26. disambiguation of two methods trait methods with same sig 
+
+trait Logger1{
+	def log(msg String) => "log1: " + msg
+}
+
+trait Logger2{
+	def log(msg String) => "log2: " + msg
+}
+
+
+class ConccClass ~ Logger1, Logger2{
+	override log(msg String) => "nice: " + super[Logger1].log(msg)
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ log("hi") }
+} 
+
+~~~~~
+//##27. disambiguation and correct routing A
+
+trait Logger1{
+	def log(msg String) => "log1: " + msg
+}
+
+trait Logger2{
+	def log(msg String) String//=> "log2: " + msg
+}
+
+
+class ConccClass ~ Logger1, Logger2
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ log("hi") }
+} 
+
+~~~~~
+//##28. disambiguation and correct routing B
+
+trait Logger1{
+	def log(msg String) => "log1: " + msg
+}
+
+trait Logger2{
+	def log(msg String) String//=> "log2: " + msg
+}
+
+
+class ConccClass ~ Logger2, Logger1
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ log("hi") }
+} 
+
+~~~~~
+//##29. heriarchically related instances to disambiguate
+
+trait Logger1{
+	def log(msg String) => "log1: " + msg
+}
+
+trait Logger2 extends Logger1{
+	override def log(msg String) String => "log2: " + msg
+}
+
+
+class ConccClass1 ~ Logger2, Logger1
+class ConccClass2 ~ Logger1, Logger2
+
+public def doings(){
+	me = ConccClass1(), ConccClass2()
+	"" + (with(d as Logger2){ log("hi") } for d in me)
+} 
+
+~~~~~
+//##30. intermediate superclass abstract with conflict
+
+trait Logger1{
+	def log(msg String) => "log1: " + msg
+}
+
+trait Logger2{
+	def log(msg String) => "log2: " + msg
+}
+
+abstract class SupClass ~ Logger1, Logger2{
+	
+}
+
+class ConccClass < SupClass{
+	def log(msg String) => "hi there:" + msg 
+}
+
+public def doings(){
+	me = ConccClass()
+	"" + with(me){ log("hi") }
+} 
+
+~~~~~
+//##31. trait extend non trait class
+
+class AbstractClass{
+	def aMethod() int
+}
+
+trait MyTrait < AbstractClass{
+	def aMethod() => 56
+}
+  
+
+class MyClass < AbstractClass ~ MyTrait{
+	
+}
+
+def doings(){
+	thing MyTrait = MyClass()
+	"" + with(thing){ aMethod(), aMethod()}
+} 
+
+~~~~~
+//##32. via module
+
+//##MODULE com.myorg.code2
+class AbstractClass{
+	def aMethod() int
+}
+
+trait MyTrait < AbstractClass{
+	def aMethod() => 56
+}
+  
+//##MODULE
+from com.myorg.code2 import AbstractClass, MyTrait
+
+class MyClass < AbstractClass ~ MyTrait
+
+def doings(){
+	thing MyTrait = MyClass()
+	"" + with(thing){ aMethod(), aMethod()}
+} 
+
+~~~~~
+//##33. trait extends non trait class so does concrete class
+
+//##MODULE com.myorg.code2
+class AbstractClass{
+	def aMethod() int
+}
+
+trait MyTrait < AbstractClass{
+	def aMethod() => 56
+}
+
+//##MODULE
+from com.myorg.code2 import AbstractClass, MyTrait
+
+class MyClass ~ MyTrait
+
+def doings(){
+	thing AbstractClass = MyClass()
+	"" + with(thing){ aMethod(), aMethod()}
+}
+
+~~~~~
+//##34. trait extends non trait class so does concrete class hierarhcy
+
+//##MODULE com.myorg.code2
+class AbstractClass{
+	def aMethod() int
+}
+
+class AbstractClass2 < AbstractClass{
+	def aMethod2() int
+}
+
+trait MyTrait < AbstractClass{
+	def aMethod() => 56
+}
+
+trait MyTrait2 < AbstractClass2{
+	def aMethod() => 56
+	def aMethod2() => 56
+}
+
+//##MODULE
+from com.myorg.code2 import AbstractClass, MyTrait, MyTrait2
+
+class MyClass  ~ MyTrait, MyTrait2
+
+def doings(){
+	thing  = MyClass()
+	"" + with(thing){ aMethod(), aMethod()}
+}
+
+~~~~~
+//##35. basic method chaining
+
+abstract class A {
+  def print() => "A "
+}
+
+trait T1 < A{
+  override def print() => "T1 " + super.print()
+
+}
+
+trait T2 ~ T1{
+  override def print() => "T2 " + super.print()
+
+}
+
+trait R1 < A{
+  override def print() => "R1 " + super.print()
+
+}
+
+trait R2 < A{
+  override def print() => "R2 " + super.print()
+
+}
+
+trait R3 ~ R2{
+  override def print() => "R3 " + super.print()
+}
+
+class MyClass < A ~ R3, T2, R1
+
+
+def doings(){
+	mc = MyClass()
+	"" + mc.print()
+}
+
+~~~~~
+//##36. simple hierarhcy super mapping
+
+//##MODULE com.myorg.code2
+
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+open class AbstractClass ~ EQHashFreee{
+	def aMethod(a int) int => 100 + a
+}
+
+trait MyTrait < AbstractClass{
+	override def aMethod(a int) => 56 + super.aMethod(a)
+}
+
+
+
+//##MODULE
+from com.myorg.code2 import AbstractClass, MyTrait, EQHashFreee
+
+class MyClass  ~ EQHashFreee, MyTrait
+
+def doings(){
+	thing  = MyClass()
+	"" + with(thing){ aMethod(1), aMethod(1)}
+}
+
+~~~~~
+//##37. ensure tostring equals only gennerated if all traits are missing definition
+
+//##MODULE com.myorg.code2
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+//##MODULE
+from com.myorg.code2 import EQHashFreee
+
+class MyClass  ~ EQHashFreee
+
+def doings(){
+	thing  = MyClass()
+	"" + with(thing){ hashCode() }
+}
+
+~~~~~
+//##38. ref to trait super
+
+trait EQHashFreee{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+open class AbstractClass ~ EQHashFreee{
+	def aMethod(a int) int => 100 + a
+}
+
+trait MyTrait < AbstractClass{
+	override def aMethod(a int) {
+		x = super.aMethod&(a)
+		x() + 56
+	}
+	
+	def aMethod2(a int) {
+		x = AbstractClass.aMethod&(a)
+		x.bind(this)
+		x() + 56
+	}
+}
+
+class MyClass  ~ EQHashFreee, MyTrait
+
+def doings(){
+	thing  = MyClass()
+	"" + with(thing){ aMethod(1), aMethod2(1)}
+}
+
+~~~~~
+//##39. another stacked example
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait A{
+	def thing() => "A"
+}
+
+trait B < A{
+	override def thing() => "B" + super.thing()
+}
+
+class MyClass ~ EQHashFree, A, B
+
+def doings(){
+	xxx  = MyClass()
+	"" + with(xxx){ thing() }
+}
+
+~~~~~
+//##40. with generics stacked
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait A<X>{
+	def thing() => "A"
+}
+
+trait B < A<int>{
+	override def thing() => "B" + super.thing()
+}
+
+trait C < A<int>{
+	override def thing() => "C" + super.thing()
+}
+
+
+class MyClass1 ~ EQHashFree, A<int>, C, B
+class MyClass2 ~ EQHashFree, A<int>, B, C
+
+def doings(){
+	xxx1  = MyClass1()
+	xxx2  = MyClass2()
+	"" + [xxx1.thing() xxx2.thing()]
+}
+
+~~~~~
+//##41. with generics stacked disambig
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait A<X>{
+	def thing() => "A"
+}
+
+trait B < A<int>{
+	override def thing() => "B" + super.thing()
+}
+
+trait C < A<int>{
+	override def thing() => "C" + super.thing()
+}
+
+
+class MyClass1 ~ EQHashFree, A<int>, C, B
+class MyClass2 ~ EQHashFree, A<double>, B, C{
+	override def thing() => "MyClass2" + super.thing()
+}
+
+def doings(){
+	xxx1  = MyClass1()
+	xxx2  = MyClass2()
+	"" + [xxx1.thing() xxx2.thing()]
+}
+
+~~~~~
+//##42. qualified super
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait A{
+	def thing() => "A"
+}
+
+trait B < A{
+	override def thing() => "B" + super.thing()
+}
+
+trait C < A{
+	override def thing() => "C" + super.thing()
+}
+
+
+class MyClass ~ EQHashFree, A, B, C{
+	override def thing() => "MyClass" + super[B].thing()
+}
+
+def doings(){
+	"" + MyClass().thing()
+}
+
+~~~~~
+//##43.trait protected methods
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait A{
+	protected def thing() => "A"//nope
+}
+
+trait B < A{
+	override def thing() => "B" + super.thing()
+}
+
+
+class MyClass ~ EQHashFree, B
+
+def doings(){
+	"" + MyClass().thing()
+}
+
+~~~~~
+//##44. stacked, not overriden inside B
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait A{
+	def thing() => "A"//nope
+}
+
+trait B < A{
+	
+}
+
+
+class MyClass ~ EQHashFree, B
+
+def doings(){
+	"" + MyClass().thing()
+}
+
+~~~~~
+//##45. first stab at trait vars
+
+//##MODULE com.myorg
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait{
+	count int
+	def inc() => ++count
+}
+
+//##MODULE
+from com.myorg import EQHashFree, MyTrait
+
+class MyClass ~ EQHashFree, MyTrait{
+	count = 10 //ok
+}
+
+def doings(){
+	"" + MyClass().inc()
+}
+
+~~~~~
+//##46. via abstract class
+
+//##MODULE com.myorg
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait{
+	count int
+	def inc() => ++count
+}
+
+//##MODULE
+from com.myorg import EQHashFree, MyTrait
+
+
+abstract class AbstrClass ~ EQHashFree, MyTrait
+
+class MyClass < AbstrClass{
+	count = 10 //ok
+}
+
+def doings(){
+	"" + MyClass().inc()
+}
+
+~~~~~
+//##47. trait field type can be subtype
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait{
+	count Object?
+	def dup() => [count count]
+}
+
+
+class MyClass ~ EQHashFree, MyTrait{
+	count = "ok"//is subtype
+}
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##48. trait field is generic
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait<X>{
+	count X?
+	def dup() => [count count]
+}
+
+class MyClass ~ EQHashFree, MyTrait<double>{
+	count = 10.
+}
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##49. trait field is generic quali with prim non eq type exactly
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait<X >{
+	count X?
+	def dup() => [count count]
+}
+
+class MyClass ~ EQHashFree, MyTrait<double>{
+	count = 10
+}
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##50. more complex trait field for encoder decoder
+
+from java.util import ArrayList
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait<X>{
+	count ArrayList<X>?
+	def dup(thing X) => count?.add(thing); count??.size()
+}
+
+class MyClass ~ EQHashFree, MyTrait<String>{
+	count = new ArrayList<String>()
+}
+
+def doings(){
+	"" + MyClass().dup("hi")
+}
+
+~~~~~
+//##51. var in superclass
+
+from java.util import ArrayList
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+abstract class AbstractClass ~ EQHashFree{
+	count int = 10
+}
+
+
+trait MyTrait < AbstractClass{
+	def dup() => [++super.count, ++count]
+}
+
+class MyClass ~ MyTrait{
+}
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##52. trait can share var name
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int
+	def dup2() => ++count; ++count
+}
+
+trait MyTrait2{
+	count int
+	def dup() => ++count
+}
+
+class MyClass ~ MyTrait1, MyTrait2{
+	override count = 100
+}
+
+def doings(){
+	"" + with(MyClass()){ (dup() , dup2(), count ) }
+}
+
+~~~~~
+//##53. trait inhnerirts from trait 
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int
+	def dup2() => ++count; ++count
+}
+
+trait MyTrait2 < MyTrait1{
+	def dup() => ++count
+}
+
+class MyClass ~ MyTrait1, MyTrait2{
+	override count = 100
+}
+
+def doings(){
+	"" + with(MyClass()){ (dup() , dup2(), count ) }
+}
+
+
+~~~~~
+//##54. gennerate fun for each field type instance
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count String?
+	def dup2() => [count count count]
+}
+
+trait MyTrait2{
+	count String?
+	def dup() => [count count]
+}
+
+class MyClass ~ MyTrait1, MyTrait2{
+	override count = "100"
+}
+
+def doings(){
+	"" + with(MyClass()){ (dup() , dup2(), count ) }
+}
+
+~~~~~
+//##55. bug. same field type multi define only def once
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count String?
+	def dup2() => [count count count]
+}
+
+trait MyTrait2{
+	count String?
+	def dup() => [count count]
+}
+
+class MyClass ~ MyTrait1, MyTrait2{
+	override count = "100"
+}
+
+def doings(){
+	"" + with(MyClass()){ (dup() , dup2(), count ) }
+}
+
+~~~~~
+//##56. trait variable with assigned value
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int = 100
+	def dup() => ++count
+}
+
+class MyClass ~ EQHashFree, MyTrait1{
+	this(){}
+}
+
+class MyClass2 ~ EQHashFree, MyTrait1{
+	this(a int){}
+}
+
+def doings(){
+	"" + [MyClass().dup() MyClass2(1).dup()]
+}
+
+~~~~~
+//##57. multiple traits to call
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int = 100
+	def dup() => ++count
+}
+
+trait MyTrait2 < MyTrait1{
+	count int = 200
+	override def dup() => super.dup(); ++count
+}
+
+class MyClass ~ EQHashFree, MyTrait1, MyTrait2{
+}
+
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##58. inherit or extend result is the same
+
+trait MyTrait{
+	def thing() => "ok"
+}
+
+trait MyTrait2 < MyTrait
+trait MyTrait3 ~ MyTrait
+
+class MyClass1 ~ MyTrait2
+class MyClass2 ~ MyTrait3
+
+def doings(){
+	"" + [MyClass1().thing() MyClass2().thing()]
+}
+
+~~~~~
+//##59. overwrite value of trait assigned value in concrete class
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int = 100
+	def dup() => ++count
+}
+
+trait MyTrait2 < MyTrait1{
+	count int = 200
+	override def dup() => super.dup(); ++count
+}
+
+class MyClass ~ EQHashFree, MyTrait1, MyTrait2{
+	count = 3000
+}
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##60. refer to abstract class intermediate trait value
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int = 100
+	def dup() => ++count
+}
+
+trait MyTrait2 < MyTrait1{
+	count int = 200
+	override def dup() => super.dup(); ++count
+}
+
+abstract class MyClassAbstr ~ EQHashFree, MyTrait1, MyTrait2{
+	count = 3000
+}
+
+class MyClass < MyClassAbstr ~ EQHashFree
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##61. override field
+
+open class AbstractClass{
+	a = 0
+	b=0
+}
+
+class ConcClass < AbstractClass{
+	a = 10
+	override b = 10
+	def apply() => [a, super.a, b, super.b]
+}
+
+def doings(){
+	"" + new ConcClass().apply()//[10, 0, 10, 10]
+}
+
+~~~~~
+//##62. override works with classdefargs
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	count int
+	def dup2() => ++count; ++count
+}
+
+trait MyTrait2{
+	count int
+	def dup() => ++count
+}
+
+class MyClass(override count = 100) ~ MyTrait1, MyTrait2{
+}
+
+def doings(){
+	"" + with(MyClass()){ (dup() , dup2(), count ) }
+}
+
+~~~~~
+//##63. override works on fields used by traits defined in abstract classes
+
+from java.util import ArrayList
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+abstract class AbstractClass ~ EQHashFree{
+	count int = 10
+}
+
+
+trait MyTrait < AbstractClass{
+	def dup() => [++super.count, ++count]
+}
+
+class MyClass ~ MyTrait, EQHashFree{
+	override count = 100
+}
+
+def doings(){
+	"" + MyClass().dup()
+}
+
+~~~~~
+//##64. val and var
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	val count = 9
+	def dup2() => count
+}
+
+
+class MyClass ~ MyTrait1{
+	override count int
+	def thing(){
+		count++;
+	}
+}
+
+def doings(){
+	"" + with(MyClass()){ (thing(), dup2()) }
+}
+
+~~~~~
+//##64.b val and var assign it something
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait1{
+	val count = 9
+	def dup2() => count
+}
+
+
+class MyClass ~ MyTrait1{
+	override count int = 0
+	def thing(){
+		count++;
+	}
+}
+
+def doings(){
+	"" + with(MyClass()){ (thing(), dup2()) }
+}
+
+~~~~~
+//##65. getters and setters 1 override
+
+from java.util import ArrayList
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+trait MyTrait {
+	public ~thing = 99
+}
+
+class MyClass ~ MyTrait, EQHashFree{
+	override thing = 1000
+}
+
+def doings(){
+	mc = MyClass()
+	mc.thing+= 100
+	x = mc\.thing
+	mc.setThing(88)
+	"" + [x, mc.thing, mc getThing]
+}
+
+~~~~~
+//##66. getters and setters 1 override getter setter
+from java.util import ArrayList
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+
+trait MyTrait {
+	public ~thing = 99
+}
+
+class MyClass ~ MyTrait, EQHashFree{
+	override ~thing = 1000
+}
+
+def doings(){
+	mc = MyClass()
+	mc.thing+= 100
+	x = mc\.thing
+	mc.setThing(88)
+	"" + [x, mc.thing, mc getThing]
+}
+
+~~~~~
+//##67. getters and setters 1 direct access trait variable
+
+from java.util import ArrayList
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait {
+	public ~thing = 99
+}
+
+class MyClass ~ MyTrait, EQHashFree
+
+def doings(){
+	mc = MyClass()
+	mc.thing+= 100
+	x = mc\.thing
+	mc.setThing(88)
+	"" + [x, mc.thing, mc getThing]
+}
+
+~~~~~
+//##68. var defined in trait
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.TraitHelper import TraitWithFieldThing
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class MyClass ~ TraitWithFieldThing, EQHashFree
+
+def doings(){
+	"" +try{
+		mc = MyClass()
+		mc\.thing
+	}catch(err java.lang.NoSuchMethodError){
+		'expected'
+	}
+}
+
+~~~~~
+//##69. var defined in trait - one in between
+
+from java.util import ArrayList
+from com.concurnas.lang.precompiled.TraitHelper import TraitExtends
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class MyClass ~ TraitExtends, EQHashFree
+
+def doings(){
+	"" +try{
+		mc = MyClass()
+		mc\.thing
+	}catch(err java.lang.NoSuchMethodError){
+		'expected'
+	}
+}
+
+~~~~~
+//##70. bugifx this used to not work correctly
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait Master{
+	thing = 9
+}
+
+trait ChildTrait < Master{
+}
+
+class MyClass ~ ChildTrait, EQHashFree
+
+def doings(){
+	mc = MyClass()
+	"" +mc\.thing
+}
+
+~~~~~
+//##71. direct trait variable access
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+trait MyTrait<X>{
+	thing X?
+}
+
+class MyClass<X>(override thing X) ~ MyTrait<X>, EQHashFree
+
+def doings(){
+	mc = MyClass("hi")
+	dd = mc\.thing
+	"" + dd
+}
+
+~~~~~
+//##72. generic trait variable from compiled trait
+
+from com.concurnas.lang.precompiled.TraitHelper import GenericTrait
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+class MyClass<X>(override thing X) ~ GenericTrait<X>, EQHashFree
+
+def doings(){
+	mc = MyClass("hi")
+	dd = mc\.thing
+	"" + dd
+}
+
+~~~~~
+//##73. generic trait variable from compiled trait via intermediate class
+
+from com.concurnas.lang.precompiled.TraitHelper import GenericTraitChild
+
+trait EQHashFree{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class MyClass<X>(override thing X) ~ GenericTraitChild<X>, EQHashFree
+
+def doings(){
+	mc = MyClass("hi")
+	dd = mc\.thing
+	"" + dd
+}
+
+~~~~~
+//##74. actor default call trait method
+
+trait MyTrait{
+	count = 0
+	def operation(){
+		++count
+	}
+}
+
+
+class NormalClass ~ MyTrait
+
+def doings(){
+	anActor = actor NormalClass()
+	"" + anActor.operation()
+}
+
+~~~~~
+//##75. actor of class with trait
+
+trait MyTrait{
+	count = 0
+	def operation(){
+		++count
+	}
+}
+
+
+class NormalClass ~ MyTrait
+
+actor MyActor of NormalClass
+
+def doings(){
+	anActor = new MyActor()
+	"" + anActor.operation()
+}
+
+~~~~~
+//##76. actor with a trait
+
+trait MyTrait{
+	count = 0
+	def operation(){
+		++count
+	}
+}
+
+actor MyActor ~ MyTrait{
+	def slippery() => "ok"
+}
+
+def doings(){
+	anActor = new MyActor()
+	"" + anActor.operation()
+}
+
+~~~~~
+//##77. trait is as 
+
+trait MyTrait{
+	override toString() => "myTrait"
+}
+
+class Thing with MyTrait
+
+def doings() {
+	tt Object = Thing()
+	isit = tt is MyTrait
+	asit = tt as MyTrait
+	"ok: " + [isit asit]
+}
+
+~~~~~
+//##78. use in anon class
+
+trait Incrementor<X Number>{
+	def operation(a X) => a.doubleValue()+1
+}
+
+
+def doings(){
+	"" + {class ~ Incrementor<int>{}()}.operation(12)
+}
+
+
+~~~~~
+//##79. qualified super
+
+abstract class AbstractFooClass{
+	def foo() => "version AbstractFooClass"
+}
+
+
+
+trait A{
+	def foo() => "version A"
+}
+trait B{
+	def foo() => "version B"
+}
+
+class FooClass < AbstractFooClass with B, A{
+	override def foo() => "" + [super[AbstractFooClass].foo(), super[A].foo(),super[B].foo()]
+}
+
+
+def doings(){
+	"" + FooClass().foo() 
+}
+
+
+~~~~~
+//##80.stacked traits
+
+abstract class Operator{
+	def operate(a int) int => a
+}
+
+open class ID < Operator{
+	override def operate(a int) => a
+}
+
+
+trait PlusOne < Operator{  override def operate(a int) => super.operate(a+1) }
+trait Square  < Operator{  override def operate(a int) => super.operate(a**2) }
+trait MinusOOne < Operator{  override def operate(a int) => super.operate(a-1) }
+trait DivTwo < Operator{   override def operate(a int) => super.operate(a/2) }
+
+
+class DMSP < ID ~ PlusOne, Square, MinusOOne, DivTwo
+
+class PSMD < ID ~ DivTwo, MinusOOne, Square, PlusOne
+
+def doings(){
+	"" + (inst.operate(10) for inst in [PSMD() DMSP()])
+}
+
+~~~~~
+//##81.can call stacked trait without override etc onto abstract super
+
+abstract class Operator{
+	def operate(a int) int
+}
+
+open class ID < Operator{
+	def operate(a int) => a
+}
+
+
+trait PlusOne   < Operator{  def operate(a int) => super.operate(a+1) }
+trait Square    < Operator{  def operate(a int) => super.operate(a**2) }
+trait MinusOOne < Operator{  def operate(a int) => super.operate(a-1) }
+trait DivTwo    < Operator{   def operate(a int) => super.operate(a/2) }
+
+
+class DMSP < ID ~ PlusOne, Square, MinusOOne, DivTwo
+
+class PSMD < ID ~ DivTwo, MinusOOne, Square, PlusOne
+
+def doings(){
+	"" + (inst.operate(10) for inst in [PSMD() DMSP()])
+}
+
+~~~~~
+//##82. butgix on instance vs trait method call
+
+trait ID{
+	def operate(a int) int => a
+}
+
+
+class Myclass ~ ID{
+	override operate(a int) int => a + super.operate(a)
+}
+
+def doings(){
+	inst ID = Myclass()
+	"" + inst.operate(10)//ensure that the instance method is called, not the trait one
+}
+
+~~~~~
+//##83. override var via abstract class
+
+trait IndAncDec{
+	-count int
+}
+
+abstract class Twice ~ IndAncDec
+
+class Mine <Twice  { override count = 10 }//didnt work before
+
+def doings(){
+	mm = new Mine()
+	"" + mm.getCount()
+}
+
+~~~~~
+//##84. abstract class has traits concrete class correct init of variables
+
+trait EQHash{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+trait Trait{
+	-count int
+	-countdown int =10
+}
+
+abstract class AbstractClass ~ Trait, EQHash
+
+class Real < AbstractClass  { 
+	override count = 0
+	//create countdown field in this concrete class and call init in trait
+}
+
+def doings(){
+	"" + with(new Real()){  count, countdown }
+}
+
+~~~~~
+//##85. correct overloading of variables
+
+trait MyTrait{
+	-count String = 'MyTrait'
+}
+
+abstract class AbstractClass ~ MyTrait{
+	override count String = 'AbstractClass'
+}
+
+class MyclassFromAsbtract < AbstractClass{
+	override count String = 'FromAsbtract'
+}
+
+class MyclassFromTrait ~ MyTrait{
+	override count String = 'MyclassFromTrait'
+}
+
+class MyclassFromAsbtractWithout < AbstractClass
+
+class MyclassFromTraitWithout ~ MyTrait
+
+def doings(){
+	instances = [MyclassFromAsbtract() as MyTrait, MyclassFromTrait(), MyclassFromAsbtractWithout(), MyclassFromTraitWithout()]
+	
+	"oops" + (x.count for x in instances)
+}
+
+~~~~~
+//##86. more correct overloading
+
+trait EQHash{
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+
+trait Trait{
+	-count int
+	-countdown int =10
+}
+
+abstract class AbstractClass ~ Trait, EQHash
+
+anon = new AbstractClass  { 
+	override count = 0
+}
+
+def doings(){
+	"" + with(anon){  count, countdown }
+}
+
+~~~~~
+//##87. correct number of func calls
+
+trait IndAncDec{
+	-count int
+	-countdown int =0
+	-callcount = 0
+	def inc() => callcount++; ++count + countdown
+	def dec() => callcount++; --countdown + count; 
+}
+
+abstract class IndAncDecTwice ~ IndAncDec{
+	override def inc() => super.inc(); super.inc()
+	override def dec() => super.dec(); super.dec()
+}
+
+anon = new IndAncDecTwice  { override count = 0 }
+
+def doings(){
+	"" + with(anon){ inc(), inc(), dec(), count, countdown, callcount }
+}
+
+~~~~~
+//##88. lets use a comparitor
+
+from java.util import Comparator, Arrays
+
+class Node(-depth int){
+	override toString()=> "Node({depth})"
+}
+
+ 
+class NodeOrderer ~ Comparator<Node> {
+	def compare(o1 Node, o2 Node) int {
+        o1.depth - o2.depth
+    }
+}
+
+def doings(){
+	
+	things = new Node([2 5 2 3 4 1]^)
+	Arrays.sort(things, new NodeOrderer())
+	
+	"hi" + things
+}
+
+~~~~~
+//##89. persistance of trait fields
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk, OffHeapMapRAM
+import com.concurnas.bootstrap.runtime.cps.Fiber
+
+
+trait MyTrait{
+	a int = 100
+	b int = 200
+}
+
+class MyClass ~ MyTrait{
+	def incs(){
+		a++;;
+		b++;;
+	}
+	override hashCode()=>0
+	override equals(a Object)=>true
+	override toString() => "" + [a,b]
+}
+
+11_meg = 11*1024*1024//parser used to not like stuff starting with a number
+
+def doings(){
+	mc = MyClass()
+	mc.incs()
+	
+	offHeapMap = OffHeapMapRAM<String, MyClass>(11_meg)
+	offHeapMap.removeOnClose = true
+	offHeapMap.useFairLockingStrategy = true
+	offHeapMap.start()
+	
+	offHeapMap.put("hi", mc)
+	
+	useage1 = offHeapMap.getStoredNonPrimativeObjectUsage()
+	got = offHeapMap["hi"]
+	got2 = offHeapMap.remove("hi")
+	useage2 = offHeapMap.getStoredNonPrimativeObjectUsage()
+
+	
+	"got: " + got + " use: " + [useage1, useage2] + " cont: " + ("hi" in offHeapMap)
+}
+
+~~~~~
+//##90. copy a trait
+trait ATrait(){
+	def something() int
+}
+
+class ImpTrait ~ ATrait{
+	def something() => 12
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class HoldsTrait(atrait ATrait){
+	override hashCode() => 1
+	override equals(an Object) => false
+	override toString() => "its ok: " +atrait.something()
+}
+
+
+def doings(){
+	impl = new ImpTrait()
+	holdsTrait = new HoldsTrait(impl)
+	"" + holdsTrait@
+}

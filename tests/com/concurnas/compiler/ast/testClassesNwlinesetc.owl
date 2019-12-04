@@ -1,0 +1,79 @@
+
+
+//define classes, interfaces et al
+
+def some() void
+{
+	g()
+}
+
+d=s;
+class MyClass<X>(-n String, -m String)
+{
+	a =6;
+	f=6;
+	def add(toAdd X) void	{
+	d()
+		}
+	
+	def do(n int) void
+	{
+		this.a= n**5
+			}
+	
+	p=4
+	
+	ompa = def () int { return 5 
+	}
+	
+	ompa = def () int { return 5	} 
+	
+	l= 5
+	
+	
+	l=0 ; l=r()
+	
+	class inner{
+	}
+	
+}
+
+class Singleton
+{
+}
+
+if(a> 5)
+{
+
+}
+
+else
+{}
+
+while(false){
+a=4; g=y
+
+}
+
+
+while(false){
+a=4; g=y 
+}
+
+mmop = { 1->2, 4
+-> 5}
+
+a = [1,2 
+,3 ]
+
+
+with(logging)
+{
+log("");
+}
+
+zzz = new A.C(2,3);
+
+bobby List<Integer> = new List<Integer>(1);
+
+a = actor MyClass<String>(3);

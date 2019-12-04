@@ -1,0 +1,33 @@
+from java.util import Map, Set
+
+class CopyDefinition(-superCopier com.concurnas.bootstrap.runtime.CopyDefinition, overrides Map<String, Object>, include Set<String>, exclude Set<String>, nestedCopyDefinitions Map<String, com.concurnas.bootstrap.runtime.CopyDefinition>, incDefaults boolean) ~ com.concurnas.bootstrap.runtime.CopyDefinition{
+	
+	def getOverride(field String, ifNone Object) => overrides[field] if (overrides <> null and field in overrides) else ifNone
+	
+	def shouldCopyField(field String){
+		
+		if(overrides <> null and field in overrides){
+			return true
+		}
+		
+		if(nestedCopyDefinitions <> null and field in nestedCopyDefinitions){
+			return true
+		}
+		
+		if(exclude <> null and field in exclude){
+			return false
+		}
+		
+		if(include <> null){
+			return field in include 
+		}
+		
+		return true
+	}
+	
+	def getFieldCopier(field String) {
+		nestedCopyDefinitions[field] if nestedCopyDefinitions <> null else null
+	} 
+	
+	def incDefaults() => incDefaults
+}

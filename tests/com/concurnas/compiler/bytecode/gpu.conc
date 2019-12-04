@@ -1,0 +1,4248 @@
+//##1. find gpu devices
+def doings(){
+	gps = gpus.GPU()
+	cpuDev = gps.getCPUDevices()
+	gpuDev = gps.getGPUDevices()
+	allDev = gps.getALLDevices()
+	System.out.println("gpu config: " + [cpuDev, "\n", gpuDev, "\n", allDev])
+	"" + (allDev.length > 0)
+}
+~~~~~
+//##2. choose approperiate device group
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	
+	del deviceGrp
+	
+	"ok" 
+}
+
+~~~~~
+//##3. allocate buffers
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	intoGPU2 = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	outofGPU = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	
+	res = "" + (x.getClass().simpleName for x in [intoGPU1 intoGPU2 outofGPU])
+	
+	del deviceGrp, device
+	del intoGPU1, intoGPU2 
+	del outofGPU
+	
+	res
+}
+
+~~~~~
+//##4. copy to device
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+
+	complete: = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	res = "res: " + complete
+	
+	del deviceGrp, device
+	del intoGPU1
+	del complete
+	
+	res
+}
+
+~~~~~
+//##5. chain of writes to device
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	intoGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+
+	complete1 := intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	complete2 = intoGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10], complete1)
+	
+	res = "res: " + [complete1 complete2]
+	
+	del deviceGrp, device
+	del intoGPU1, intoGPU2
+	del complete1, complete2
+	
+	res
+}
+
+~~~~~
+//##6. too long and too short
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	
+	f1 = try{ 
+			com = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10 11 12])//too long
+			'fail'
+		}catch(e){
+			e.message
+		}
+	
+	f2 = try{ 
+			com = intoGPU1.writeToBuffer([1 2 3 4 5 6 ])//too short
+			'fail'
+		}catch(e){
+			e.message
+		}
+		
+	perfect = try{ 
+			com = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])//too short
+			del com
+			'great'
+		}catch(e){
+			'fail' + e.message
+		}
+	
+	res = "res: " + [f1, f2, perfect]
+	
+	del deviceGrp, device
+	del intoGPU1
+	
+	res
+}
+
+~~~~~
+//##7. write 1d array to 2d strucutre
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[2]>(int[2].class, 2, 5)
+
+	complete1 = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])//write 1d array to 2d structure
+	
+	res = "res: " + complete1
+	
+	del deviceGrp, device
+	del intoGPU1
+	del complete1
+	
+	res
+}
+
+~~~~~
+//##8. write 1d array to 2d strucutre obj variant
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[2]>(int[2].class, 2, 5)
+
+	complete1 = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])//write 1d array to 2d structure
+	
+	res = "res: " + complete1
+	
+	del deviceGrp, device
+	del intoGPU1
+	del complete1
+	
+	res
+}
+
+~~~~~
+//##9. write all the types to the gpu
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	intoGPU2 = device.makeOffHeapArrayIn<short[]>(short[].class, 10)
+	intoGPU3 = device.makeOffHeapArrayIn<long[]>(long[].class, 10)
+	intoGPU4 = device.makeOffHeapArrayIn<float[]>(float[].class, 10)
+	intoGPU5 = device.makeOffHeapArrayIn<double[]>(double[].class, 10)
+	intoGPU6 = device.makeOffHeapArrayIn<boolean[]>(boolean[].class, 2)
+	intoGPU7 = device.makeOffHeapArrayIn<char[]>(char[].class, 3)
+	intoGPU8 = device.makeOffHeapArrayIn<byte[]>(byte[].class, 4)
+
+	c1 = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 = intoGPU2.writeToBuffer([1s 2s 3s 4s 5s 6s 7s 8s 9s 10s])
+	c3 = intoGPU3.writeToBuffer([1L 2 3 4 5 6 7 8 9 10])
+	c4 = intoGPU4.writeToBuffer([1f 2 3 4 5 6 7 8 9 10])
+	c5 = intoGPU5.writeToBuffer([1d 2 3 4 5 6 7 8 9 10])
+	c6 = intoGPU6.writeToBuffer([true false])
+	c7 = intoGPU7.writeToBuffer(['a' 'b' 'c'])
+	c8 = intoGPU8.writeToBuffer([1 as byte 2 as byte 3 as byte 4 as byte])
+	
+	res = "res: " + [c1, c2, c3, c4, c5, c6, c7, c8]
+	
+	del deviceGrp, device
+	del intoGPU1, intoGPU2, intoGPU3, intoGPU4, intoGPU5, intoGPU6, intoGPU7, intoGPU8
+	del c1, c2, c3, c4, c5, c6, c7, c8
+	
+	res
+}
+
+~~~~~
+//##10. gpus auto import
+
+def doings(){
+	gps = gpus.GPU()
+	"auto import"
+}
+
+~~~~~
+//##11. 2d to 2d write
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU = device.makeOffHeapArrayIn<int[2]>(int[2].class, 3, 3)
+
+	cl = intoGPU.writeToBuffer([1 2 3; 4 5 6 ; 7 8 9])//2d to 2d
+	
+	res = "res: " + cl
+	
+	del deviceGrp, device
+	del intoGPU
+	del cl
+	
+	res
+}
+
+~~~~~
+//##12. 2d to 1d write
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU = device.makeOffHeapArrayIn<int[]>(int[].class, 9)
+
+	cl = intoGPU.writeToBuffer([1 2 3; 4 5 6 ; 7 8 9])//2d to 1d
+	
+	res = "res: " + cl
+	
+	del deviceGrp, device
+	del intoGPU
+	del cl
+	
+	res
+}
+
+~~~~~
+//##13. 1d to 2d write
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoGPU = device.makeOffHeapArrayIn<int[2]>(int[2].class, 3, 3)
+
+	cl = intoGPU.writeToBuffer([1 2 3 4 5 6 7 8 9])//1d to 2d
+	
+	res = "res: " + cl
+	
+	del deviceGrp, device
+	del intoGPU
+	del cl
+	
+	res
+}
+
+~~~~~
+//##14. simple decode
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inoutGPU = device.makeOffHeapArrayMixed<int[1]>(int[1].class, 6)
+
+	cl := inoutGPU.writeToBuffer([1 2 3 4 5 6])//2d to 1d
+	got = inoutGPU.readFromBuffer(cl)
+	
+	res = "res: " + [cl, got]
+	
+	del deviceGrp, device
+	del inoutGPU
+	del cl, got
+	
+	res
+}
+
+~~~~~
+//##15. simple decode boxed type
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inoutGPU = device.makeOffHeapArrayMixed<Integer[1]>(Integer[1].class, 6)
+
+	cl := inoutGPU.writeToBuffer([Integer(1) 2 3 4 5 6])//boxed
+	got := inoutGPU.readFromBuffer(cl)
+	
+	res = "res: " + [cl, got]
+	
+	del deviceGrp, device
+	del inoutGPU
+	del cl, got
+	
+	res
+}
+
+~~~~~
+//##16. simple decode 2d
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inoutGPU = device.makeOffHeapArrayMixed<int[2]>(int[2].class, 2, 3)
+
+	cl := inoutGPU.writeToBuffer([1 2 3 ; 4 5 6])//boxed
+	got := inoutGPU.readFromBuffer(cl)
+	
+	res = "res: " + [cl, got]
+	
+	del deviceGrp, device
+	del inoutGPU
+	del cl, got
+	
+	res
+}
+
+~~~~~
+//##17. decode all types
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def delme(an Object...){
+	for(a in an){
+		del a
+	}
+}
+
+def getRes(intoutGPU1 gpus.GPUBufferManagedMixed<int[]>,
+	intoutGPU2 gpus.GPUBufferManagedMixed<short[]>,
+	intoutGPU3 gpus.GPUBufferManagedMixed<long[]>,
+	intoutGPU4 gpus.GPUBufferManagedMixed<float[]>,
+	intoutGPU5 gpus.GPUBufferManagedMixed<double[]>,
+	intoutGPU6 gpus.GPUBufferManagedMixed<boolean[]>,
+	intoutGPU7 gpus.GPUBufferManagedMixed<char[]>,
+	intoutGPU8 gpus.GPUBufferManagedMixed<byte[]>){
+	g1 = intoutGPU1.readFromBuffer()
+	g2 = intoutGPU2.readFromBuffer()
+	g3 = intoutGPU3.readFromBuffer()
+	g4 = intoutGPU4.readFromBuffer()
+	g5 = intoutGPU5.readFromBuffer()
+	g6 = intoutGPU6.readFromBuffer()
+	g7 = intoutGPU7.readFromBuffer()
+	g8 = intoutGPU8.readFromBuffer()
+	
+	"res: " + String.join("\n", ""+x for x in [g1, g2, g3, g4, g5, g6, g7, g8])
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	intoutGPU2 = device.makeOffHeapArrayMixed<short[]>(short[].class, 10)
+	intoutGPU3 = device.makeOffHeapArrayMixed<long[]>(long[].class, 10)
+	intoutGPU4 = device.makeOffHeapArrayMixed<float[]>(float[].class, 10)
+	intoutGPU5 = device.makeOffHeapArrayMixed<double[]>(double[].class, 10)
+	intoutGPU6 = device.makeOffHeapArrayMixed<boolean[]>(boolean[].class, 2)
+	intoutGPU7 = device.makeOffHeapArrayMixed<char[]>(char[].class, 3)
+	intoutGPU8 = device.makeOffHeapArrayMixed<byte[]>(byte[].class, 4)
+
+	c1 = intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 = intoutGPU2.writeToBuffer([1s 2s 3s 4s 5s 6s 7s 8s 9s 10s])
+	c3 = intoutGPU3.writeToBuffer([1L 2 3 4 5 6 7 8 9 10])
+	c4 = intoutGPU4.writeToBuffer([1f 2 3 4 5 6 7 8 9 10])
+	c5 = intoutGPU5.writeToBuffer([1d 2 3 4 5 6 7 8 9 10])
+	c6 = intoutGPU6.writeToBuffer([true false])
+	c7 = intoutGPU7.writeToBuffer(['a' 'b' 'c'])
+	c8 = intoutGPU8.writeToBuffer([1 as byte 2 as byte 3 as byte 4 as byte])
+	
+	result = getRes(intoutGPU1, intoutGPU2, intoutGPU3, intoutGPU4, intoutGPU5, intoutGPU6, intoutGPU7, intoutGPU8)
+	
+	delme (deviceGrp, device)
+	delme (intoutGPU1, intoutGPU2, intoutGPU3, intoutGPU4, intoutGPU5, intoutGPU6, intoutGPU7, intoutGPU8)
+	
+	result
+}
+
+~~~~~
+//##18. copy from one device to another
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	intoutGPU2 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	g1 := intoutGPU1.copyToBuffer(intoutGPU2, c1)
+	
+	gotFrom2 := intoutGPU2.readFromBuffer(g1)
+	
+	result = "res: " + gotFrom2
+	
+	del intoutGPU1, intoutGPU2
+	del c1, g1, gotFrom2
+	del deviceGrp, device
+	
+	result
+}
+
+~~~~~
+//##19. copy from one device to another size must match
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	intoutGPU2 = device.makeOffHeapArrayMixed<int[]>(int[].class, 11)//flag as error as differing size
+	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	try{
+		intoutGPU1.copyToBuffer(intoutGPU2, c1)
+		"fail"
+	}catch(fail){
+		fail.message
+	}finally{
+		del intoutGPU1, intoutGPU2
+		del c1
+		del deviceGrp, device
+	}
+}
+
+~~~~~
+//##20. sizeof with variants
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n++] = n
+	}
+	
+	ret
+}
+
+private class GPUSizeof{
+	def gpusizeof(an Object) int{
+		12
+	}
+	
+	private def sizeofSomething(){11}
+	
+}
+
+def gpusizeof(an Object) => GPUSizeof().gpusizeof(an)
+
+def doings(){
+	leAr = arMarker(20)
+	gpusize = sizeof<gpusizeof> leAr//ok
+	"" + gpusize
+}
+
+
+~~~~~
+//##21. gpu sizeof
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n++] = n
+	}
+	
+	ret
+}
+
+def doings(){
+	leAr = arMarker(20)
+	gpusize = sizeof<gpus.gpusizeof> leAr//ok
+	"" + gpusize
+}
+
+~~~~~
+//##22. sublist write to operations
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n] = n
+		n++
+	}
+	
+	ret
+
+}
+
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	leAr = arMarker(20)
+	
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, leAr.length)
+	c1 := intoutGPU1.writeToBuffer(leAr)
+	
+	got = try{
+		await(c1)
+		
+		intoutGPU1[5 ... 8] = [100 100 100]//wait until set and free are both called...
+		intoutGPU1[-5 ... -3] = [99 99]
+		intoutGPU1[18 ... ] = [66 66]
+		intoutGPU1[... 2] = [11 11]
+		
+		intoutGPU1.readFromBuffer()
+	} finally{
+		del deviceGrp, device, intoutGPU1, c1
+	}
+	"done: " + got
+}
+
+~~~~~
+//##23. sublist write to operations failure cases
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n] = n
+		n++
+	}
+	
+	ret
+
+}
+
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	leAr = arMarker(20)
+	
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, leAr.length)
+	c1 := intoutGPU1.writeToBuffer(leAr)
+	
+	got = try{
+		await(c1)
+		//sublist write errorrs
+		
+		r1 = try{
+			intoutGPU1[8 ... 5] = [100 100 100]
+			'fail'
+		}catch(e){ e.message } 
+		
+		r2 = try{
+			intoutGPU1[-10000 ... 5] = [100 100 100]
+			'fail'
+		}catch(e){ e.message } 
+		
+		r3 = try{
+			intoutGPU1[8 ... 5000000] = [100 100 100]
+			'fail'
+		}catch(e){ e.message } 
+		
+		r4 = try{
+			intoutGPU1[5 ... 9] = [100 100 100]
+			'fail'
+		}catch(e){ e.message } 
+		
+		
+		""+ [r1, r2, r3, r4]
+		
+	} finally{
+		del deviceGrp, device, intoutGPU1, c1
+	}
+	"done: " + got
+}
+
+~~~~~
+//##24. sublist read from buffers
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n] = n
+		n++
+	}
+	
+	ret
+}
+
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	leAr = arMarker(20)
+	
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, leAr.length)
+	c1 := intoutGPU1.writeToBuffer(leAr)
+	
+	got = try{
+		await(c1)
+		
+		a1=intoutGPU1[5 ... 8] 
+		a2=intoutGPU1[-5 ... -3]
+		a3=intoutGPU1[18 ... ] 
+		a4=intoutGPU1[... 2] 
+		""+ [a1, a2, a3, a4]
+	} finally{
+		del deviceGrp, device, intoutGPU1, c1
+	}
+	"done: " + got
+}
+
+~~~~~
+//##25. sublist read from buffers errors
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def arMarker(size int) int[]{
+	ret = int[size]
+	n=0
+	while(n < size){
+		ret[n] = n
+		n++
+	}
+	
+	ret
+}
+
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	leAr = arMarker(20)
+	
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, leAr.length)
+	c1 := intoutGPU1.writeToBuffer(leAr)
+	
+	got = try{
+		await(c1)
+		//sublist read errorrs
+		
+		r1 = try{
+			intoutGPU1[8 ... 5]
+		}catch(e){ e.message } 
+		
+		r2 = try{
+			intoutGPU1[-10000 ... 5] 
+		}catch(e){ e.message } 
+		
+		r3 = try{
+			intoutGPU1[8 ... 5000000]
+		}catch(e){ e.message } 
+		
+		
+		
+		""+ [r1, r2, r3]
+		
+	} finally{
+		del deviceGrp, device, intoutGPU1, c1
+	}
+	"done: " + got
+}
+
+~~~~~
+//##26. copy subregion
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	intoutGPU2 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	g1 := intoutGPU1.copyToBuffer(intoutGPU2, 2, 4, 2, c1)
+	
+	gotFrom2 := intoutGPU2.readFromBuffer(g1)
+	
+	result = "res: " + gotFrom2
+	
+	del intoutGPU1, intoutGPU2
+	del c1, g1, gotFrom2
+	del deviceGrp, device
+	
+	result
+}
+
+~~~~~
+//##27. copy subregion errors
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	intoutGPU1big = device.makeOffHeapArrayMixed<int[]>(int[].class, 100)
+	intoutGPU2 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	a1=try{
+		intoutGPU1.copyToBuffer(intoutGPU2, 5, 4, 2, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	a2=try{
+		intoutGPU1.copyToBuffer(intoutGPU2, -1000, 4, 2, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	a3=try{
+		intoutGPU1.copyToBuffer(intoutGPU2, 5, 4000, 2, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	a4=try{
+		intoutGPU1.copyToBuffer(intoutGPU2, 5, 4, -3000, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	a5=try{
+		intoutGPU1big.copyToBuffer(intoutGPU2, 0, 50, 2, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	
+	result = String.join("\n",  [a1, a2, a3, a4, a5])
+	
+	del intoutGPU1, intoutGPU1big, intoutGPU2
+	del c1
+	del deviceGrp, device
+	
+	result
+}
+
+~~~~~
+//##28. gpu single write read copy simple
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inoutGPU1 = device.makeOffHeapSingleMixed<long>(long.class)
+	inoutGPU2 = device.makeOffHeapSingleMixed<long>(long.class)
+	
+	cl := inoutGPU1.writeToBuffer(456L)//write double to long
+	
+	g1 := inoutGPU1.copyToBuffer(inoutGPU2, cl)//copy to long
+	
+	got := inoutGPU2.readFromBuffer(g1)//read out as long
+	
+	res = "res: " + (cl, got)
+	
+	del deviceGrp, device
+	del inoutGPU1, inoutGPU2
+	del cl, g1, got
+	
+	res
+}
+
+~~~~~
+//##29. gpu single write read copy simple conv types
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inoutGPU1 = device.makeOffHeapSingleMixed<long>(long.class)
+	inoutGPU2 = device.makeOffHeapSingleMixed<long>(long.class)
+	inoutGPU3 = device.makeOffHeapSingleMixed<double>(double.class)
+	
+	cl := inoutGPU1.writeToBuffer(12.3)//write double to long
+	
+	g1 := inoutGPU1.copyToBuffer(inoutGPU2, cl)//copy to long
+	g2 := inoutGPU1.copyToBuffer(inoutGPU3, cl)//copy to double
+	
+	got := inoutGPU2.readFromBuffer(g1)//read out as long
+	got2 := inoutGPU3.readFromBuffer(g2)//read out as double
+	
+	res = "res: " + (cl, got, got2)
+	
+	del deviceGrp, device
+	del inoutGPU1, inoutGPU2, inoutGPU3
+	del cl, g1, g2, got, got2
+	
+	res
+}
+
+~~~~~
+//##30. gpu single errors
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inoutGPU1 = device.makeOffHeapSingleMixed<long>(long.class)
+	
+	err1 = try{
+		inoutGPU1.writeToBuffer("hi")//cannot do this
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	err2 = try{
+		inoutGPU1.writeToBuffer(11)//cannot do this, too small
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	
+	del deviceGrp, device
+	del inoutGPU1
+	
+	"{err1}\n{err2}" 
+}
+
+~~~~~
+//##31. copy between same buffer
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	c1 := intoutGPU1.writeToBuffer([1 2 3 0 0 0 0 0 0 0])
+	
+	g1 := intoutGPU1.copyToBuffer(intoutGPU1, 0, 2, 7, c1)
+	
+	got := intoutGPU1.readFromBuffer(g1)
+	
+	result = "res: " + got
+	
+	del intoutGPU1
+	del c1, g1, got
+	del deviceGrp, device
+	
+	result
+}
+
+~~~~~
+//##32. on copy to self buffer regions may not overlapp
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	a1=try{
+		intoutGPU1.copyToBuffer(intoutGPU1, 2, 5, 4, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	a2=try{
+		intoutGPU1.copyToBuffer(intoutGPU1, 2, 5, 0, c1)
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	intoutGPU1.copyToBuffer(intoutGPU1, 2, 5, 5, c1)//this is ok as outisde region
+	
+	result = String.join("\n",  [a1, a2])
+	
+	del intoutGPU1
+	del c1
+	del deviceGrp, device
+	
+	result
+}
+
+~~~~~
+//##33. gpu copy buffers must be on same device
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	device2 = cpus[0].devices[0]
+	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	intoutGPU2 = device2.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	a1=try{
+		intoutGPU1.copyToBuffer(intoutGPU2, 2, 5, 4, c1)
+		false
+	}catch(e){
+		'Can only copy data between buffers on the same device' in e.getMessage()
+	}
+	
+	
+	del intoutGPU1
+	del c1
+	del deviceGrp, device
+	
+	'ok?: ' + a1
+}
+
+~~~~~
+//##34. gpu platform details strings
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+		
+	strrep1 = deviceGrp getOpenCLVersionNumber
+	strrep2 = deviceGrp getSummary
+	
+	del deviceGrp
+	
+	""+[strrep1<>null, strrep2<>null]
+}
+
+~~~~~
+//##35. gpu device details strings
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	
+	dsum = device getSummary
+	
+	del deviceGrp
+	del device
+	
+	"" + (dsum <> null)
+}
+
+~~~~~
+//##36. basic 1d kernel
+
+gpukernel 1 myFunc(global A int[], global B int[], global ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##37. basic 1d kernel with in out params
+
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##38. basic 1d kernel with in out params - simple reference
+
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	instGen = myFunc&(inGPU1, inGPU2, result)
+	inst = instGen()
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##39. graceful fail after delete called
+
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def remover(an Object){
+	del an
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)
+	
+	ret = result.readFromBuffer(compute)
+	
+	del c1, c2, compute
+
+	remover(deviceGrp)
+	
+	checkDeviceGroup = try{
+		device.exe(inst, [10])
+		"fail"
+	}catch(e){
+		e.message
+	}
+	
+	del inGPU1, inGPU2;	remover(result)
+
+	checkBuffersDel = try{
+		result.readFromBuffer()
+		"fail"
+	}catch(e){
+		e.message
+	}
+	
+	
+	remover(device)
+	
+	checkDevice = try{
+		device.exe(inst, [10])
+		"fail"
+	}catch(e){
+		e.message
+	}
+	
+	remover(inst)//doesnt matter if deleted since only indirectly frees things
+
+	'nice: ' + [ret, checkDeviceGroup, checkBuffersDel, checkDevice]
+}
+
+~~~~~
+//##40. ensure little big endian correct
+
+gpukernel 1 myFunc(global in A int[], global B int[],  global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + (B[gid]*2);
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	timesB = device.makeOffHeapSingleIn<int>(int.class)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2 2 2 2 2 2 2 2 2 2])
+	c2 := inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c3 := timesB.writeToBuffer(2)
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2, c3)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result, timesB
+	del c1, c2, c3,  compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##41. single arg private memory
+
+gpukernel 1 myFunc(global in A int[], global B int[], mul int, global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + (B[gid]*mul);
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2 2 2 2 2 2 2 2 2 2])
+	c2 := inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = myFunc(inGPU1, inGPU2, 3, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##42. mixed buffer can be used for in or out params
+
+gpukernel 1 myFunc(global in A int[], global B int[], mul int, global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + (B[gid]*mul);
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2 2 2 2 2 2 2 2 2 2])
+	c2 := inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = myFunc(inGPU1, inGPU2, 3, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##43. correct use of stub functions
+
+@GPUStubFunction
+def definedDef(dim int) int{
+	0//optional body
+}
+
+@GPUStubFunction
+def abstractDef(dim int) int//abstract optional
+
+@GPUStubFunction
+gpudef asgpudef(global dim int) int//must be abstract
+
+@GPUStubFunction
+gpukernel 1 okkernel(global dim int) void
+
+def doings() => "ok"
+
+~~~~~
+//##44. use pre defined funcs
+
+gpukernel 1 myFunc(global in A float[], global B float[], global out ret float[]) void {
+	gid = get_global_id(0)
+	ret[gid] = fmax(A[gid], B[gid])
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed<float[]>(float[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<float[]>(float[].class, 10)
+	result = device.makeOffHeapArrayMixed<float[]>(float[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2.f 5 1 4 3 2 1 5 6 3])
+	c2 := inGPU2.writeToBuffer([1.f 2 6 9 4 1 2 5 8 5])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##45. stub function wish clashing funcparam except for global local etc
+
+typedef gentype = float|double
+
+/** Fractional value in x. - Returns fmin( x - floor(x), 0x1.fffffep-1f ). floor(x) is returned in iptr. */
+@GPUStubFunction gpudef fract (x gentype, global itpr gentype) void
+/** Fractional value in x. - Returns fmin( x - floor(x), 0x1.fffffep-1f ). floor(x) is returned in iptr. */
+@GPUStubFunction gpudef fract (x gentype, local itpr gentype) void
+/** Fractional value in x. - Returns fmin( x - floor(x), 0x1.fffffep-1f ). floor(x) is returned in iptr. */
+@GPUStubFunction gpudef fract (x gentype, itpr gentype) void
+
+def doings() => "ok"
+
+~~~~~
+//##46. using mod in kernels
+
+gpukernel 1 myFunc(global in A float[], global B float[], global out ret float[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] mod B[gid] mod 2
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed<float[]>(float[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<float[]>(float[].class, 10)
+	result = device.makeOffHeapArrayMixed<float[]>(float[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2.f 5 1 4 3 2 1 5 6 3])
+	c2 := inGPU2.writeToBuffer([1.f 2 6 9 4 1 2 5 8 5])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##47. a dependency
+
+gpudef plus(a float, b float) => a + b
+
+gpukernel 1 myFunc(global in A float[], global out ret float[]) void {
+	gid = get_global_id(0)
+	ret[gid] = plus(A[gid], 2)
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(float[].class, 10)
+	result = device.makeOffHeapArrayMixed(float[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2.f 5 1 4 3 2 1 5 6 3.1f])
+	
+	inst = myFunc(inGPU1, result)
+	compute := device.exe(inst, [10], c1)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##48. a dependency chain, ordered
+
+//order dependancies such that plus10 comes first, then plus
+gpudef plus10(a float) => a + 10
+gpudef plus(a float, b float) => x = plus10(a + b); x
+
+gpukernel 1 myFunc(global in A float[], global out ret float[]) void {
+	gid = get_global_id(0)
+	res = plus(A[gid], 2)
+	res = plus10(res)
+	
+	ret[gid] = res
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(float[].class, 10)
+	result = device.makeOffHeapArrayMixed(float[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2.f 5 1 4 3 2 1 5 6 3.1f])
+	
+	inst = myFunc(inGPU1, result)
+	compute := device.exe(inst, [10], c1)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##49. no recursion for you
+
+gpudef fib(a int) {
+	a if a < 2 else fib(a-1)+fib(a-2)
+}
+
+gpukernel 1 myFunc(global in A int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = fib(A[gid])
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(int[].class, 10)
+	result = device.makeOffHeapArrayMixed(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = myFunc(inGPU1, result)
+	ret = try{
+		device.exe(inst, [10], c1)//rest param detault
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+		
+	del inGPU1, result
+	del c1
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##50. dependancy in stub
+
+@GPUStubFunction(source="float plus(float a, float b){ return a + b;}")
+gpudef plus(a float, b float) float
+
+gpukernel 1 myFunc(global in A float[], global out ret float[]) void {
+	gid = get_global_id(0)
+	ret[gid] = plus(A[gid], 2)
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(float[].class, 10)
+	result = device.makeOffHeapArrayMixed(float[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2.f 5 1 4 3 2 1 5 6 3.1f])
+	
+	inst = myFunc(inGPU1, result)
+	compute := device.exe(inst, [10], c1)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##51. dependancy in stub in file
+
+@GPUStubFunction(sourcefiles=["tests\\com\\concurnas\\lang\\precompiled\\simpleGPUPlus.cl"])
+gpudef plus(a float, b float) float
+
+gpukernel 1 myFunc(global in A float[], global out ret float[]) void {
+	gid = get_global_id(0)
+	ret[gid] = plus(A[gid], 2)
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+} 
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(float[].class, 10)
+	result = device.makeOffHeapArrayMixed(float[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2.f 5 1 4 3 2 1 5 6 3.1f])
+	
+	inst = myFunc(inGPU1, result)
+	compute := device.exe(inst, [10], c1)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##52. fibonacci 1
+
+gpudef fib(n int) long {
+	if(n == 0){
+		return 0
+	}elif(n <== 2){
+		return 1	
+	}else{
+		r = 0L; n1 = 1L; n2 = 1L       
+		for(i int = 2; i < n; i++) {      
+	      r = n1 + n2               
+	      n1 = n2                        
+	      n2 = r                         
+	    }                                   
+	    return r
+	}	
+}
+
+
+gpukernel 1 myFunc(global in A int[], global out ret long[]) void {
+	gid = get_global_id(0)
+	ret[gid] = fib(A[gid])
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(int[].class, 20)
+	result = device.makeOffHeapArrayMixed(long[].class, 20)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+	
+	inst = myFunc(inGPU1, result)
+	compute := device.exe(inst, [20], c1)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##53. fibonacci 1 bugfix on for
+
+gpudef fib(n int) long {
+	if(n == 0){
+		return 0
+	}elif(n <== 2){
+		return 1	
+	}else{
+		r = 0L; n1 = 1L; n2 = 1L       
+		for(i = 2; i < n; i++) {      
+	      r = n1 + n2               
+	      n1 = n2                        
+	      n2 = r                         
+	    }                                   
+	    return r
+	}	
+}
+
+
+gpukernel 1 myFunc(global in A int[], global out ret long[]) void {
+	gid = get_global_id(0)
+	ret[gid] = fib(A[gid])
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(int[].class, 20)
+	result = device.makeOffHeapArrayMixed(long[].class, 20)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+	
+	inst = myFunc(inGPU1, result)
+	compute := device.exe(inst, [20], c1)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##54. no overloading permitted
+
+gpudef plus(a int, b int) => a + b
+
+gpudef plus(a int) => plus(a, 2)
+
+gpukernel 1 myFunc(global in A int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = plus(A[gid])
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(int[].class, 20)
+	result = device.makeOffHeapArrayMixed(int[].class, 20)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+	
+	inst = myFunc(inGPU1, result)
+	ret = try{
+		device.exe(inst, [20], c1)//rest param detault
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	
+	del inGPU1, result
+	del c1
+	del deviceGrp, device
+	del inst
+	
+	ret
+}
+
+~~~~~
+//##55. ensure kernel dims match
+
+gpudef fib(n int) long {
+	if(n == 0){
+		return 0
+	}elif(n <== 2){
+		return 1	
+	}else{
+		r = 0L; n1 = 1L; n2 = 1L       
+		for(i = 2; i < n; i++) {      
+	      r = n1 + n2               
+	      n1 = n2                        
+	      n2 = r                         
+	    }                                   
+	    return r
+	}	
+}
+
+
+gpukernel 1 myFunc(global in A int[], global out ret long[]) void {
+	gid = get_global_id(0)
+	ret[gid] = fib(A[gid])
+}
+
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(int[].class, 20)
+	result = device.makeOffHeapArrayMixed(long[].class, 20)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+	
+	inst = myFunc(inGPU1, result)
+	ret = try{
+		device.exe(inst, a[20, 2], c1)//rest param detault
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	
+	del inGPU1, result
+	del c1
+	del deviceGrp, device
+	del inst
+	
+	ret
+}
+
+~~~~~
+//##56. kernel calling a kernel
+
+gpukernel 1 callee(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	callee(A, B, ret)
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	instGen = myFunc&(inGPU1, inGPU2, result)
+	inst = instGen()
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##57. all kernels in chain must be of same dimention
+
+gpukernel 2 callee(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	callee(A, B, ret)
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	ret = try{
+		device.exe(inst, a[20, 2], c1)//rest param detault
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	
+	del inGPU1, inGPU2, result
+	del c1, c2
+	del deviceGrp, device
+	del inst
+	
+	ret
+}
+
+~~~~~
+//##58. simple matrix multilplcation 
+
+gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
+    globalRow = get_global_id(0) // Row ID of C (0..M)
+    globalCol = get_global_id(1) // Col ID of C (0..N)
+ 
+    // Compute a single element (loop over K)
+    acc = 0.0f;
+    for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+    }
+    // Store the result
+    C[globalCol*M + globalRow] = acc;
+}
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	inGPU2 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	result = device.makeOffHeapArrayOut(float[2].class, 2, 2)
+	
+	x = [ 1.f 2 ; 3.f 4]
+	
+	c1 := inGPU1.writeToBuffer(x)
+	c2 := inGPU2.writeToBuffer(x)
+	
+	inst = matMult(2, 2, 2, inGPU1, inGPU2, result)
+	compute := device.exe(inst, [2 2], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##59. ensure types match
+
+gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
+    globalRow = get_global_id(0) // Row ID of C (0..M)
+    globalCol = get_global_id(1) // Col ID of C (0..N)
+ 
+    // Compute a single element (loop over K)
+    acc = 0.0f;
+    for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+    }
+    // Store the result
+    C[globalCol*M + globalRow] = acc;
+}
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayMixed(float[2].class, 2, 2)
+	inGPU2 = device.makeOffHeapArrayMixed(int[2].class, 2, 2)
+	
+	retw = try{
+		inGPU1.writeToBuffer([1 2 3])
+		'fail'
+	}catch(e){
+		e getMessage
+	}
+	
+	retc = try{
+		inGPU1.copyToBuffer(inGPU2)
+		'fail'
+	}catch(e){
+		e getMessage
+	}
+	
+	
+	del inGPU1, inGPU2
+	
+	del deviceGrp, device
+	
+	
+	'' + [retw, retc]
+}
+
+~~~~~
+//##60. mat mult and conventional version
+
+gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
+    globalRow = get_global_id(0) 
+    globalCol = get_global_id(1) 
+ 
+    acc = 0.0f;
+    for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+    }
+    
+    C[globalCol*M + globalRow] = acc;
+}
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	inGPU2 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	result = device.makeOffHeapArrayOut(float[2].class, 2, 2)
+	
+	x = [ 1.f 2 ; 3.f 4]
+	
+	c1 := inGPU1.writeToBuffer(x)
+	c2 := inGPU2.writeToBuffer(x)
+	
+	inst = matMult(2, 2, 2, inGPU1, inGPU2, result)
+	compute := device.exe(inst, [2 2], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	conventional = float[2, 2]
+	
+	matmult(2, 2, 2, x, x, conventional)
+	
+	'nice: ' + [ret, conventional]
+}
+
+
+def matmult(M int, N int, K int, A float[2], B float[2], C float[2]){
+	for (m=0; m<M; m++) {
+	    for (n=0; n<N; n++) {
+	        acc = 0.f
+	        for (k=0; k<K; k++) {
+	            acc += A[k][m] * B[n][k]
+	        }
+	        C[n][m] = acc
+	    }
+	}
+}
+
+~~~~~
+//##61. on write comparrison is done on unboxed types
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	
+	inGPU1.writeToBuffer([ new Float(1) 2.f ; new Float(3) 4.f])
+	
+	del inGPU1
+	del deviceGrp, device
+	
+	'nice' 
+}
+
+~~~~~
+//##62. finish
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	
+	inGPU1.writeToBuffer([ new Float(1) 2.f ; new Float(3) 4.f])
+	
+	device.finish()
+	
+	del inGPU1
+	del deviceGrp, device
+	
+	'nice' 
+}
+
+~~~~~
+//##63. call profiling
+
+gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
+    globalRow = get_global_id(0) 
+    globalCol = get_global_id(1) 
+ 
+    acc = 0.0f;
+    for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+    }
+    
+    C[globalCol*M + globalRow] = acc;
+}
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	inGPU2 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	result = device.makeOffHeapArrayOut(float[2].class, 2, 2)
+	
+	x = [ 1.f 2 ; 3.f 4]
+	
+	c1 := inGPU1.writeToBuffer(x)
+	pc1 = c1.getProfilingInfo().getWorkDuration()
+	c2 := inGPU2.writeToBuffer(x)
+	
+	inst = matMult(2, 2, 2, inGPU1, inGPU2, result)
+	compute := device.exe(inst, [2 2], c1, c2)//rest param detault
+	ret: = result.readFromBuffer(compute)
+	retx = ret
+	
+	pc1 = c1.getProfilingInfo().getWorkDuration()
+	pc2 = c2.getProfilingInfo().getWorkDuration()
+	pComp = compute.getProfilingInfo().getWorkDuration()
+	pret = ret.getProfilingInfo().getWorkDuration()
+	
+	del inGPU1, inGPU2, result, ret
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	fmt = def (x long) =>  String.format("%.3f", x / 1e6) + "ms"
+	java.util.concurrent.TimeUnit.SECONDS.sleep(4);
+	"" + (null <> (retx + "\n" + String.join("\n", ['Write buffer1: {fmt(pc1)}', 'Write buffer2: {fmt(pc2)}', 'compute: {fmt(pComp)}', 'read buffer: {fmt(pret)}'])))
+}
+
+~~~~~
+//##64. array creation
+
+gpukernel 1 okArrayCreate1(global in A int[], global out B int[]) {
+	ida = get_global_id(0) 
+	
+	thing1 int[] = [1 2 3] // ok
+	thing2 int[2] = new int[2,3]// -> int a[2][3]
+	
+	ok3 int[2] = a[[1 2 3] , [1 2 3]]
+	ok4 int[2] = [[1 2 3] ; [1 2 3]]
+	
+	B[ida] = A[ida]
+}
+
+gpukernel 1 okArrayCreate2(global in A int[], global out B int[]) {
+	ida = get_global_id(0) 
+	
+	thing1 = [1 2 3] 
+	thing2  = new int[2,3]
+	
+	ok3  = a[[1 2 3] , [1 2 3]]
+	ok4  = [[1 2 3] ; [1 2 3]]
+	
+	B[ida] = A[ida]
+} 
+
+ gpukernel 1 okArrayCreate3(global in A int[], global out B int[]) {
+	ida = get_global_id(0) 
+	
+	thing = new int[2,3]
+	thing[2, 3] = 9 //ok
+	
+	B[ida] = A[ida]
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = okArrayCreate3(inGPU1, result)
+	compute := device.exe(inst, [10], c1)//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##65. local const and global variables
+constant  xyz2 int[] = [ 1 2 3 ] //pointless but ok
+
+constant  v2 int= 1 //pointless but ok	
+
+constant  car1 = new int[3] //ok
+constant  car2 int[] = new int[3] //ok
+	//assign existing...
+constant  xyz2a = [ 1 2 3 ] //pointless but ok
+
+constant  v2a = 1 //pointless but ok
+
+ gpukernel 1 aKernel(global in A int[], global out B int[]) {
+	ida = get_global_id(0) 
+	//assign new...
+	
+
+	local  v3 int= 1 //ok
+	
+	local  ar1 = new int[3] //ok
+	local  ar2 int[] = new int[3] //ok
+
+	local  v3a = 1 //ok
+	
+	B[ida] = A[ida]
+}
+
+
+//do this, global a int; a =9
+//no to constant ones which have already been assigned
+
+//must be equal assignement
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = aKernel(inGPU1, result)
+	compute := device.exe(inst, [10], null, c1)//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##66. pointers
+
+gpudef myutil(pnt *int) => *pnt
+
+ gpukernel 1 pntInUtilFunc(global out res int[]) {
+	ida = get_global_id(0) 
+	
+	thing = 12
+	pnt = ~thing
+	
+	res[ida] = myutil(pnt)
+}
+
+
+ gpukernel 1 basicPointers(global out B int[]) {
+	ida = get_global_id(0) 
+	
+	pntA *int
+	
+	thing = 4
+	
+	implicit = ~thing //
+	
+	moan int = ~thing//ok
+	
+	andadd1 *long = ~thing 
+	andadd2 *int = ~thing 
+	pnt *size_t = ~thing
+	
+	andadd2++
+	
+	thevalue = *andadd1
+	
+	B[ida] = thevalue as int
+}
+
+
+gpukernel 1 pointerDerefs( global out B int[]) {
+	ida = get_global_id(0) 
+	
+ 	orig = 12
+ 	pnt1 = ~orig
+ 	pnt2 = ~pnt1
+ 	pnt3 = ~pnt2
+ 	
+	B[ida] = ***pnt3
+ }
+
+
+
+gpukernel 1 pointerDerefsTypeDefined( global out B int[]) {
+	ida = get_global_id(0) 
+	
+ 	orig = 12
+ 	pnt1 *int = ~orig
+ 	pnt2 **int = ~pnt1
+ 	pnt3 ***int = ~pnt2
+ 	
+ 	what1 *int = **pnt3
+ 	whatv = ***pnt3
+ 	
+	B[ida] = whatv
+ }
+ 
+
+gpukernel 1 pointerArith(global out B int[]) {
+	ida = get_global_id(0) 
+	 
+	 anArra = [11.f 22.f 33.f 44.f 55.f 66.f]
+	 what = ~anArra[1]
+	
+	what++
+	--what
+	incla = what+1
+	
+	B[ida] = *incla as int
+}
+
+
+  gpukernel 1 pointerMath(global out B int[]) {
+	ida = get_global_id(0) 
+	 
+	 anArra = [11.f 22.f 33.f 44.f 55.f 66.f]
+	 what = ~anArra[1]
+	
+	B[ida] = (*what) * (*what) as int
+}
+
+ gpukernel 1 arrayOfPointers(global out B int[]) {
+	ida = get_global_id(0) 
+	a = 12
+	 
+	myAr *int[] = new *int[3] 
+	myAr2 *int[] =  *int[3]//deref a new 
+	
+	myAr[0] = ~a
+	myAr2[0] = ~a
+	
+	B[ida] = *myAr[0] + *myAr2[0]
+} 
+
+ gpukernel 1 twodarrofpointer(global out B int[]) {
+	ida = get_global_id(0) 
+	 
+	a = 12
+	 
+	myAr = new *int[3, 4] 
+	
+	myAr[0, 0] = ~a
+	
+	
+	B[ida] = *myAr[0, 0]
+}
+
+ gpukernel 1 two2versionpntarray(global out B int[]) {
+	ida = get_global_id(0) 
+	 
+	myAr = new int[3, 4] 
+	
+	myAr[0, 0] = 12
+	myAr[0, 1] = 14
+	
+	pnt *int = ~myAr[0][0]
+	
+	B[ida] = *(pnt+1)
+}
+
+ gpukernel 1 infixOpsOk( global out B int[]) {
+	ida = get_global_id(0) 
+	 
+	myAr = new int[3, 4] 
+	
+	myAr[0, 0] = 12
+	myAr[0, 1] = 14
+	
+	pnt *int = ~myAr[0][0]
+	
+	pnt += 1//cool!
+	
+	B[ida] = *pnt
+}
+
+gpukernel 1 nullPointer(global out B int[]) {
+	ida = get_global_id(0) 
+	
+	pnt *int = null//ok, null pointer
+	
+	B[ida] = 12
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def runATest(name String, kernel gpus.Kernel, device gpus.Device, size int, result gpus.GPUBufferManagedOutput<int[]>){
+	device.exe(kernel, [size])//rest param detault
+	del kernel
+	"{name}: {result.readFromBuffer():get()}"
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	
+	size = 5
+	
+	result = device.makeOffHeapArrayOut(int[].class, size)
+	
+	r1 = runATest('pntInUtilFunc', pntInUtilFunc(result), device, size, result)
+	r2 = runATest('basicPointers', basicPointers(result), device, size, result)
+	r3 = runATest('pointerDerefs', pointerDerefs(result), device, size, result)
+	r4 = runATest('pointerDerefsTypeDefined', pointerDerefsTypeDefined(result), device, size, result)
+	r5 = runATest('pointerArith', pointerArith(result), device, size, result)
+	r6 = runATest('pointerMath', pointerMath(result), device, size, result)
+	r7 = runATest('arrayOfPointers', arrayOfPointers(result), device, size, result)
+	r8 = runATest('twodarrofpointer', twodarrofpointer(result), device, size, result)
+	r9 = runATest('two2versionpntarray', two2versionpntarray(result), device, size, result)
+	r10 = runATest('infixOpsOk', infixOpsOk(result), device, size, result)
+	r11 = runATest('nullPointer', nullPointer(result), device, size, result)
+	
+	del deviceGrp, device, result
+	
+	"" + String.join("\n", [r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11])
+}
+
+~~~~~
+//##67. pointer assignment
+
+ gpukernel 1 pntAssignk(global out B int[]) {
+	ida = get_global_id(0)
+	thing = 12 
+	a *int = ~thing
+	*a = 99
+	
+	B[ida] = thing
+}
+
+//above with arrays
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [10])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##68. pointer assignment - arrays
+
+ gpukernel 1 pntAssignk(global out B int[]) {
+	ida = get_global_id(0)
+	thing = [1 2 3]
+	a *int = ~thing[0]
+	*a = 99
+	
+	B[ida] = thing[0]
+}
+
+//above with arrays
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [10])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##69. pointer assignment arithmetic
+
+ gpukernel 1 pntAssignk(global out B int[]) {
+	ida = get_global_id(0)
+	thing = [1 2 3]
+	a *int = ~thing[0]
+	*(a+1) = 99
+	
+	B[ida] = thing[1]
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [10])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##70. array of pointer assignment
+
+ gpukernel 1 pntAssignk(global out B int[]) {
+	ida = get_global_id(0)
+	a = 44
+	b = 88
+	c = 23
+	
+	pntc = ~c
+	arOfPnt *int[] = [pntc ~a ~b pntc]
+	*arOfPnt[1] = 99
+	
+	B[ida] = a
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [10])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##71. address pointer as array
+
+ gpukernel 1 pntAssignk(global out B int[]) {
+	ida = get_global_id(0)
+	thing = [1 2 3]
+	pnt *int = ~thing[0]
+	pnt[1] = 99
+	
+	B[ida] = thing[1]
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [10])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##72. creating pointers from pointers
+
+gpudef afunc(global A int[]) int {
+	global pnt *int = A//only poitners can be valid for global
+	pnt2 *int = A //implicit global
+	pnt3 = A//implicit global
+	
+	//local thing = A//not permitted as convert from global to local 
+	//local thing *int = A//not permitted as convert from global to local
+	 
+	12
+}
+
+gpukernel 1 pntAssignk(global B int[]) {
+	ida = get_global_id(0)
+	
+	B[ida] = afunc(B)
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayMixed(int[].class, 5)
+	
+	result.writeToBuffer([1 2 3 4 5])//blocking
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [5])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##73. refer to global pnt and do some arithmetic
+
+gpudef afunc(global A int[]) int {
+	pnt = A
+	what = pnt[1]
+	what
+}
+
+gpukernel 1 pntAssignk(global B int[]) {
+	ida = get_global_id(0)
+	
+	B[ida] = afunc(B)
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayMixed(int[].class, 5)
+	
+	result.writeToBuffer([1 2 3 4 5])//blocking
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [5])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##74. combine things in same memory space
+
+gpudef afunc(global A int[]) int {
+	//a = 12
+	//local pnt = ~a //a is not from local...
+	x = [A A] 
+	//y = [pnt pnt]
+	x[0,1]
+}
+
+//TODO: mix local and global pointer in array
+
+gpukernel 1 pntAssignk(global B int[]) {
+	ida = get_global_id(0)
+	
+	B[ida] = afunc(B)
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	result = device.makeOffHeapArrayMixed(int[].class, 5)
+	
+	result.writeToBuffer([1 2 3 4 5])//blocking
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [5])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+
+~~~~~
+//##75. wite to individual buffer
+
+gpukernel 1 pntAssignk(global B int) {
+	ida = get_global_id(0)
+	
+	*B= 99
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	
+	result = device.makeOffHeapSingleOut<int>(int.class)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [1])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok " + ret
+}
+
+~~~~~
+//##76. double precision
+
+gpukernel 1 pntAssignk(global B double) {
+	ida = get_global_id(0)
+	
+	*B= 99
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	
+	result = device.makeOffHeapSingleOut(double.class)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [1])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok " + ret
+}
+
+~~~~~
+//##77. refer to constant val from module level
+
+val cons int =99
+val cons2 = 1
+
+gpukernel 1 pntAssignk(global B double) {
+	ida = get_global_id(0)
+	
+	*B = (cons + cons2)
+}
+  
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	
+	result = device.makeOffHeapSingleOut(double.class)
+	
+	inst = pntAssignk(result)
+	compute := device.exe(inst, [1])//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del result
+	del compute
+	del deviceGrp, device
+	del inst
+	
+	"ok " + ret
+}
+
+~~~~~
+//##78. constants
+
+gpukernel 1 myFunc(constant A int[], constant B int[], mul int, global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + (B[gid]*mul);
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([2 2 2 2 2 2 2 2 2 2])
+	c2 := inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = myFunc(inGPU1, inGPU2, 3, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##79. local memory
+
+gpukernel 1 reduce(global val input long[], global partialSums long[], local localSums long[]){
+	local_id = get_local_id(0)
+	group_size = get_local_size(0)
+
+	// Copy from global memory to local memory
+	localSums[local_id] = input[get_global_id(0)]
+
+	// Loop for computing localSums
+	stride = group_size/2
+	while(stride>0) {
+		// Waiting for each 2x2 addition into given workgroup
+		barrier(true)
+		// Divide WorkGroup into 2 parts and add elements 2 by 2
+		// between local_id and local_id + stride
+		if (local_id < stride){
+      		localSums[local_id] += localSums[local_id + stride]
+		}
+		stride/=2
+	}
+	
+	if(local_id == 0){ // Write result into global memory
+		partialSums[get_group_id(0)] = localSums[0]
+	}
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def makeData(itemcount int, range = 3){
+	data = new long[itemcount]
+
+    random = new java.util.Random(654L)
+    for(i = 0; i < itemcount; i++){
+        data[i] = random.nextInt(range)
+    }
+	data
+}
+
+def sum(inputs long...){
+	ret = 0
+	for(i in inputs){
+		ret += i
+	}
+	ret
+}
+
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	localItemSize = device.getMaxWorkItemSizes()[0] as int //algo requires local memory to be power of two size,
+	//the max first dimention gpu size is a factor of two so we use this 
+	
+	InputDataSize = 1000*localItemSize as int
+	System.\out.println("InputDataSize: {InputDataSize} elements")
+	
+	inputdata = device.makeOffHeapArrayIn(long[].class, InputDataSize)
+	partialSums = device.makeOffHeapArrayMixed(long[].class, InputDataSize/localItemSize)
+	localSums = gpus.Local(long[].class, localItemSize)
+	data = makeData(InputDataSize)
+	c1 := inputdata.writeToBuffer(data)//create some psudo random data
+		
+	inst = reduce(inputdata, partialSums, localSums)
+	compute := device.exe(inst, [InputDataSize], [localItemSize], c1)//we must pass in the local item size for each work group
+	ret = partialSums.readFromBuffer(compute)
+
+	ctime = c1.getProfilingInfo().toString()
+
+	//cleanup	
+	del inputdata, partialSums
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	restum = sum(ret)//sum of the partialSums in the  array slots to get our result
+	verify = sum(data)//verify result on CPU
+	
+	str = 'PASS! result: {restum}' if restum == verify else 'FAIL! result {restum} vs {verify}'
+	//System.\out.println(str)
+	str
+}
+
+
+~~~~~
+//##80. local memory matrix mult
+
+constant val CacheSize = 16
+
+gpukernel 2 matMultNaive(M int, N int, K int, constant A float[2], constant B float[2], global out C float[2]) {
+    globalRow = get_global_id(0) 
+    globalCol = get_global_id(1) 
+ 
+    acc = 0.0f;
+    for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+    }
+    
+    C[globalCol*M + globalRow] = acc;
+}
+
+gpukernel 2 matMultLocal(M int, N int, K int, constant A float[2], constant B float[2], global out C float[2]) {
+    row = get_local_id(0)
+    col = get_local_id(1)
+   	globalRow = CacheSize*get_group_id(0) + row //row of C (0..M)
+    globalCol = CacheSize*get_group_id(1) + col //col of C (0..N)
+ 
+	//local memory holding cache of CacheSize*CacheSize elements from A and B
+    local cacheA = float[CacheSize, CacheSize]
+    local cacheb = float[CacheSize, CacheSize]
+ 
+    acc = 0.0f
+    
+    //loop over all tiles
+    cacheSize int = K/CacheSize
+    for (t=0; t<cacheSize; t++) {
+        //cache a section of A and B from global memory into local memory
+        tiledRow = CacheSize*t + row
+        tiledCol = CacheSize*t + col
+        cacheA[col][row] = A[tiledCol*M + globalRow]
+        cacheb[col][row] = B[globalCol*K + tiledRow]
+ 
+        barrier(true)//ensure all work items finished caching
+        
+        for (k=0; k<CacheSize; k++) {//accumulate result for matrix subsections
+            acc += cacheA[k][row] * cacheb[col][k]
+        }
+ 
+        barrier(true)//ensure all work items finished before moving on to next cache section
+    }
+ 
+    C[globalCol*M + globalRow] = acc
+}
+
+def matMultOnCPU(M int, N int, K int, A float[2], B float[2], C float[2]){
+	for(m=0; m<M; m++) {
+	    for(n=0; n<N; n++) {
+	        acc = 0.f
+	        for(k=0; k<K; k++) {
+	            acc += A[k][m] * B[n][k]
+	        }
+	        C[n][m] = acc
+	    }
+	}
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def createData(xy int, range = 10){
+	ret = float[xy, xy]
+    random = new java.util.Random(654L)
+	for(n = 0; n < xy; n++){
+		for(m = 0; m < xy; m++){
+			ret[n,m] = random.nextInt(range+1)//1. ... 10. inclusive
+		}
+	}
+	ret
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	
+	xy = 128//asume square matrix
+	
+	matrixA = device.makeOffHeapArrayIn(float[2].class, xy, xy)
+	resultNaive = device.makeOffHeapArrayOut(float[2].class, xy, xy)
+	resultLocal = device.makeOffHeapArrayOut(float[2].class, xy, xy)
+	
+	data = createData(xy)//blocking operation
+	
+	matrixA.writeToBuffer(data)
+	
+	inst1 = matMultNaive(xy, xy, xy, matrixA, matrixA, resultNaive)
+	inst2 = matMultLocal(xy, xy, xy, matrixA, matrixA, resultLocal)
+	comp1 := device.exe(inst1, [xy xy])
+	comp2 := device.exe(inst2, [xy xy], [CacheSize CacheSize])
+	//remove null
+	
+	resNative = resultNaive.readFromBuffer()
+	resLocal = resultLocal.readFromBuffer()
+	
+	
+	conventional = float[xy, xy]
+	tick = System.currentTimeMillis()
+	matMultOnCPU(xy, xy, xy, data, data, conventional)
+	toc = System.currentTimeMillis()
+	
+	//System.\out.println('Time to compute on CPU: ' + (toc - tick) + "ms")
+	//System.\out.println('Naive ' + ('PASS ' if resNative == conventional else 'FAIL ') + comp1.getProfilingInfo())
+	//System.\out.println('Local ' + ('PASS ' if resLocal == conventional else 'FAIL ') + comp2.getProfilingInfo())
+	
+	del matrixA, resultNaive, resultLocal
+	del deviceGrp, device
+	del inst1, inst2
+	del comp1, comp2
+	
+	'pass? ' + [resNative == conventional, resLocal == conventional]
+}
+
+~~~~~
+//##81. buffer size checks
+
+gpukernel 1 reduce(global val input long[], global partialSums long[], local localSums long[]){
+	//empty
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def makeData(itemcount int, range = 3){
+	data = new long[itemcount]
+
+    random = new java.util.Random(654L)
+    for(i = 0; i < itemcount; i++){
+        data[i] = random.nextInt(range)
+    }
+	data
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	localItemSize = device.getMaxWorkItemSizes()[0] as int 
+	
+	InputDataSize = 1000*localItemSize as int
+	
+	inputdata = device.makeOffHeapArrayIn(long[].class, InputDataSize)
+	partialSums = device.makeOffHeapArrayMixed(long[].class, InputDataSize/localItemSize)
+	localSums = gpus.Local(long[].class, localItemSize)
+	data = makeData(InputDataSize)
+	inputdata.writeToBuffer(data)//create some psudo random data
+		
+	inst = reduce(inputdata, partialSums, localSums)
+	
+	e1 = try{
+		device.exe(inst, [InputDataSize], [localItemSize 12])//wrong local dims
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	e2 = try{
+		device.exe(inst, [InputDataSize], [localItemSize+69])//local dim more than limit
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	e3 = try{
+		device.exe(inst, [InputDataSize], [localItemSize-69])//not div
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+	
+	localSumsMega = gpus.Local(long[].class, device.getLocalMemSize() as int)//certainly too large
+	instBigLocal = reduce(inputdata, partialSums, localSumsMega)
+
+	e4 = try{
+		device.exe(instBigLocal, [InputDataSize], [localItemSize])//local data too big
+		'fail'
+	}catch(e){
+		e.getMessage()
+	}
+
+	e5 = try{
+		mega = device.makeOffHeapArrayMixed(long[3].class, 2**31 as int, 2**31 as int, 2**31 as int)//buffer too large!
+		del mega
+		'fail'
+	}catch(e){
+		e.message
+	}
+
+	e6 = try{
+		vsmallglobal = device.makeOffHeapArrayMixed(long[].class, 0)//buffer too large!
+		del vsmallglobal
+		'fail'
+	}catch(e){
+		e.message
+	}
+
+	e7 = try{
+		gpus.Local(long[].class, -1)//too small local
+		'fail'
+	}catch(e){
+		e.message
+	}
+
+	//cleanup	
+	del inputdata, partialSums
+	del deviceGrp, device
+	del inst, instBigLocal
+	
+	'' + String.join("\n", [e1, e2, e3, e4, e5, e6, e7])
+}
+
+~~~~~
+//##82. ref to gpu
+
+gpukernel 1 myFunc(global in A int[], global B int[], mul int, global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + (B[gid]*mul);
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	result2 = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	inGPU1.writeToBuffer([2 2 2 2 2 2 2 2 2 2])
+	inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	{
+		instGen = myFunc&//(_ int[], _ int[], int, _ int[])
+		inst = instGen(inGPU1, inGPU2, 3, result)
+		device.exe(inst, [10])//rest param detault
+		del inst
+	}
+	
+	{
+		instGen = myFunc&(inGPU1, inGPU2, int, result2)
+		inst = instGen(3)
+		device.exe(inst, [10])//rest param detault
+		del inst
+	}
+	
+	ret = result.readFromBuffer()
+	ret2 = result2.readFromBuffer()
+	
+	del inGPU1, inGPU2, result
+	del deviceGrp, device
+	
+	'nice: ' + [ret ; ret2]
+}
+
+~~~~~
+//##83. gpu boolean
+
+gpukernel 1 myFunc(global in A bool[], global B int[], orme int, global out ret int[]) void {
+	gid = get_global_id(0)
+	j = false
+	ret[gid] = B[gid] if (A[gid] or j) else orme
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(bool[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	t = true
+	f = false
+	
+	c1 := inGPU1.writeToBuffer([f t t f f f t t f t])
+	c2 := inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = myFunc(inGPU1, inGPU2, 99, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##84. null in the events slot
+
+gpukernel 1 myFunc(global in A bool[], global B int[], orme int, global out ret int[]) void {
+	gid = get_global_id(0)
+	j = false
+	ret[gid] = B[gid] if (A[gid] or j) else orme
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(bool[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	t = true
+	f = false
+	
+	c1 := inGPU1.writeToBuffer([f t t f f f t t f t])
+	inGPU2.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = myFunc(inGPU1, inGPU2, 99, result)
+	device.exe(inst, [10], null)//rest param detault
+	
+	ret = result.readFromBuffer()
+	
+	del inGPU1, inGPU2, result
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##85. no copy of gpu objects
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
+	device = deviceGrp.devices[0]
+	
+	dcopy = device@
+	del deviceGrp, device
+	
+	"" +(dcopy == null) 	
+}
+
+~~~~~
+//##86. multi assign
+
+gpukernel 1 myFunc(global A int[], global B int[], global ret int[]) void {
+	gid = get_global_id(0)
+	
+	c = 1000
+	a = b = c = A[gid]
+	
+	ret[gid] = a + b + c + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##87. constants defined at top level
+constant fixedInc = 100
+constant var fixedInc2 = 100
+
+
+gpudef plus(a int, b int) => a + b
+
+gpukernel 1 incrementor(global in A int[], global out B int[]) {
+	ida = get_global_id(0) 
+	
+	B[ida] = plus(A[ida], fixedInc + fixedInc2)
+}
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	
+	inst = incrementor(inGPU1, result)
+	compute := device.exe(inst, [10], null, c1)//rest param detault
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, result
+	del c1, compute
+	del deviceGrp, device
+	del inst
+	
+	"ok" + ret
+}
+

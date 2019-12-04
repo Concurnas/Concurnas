@@ -1,0 +1,431 @@
+//##1. simple array
+
+myAr = [1 2 3 4]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##2. simple matrix
+ar=[1 2 ; 3 4]
+def doings(){
+	"" + ar
+}
+
+~~~~~
+//##3. concat simple matrix with one element item
+myAr = [1 2 3 4 ; 8]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##4. append to vector
+myAr = [[1 2 3 4]  8]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##5. more typical case
+A = [111 222 ]
+
+myAr = [A 8]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##6. append to matrix
+a = [1 2 ; 3 4]
+
+myAr = [ a ; 5 6]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##7. inline
+def doings(){
+	"" + [1 2  5 6 ]
+}
+
+~~~~~
+//##8. newline ok
+
+myAr = [1 2 3 4 ;
+	    5 6 7 8]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##9. 1d 2d
+
+def doings(){
+	d1array = [1 2 3]
+	d2array = [[1 2 3]]
+
+	"" + [d1array  d2array]
+}
+
+~~~~~
+//##10. dirty little bug
+
+def doings(){
+	"" + [[111;222]  333]
+}
+
+~~~~~
+//##11. newlines matter
+
+myAr = [1 2 3 4 
+	    5 6 7 8]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##12. simple disambiguate
+
+a=9
+
+myAr1 = [ a [1 7] ]//looks like a refarray but it's not of course
+
+def doings(){
+	"" + myAr1
+}
+
+~~~~~
+//##13. simple disambiguate as funcinvoke
+
+a=9
+
+myAr1 = [ a ([1 7]) ]
+
+def doings(){
+	"" + myAr1
+}
+
+~~~~~
+//##14. simple disambiguate all variants
+
+a=9
+
+myAr1 = [ a [1 7] ]
+myAr2 = [ a ([1 7]) ]
+myAr3 = [ (a) [1 7] ]
+myAr4 = [ (a) ([1 7]) ]
+
+def doings(){
+	"" + [myAr1 myAr2 myAr3 myAr4]
+}
+
+~~~~~
+//##15. disambiguate harder
+def doings(){
+	"" + [ [1 2 3] 9 9 [1 2 3 4] ]
+}
+
+~~~~~
+//##16. list comprehension
+
+def doings(){
+	fine = a parforsync a in [1 2 3 4 5 6 7 8 9 10]
+	fine2 = a for a in [1 2 3 4 5 6 7 8 9 10] if a mod 2==0
+	"" + [z for z in fine, fine2]
+}
+
+~~~~~
+//##17. list comprehension nice
+
+def range(a int) => n=0; while(n++<a){n}
+
+def doings(){
+	"" + ( x**2 for x in range(10))
+}
+
+~~~~~
+//##18. list comp this was a bug
+
+mylist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+thing = a + 100 for a in mylist
+
+def doings() => "" + thing
+
+~~~~~
+//##19. nested list comp 
+
+res = [x,y] for x in [1,2,3] for y in [3,1,4] if x <> y
+
+def doings(){
+	"" + res
+}
+
+~~~~~
+//##20. do vertical append
+
+m = [ [1 2], [3 4]]
+def doings(){
+	"" + [m;m]
+}
+
+~~~~~
+//##21. probbaly a vertical append
+
+a = [1 2 ; 3 4]
+
+myAr = [ a ; [5 6]]
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##22. horizontal append
+
+m = [ 1 2 ; 3 4]
+def doings(){
+	"" + [m m]
+}
+
+~~~~~
+//##23. horizontal append easy
+
+m = [ 1 2]
+def doings(){
+	"" + [m m]
+}
+
+~~~~~
+//##24. horizontal append easy2
+
+m = [ 1 2]
+def doings(){
+	"" + [m [11 22]]
+}
+
+~~~~~
+//##25. the old way
+
+a = [1 2 ; 3 4]
+b = [5 6]
+
+myAr = [ a b]//cannot horizontal append so convert to obj array
+
+def doings(){
+	"" + myAr
+}
+
+~~~~~
+//##26. 3 to horiz concat
+
+m = [ 11 12  ; 13 14]
+m8 = [ 21 22  ; 23 24  ]
+
+def doings(){
+	""+[m m8 m]
+}
+
+~~~~~
+//##27. prev bug with dims
+
+m = [ 11 12 77 ; 13 14 77]
+m8 = [ 21 22 55  ; 23 24 77 ]
+
+def doings(){
+	"" + [m m8]
+}
+
+~~~~~
+//##28. horizontal concat fail on mixed stuff
+
+def doings(){
+	one2 = [[1 2]  ["hi" "there"]]
+	onetwo = [[1 2]  [1 2.]]
+
+	"" + [onetwo one2]
+}
+
+~~~~~
+//##29. vertical concat fail on mixed stuff
+
+def doings(){
+	one2 = [[1 2] ; ["hi" "there"]]
+	onetwo = [[1 2] ; [1 2.]]
+
+	"" + [onetwo one2]
+}
+
+~~~~~
+//##30. failure on mixed types
+
+def doings(){
+	one1 = [[1 2] ["hi" "there"]]
+	one2 = [[1 2] ; ["hi" "there"]]
+	one3 = [[1 2] , ["hi" "there"]]
+
+	"" +[one1, one2, one3]
+}
+
+~~~~~
+//##31. skip null
+
+def doings(){//dont!
+	one1 = [[1 2]  null [ 1 2] ]
+	one2 = [[1 2] ; null ; [ 3 4] ]
+	one3 = [[1 2] , null, [3 4]]
+
+	"" +[one1, one2, one3]
+}
+
+~~~~~
+//##32. process null ok
+
+f int[]? = null
+
+def doings(){
+	one1 = try{[[1 2]  f [ 1 2] ]}catch(e){e.message}
+	one2 = try{[[1 2] ; f ; [ 3 4] ]}catch(e){e.message}
+	one3 = try{[[1 2] , f, [3 4]]}catch(e){e.message}
+
+	"" + [one1, one2, one3]
+}
+
+~~~~~
+//##33. process null ok 2d
+
+f int[]? = null
+
+def doings(){
+	one1 = try{[[1 2]  f  ]}catch(e){e.message}
+	one2 = try{[[1 2] ; f ;  ]}catch(e){e.message}
+	one3 = try{[[1 2] , f, ]}catch(e){e.message}
+
+	"" + [one1, one2, one3]
+}
+
+~~~~~
+//##34. alt int matrix def
+
+def doings(){
+
+	myar1 int[][] = new int[2, 4]
+	myar2 int[2] = new int[2, 4]
+
+	"ok " + [myar1, myar2]
+}
+
+~~~~~
+//##35. alt way to define arrays without last parts qualified
+
+def doings(){
+	res1 = new int[5,]
+	res2 = new int[5,2,]
+	res3 = new int[5,,]
+	res4 = new int[5][][]
+	"ok: " + [res1+"\n", res2+"\n", res3+"\n", res4+"\n"]
+}
+
+~~~~~
+//##36. omit new keyword on array constructor
+def doings(){
+	myArray1  = Integer[2]//=> new Integer[2]
+	myArray2  = Integer[2,9]
+	myArray3  = Integer[2][9]
+	myArray4  = java.lang.Integer[2]//long def
+	myArray5  = Integer[2][]//=> new Integer[2, ]
+	myArray6  = Integer[2][][]//=> new Integer[2, , ]
+	myArray7 Integer[2] = Integer[2,]
+	myArray8  Integer[3] = Integer[2][2,]
+	myArray9 Integer[3] = Integer[2,][]
+	"ok: " 
+}
+
+~~~~~
+//##37. omit new keyword on array constructor prims
+
+def doings(){
+	myArray1  = int[2]//=> new Integer[2]
+	myArray2  = int[2,9]
+	myArray3  = int[2][9]
+	myArray5  = int[2][]
+	myArray6  = int[2][][]
+	myArray7 int[2] = int[2,]
+	myArray8  int[3] = int[2][2,]
+	myArray9 int[3] = int[2,][]
+	"ok: " 
+}
+
+~~~~~
+//##38. fail too many elements
+
+m = [ 11 12 ; 13 14]
+m8 = [ 21 22 ; 23 24 ; 25 26]//fail too many elements
+
+def doings(){
+	try{
+		d = [m m8]
+		"fail"
+	}catch(e){
+		"" + e.message
+	}
+}
+
+~~~~~
+//##39. alt array syntax expr list fix
+
+//omit new keyword on array constructor
+def doings(){
+	myArray Integer[][] = Integer[2,2]
+	"ok: " + myArray
+}
+
+~~~~~
+//##40. bugfix on partial array creation
+
+public def doings(){
+	ar3d2 = new double[10][22][]
+	ar3 = new double[10][][]//was wrong previously
+	ar2 = new double[10][]
+	ar2d2 = new double[10][2]
+	ar1 = new double[10]
+
+	"ok"
+}
+
+~~~~~
+//##41. array def containg ambig asyncrefref
+
+myAr1 = [1: 2:]
+
+def doings(){
+	"" + myAr1
+}
+
+~~~~~
+//##42. array def containg ambig asyncrefref complex
+
+myAr1 = [1: 2: ; 3 4]
+myAr2 = [1: 2: ; 3: 4:]
+
+def doings(){
+	"" + ["" +myAr1, "" +myAr2]
+}
+
+~~~~~
+//##43. bugfix on local array length
+
+myAr2 := [1 2 ; 3 4]
+
+def doings(){
+	res2 = myAr2.length//used to breka on cast failure
+	"" + res2
+}

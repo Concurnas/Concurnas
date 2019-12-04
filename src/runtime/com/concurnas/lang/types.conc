@@ -1,0 +1,52 @@
+/**
+ * Lazy<X> can be assigned a function reference (or lambda) taking no arguments but returning an instance of tpye X.
+ * Upon the initial unassignment of the Lazy instance the function reference or lambda will be executed and the result returned.
+ * On subsequent calls to unassign, the Lazy<X> variable will return the same value
+ * If a function reference or lambda has not been assigned then when unassign is called it shall return null
+ */
+class Lazy<X>{
+	private value X?
+	private eval (() X)?
+	private valueSet = false;
+
+	this(eval () X) => assign(eval)
+	
+	this(){}
+		
+	def assign(eval () X){
+		this.eval = eval
+		this.valueSet=false
+	}
+	
+	def unassign() X{
+		if(not this.valueSet){
+			
+			if(this.eval == null){
+				return null
+			}else{
+				this.value = this.eval()
+				valueSet=true
+			}
+			
+		}
+		
+		this.value
+	}
+	
+	def hasBeenEvaluated() bool => this.valueSet
+	
+	def isPresent() bool => this.eval <> null
+	
+	override toString(){
+		ts = unassign()
+		"lazy " + (null if ts == null else ts.toString())
+	} 
+}
+
+/**
+ * A Provider<X> will provide an instance of X upon every call of the get method  
+ */
+inject class Provider<X>(eval () X){
+	def set(eval () X) void => this.eval = eval
+	def get() X => eval()
+}

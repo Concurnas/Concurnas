@@ -1,0 +1,52 @@
+
+def doings1() String{
+	a0 = for(x =0; x < 10; x++){ }
+
+	return "" + a0
+}
+
+def doings2() String{
+	a1 = if(true){	8	}	else{		9	}
+	a1b = if(true){	8	} elif(false){ 8 }	else{		9	}
+	a1c = if(true){	8	} else{6}
+
+	return "" + [a1, \
+		a1b, \
+		a1c]
+}
+
+def doings3() String{
+	a2 = while(true){ 7 } 
+
+	return "" + a2
+}
+
+def doings4() String{
+	a3 = try{ 6} catch(e){ 7}
+
+	return "" + a3
+}
+
+def doings5() String{
+	a4 = {12}!
+
+	return "" + a4
+}
+
+def doings5b() String{
+	a4b = {12}
+
+	return "" + a4b
+}
+
+def doings6() String{
+	a5 = with(null){ 8 }
+
+	return "" + a5
+}
+
+def doings7() String{
+	a6 = sync{12}
+
+	return "" + a6
+}

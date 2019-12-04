@@ -1,0 +1,257 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Vectorization]{Vectorization}
+	
+Concurnas contains special support for performing what are known as vectorized operations. This is incredibly useful in cases where one wishes to apply an operation (see the \hyperref[ch:Operators]{Operators} chapter) or function to each of the elements of an array, matrix or other n-dimensional array or list, without having to change the function or apply the operator explicitly to each element.
+
+Say we wish to apply the sine function to every element of an array, we pass the array into our function as normal, except appended with a hat\lstinline{^}:
+\begin{lstlisting}
+from java.lang.Math import sin//sin expects our single value input to be expressed as radians
+
+myarry = [ 1 2 3 4]
+appliedsin = sin(myarry^)//applies the sin function to every element of the array, returning another array
+\end{lstlisting}
+
+In the above example the result of the vectorized call is of type \lstinline{double[]}double[], if \lstinline{myarry} were a list then the result would be of type \lstinline{List<Double>}.
+
+\section{In place vectorization}
+The above will return a new array, if we wish to apply the vectorized operation in place to the passed array we can append a hat hat: \lstinline{^^} to the call:
+\begin{lstlisting}
+from java.lang.Math import sin//sin expects our single value input to be expressed as radians
+
+myarry = [ 1 2; 3 4]
+sin(myarry^^)//applies the sin function to every element of the matrix in place. myarry will now contain the result
+\end{lstlisting}
+
+\section{Element wise method execution}
+We can call an instance method on every element of an array or list as follows:
+\begin{lstlisting}
+class MyClass{
+	def anOperation() = 'result!'
+}
+
+myAr = [MyClass() MyClass()]
+
+res = myAr^anOperation()//apply anOperation to each element of the array
+/
+res -> [result! result!]
+\end{lstlisting}
+
+Function references can be created in a similar manner:
+
+\begin{lstlisting}
+class MyClass{
+	def anOperation() = 'result!'
+}
+
+myAr = [MyClass() MyClass()]
+
+funcrefs= myAr^anOperation&()//create a funcref to anOperation
+res = x() for x in funcrefs
+
+/
+res -> [result! result!]
+\end{lstlisting}
+
+\section{Element wise field access and assignment}
+Object field access can be vectorized as follows:
+\begin{lstlisting}
+class Myclass(public field int)
+
+A = [Myclass(1) Myclass(2) Myclass(3)]
+
+res =A^field //extract the value of field from each object of array A
+/
+res => [1 2 3]
+\end{lstlisting}
+
+And fields can be assigned via vectorization as well:
+\begin{lstlisting}
+class Myclass(public field int){	
+	override toString() => 'Myclass: {field}'
+}
+A = [Myclass(1) Myclass(2) Myclass(3)]
+
+A^field = 99//set value of each field in object in array A to 99
+
+/
+A => [Myclass: 1  Myclass: 2 Myclass: 3]
+\end{lstlisting}
+
+Access and assignment to fields can be chained using the vectorization operator \lstinline{^}:
+\begin{lstlisting}
+class FieldCls(valu int){
+	override toString() => 'FieldCls: {valu}'
+}
+
+class Myclass(field FieldCls){
+	override toString() => 'Myclass: {field}'
+}
+
+A = Myclass( [FieldCls(1) FieldCls(2) ; FieldCls(3) FieldCls(4)]^) 
+
+res1 = A^field^valu
+A^field^valu = 99
+/
+res1  => [1 2 ; 3 4]
+A => [Myclass: FieldCls 99 Myclass: FieldCls 99 ; Myclass: FieldCls 99 Myclass: FieldCls 99]
+\end{lstlisting}
+
+\section{Chained Vectorization}
+We can chain together vectorized calls as well:
+\begin{lstlisting}
+from java.lang.Math import sin, toRadians
+mymat = [ 80 170; 260 350]
+sins = sin(toRadians((mymat^ + 10) mod 360))
+\end{lstlisting}
+
+For cases where we wish to chain together a vectorized expression and have the result written in place, we may specify a vectorized variable within a nested function invocation as the destination for this in place writing:
+\begin{lstlisting}
+from java.lang.Math import sin, toRadians
+myarry = [ 80 170; 260 350]
+funcres = sin(toRadians((myarry^^ + 10).))//The result of the entire vectorized expression will be written to myarry
+\end{lstlisting}
+
+Not all expressions referenced in the call chain need to be arrays or vectors. For example:
+\begin{lstlisting}
+from java.lang.Math import sin, toRadians
+
+def rsin(item double, torad bool) => sin((toRadians(item) if torad else item)
+
+myarry = [ 80 170; 260 350]
+
+def getToRad() = true
+
+rsin(myarry^^, getToRad())//applies the sin function to every element of the array in place with radian conversion
+\end{lstlisting}
+
+Note that in the above function invocation, the second expression( /getToRad()/) bound to the torad parameter is executed for each element of myarry.
+
+Our invocation, chained and/or containing vectorized operator calls, may reference more than one array, however both the dimensions and number of elements per dimension should match those of the first referenced array. If subsequent arrays exceed the first referenced array in elements then the excess will not be processed. If subsequent arrays do not contain enough elements then an array access exception may (depending on the first underlying structure) be thrown. A null pointer exception maybe be thrown if null elements are present.
+\begin{lstlisting}
+choices = [false false true, true]
+toinvert = [-1 -2 -3 4]
+
+def inverer(arg int, choice boolean) => -arg if choice else arg
+
+applied = inverer(choices., toinvert.)//apply inverter function to each element and return result to applied
+inverer(choices.., toinvert.)//result stored in place within choices  array
+\end{lstlisting}
+
+\section{Disambiguation of vectorized calls}
+In cases where a method/function having vectorized arguments has been overloaded, and where that overloading means that the vectorized version of a function call can match more than one version of the function, differing only in the degree of the vectorized expansion, then the version which expands the vectorized arguments to the smallest degree will be chosen:
+\begin{lstlisting}
+myarray = [1 2 ; 3 4]
+
+def foo(a int[]) = '2d: ' + a
+def foo(a int) = '1d: ' + a
+
+res = foo(myarray^)//maps to foo(a int[])
+/
+res =>
+[2d: [1, 2], 2d: [3, 4]]
+\end{lstlisting}
+
+\section{Vectorizable expressions}
+In addition to function and methods being vectorized as we have previously seen. All the operators may be vectoried. /See section on operators/. Examples:
+\begin{lstlisting}
+myAr = [1 2 3 4 5]
+gt = myAr^ > 5
+addOne = myAr^ + 1
+power = myAr^ ** 1
+altpow = myAr^ * myAr^
+toString = myAr^ + '' //toString is a String[]
+
+assortment = ['aString' Integer(1) Float(22) 'anotherString']
+whichStr = assortment^ is String //=> [true false false true]
+
+wanted = [ 2 3]
+subarray = myAr[wanted^]//=> [3 4]
+subranges = myAr[0 ... wanted^]//=> [1 2] [1 2 3]
+\end{lstlisting}
+
+In place assignment can also be vectorized:
+\begin{lstlisting}
+myAr = [1 2 3 4 5]
+myAr^ += 1 //increment by 1 assignment
+myAr^++ //add 1 as a postfix increment operation
+\end{lstlisting}
+
+Constructor and actor invocations as well as method references can be vectorized:
+\begin{lstlisting}
+class IntPair(a int, b int){
+	override toString() => "(IntPair: {a} {b})"
+}
+def inca(a int, b int) => a+b
+
+ar = [1 2 3]
+
+objs = new IntPair(12, ar^)//an array of IntPair's
+incrementees = inca&(ar^, _ int)//an array of function refences of type: (int) int
+
+res = x(10) for x in incrementees
+/
+objs => [ (IntPair: 12 1) (IntPair: 12 2) (IntPair: 12 3) ]
+res => [11 12 13 ]
+\end{lstlisting}
+
+Array access and assignment operations can be vectorized:
+\begin{lstlisting}
+A = [ 1 2 3 ; 4 5 6 ; 7 8 9 ]
+B = A@//copy of A
+C = A@//copy of A
+
+firstOfEach1 = A^[0]
+firstOfEach2 = B[ [ 0 1 2]^, 0]
+oneOfEach   = C^[ [ 0 1 2]^ ]
+
+A^[0] = 99
+B[ [ 0 1 2]^, 0] = 99
+C^[ [ 0 1 2]^ ] = 99
+/
+firstOfEach1  => [ 1 4 7]
+firstOfEach2  => [1 4 7]
+oneOfEach => [1 5 9]
+
+A => [ 99 2 3 ; 99 5 6 ; 99 8 9 ]
+B => [ 99 2 3 ; 99 5 6 ; 99 8 9 ]
+C => [ 99 2 3 ; 4 99 6 ; 7 8 99 ]
+\end{lstlisting}
+
+\section{No hat needed}
+Note that it’s not always necessary to use the hat \lstinline{^} notation. A neat time saving feature of Concurnas is its ability to implicitly vectorize call chains if the input array argument and input arguments of function being called suit such a call structure. This means we can write the following:
+
+\begin{lstlisting}
+from java.lang.Math import sin
+myarry = [ 1 2; 3 4]
+appliedsin = sin(myarry)
+\end{lstlisting}
+
+The above call is automatically converted to the form: \lstinline{appliedsin = sin(myarry^)} as the sin function only takes a scalar input. 
+
+In cases where a function or method is overloaded and either a array input (with matching dimensionality) or a scalar input can be matched against an array input in the call, the array input will take precedence. In order to explicitly route the call to the scalar input function (and vectorize the call) one must explicitly use the dot as above. Example:
+\begin{lstlisting}
+def addone(a int) = a+1  //version 1
+def addone(a int[]) = [a 1] //version 2
+
+myar = [1 2 3]
+
+addone(myar) //implicitly will be routed to version 2
+addone(myar^) //explicitly routed to version 1
+\end{lstlisting}
+
+Compiler note: Concurnas contains optimizations for vectorized call chains to avoid unnecessary matrix creation and thus save memory and creation time, take for example the following:
+
+\begin{lstlisting}
+A = [1 2]
+B = [3 4]
+C = [5 6]
+
+Result = A + B + C
+\end{lstlisting}
+
+A naive implementation would create a temporary matrix used to hold the calculated value of A+B before performing the +C component. Concurnas avoids the creation of the temporary array and just creates one holding the result.
+
+\end{document}

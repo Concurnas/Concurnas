@@ -1,0 +1,79 @@
+
+
+n();
+n(23,6);
+n&();
+n&()();
+
+z = b&();
+z = b&(8);
+z = b&(8)(6);
+z = b&(8, 9);
+z = b&(8, ? int);
+z = b&(8, Int)(9)&(5, ? float)(5.);
+z = b&(8, ? int)(9)&(5, ? float)&(5.)();
+z = b&(8, ? int)(9)&(5, ? float)(5.)();
+
+z lambda =  b&(); //genneral catch all for a funcref/lambda
+
+ax[3][2].a()(3);//takes no args
+ax[3][2].a&(? int)(3);
+ax[3][2].a&(5,? int)(3);
+ax[3][2].a&(5,? int,7)(3);
+ax[3][2].a&(5,? int,? int)&(3,? int)(9)[1].print();
+
+n();
+n&()();
+
+p=a()(3,Int); //simple function refs
+z () int = b&(4,3);
+ans = a&(69,0)();
+z = b&();
+g=9;
+
+s;
+
+
+
+soemthing (float) int = p()(5.);
+anotherthing (float) int = p&(5,? float)(5.);
+
+a lambda = dude();
+
+
+
+norm int = a(69,54);
+something (int) int = a&(? int,54);
+a&(? int,? int)(6,7); 
+a&(? float,45,? int)(5., 6);
+
+
+//define func and lambdas
+
+plus1v2 = def (n int) int { return n+1;};
+plus1v3 (int) int = plus1v2;
+
+//refs
+plus1v3(4);
+
+def map(input List<Int>, func (int) int) List<Int>
+{
+	ret = new List<Int>();
+	for(i in input){ret.add(func(i));}
+	return ret;
+}
+
+map([1,2,3], plus1v3);
+
+def aa(n int, m int) int {n+m;}
+
+//currying
+curry = aa&(? int,2);
+curry2 = curry&(4);
+res = curry2();
+
+//refs //shit these are the wrong way around...
+ref (int) void = null;
+ref = (def (a int)void {print(a**6);})(8);
+
+something () Int = a&(4,5);

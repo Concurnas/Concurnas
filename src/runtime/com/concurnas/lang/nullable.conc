@@ -1,0 +1,8 @@
+/**
+ * A wrapper around a potentially nullable type
+ */
+ 
+class Nullable<X?>(private value X? = null){
+	def set(v X?) => value = v;;
+	def get() X => value
+}

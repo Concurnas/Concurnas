@@ -1,0 +1,127 @@
+//##1. normal
+x := 1
+y := 2
+
+def doings(){
+	what = onchange(x,y){
+		x + y
+	}
+	
+	x = 2
+	
+	await(what; what==4)
+	"cool {what:get()}"
+}
+
+~~~~~
+//##2. simple missing refs
+x := 1
+y := 2
+
+def doings(){
+	what = onchange{
+		x + y
+	}
+	
+	x = 2
+	y++
+	
+	await(what; what==5)
+	"cool {what:get()}"
+}
+
+~~~~~
+//##3. dont track locally defined refs
+
+x := 1
+y := 2
+
+def doings(){
+	what = onchange{
+		f := 9 //ignore me dont track
+		x + y + 10
+	}
+	
+	x = 2
+	y++
+	
+	await(what; what==15)
+	"cool {what:get()}"
+}
+
+~~~~~
+//##4. thigns defined in seperate onchange are ignored
+
+ 
+x := 1
+ignoreme := 100
+
+def doings(){
+
+	what String:
+
+	onchange{
+		onchange(ignoreme) { f=7 }
+		p = x
+		cc = changed.getChanged()
+		res = ""+cc
+		if(res == "9:"){
+			res = "fail"
+		}
+		trans{	what = "" + what:get(true) + res }
+	}
+	
+	ignoreme = 9
+	
+	x = 2
+	
+	"cool {what:get()}"
+}
+//def doings() => "cool null[2:]"
+
+~~~~~
+//##5. shorthand onchange every
+
+x := 1
+y := 2
+
+def doings(){
+	what <=(x,y) {x + y}
+	
+	x = 2
+	
+	await(what; what==4)
+	"cool {what:get()}"
+}
+
+~~~~~
+//##6. shorthand onchange every most compact
+
+x := 1
+y := 2
+
+def doings(){
+	what <= x + y
+	
+	x = 2
+	
+	await(what; what==4)
+	"cool {what:get()}"
+}
+
+~~~~~
+//##7. shorthand onchange every both
+
+x := 1
+y := 2
+
+def doings(){
+	what <=  y //every
+	what2 <- x + y//onchange
+	
+	x = 2
+	
+	await(what; what==2)
+	await(what2; what2==4)
+	"cool {what:get()} {what2:get()}"
+}

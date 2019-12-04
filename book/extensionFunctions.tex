@@ -1,0 +1,203 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Extension functions]{Extension functions}
+	\label{ch:extFuncs}
+Concurnas has support for extension functions. These allow for functionality to be added to classes without needing to interact with the class hierarchy (e.g.extending the class etc). They are a convenient alternative to having to use utility functions/methods/classes which take an instance of a class and often permit a more natural way of interacting with objects.
+
+\begin{lstlisting}
+def String repeater(n int){//this is an extension function
+	return String.join(", ", java.util.Collections.nCopies(n, this))
+}
+
+"value".repeater(2) // returns: 'value, value'
+\end{lstlisting}
+
+Public properties or methods of the extended class may be referenced inside the body of the extension function. Non public items may not be referenced:
+
+\begin{lstlisting}
+class MyClass(public name String){
+	def amethod() = 'MyClass Method'
+	private unseen = 1//not accessible from the extension function below
+}
+
+def MyClass extFunc(){
+	"" + [this.name, this.amethod()]
+}
+
+new MyClass('dave').extFunc() //resolves to '[dave, MyClass Method]'
+\end{lstlisting}
+
+\section{Extension Methods}
+Extension methods are the same as extension functions, just defined within a class. For example:
+
+\begin{lstlisting}
+class MyClass(public name String){
+	def amethod() = 'MyClass Method'
+}
+
+class AnotherClass{
+	def MyClass extFunc(){
+		" + [this.name, this.amethod()]
+	}
+	
+	def dotask(){
+		new MyClass('dave').extFunc()
+	}
+}
+
+new AnotherClass().dotask()//resolves to '[dave, MyClass Method]'
+\end{lstlisting}
+
+Extension methods may only be defined as private,  protected. 
+
+\section{This keyword}
+The \lstinline{this} keyword can be used inside extension functions/methods and refers to the instance of the class being extended. In the case of an extension method it may be qualified in order to refer to the containing class:
+
+\begin{lstlisting}
+class MyClass(){
+	def amethod() = 'MyClass Method'
+}
+
+class AnotherClass{
+	def amethod() = 'AnotherClass Method'
+	
+	def MyClass extFunc(){
+		"" + [this.amethod(), //this defaults to refer to the MyClass instance
+		this[MyClass].amethod(),//explicitly directed to MyClass
+		this[AnotherClass].amethod()]//explicitly directed to AnotherClass
+	}
+	
+	def dotask(){
+		new MyClass().extFunc()
+	}
+}
+
+new AnotherClass().dotask()//resolves to '[MyClass Method, MyClass Method, AnotherClass Method]'
+\end{lstlisting}
+
+Note that in cases where an extension method/function has the same input signature as the method associated with the object being invoked then the extension function will take priority:
+
+\begin{lstlisting}
+class MyClass{
+	def countdown(a int) => "MyClass instance: {a}"
+}
+
+def MyClass countdown(a int){
+	""+ 0 if a == 0 else "{a}, {this.countdown(a-1)}"
+} 
+
+res = new MyClass() countdown 5
+
+//res == "5, 4, 3, 2, 1, 0" and NOT "10, MyClass instance: 9"
+\end{lstlisting}
+
+\section{Super Keyword}
+The \lstinline{super} keyword can be used inside extension functions/methods in the same way as the \lstinline{this} keyword, however, unlike the \lstinline{this} keyword subsequent method invocations always refer to the instance of of the class being extended. This thus explicitly avoids an otherwise recursive call in the case of a matching input signature between the extension function/method and method associated with the object upon which the invocation is taking place.
+
+\begin{lstlisting}
+class MyClass{
+	def countdown(a int) => "MyClass instance: {a}"
+}
+
+def MyClass countdown(a int){
+	""+ 0 if a == 0 else "{a}, {super.countdown(a-1)}"
+} 
+
+res = new MyClass() countdown 5
+
+//res == "10, MyClass instance: 9" and NOT "5, 4, 3, 2, 1, 0" 
+\end{lstlisting}
+
+\section{Resolution of extension functions vs instance methods}
+In cases where an extension function overrides the definition of a method of the class it's extending, the extension function will be invoked in place of the instance method:
+
+\begin{lstlisting}
+class MyClass(){
+	def amethod() = 'instance method'
+}
+
+def MyClass amethod(){
+	'Extension function'
+}
+
+new MyClass().amethod() //resolves to 'Extension function'
+\end{lstlisting}
+
+\section{Extension functions with generics}
+Class or local generics may be used as par normal for extension functions.
+
+\begin{lstlisting}
+class MyClass<X>{
+	def amethod() = 12
+}
+
+fun  MyClass<X> repeater<X>(   ) {//extension function with extendee qualified via local generic type
+	""+ [amethod(), this.amethod()]
+}
+
+new MyClass<String>().repeater<String>()// resolves to: '[12, 12]'
+\end{lstlisting}
+
+As per usual, qualification of generic types may also be inferred:
+\begin{lstlisting}
+class MyClass<X>{
+	def amethod() = 12
+}
+
+fun  MyClass<X> repeater<X>(   ) {//extension function with extendee qualified via local generic type
+	""+ [amethod(), this.amethod()]
+}
+
+new MyClass<String>().repeater()// resolves to: '[12, 12]' as local generic is qualified to String via inference
+\end{lstlisting}
+
+\section{Extension functions as operator overloaders}
+\label{sec:extfunAsOpOver}
+Extension functions can also be used in order to provide operator overloading. For example, in order to overload \lstinline{+} plus for an \lstinline{Arraylist}:
+
+\begin{lstlisting}
+from java.util import ArrayList
+
+fun ArrayList<X> plus<X>(toAdd X) {
+	this.add(toAdd)
+	this
+}
+
+ar = new ArrayList<int>()
+ar = ar + 12 //operator overload
+ar//resolves to '[12]'
+\end{lstlisting}
+
+\section{Extension functions on primitive types}
+In addition to object classes, extension functions can be defined for primitive types.
+
+\begin{lstlisting}
+def int meg() => this * 1024 * 1024
+
+12 meg //-> 12582912
+\end{lstlisting}
+
+Auto boxing/unboxing is performed automatically:
+
+\begin{lstlisting}
+def Integer meg() => this * 1024 * 1024
+
+12 meg //-> 12582912
+\end{lstlisting}
+
+\section{References}
+References to extension functions/methods can be made as par usual:
+\begin{lstlisting}
+def String repeater(n int){//this is an extension function
+	return String.join(", ", java.util.Collections.nCopies(n, this))
+}
+
+rep = "value".repeater&(2) //creates a reference
+rep() // returns: 'value, value'
+\end{lstlisting}
+
+Note that bindings to extension functions are created at compile time, not runtime. Thus changes to class hierarchies etc will require a recompilation of the extension function and related code in order to be incorporated. In practice this is not a significant problem, but it is something to be aware of nevertheless.
+
+\end{document}

@@ -1,0 +1,493 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Pattern Matching]{Pattern Matching}
+Concurnas has support for pattern matching. Through the use of pattern matching one can check a value against series of patterns, expressed as \lstinline{case}'s. The functionality found in Concurnas is similar to, and inspired by, that found in the likes of the purely functional languages such as Haskell . Use of patterns generally results in a considerable saving in terms of quantity of code, and increased readability relative to the next best alternative, which would be in writing very long and terse blocks of if then else statements.
+
+\section{Syntax}
+The pattern matching expression has the keyword \lstinline{match} to which a value is passed at at least one case statement with attached block
+
+\begin{lstlisting}
+def matcher(n int){
+	result = "unknown"
+	match(n){
+		1 =>  result = "one" 
+		2 =>  result = "two" 
+		3 =>  result = "three" 
+	}
+	result
+}
+
+matcher(1) // -> returns "one"
+matcher(2) // -> returns "two"
+matcher(3) // -> returns "three"
+matcher(4) // -> returns "unknown"
+\end{lstlisting}
+
+Optionally, an else statement may be used:
+\begin{lstlisting}
+def matcher(n int){
+	result = "unknown"
+	match(n){
+		1 => result = "one" 
+		2 => result = "two" 
+		3 => result = "three" 
+		else => result = "got value: {n}" 
+	}
+	result
+}
+
+matcher(1) // -> returns "one"
+matcher(2) // -> returns "two"
+matcher(3) // -> returns "three"
+matcher(4) // -> returns "got value 4"
+\end{lstlisting}
+
+The following slightly more verbose syntax, with the full block statement form, is equivalent to the above:
+\begin{lstlisting}
+def matcher(n int){
+	result = "unknown"
+	match(n){
+		case(1){ result = "one" }
+		case(2){ result = "two" }
+		case(3){ result = "three" }
+		else{ result = "got value: {n}" }
+	}
+	result
+}
+
+matcher(1) // -> returns "one"
+matcher(2) // -> returns "two"
+matcher(3) // -> returns "three"
+matcher(4) // -> returns "got value 4"
+\end{lstlisting}
+
+We shall stick to the abbreviated block statement from now on...
+
+The else statement may also take the form of a catch all case statement:
+\begin{lstlisting}
+def matcher(n int){
+	result = "unknown"
+	match(n){
+		1 => result = "one" 
+		2 => result = "two" 
+		3 => result = "three" 
+		x => result = "got value: {x}" 
+	}
+	result
+}
+
+matcher(1) // -> returns "one"
+matcher(2) // -> returns "two"
+matcher(3) // -> returns "three"
+matcher(4) // -> returns "got value 4"
+\end{lstlisting}
+
+As with all other control flow expression and blocks in Concurnas, they may return values. Note that in this case, where we wish to return a value, an else or catch all case must be provided.
+
+\begin{lstlisting}
+def matcher(n int){
+	result  = match(n){
+		1 => "one" 
+		2 => "two" 
+		3 => "three" 
+		x => "got value: {x}" 
+	}
+	result
+}
+
+matcher(1) // -> returns "one"
+matcher(2) // -> returns "two"
+matcher(3) // -> returns "three"
+matcher(4) // -> returns "got value 4"
+\end{lstlisting}
+
+\section{Pattern case on types}
+We can pattern match against types. The match value is cast to the type it is matched against for the bounds of the attached case block. This is analogous to an \lstinline{isas} type check
+
+\begin{lstlisting}
+def matcher(obj Object){
+	result  = match(obj){
+		String    =>   "a String of length: {a.length();}" 
+		int 	    =>"an int" 
+		Object    => "something else: {obj}" //a catch all
+	}
+	result
+}
+
+matcher(1) 	    // -> returns "an int"
+matcher("string") // -> returns "a String of length: 6"
+matcher(23.34f)  // -> returns "something else: 23.34f"
+\end{lstlisting}
+
+We can match against multiple types:
+
+\begin{lstlisting}
+def matcher(obj Object){
+	result  = match(obj){
+		String or int =>   "a String or int" 
+		Object =>  "something else: {obj}" //a catch all
+	}
+	result
+}
+
+matcher(1)	     // -> returns "a String or int"
+matcher("string")  // -> returns "a String or int"
+matcher(23.34f)   // -> returns "something else: 23.34f"
+\end{lstlisting}
+
+Note that within the case block for the individual match instances, the value will automatically be cast to the type of interest, making this sort of code easy to write:
+\begin{lstlisting}
+class Person(-yearOfBirth int, -name String)
+
+def matcher(an Object){
+	match(an){
+		Person => "Person. Born: {an.yearOfBirth}"//as is treated cast to Person
+		x => "unknown input"
+	}
+}
+
+matcher(Person(1945, "dave"))
+//returns: person born: 1945
+\end{lstlisting}
+
+
+\section{Pattern case with variable assignment}
+We can assign to a case variable. The variable will be scoped to exist within the bounds of the attached case block.
+
+\begin{lstlisting}
+def matcher(obj Object){
+	match(obj){
+		str String =>  "a String with length: {str.length()}" 
+		x Object   =>  "something else: {x.getClass()}" //a catch all
+	}
+}
+
+matcher("string") // -> returns "a String with length: 6"
+matcher(23.34f)  // -> returns "something else: Float.class"
+\end{lstlisting}
+
+
+\section{Pattern case conditions for objects}
+We can go one step beyond pattern cases on types and examine the contents of those types by expressing match conditions on the fields of the object type being matched, within the type pattern case declaration. These conditions must resolve to type boolean, and act upon accessible fields (either direct or via a getter method) and be separated by commas:
+\begin{lstlisting}
+class Person(-yearOfBirth int, -name String)
+
+def matcher(an Object){
+	match(an){
+		person Person(yearOfBirth < 1970) => "Person. Born: {person.yearOfBirth}"
+		x => "unknown input"
+	}
+}
+
+[matcher(Person(1945, "dave")), matcher(Person(1982, "freddie"))]
+//returns: [Person. Born: 1945, unknown input]
+\end{lstlisting}
+
+Note that we may choose to omit the 'person' variable declaration above as an will be automatically cast to type Person within the body of the catch block:
+\begin{lstlisting}
+class Person(-yearOfBirth int, -name String)
+
+def matcher(an Object){
+	match(an){
+		Person(yearOfBirth < 1970) => "Person. Born: {an.yearOfBirth}"
+		x => "unknown input"
+	}
+}
+
+[matcher(Person(1945, "dave")), matcher(Person(1982, "freddie"))]
+/
+=> [Person. Born: 1945, unknown input]
+\end{lstlisting}
+
+These types of object field content matches can be applied on a recursive basis to fields of objects as follows:
+\begin{lstlisting}
+class Favourites(-number int, -word String)
+
+class Person(-yearOfBirth int, -name String, -favs Favourites)
+
+def matcher(an Object){
+	match(an){
+		person Person(yearOfBirth < 1970, favs(number == 12)) => "Person, born: {person.yearOfBirth}. Favourite word: {person.favs.word}"
+		x => "unknown input"
+	}
+}
+
+matcher(Person(1945, "dave", Favourites(12, "Panda")))
+/
+=> Person, born: 1945. Favourite word: Panda
+\end{lstlisting}
+
+\section{Pattern case conditions}
+We can apply expressions resulting in boolean results in order to attach conditions to case's. The operator implicitly takes the matched value as input.
+
+\begin{lstlisting}
+def matcher(n int){
+	match(n){
+		<10 =>    "less than 10" 
+		else => "more than or equal to 10" 
+	}
+}
+
+matcher(2) // -> returns "less than 10"
+matcher(99)  // -> returns "more than or equal to 10"
+\end{lstlisting}
+
+/and/ and /or/ may also be used:
+
+\begin{lstlisting}
+def matcher(n int){
+	match(n){
+		>5 and <10 =>    "greater than 5 but less than 10" 
+		<10 =>    "less than 10" 
+		else => "more than or equal to 10" 
+	}
+}
+
+matcher(2) // -> returns "less than 10"
+matcher(8) // -> returns "greater than 5 but less than 10"
+matcher(99)  // -> returns "more than or equal to 10"
+\end{lstlisting}
+
+The full list of compatible operators which can be used in this manner is as follows:
+
+\lstinline{and, or, ==, <, <>, &==, &<>, >, >, <==, in, not, in}
+
+Where an expression element is provided without an open attached operator, the matched value is compared for equality against it
+
+\begin{lstlisting}
+def resolvesTrue() = true
+def matcher(n int){
+	x=4
+	match(n){
+		x =>"special value "  //implicit equality comparison, equivalent to /n==x/
+		>5 and <10=>    "greater than 5 but less than 10" 
+		<10 =>    "less than 10" 
+		else => "more than or equal to 10" 
+	}
+}
+
+matcher(4) // -> returns "less than 10"
+matcher(2) // -> returns "special value"
+matcher(8) // -> returns "greater than 5 but less than 10"
+matcher(99)  // -> returns "more than or equal to 10"
+\end{lstlisting}
+
+Note that any normal expression element is appropriate for a case pattern, all will be checked for equality
+
+\begin{lstlisting}
+def resolvesTrue() = true
+def matcher(n int){
+	x=4
+	y=100
+	match(n){
+		x if resolvesTrue() else y => "special value "  //implicit equality comparison, equivalent to /n==(x if resolvesTrue() else y)/
+		>5 and <10 =>    "greater than 5 but less than 10" 
+		<10 =>    "less than 10" 
+		else => "more than or equal to 10" 
+	}
+}
+
+matcher(4) // -> returns "less than 10"
+matcher(2) // -> returns "special value"
+matcher(8) // -> returns "greater than 5 but less than 10"
+matcher(99)  // -> returns "more than or equal to 10"
+\end{lstlisting}
+
+Case patterns are checked in a serial manner. Thus one can expect the following behaviour:
+
+\begin{lstlisting}
+def matcher(n int){
+	match(n){
+		<10 =>    "less than 10" }
+		>5 and <10 =>    "greater than 5 but less than 10" }//will never be returned
+		else => "more than or equal to 10"
+	}
+}
+
+matcher(2) // -> returns "less than 10"
+matcher(8) // -> returns "less than 10"
+matcher(99)  // -> returns "more than or equal to 10"
+\end{lstlisting}
+
+We can also make use of normal expressions for our case condition:
+
+\begin{lstlisting}
+def matcher(n int){
+	match(n){
+		n<10 =>    "less than 10" 
+		else => "more than or equal to 10" 
+	}
+}
+
+matcher(2) // -> returns "less than 10"
+matcher(99)  // -> returns "more than or equal to 10"
+\end{lstlisting}
+
+\section{Pattern case conditions with type check}
+We can apply pattern case conditions to values which have first been type checked by separating the assignment and type check from the conditions with a \lstinline{;}:
+\begin{lstlisting}
+def matcher(a Object) {
+	match(a){
+		int; ==1 or ==2 => "first case"
+		else => "other case"
+	}
+}
+
+matcher(1) // -> returns "first case"
+matcher(2)  // -> returns "first case"
+matcher(3)  // -> returns "other case"
+\end{lstlisting}
+
+\section{Pattern case conditions with type check and assignment}
+As above if we perform an assignment in addition to a case type check then we can apply pattern conditions as follows
+
+\begin{lstlisting}
+def matcher(a Object) {
+	match(a){
+		n int; n==1 or n==2 => "first case"
+		else => "other case"
+	}
+}
+
+matcher(1) // -> returns "first case"
+matcher(2)  // -> returns "first case"
+matcher(3)  // -> returns "other case"
+\end{lstlisting}
+
+Note that the expressions post the \lstinline{;} must be fully formed expressions, the value being matched will not be checked for equality against the resulting value.
+
+\section{Pattern case conditions with additional checks}
+Sometimes it may be necessary to perform additional checks using expressions which we do not want to check against the value being matched. In this case, the \lstinline{also} keyword can be used:
+
+ needs better example
+
+\begin{lstlisting}
+class Grouper(size int, avoid int[]){
+collector = java.util.ArrayList<int>()
+
+private result = ""
+
+	def getResult(){
+		if(not collector.isEmpty()){
+			result += ""+collector 
+		}
+		result
+	}
+
+	def addItem(a int){
+		match(a){
+			not in avoid also collector.size()>==size {
+				//cluster our elements together when we hit the size except for when == to something in avoid
+				result += ""+collector
+				collector.clear()
+			}
+		}
+		collector.add(a)
+	}
+}
+
+
+grp = Grouper(3, [4])
+for(a in [1,2,3,4,5,6,7,8,9, 10]){
+	grp.addItem(a)
+}
+grp.result //resolves to: [1, 2, 3, 4][5, 6, 7][8, 9, 10]
+\end{lstlisting}
+
+\section{Bypassing pattern case conditions}
+If one doesn't want to make use of pattern cases, but still needs to check for conditions on a match value, the also syntax in isolation may be used:
+
+\begin{lstlisting}
+def isPalendrome(a String){
+	upp = a.toUpperCase()
+	upp == ""+StringBuilder(upp).reverse()//reverse used to return AbstractStringBuilder
+}
+	
+def matcher(inp String){
+	match(inp){
+		also isPalendrome(inp) =>  "is" 
+		else => "is not" 
+	} + " a Palindrome"
+}
+
+matcher('ava') //returns 'is a Palindrome'
+matcher('dave') //returns 'is not a Palindrome'
+\end{lstlisting}
+
+\section{Match with variable assignment}
+Similar to try with resources, we can assign a local variable, scope bound to the attached set of case blocks.
+
+\begin{lstlisting}
+def reverse(a String) = new StringBuffer(string).reverse().toString()
+
+def matcher(str String){
+	result  = match(rev = reverse(str)){
+		rev.length() > 3 =>   result = "input string: '{str}' reversed string: '{rev}'" 
+		else =>  result = "too short to be reversed!: '{str}'" //a catch all
+	}
+	result
+}
+
+matcher("stressed") // -> returns "input string: 'stressed' reversed string: 'desserts'"
+matcher("an")  // -> returns "too short to be reversed!: 'an'"
+\end{lstlisting}
+
+The assignment within the match block may be declared \lstinline{val} or \lstinline{var}.
+
+\section{Match against enum elements}
+When matching a value known to be of an enum type, it is not necessary to specify the entire enum name qualifier. The short name of the enum elements may be matched against.
+
+\begin{lstlisting}
+enum MyEnum{ CASE1, CASE2, CASE3, CASE4, CASE5 }
+
+def matcher(a MyEnum) {
+	match(a){
+		MyEnum.CASE1 => "case 1"//use the full name of the enum element
+		CASE2 => "case 2"//use the short name of the enum element
+		CASE3 or MyEnum.CASE4 => "case 3 or 4"//use both the short and long names
+		else => "another case: {a} " 
+	}
+}
+
+matcher(MyEnum.CASE1)//returns "case 1"
+matcher(MyEnum.CASE2)//returns ""case 2""
+matcher(MyEnum.CASE3)//returns "case 3 or 4"
+matcher(MyEnum.CASE4)//returns "case 3 or 4"
+matcher(MyEnum.CASE5)//returns "another case: CASE5"
+\end{lstlisting}
+
+\section{Match against tuples}
+Concurnas has special support for performing matches against tuples.
+
+Firstly if we don't already know our input matched against to be of type tuple we can test it as a tuple type and access the dereferenced inner elements as follows:
+\begin{lstlisting}
+def matcher(n Object){
+	match(n){
+		case( (a int, b int, c int) ) { "tuple of 3: {a}, {b}, {c}"}
+		case( (a int, b int); a > b ) { 'tuple 2: {a}>{b}'}//with a test
+		case( (a int, b int); a < b ) { 'tuple 2: {a}<{b}'}//with a test
+		case( (int, int, int, int) ) { "4 item int tuple"}
+		case( (int, int, double, int) ) { "4 item int tuple with a double"}
+		case( (a , b, c, d, e) ) { "5 item tuple with Object type"}
+		x => 'catch all: x'
+	}
+}
+\end{lstlisting}
+
+If we know the type being matched against is a tuple, then the syntax is more succinct as follows:
+\begin{lstlisting}
+def matcher(n (int, int)){
+	match(n){
+		(0, 0) => 'both zero'//test against both elements
+		(0, )  => 'first zero'//test only one element
+		(, >2) => 'second above 2'//perform a test against second tuple element
+		(a, 1) => 'second is 1, first is: {a}'//extract an element
+		(a, b); a>b => '{a} > {b}'//extract both elements and perform a test on them
+		(a, b) => 'all others: {a}, {b}'
+	}
+}
+\end{lstlisting}
+
+\end{document}

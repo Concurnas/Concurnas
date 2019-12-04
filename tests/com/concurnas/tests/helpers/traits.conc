@@ -1,0 +1,16 @@
+
+trait LoggerProvider(){
+	def provideLoggerFor(theClass Class<?>) (String) void
+}
+
+
+from java.util import List
+
+trait OperationOnIntList{
+	def ack1(input List<int>) (int) int
+	def ack2(input List<int>) (int) int
+}
+
+trait ATrait{
+	def thing(a int) void
+}

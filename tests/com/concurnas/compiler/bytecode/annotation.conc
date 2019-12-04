@@ -1,0 +1,1407 @@
+//##1. basic annotation auto imported
+
+/*
+State of play
+
+//done
+ElementType.METHOD can be applied to a method-level annotation. - methods
+ElementType.CONSTRUCTOR can be applied to a constructor.
+ElementType.PARAMETER can be applied to the parameters of a method.
+ElementType.TYPE -class, actor, enum, annotation, [LATER: mixin]s
+ElementType.FIELD can be applied to a field or property. + enum constants
+""field setter getters field
+""classdef args setter getters param field
+
+ElementType.LOCAL_VARIABLE can be applied to a local variable. - pointless
+//not relevant in concurnas
+ElementType.PACKAGE can be applied to a package declaration.
+//later
+ElementType.ANNOTATION_TYPE can be applied to an annotation type.
+
+//Better Annotationss: update to java 8 style functionality - see checker framework and that one sold to facebook for some def stuff
+
+*/
+
+
+class MyClass{
+	@Deprecated //auto imported
+	def simpleAnnot(){
+	
+	}
+}
+
+def getMethodFromClass(cls Class<?>, name String) java.lang.reflect.Method {
+	for(m in cls.getMethods()){
+		if(m.name == name){
+			return m
+		}
+	}
+	return null
+}
+
+def showAnnotations(m java.lang.reflect.Method) => "" + for(ma in m.getAnnotations()){ ma.annotationType() }
+
+def doings() {
+	m = getMethodFromClass(MyClass.class, 'simpleAnnot')
+	"" + showAnnotations(m)
+}
+
+
+~~~~~
+//##2. basic annotation auto imported use def methods
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class MyClass{
+	@Deprecated //auto imported
+	def simpleAnnot(){
+	
+	}
+}
+
+def doings() {
+	m = AH.getMethodFromClass(MyClass.class, 'simpleAnnot')
+	"" + AH.showAnnotations(m)
+}
+
+~~~~~
+//##3. basic annotation with para
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class MyClass{
+	@AH.SimpleAnnotation()//with()
+	def simpleAnnot(){
+	
+	}
+}
+
+def doings() {
+	m = AH.getMethodFromClass(MyClass.class, 'simpleAnnot')
+	"" + AH.showAnnotations(m)
+}
+
+~~~~~
+//##4. smore more advanted syntax
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class MyClass{
+	@AH.SimpleAnnotation(),
+	@AH.SimpleAnnotation2 //without the ()
+	@AH.SimpleAnnotation3 //without the () and no comma before
+	def simpleAnnot(){
+	
+	}
+}
+
+def doings() {
+	m = AH.getMethodFromClass(MyClass.class, 'simpleAnnot')
+	"" + AH.showAnnotations(m)
+}
+
+~~~~~
+//##5. single arg annots
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class MyClass{
+	@AH.AnnotOneArg("wongo") 
+	def simpleAnnot(){
+	
+	}
+	@AH.AnnotTwoArgOneDefault("wongozzz") 
+	def simpleAnnot2(){
+	
+	}
+}
+
+def doings() {
+	m = AH.getMethodFromClass(MyClass.class, 'simpleAnnot')
+	m2 = AH.getMethodFromClass(MyClass.class, 'simpleAnnot2')
+	"" + [AH.showAnnotations(m), AH.showAnnotations(m2)]
+}
+
+~~~~~
+//##6. constant expressions
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnnotOneArg("" + ( 3 ) + 2.3 )
+	def m1(){}
+	
+	@AH.AnnotOneArg("" + ( "no" ) )
+	def m2(){}
+	
+	@AH.AnnotOneArg("" + ( "one"  ) )//this is nonsense to write: "one" if 2<3 else "no"
+	def m3(){}
+	
+	@AH.AnnotOneArg("" + ( true and false ) )
+	def m4(){}
+	
+	@AH.AnnotOneArg("" + ( true or false ) )
+	def m5(){}
+	
+	@AH.AnnotOneArg("" + (not false ) )
+	def m6(){}
+	
+	@AH.AnnotOneArg("" + (3.**5 ) )
+	def m7(){}
+	
+	@AH.AnnotOneArg("" + (3 <> 5 ) )
+	def m8(){}
+	
+	@AH.AnnotOneArg("" + (3 + 5 ) )
+	def m9(){}
+	
+	@AH.AnnotOneArg("" + (-3) )
+	def n1(){}
+	
+	@AH.AnnotOneArg("" + (+3) )
+	def n2(){}
+	
+	@AH.AnnotOneArg("" + (3*3) )
+	def n3(){}
+	
+	@AH.AnnotOneArg("" + (3*3 as double) )
+	def n4(){}
+	
+	@AH.AnnotOneArg("" + (String.class) )
+	def n5(){}
+	
+	@AH.AnnotOneArg("" + (int.class) )
+	def n6(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##7. constant expressions string subexpressions
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnnotOneArg("{3+4}hi{33}:{int.class}" )
+	def m1(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##8. constant folding example
+
+val things = "hi" + "there"//defaulted to this at header level, also we save computing this at runtime
+//we just store "hithere"
+//this shouldnt gennerate a clinit but it doesnt work unless i do so meh
+
+def doings() {
+	another = "hi" + "mate"//folded too
+	plusola = 3 + 4
+	"" + [things, another, plusola]
+}
+
+~~~~~
+//##9. constant folding optimization in code in genneral
+def sth() => 3>4
+def doings() {
+	p1 = 3 + 4
+	p2 = sth() or true
+	p3 = false and true
+	p4 = true and true
+	p5 = "hi" if not sth() else "no"
+	p6 = "hi" if sth() else "no"
+	p7 = not false
+	p8 = int[].class//not covered
+	p9 = double.class
+	q1 = -100 //funny bug, was being loaded as -5
+	q2 = +10
+	q3 = 7*6
+	q4= 8**2
+	q5=7 mod 3
+	q6=9.3 as int
+	"" + [p1, p2, p3, p4, p5, p6, p7, p8, p9, q1, q2, q3, q4, q5, q6]
+}
+
+~~~~~
+//##10. constant folding pow operator
+
+def doings() {
+	q1 = 8**2
+	q2 = 8**2.
+	"k {q1}, {q2}"//was a bug before
+}
+
+~~~~~
+//##11. annotation array argument
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnotTakesIntArray( [1 2 3] )
+	def m1(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##12. annotation array argument empty array
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnotTakesIntArray( new int[0] )//empty array
+	def m1(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##13. annotation key value
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnnotTwoArgOneDefault( name = "firstname", name2="999")
+	def m1(){}
+	
+	@AH.AnnotTwoArgOneDefault( name = "firstname")
+	def m2(){}//leave the default
+	
+	@AH.AnnotTwoArgAllDefault
+	def m3(){}//leave the default
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##14. annotation key value more than one
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnnotTwoArgOneDefault( name = "firstname", name2="999")
+	@AH.AnnotTwoArgAllDefault
+	def m1(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##15. annotation key value more than one ararays
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnnotTwoArgOneDefault( name = "firstname", name2="999")
+	@AH.AnnotTwoArgAllDefault
+	@AH.AnotTakesIntArrayx2(theArg=[1 2 3], theArg2=[1*2 2*2 3*2])
+	def m1(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##16. annotation class argument
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.TakesClass(String.class)
+	def m1(){}
+	
+	@AH.TakesClass(int.class)
+	def m2(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##17. annotation enum argument
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.TakesEnum(theArg = AH.TheEnum.ONE)
+	def m1(){}
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##18. annotation nested annotation argument
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))
+	def m0(){}//via kv form
+	
+	@AH.TakesAnnotation( @AH.TakesEnum(theArg = AH.TheEnum.ONE))
+	def m1(){}//via single arg form
+}
+
+def doings() {
+	methods = MyClass.class.getDeclaredMethods()
+	things = for(m in methods) {m.getName() + ":" + AH.showAnnotations(m)}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##19. annotation applied to constructors
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	@AH.AnnotOneArg(name = "Billy")
+	this(){
+	}
+	@AH.AnnotOneArg(name = "Bzaby")
+	this(a int){
+	}
+}
+
+def doings() {
+	cons = MyClass.class.getConstructors()//also updated the reflection helper to correctly filter out the uninintiable ones
+	things = for(c in cons) {c.getDeclaringClass().getSimpleName() + ":" + c.getAnnotations() + "~" + c.getParameterTypes()}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##20. annotation was having some reflection bother
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+def doings() {
+	//having some reflection bother
+	cons = AH.TestClass.class.getDeclaredMethods()
+	things = for(c in cons){
+		paraTypes =  c.getParameterAnnotations()
+		c.getName() + ":" + c.getAnnotations() + "~" + paraTypes
+	}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##21. annotation applied to method parameters
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass{
+	
+	def leFunc(@AH.AnnotOneArg(name = "Bzaby") a int,
+	@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE)) //most complex one
+	b int){
+	}
+}
+
+def doings() {
+	//having some reflection bother
+	cons = MyClass.class.getDeclaredMethods()
+	things = for(c in cons){
+		paraTypes =  c.getParameterAnnotations()
+		c.getName() + ":" + c.getAnnotations() + "~" + paraTypes
+	}
+	Collections.sort(things)
+	"" + things
+}
+
+~~~~~
+//##22. annotation at class level inc immutable one
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@AH.AnnotOneArg(name = "Bzaby")
+class MyClass(){//gets marked as immutable
+	def sdf() => "hi"
+}
+
+@AH.AnnotOneArg(name = "Bzaby")
+class MyClass2(a int){//this one is not immutable
+	def sdf() => "hi"
+}
+
+def doings() {
+	//having some reflection bother
+	"" + [MyClass.class.getAnnotations(), MyClass2.class.getAnnotations()]
+}
+
+~~~~~
+//##23. annotation at actor level inc immutable one
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@AH.AnnotOneArg(name = "Bzaby")
+class MyClass(){//gets marked as immutable
+	def sdf() => "hi"
+}
+
+@AH.AnnotOneArg(name = "Bzaby")
+actor MyActor of MyClass{
+	def sdf() => "hi"
+}
+
+def doings() {
+	"" + MyActor.class.getAnnotations()
+}
+
+~~~~~
+//##24. annotation at enum level inc immutable one
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@AH.AnnotOneArg(name = "Bzaby")
+enum MYEnum{//gets marked as immutable
+	ONE, TWO
+}
+
+def doings() {
+	"" + MYEnum.class.getAnnotations()
+}
+
+~~~~~
+//##25. annotation of fields
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class SpecialClass{
+	@AH.AnnotOneArg("ok") //default applies to field
+	public ~a int=99;
+	
+	@AH.AnnotOneArg("ok2") //default applies to field
+	public b=99
+}
+
+def doings() {
+	fields = SpecialClass.class.getFields()
+	"" + for(f in fields) {f.getName() + ": " + f.getAnnotations(); } 
+}
+
+~~~~~
+//##26. annotation of enum items
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+enum MYEnum{
+	ONE, @AH.AnnotOneArg(name = "Bzaby") TWO //enum element marked with annotation
+}
+
+def doings() {
+	fields = MYEnum.class.getFields()
+	"" + for(f in fields) {f.getName() + ": " + f.getAnnotations(); } 
+}
+
+~~~~~
+//##27. annotation locations simple
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class SpecialClass{
+	@[setter,]AH.AnnotOneArg("ok") //only apply to setter
+	public ~a int=99;
+	
+	@[field]AH.AnnotOneArg("ok") //apply to field explicitly
+	public ~b int=99;
+	
+	@AH.AnnotOneArg("ok") //apply to field by default
+	public ~c int=99;
+	
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	fields = SpecialClass.class.getFields()
+	"" + for(f in fields) {f.getName() + ": " + f.getAnnotations(); } 
+}
+
+~~~~~
+//##28. annotation locations for fields
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class SpecialClass{
+	@[setter,]AH.AnnotOneArg("ok") //only apply to setter
+	public ~a int=99;
+	
+	@[field]AH.AnnotOneArg("ok") //apply to field explicitly
+	public ~b int=99;
+	
+	@[getter,]AH.AnnotOneArg("ok") //apply to field by default
+	public ~c int=99;
+	
+	@[getter,setter]AH.AnnotOneArg("ok") //apply to field by default
+	public ~d int=99;
+	
+	@[getter]AH.AnnotOneArg("ok-get") //apply to field by default
+	@[setter]AH.AnnotTwoArgAllDefault(name="ok-set") //apply to field by default
+	public ~e int=99;
+	
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	"fields: {fields}\nmethods:{methods}"
+}
+
+~~~~~
+//##29. annotation locations for classdefargs
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class SpecialClass(@AH.AnnotOneArg("ok") public ~a int,//apply to param only
+@[param]AH.AnnotOneArg("ok") public ~b int,//param explicit
+@[setter]AH.AnnotOneArg("ok") public ~c int,
+@[getter]AH.AnnotOneArg("ok") public ~d int,
+@[field]AH.AnnotOneArg("ok") public ~e int,//rest are obvoius
+){
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getConstructors()){  m.getParameterAnnotations() }
+		
+	"fields: {fields}\nmethods:{methods}\ncons:{cons}"
+}
+
+~~~~~
+//##30. annotation of default constructor
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@[this]AH.AnnotOneArg("ok")
+class SpecialClass(public ~a int){
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getConstructors()){  m.getAnnotations() }
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##31. annotation of default constructor for enums plus bugfix on loc names
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@[this]AH.AnnotOneArg("ok")
+@AH.AnnotOneArg("ok to the class")//this is ok because it applies to the enum class instead of the default constructor
+enum SpecialClass(public ~a int){
+	ONE(1), TWO(2)
+}
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getConstructors()){  m.getAnnotations() }
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##32. annotation of enum elements
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+enum SpecialClass(@AH.AnnotOneArg("ok") public ~a int,
+@[getter]AH.AnnotOneArg("ok") public ~b int,
+@[setter]AH.AnnotOneArg("ok") public ~c int,
+@[param]AH.AnnotOneArg("ok") public ~d int,
+@[field]AH.AnnotOneArg("ok") public ~e int,
+@[getter, setter, param, field]AH.AnnotOneArg("ok") public ~zall int,
+){
+	ONE(1,1,1,1,1,1), TWO(2,2,2,2,2,2)
+}
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = sorted(for(m in SpecialClass.class.getDeclaredConstructors()){ ""+ m.getParameterAnnotations() })
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##33. untyped actor
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@[this]AH.AnnotOneArg("ok")
+actor SpecialClass(@[getter, setter, param, field]AH.AnnotOneArg("ok") ~ax int)  {
+	this() { }
+	this(a String, b String){this(12)}
+	def something() => "hi" + ax
+}
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getDeclaredConstructors()){ ""+ m.getParameterAnnotations() }
+	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){""+  m.getAnnotations() }
+	
+	Collections.sort(cons)
+	Collections.sort(consitself)
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\ncon itself: {consitself}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##34. typed actor
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+class MyClass(){
+	~xa=9
+	~b=99
+}
+@[this]AH.AnnotOneArg("on the default constructor")
+@AH.AnnotOneArg("ok cls")
+actor SpecialClass(@[getter, setter, param, field]AH.AnnotOneArg("ok") ~a int, ~b int) of MyClass{ //fail as requires no arg constructor
+}
+
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getDeclaredConstructors()){  ""+m.getParameterAnnotations() }
+	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){ ""+ m.getAnnotations() }
+	
+	Collections.sort(cons)
+	Collections.sort(consitself)
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\ncon itself: {consitself}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##35. Inherited annotion works without effort
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+from java.util import Collections
+
+@AH.InheritedOne(value="hi")
+open class SpecialClassParent{
+}
+
+class SpecialClass < SpecialClassParent
+
+def doings() {
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getParameterAnnotations() }
+	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getAnnotations() }
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\ncon itself: {consitself}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##36. custom annotations
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+enum TheEnum{ONE, TWO}
+
+//@Retention(RetentionPolicy.RUNTIME)//defaults to this
+annotation MYAnnotation(a = "hi", c String = "ok"){
+	b = 99
+	ff=[1 2 3]
+	//ee = TheEnum.ONE
+	
+}
+
+@MYAnnotation(b=8) //to default values
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	from java.util import Collections
+
+	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
+	
+	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	
+	cons = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getParameterAnnotations() }
+	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getAnnotations() }
+	
+	"fields: {fields}\nmethods:{methods}\ncons: {cons}\ncon itself: {consitself}\nclass: " + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##37. custom annotations - enum
+
+enum TheEnum{ONE, TWO}
+
+annotation MYAnnotation{
+	ee = TheEnum.ONE
+}
+
+@MYAnnotation
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##38. custom annotations - class
+
+enum TheEnum{ONE, TWO}
+
+annotation MYAnnotation{
+	ee Class<?>?
+	ee2 = String.class
+}
+
+@MYAnnotation(ee=MYAnnotation.class)
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##39. custom with non primative arrays
+
+enum TheEnum{ONE, TWO}
+
+annotation MYAnnotation{
+	check  = ["one" "two"]
+	check2 String[]?
+}
+
+@MYAnnotation(check2=["hi" "there"])
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##40.custom with array of enums
+
+enum TheEnum{ONE, TWO, THREE, FOUR}
+
+
+annotation MYAnnotation{
+	check  = [TheEnum.ONE TheEnum.TWO]
+	check2  TheEnum[]?
+}
+
+@MYAnnotation(check2=[TheEnum.THREE TheEnum.FOUR])
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##41.simple w retention
+
+annotation MYAnnotation{
+	//check  = [String.class, String.class]
+	//check2  Class<?> =String.class
+	check2 String?
+}
+
+@MYAnnotation(check2="MyClass.class")
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##42. array of class
+
+class MyClass
+
+annotation MYAnnotation{
+	check  = [String.class String.class]
+	check2  Class<?>[] = [String.class]
+}
+
+@MYAnnotation(check2=[MyClass.class])
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##43. custom annotations having annotations as arguments lol
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+annotation MYAnnotation(checkuphere AH.TakesAnnotation = @AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))){
+	check AH.TakesAnnotation = @AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))
+	checkxxx = @AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))
+	check2  AH.TakesAnnotation?
+}
+
+@MYAnnotation(check2=@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE)))
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##44. custom annotations arrays of annotations
+//who does this?
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+annotation MYAnnotation(checkuphere AH.TakesAnnotation[] = [@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))]){
+	check AH.TakesAnnotation[] = [@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))]//err
+	checkxxx = [@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))]
+	check2  AH.TakesAnnotation[]?
+}
+
+@MYAnnotation(check2=[@AH.TakesAnnotation(theArg = @AH.TakesEnum(theArg = AH.TheEnum.ONE))])
+class SpecialClass {
+	override equals(a Object) => false
+	override hashCode() => 1
+}
+
+def doings() {
+	"" + SpecialClass.class.getAnnotations()
+}
+
+~~~~~
+//##45. custom annotations retension
+
+from java.lang.\annotation import Retention, RetentionPolicy
+
+@Retention(RetentionPolicy.SOURCE)
+annotation MYAnnotation1(b=1){
+}
+
+@Retention(RetentionPolicy.CLASS)
+annotation MYAnnotation2(b=1){
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+annotation MYAnnotation3(b=1){
+}
+
+
+@MYAnnotation1
+@MYAnnotation2
+@MYAnnotation3
+class SpecualClass{
+}
+
+def doings() {
+	"" + SpecualClass.class.getAnnotations()
+}
+
+~~~~~
+//##46. auto type convert to an array
+
+from java.lang.\annotation import Target, ElementType
+
+annotation MYAnnotation1(b=1, c=[1 2 3]){
+}
+
+@MYAnnotation1(c=1) //converted to array
+class SpecualClass{
+	a =2
+}
+
+def doings() {
+	"" + SpecualClass.class.getAnnotations()
+}
+
+~~~~~
+//##47. ANNOTATION_TYPE element type
+
+from java.lang.\annotation import Target, ElementType
+
+@Target(ElementType.ANNOTATION_TYPE)
+annotation AnotForAnot{
+	cool="yup"
+}
+
+@AnotForAnot
+annotation MYAnnotation1(b=1, c=[1 2 3]){
+}
+
+
+@MYAnnotation1(c=1) //converted to array
+class SpecualClass{
+	a =2
+}
+
+def doings() {
+	"" + SpecualClass.class.getAnnotations()
+}
+
+~~~~~
+//##48. annotations can be applied to annotation fields
+
+from java.lang.\annotation import Target, ElementType
+from java.util import Collections
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+annotation AnotForAnot{
+	cool="yup"
+}
+
+annotation MYAnnotation1(@AnotForAnot b=1){
+	@AnotForAnot
+	c=[1 2 3]
+}
+
+
+def doings() {
+	
+	methods = for(m in MYAnnotation1.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
+	Collections.sort(methods)
+	"methods: {methods}"
+}
+
+~~~~~
+//##49. annotations can have nested enum
+
+//public enum Thing{ONE, TWO}
+annotation MYAnnotation1{
+	c=MYAnnotation1.Thing.ONE//long way
+	d=Thing.ONE//long and short ways of referencing
+	public enum Thing{ONE, TWO}
+}
+//its only really enums that one can do the above...
+
+@MYAnnotation1
+class MyClass
+
+
+def doings() {
+	"" + MyClass.class.getAnnotations()
+}
+
+~~~~~
+//##50. annotations can have nested enum correct default type
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+//public enum Thing{ONE, TWO}
+annotation MYAnnotation1{
+	c=Thing.ONE
+	d=Thing2.ONE
+	public enum Thing{ONE, TWO}
+	enum Thing2{ONE, TWO}//default public
+}
+//its only really enums that one can do the above...
+
+@MYAnnotation1
+class MyClass
+
+def doings() {
+	"" + MyClass.class.getAnnotations()
+}
+
+~~~~~
+//##51. reference to nested annotation
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+//public enum Thing{ONE, TWO}
+annotation MYAnnotation1{
+	c MYAnnotationNeste?//=@MYAnnotationNeste
+	public annotation MYAnnotationNeste
+}
+//its only really enums that one can do the above...
+
+@MYAnnotation1(c = @MYAnnotation1.MYAnnotationNeste)
+class MyClass
+
+def doings() {
+	"" + MyClass.class.getAnnotations()
+}
+
+~~~~~
+//##52. reference to nested annotation as default
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+//public enum Thing{ONE, TWO}
+annotation MYAnnotation1{
+	c MYAnnotationNeste=@MYAnnotationNeste
+	public annotation MYAnnotationNeste
+}
+//its only really enums that one can do the above...
+
+@MYAnnotation1
+class MyClass
+
+def doings() {
+	"" + MyClass.class.getAnnotations()
+}
+
+~~~~~
+//##53. annotation nested in class
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class Outer{
+	annotation NestedAnnot{
+	
+	}
+	
+	@NestedAnnot
+	class Inner
+}
+
+//its only really enums that one can do the above...
+
+@Outer.NestedAnnot
+class MyClass
+
+def doings() {
+	"" + [MyClass.class.getAnnotations(), Outer.Inner.class.getAnnotations()]
+}
+
+~~~~~
+//##54. annotation nested in enum
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+enum Outer{ ONE, TWO
+	annotation NestedAnnot{
+	
+	}
+}
+
+//its only really enums that one can do the above...
+
+@Outer.NestedAnnot
+class MyClass
+
+def doings() {
+	"" + [MyClass.class.getAnnotations()]
+}
+
+~~~~~
+//##55. Deprecated works at runtime tagged ok
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+@Deprecated
+class MyClass{
+	@Deprecated
+	def something(){}
+}
+
+def doings() {
+	"" + [MyClass.class.getAnnotations()]
+}
+
+~~~~~
+//##56. aside, one need not qualify generics when class is used for class reference
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class MyClass<T>{
+}
+
+def doings() {
+	"" + [MyClass<String>.class.getAnnotations(), MyClass.class.getAnnotations()]
+}
+
+~~~~~
+//##57. WOW compiler warnings can be suppressed
+
+from java.lang.\annotation import Target, ElementType
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+class MyClass<T>{//TODO: need to apply warning suppressors to local variable definitions and others
+	@SuppressWarnings("all")
+	def something(a Object){
+		a as T[]
+	}
+	
+	@SuppressWarnings("all")
+	this(a Object){
+		v=a as T[]
+	}
+	
+	@SuppressWarnings("generic-cast")
+	def something2(a Object){
+		a as T[]
+	}
+	
+	@SuppressWarnings("generic-cast")
+	this(a Object, b int){
+		v=a as T[]
+	}
+}
+
+@SuppressWarnings("all")
+class MyClass2<T>{
+	def something(a Object){
+		a as T[]
+	}
+}
+
+@SuppressWarnings("generic-cast")
+class MyClass3<T>{
+	def something(a Object){
+		a as T[]
+	}
+}
+
+def doings() {
+	"cool"
+}
+
+~~~~~
+//##58. check annotation can be read from existing compiled classes
+
+from com.concurnas.lang.precompiled import AnnotationHelper
+
+def doings() {
+
+	cc = AnnotationHelper.class.getAnnotations()
+	insp = AnnotationHelper.class.getMethod('canBeInspected', [int.class]).getParameterAnnotations()
+
+	"" + [cc, insp]
+}
+
+~~~~~
+//##59. annotations are exposable at module level
+
+from java.util import ArrayList
+
+annotation MyAnnot{}
+
+@SuppressWarnings("typedef-arg-use")//this doesnt get exposed at runtime
+@MyAnnot//should exist at module level at runtime
+typedef  mylistQ<X> = ArrayList<String>//disable warning applies from above too
+
+
+def printmodannotations(){
+	eles = new Exception("").getStackTrace()
+	
+	holdingCls = eles[3].getClassName()
+	Class.forName(holdingCls.substring(0,holdingCls.indexOf('$'))).getAnnotations()
+}
+
+def doings(){
+	"" + printmodannotations()
+}
+
+~~~~~
+//##60. trust me override is annotatted as such
+
+class MyClass{
+	override toString() => "lovely"//this is annotated at src level
+}
+
+def doings(){
+	"" + MyClass.class.getMethod("toString", null).getAnnotations()//but not at runtime, hmmm
+}
+
+~~~~~
+//##61. bug fix on constant folding
+
+def doings(){
+	a = (2l**(64-1))/(24*60*60)//resolves to long, not double, so cast of constant is required
+	
+	"" + a/1
+}
+
+~~~~~
+//##61. bug fix on constant folding enum items
+enum MyEnum{ONE, TWO}
+
+public class MyClass(-name String) {
+	public me MyEnum?
+	
+	override hashCode()=>0
+	override equals(a Object)=>true
+	override toString()=>name
+}
+
+def doings(){
+	mc = MyClass("dave")
+	mc.me=MyEnum.ONE
+	"" + mc.me
+}
+
+~~~~~
+//##62. constant folding classDef
+
+def doings(){
+	"" +  boolean[].class//used to resolve to boolean[] but it should be class[Z
+}
+
+~~~~~
+//##63. many target annotation
+
+from java.lang.\annotation import Target, ElementType
+
+@Target([ElementType.TYPE ElementType.ANNOTATION_TYPE])
+annotation AnotForAnot{
+	cool="yup"
+}
+
+@AnotForAnot
+annotation MYAnnotation1(b=1, c=[1 2 3]){
+}
+
+
+@MYAnnotation1(c=1) //converted to array
+class SpecualClass{
+	a =2
+}
+
+def doings() {
+	"" + SpecualClass.class.getAnnotations()
+}
+
+~~~~~
+//##64. fiber is a visible parameter 
+from com.concurnas.lang.precompiled import SimpleClassNoParamsOnMethod
+
+def doings(){
+	cons = SimpleClassNoParamsOnMethod.class.getDeclaredMethods()
+	"" + for(c in cons){
+		c.getParameterAnnotations()
+	}
+}

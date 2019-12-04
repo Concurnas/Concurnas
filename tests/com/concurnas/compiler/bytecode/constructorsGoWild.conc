@@ -1,0 +1,712 @@
+//##1. Default no argument constuctor only
+
+class Cls{
+	public a int = 9; //both styles
+	public b=92
+}
+
+def doings() String {
+	cc = new Cls()
+	z = cc.b
+	return "" + [z, cc.a, cc.b]
+}
+
+~~~~~
+//##2. a useless no arg consturctor
+
+class Cls{
+	
+	public a int = 9; //both styles
+	public b=9
+	
+	this() {
+	
+	}
+}
+
+def doings() String {
+	cc = new Cls()
+	return ""  + [cc.a, cc.b]
+}
+
+~~~~~
+//##2b. a useless no arg consturctor -sup
+
+class Cls{
+	
+	public a int = 9; //both styles
+	public b=92
+	
+	this() {
+		super()
+	}
+}
+
+def doings() String {
+	cc = new Cls()
+	return ""  + [cc.a, cc.b]
+}
+
+~~~~~
+//##3. defined a arg constructors
+class Cls{
+	
+	public a int = 9; //both styles
+	public b=9
+	public z = ""
+	
+	this(x int, y int) {
+		a=x
+		z += "hi" //special case
+		b *= y
+		
+	}//lol
+	
+	this(x int) {
+		a=2 //test direct assignment :)
+		b +=2
+	}
+	this() {
+		
+	}
+
+}
+
+def doings() String {
+	cc = new Cls(3)
+	cc2 = new Cls(7,8)
+	cc3 = new Cls()
+	return ""  + [cc.a, cc.b, cc2.a, cc2.b, cc3.a, cc3.b] + [cc.z, cc2.z, cc3.z]
+}
+
+~~~~~
+//##3b. defined a arg constructors
+
+class Cls{
+	
+	public a int = 9; //both styles
+	public b=9
+	public z = ""
+	
+	this(x int, y int) {
+		this.a=x
+		this.z += "hi" //special case
+		this.b *= y
+	}
+	
+	this(x int) {
+		this.a=2 //test direct assignment :)
+		this.b +=2
+	}
+	this() {
+		
+	}
+
+}
+
+def doings() String {
+	cc = new Cls(3)
+	cc2 = new Cls(7,8)
+	cc3 = new Cls()
+	return ""  + [cc.a, cc.b, cc2.a, cc2.b, cc3.a, cc3.b] + [cc.z, cc2.z, cc3.z]
+}
+
+~~~~~
+//##4. const calls eachother
+class Cls{
+	
+	public a int = 9; //both styles
+	public b=9
+		
+	this(x int) {
+		this.a=x;
+	}
+	
+	this(x int, y int) {
+		this(x)
+		this.b = y
+	}
+}
+
+def doings() String {
+	cc = new Cls(3)
+	cc2 = new Cls(7,8)
+	return ""  + [cc.a, cc.b, cc2.a, cc2.b]
+}
+
+~~~~~
+//##4b. const calls eachother - switch call to fwd ref
+class Cls{
+	
+	public a int = 9; //both styles
+	public b=9
+		
+	this(x int, y int) {
+		this(x)
+		this.b = y
+	}
+		
+	this(x int) {
+		this.a=x;
+	}
+}
+
+def doings() String {
+	cc = new Cls(3)
+	cc2 = new Cls(7,8)
+	return ""  + [cc.a, cc.b, cc2.a, cc2.b]
+}
+
+~~~~~
+//##5. Conveniant classes
+class Cls(public x int, public y int) {}
+
+def doings() String {
+	cc2 = new Cls(7,8)
+	return "" + [cc2.x, cc2.y]
+}
+
+~~~~~
+//##5b. Conveniant classes with extra
+class Cls(~x int, ~y int) {
+
+this(c int){ this(c,c) }
+}
+def doings() String {
+    cc = new Cls(8,9)	
+	cc2 = new Cls(7)
+	return ""  + [cc.x, cc.y, cc2.x, cc2.y] //-> 77
+}
+
+
+~~~~~
+//##6.superstuff
+open class ClsSu{
+	public a int = 9; //both styles
+	public b=7
+}
+
+class Child extends ClsSu{
+	public b=70
+	public c=99
+}
+
+def doings() String {
+	cc2 = new Child() //simple
+	return ""  + [cc2.a, cc2.b, cc2.c]
+}
+	
+	
+~~~~~
+//##7. super it some more
+open class ClsSup{
+	public a int = 9; //both styles
+	public b=7
+	public z=7
+	this(x int, y int){ 
+		a=x; b=y;
+	}
+}
+
+class Child extends ClsSup{
+	public b=70
+	public c=9
+	this(a1 int, a2 int, a3 int, a4 int)
+	{
+		super(a1, a2)
+		b=a3
+		c=a4
+		z=9
+	}
+}
+
+def doings() String {
+	cc2 = new Child(1,2,3,4)
+	ccSuper = cc2 as ClsSup //bit more advanced
+	return ""  + [cc2.a, cc2.b, cc2.c, cc2.z]  + [ccSuper.a, ccSuper.b, ccSuper.z]
+}
+
+~~~~~
+//##8. super it const call
+open class ClsSup{
+	public a int = 9; //both styles
+	public b=7
+	this(x int, b int)
+	{
+		a=x;
+		this.b = b //bonus check this is ok b=b?
+	}
+}
+
+class Child extends ClsSup{
+	public c=9
+	
+	this(x int,y int, c int)
+	{
+		super(x,y)
+		this.c=c
+	}
+	
+}
+
+def doings() String {
+	cc2 = new Child(65,54, 11)
+	return "" + [cc2.a, cc2.b, cc2.c]
+}
+
+~~~~~
+//##9. Conveniant classes super yeah
+open class Sup(~aa double, ~bb double, ~cc int) {}
+
+class Cls(~x int, ~y int, c int, d int, e int) extends Sup(c, d as double, e+2) {}
+
+def doings() String {
+	cc2 = new Cls(1,2,3,4,5)
+	return ""  + cc2.x + ", " + cc2.y + ", " + cc2.aa + ", " + cc2.bb + ", " + cc2.cc
+}
+
+~~~~~
+//##10. dunno
+open class ClsSup(~x int, ~y int){ this() {this(69,69);}}
+
+class Child extends ClsSup{
+
+}
+
+class Child2 extends ClsSup{
+	this() {}
+}
+
+def doings() String {
+	sup = new ClsSup()
+	supStr = [sup.x, sup.y]
+	cc1 = new Child()
+	cc2 = new Child()
+	return "" + [cc1.x, cc1.y] + [cc2.x, cc2.y] + supStr
+}
+
+
+~~~~~
+//##10. prefix post fix on fields via this
+class A1{
+	public v = 8
+	public p = 8
+	this(){
+		v++;
+		++p;
+	}
+}
+
+class A2{
+	public v = 8
+	public p = 8
+	this(){
+		this.v++;
+		++this.p;
+	}
+}
+
+class A3{
+	public v = 8
+	public p = 8
+	public g int
+	public g2 int
+	this(){
+		gl1 = v++;
+		gl2 = ++p;
+		
+		assert gl1==8
+		assert gl2==9
+		assert v==9
+		assert p==9
+		
+		g = v++;
+		g2 = ++p;
+	}
+}
+
+class A4{
+	public v = 8
+	public p = 8
+	public g int
+	public g2 int
+	public xtra int
+	this(){
+		gl1 = this.v++;
+		gl2 = ++this.p;
+		
+		assert gl1==8
+		assert gl2==9
+		assert this.v==9
+		assert this.p==9
+		
+		g = this.v++;
+		g2 = ++this.p;
+		
+		xtra = this.v + p
+	}
+}
+
+
+def doings() String {
+	str = ""
+	
+	a1 = new A1();
+	a2 = new A2();
+	a3 = new A3();
+	a4 = new A4();
+	
+	str += [a1.v, a1.p ] + ":"
+	str += [a2.v, a2.p ] + ":"
+	str += [a3.v, a3.p, a3.g, a3.g2 ] + ":"
+	str += [a4.v, a4.p, a4.g, a4.g2 , a4.xtra ] + ":"
+	
+	return str
+}
+
+~~~~~
+//##10. prefix post fix on fields via obj reference
+
+class A1(public x int, public y int, public z int){ public ss String="" }
+
+def doings() String {
+	
+	a1 = new A1(1,1, 10);
+	a = a1.x--
+	b = --a1.y
+	
+	a1.ss += "hi there"
+	
+	a1.x++
+	++a1.y
+	
+	a1.z /=2
+	
+	
+	return "" + [a, b, a1.x, a1.y, a1.z ] + a1.ss
+}
+
+~~~~~
+//##10. super field assignment and reference
+open class Sup(public x int) {}
+
+class Child extends Sup{
+
+	this(h int){
+		super(69)
+		super.x = h
+		super.x++
+		this.x++
+		assert 7 == super.x
+		assert 7 == this.x
+	}
+
+}
+
+def doings() String {
+	cc = new Child(5)
+	return "" + cc.x
+}
+
+~~~~~
+//##11. array fields doing stuff
+class Child{
+	public ar = [1,2, 0, 0,2]
+	this(h int, hi int){
+		this.ar[0] = h
+		this.ar[1] = hi
+		this.ar[2] += 1
+	}
+}
+
+def doings() String {
+	a = new Child(5,7)
+	a.ar[3] =1
+	a.ar[4]  *= 2
+	x = a.ar[4]
+	return "" + a.ar + x
+}
+
+~~~~~
+//##11. array fields more advanced
+class Minor{
+	public g = 0
+	public str = ""
+}
+
+class Holder{
+	public d = [new Minor(), new Minor(), new Minor(), new Minor(), new Minor()]
+	public x int = 0
+	public y int = 1
+	public elephant = 2
+	public ele2 int = 3
+	
+	public ohStuff int[];
+	
+	this(){
+		this.d[this.x].g =1
+		d[y].g =1
+		d[elephant].g =1
+		d[this.ele2].g =1
+	
+		this.d[this.x].g += 7;
+		d[y].g += 10;
+		d[elephant].g += 20;
+		d[this.ele2].g += 30;
+		
+		//string concat stuff
+		this.d[this.x].str += "s7";
+		d[y].str += "s10";
+		d[elephant].str += "s20";
+		d[this.ele2].str += "s30";
+				
+		
+		o0 = this.d[this.x].g
+		o1 = d[y].g
+		o2 = d[elephant].g
+		o3 = d[this.ele2].g
+		
+		ohStuff = [o0 o1 o2 o3]
+		//yobo = this.x
+	}
+}
+
+def doings() String {
+	hh = new Holder()
+	got = hh.d[0].g
+	//hh.d[2].g = 66
+	//another = hh.d[hh.y].g
+	
+	str = "["
+	for(x in hh.d){
+		str += x.g + ":=" + x.str +","
+	}
+	
+	return "" + got +":" + str +"]" + hh.ohStuff
+}
+
+~~~~~
+//##12. methods: simple invokation
+
+open class ClsSup(~x int, ~y int){ this() {this(69,69);}}
+
+class Child extends ClsSup{
+	public c int = 8
+	def dowork() int
+	{
+		c = this.x + this.y
+		return c
+	}
+}
+
+def doings() String {
+	cc2 = new Child()
+	prea = cc2.c
+	cc2.dowork()
+	wow = cc2.dowork()
+	return "" + [cc2.x, cc2.y, prea, cc2.c] + wow
+}
+
+~~~~~
+//##12. methods: self invokation
+
+def range(x int) int[]
+{
+	ret int[] = new int[x]
+	
+	for(n=0; n < x; n++)
+	{
+		ret[n] = n;
+	}
+	
+	return ret
+}
+
+class Child{
+	def fib(n int) int
+	{
+		return  1 if n == 1 or n==0 else this.fib(n-1)+this.fib(n-2)
+	}
+	
+	def fibstraight(n int) int
+	{
+		return  1 if n == 1 or n==0 else fibstraight(n-1)+ fibstraight(n-2)
+	}
+}
+
+def doings() String {
+	cc2 = new Child()
+	f1 = cc2.fib(1)
+	f2 = cc2.fib(9)
+	
+	gotier = ""
+	for( a in range(5))
+	{
+		gotier += cc2.fib(a) + "::"
+		gotier += cc2.fibstraight(a) + ","
+	}
+	return "" + [f1, f2] + gotier
+}
+
+~~~~~
+//##12. methods: involving farting about with arrays
+
+class Child{
+	fella = [0 0 0 0 0 0]
+	public xxx int; public xxx2 int;
+	def getAFella() int[]
+	{
+		return fella
+	}
+	
+	def incFella(n int, n2 int) int[]
+	{
+		getAFella()[n]++
+		++getAFella()[n2]
+		
+		xxx = getAFella()[n]++
+		xxx2 = ++getAFella()[n2]
+		
+		return getAFella()
+	}
+	
+	def setaFella(n int, m int) int[]
+	{
+		getAFella()[n] = m
+		return getAFella()
+	}
+	
+	def getIdx() int{
+		return 0
+	}	
+	
+	strola = [""  ""  ""  ""]
+	def fiddleStroller()
+	{
+		this.getStroller()[getIdx()] += "hiloo"
+		this.getStroller()[1] = "there"
+	}
+	
+	def getStroller() String[]{
+		return this.strola
+	}
+}
+
+class ChildOfThis{
+	fella = [0 0 0 0 0 0]
+	public xxx int; public xxx2 int;
+	def getAFella() int[]
+	{
+		return this.fella
+	}
+	
+	def incFella(n int, n2 int) int[]
+	{
+		this.getAFella()[n]++
+		++this.getAFella()[n2]
+		
+		xxx = getAFella()[n]++
+		xxx2 = ++getAFella()[n2]
+		
+		return this.getAFella()
+	}
+	
+	def setaFella(n int, m int) int[]
+	{
+		this.getAFella()[n] = m
+		return this.getAFella()
+	}
+	
+	def getIdx() int{
+		return 0
+	}	
+	
+	strola = [""  ""  ""  ""]
+	def fiddleStroller()
+	{
+		this.getStroller()[this.getIdx()] += "hiloo"
+		this.getStroller()[1] = "there"
+	}
+	
+	def getStroller() String[]{
+		return this.strola
+	}
+}
+
+def doings() String {
+	cc2 = new Child()
+	cctt = new ChildOfThis()
+	
+	cc2.fiddleStroller()
+	cctt.fiddleStroller()
+	
+	gotier = "" + cc2.getAFella() +""+ [cc2.xxx, cc2.xxx2]
+	gotier += cc2.incFella(0, 1)  +"" + [cc2.xxx, cc2.xxx2]
+	gotier += cc2.setaFella(2,44) +"" + [cc2.xxx, cc2.xxx2]
+	
+	gotier += ":"
+	
+	gotier += cctt.getAFella() +""+ [cctt.xxx, cctt.xxx2]
+	gotier += cctt.incFella(0, 1) +""+ [cctt.xxx, cctt.xxx2]
+	gotier += cctt.setaFella(2,44) +""+ [cctt.xxx, cctt.xxx2]
+	
+	gotier += cc2.getStroller()
+	gotier += cctt.getStroller()
+	
+	cctt.getAFella()[5]=99 //external
+	cctt.getStroller()[2] = "cools"
+	gotier +=cctt.getAFella()
+	gotier += cctt.getStroller()
+	
+	return "" + gotier
+}
+
+~~~~~
+//##13. methods: involving via super
+
+open class ClsSup(~x int, ~y int){ 
+
+	this() {this(69,69);}
+	
+	def dude() int { return this.x+y }
+
+}
+
+class Child extends ClsSup{
+	
+	def callSup() int{
+		return super.getX();
+	}
+
+	def callthis() int{
+		return this.getX();
+	}
+	
+	
+	def call() int{
+		try
+		{
+			assert false;
+			return 88
+		}
+		catch(e Throwable)
+		{
+			return getX();
+		}
+	}
+	
+}
+
+def pp(a int){}
+
+def doings() String {
+
+	chilled = new Child()
+	
+	a1 = chilled.callSup()
+	a2 = chilled.callthis()
+	a3 = chilled.call()
+	a4 = chilled.dude()
+		
+	return "" +  [a1, a2, a3, a4]
+}

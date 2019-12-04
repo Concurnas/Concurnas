@@ -1,0 +1,217 @@
+
+
+
+
+
+
+
+
+
+
+
+//type provieders, dist conc etc, big data, and gpu
+
+
+//then u go back and do concurrency
+//implicit returns syntax
+//u need to go through todo list and sort everything out!
+//refs and agents
+//bigdata
+//dynamic ... [etc make a list of this stuff...]
+//temporal logic reasoning
+//time as a varaiable
+//direct to gpu computation
+//modules
+//resource consuming computing
+
+
+
+
+
+
+
+
+
+
+
+//multiple files
+
+
+
+//really need to add public and private etc
+//somewhere a problemw with default constructors...
+
+//1. super constructor autogen
+//then override autogettersetter and constructor
+//code to automap to getters and setters
+
+
+
+
+
+
+
+
+//3. augogen code to call setter and getter if it exists - do at type check time because types taken returned may not match typ of object
+//e.g. u may have a setter which performs conversaion 
+//also: this for direct parameter access bypassing the getter and setter (only works if var is public)
+// obj\.doing = 69; bypass obj.setDoing(69)
+
+//returns and definite assigmemnt
+//a Object; //when does it get assinment
+//also if u decar a local and dont use it that should flag a warning
+
+//ide, tools, debugger, test coverage
+
+//log4j, spring, joda time, guice, play framework, html5 stuffs, code coverage, better uml
+//temporal logic
+
+//dist compute also consider remote agent pass around etc
+//move agent to data
+
+//warn if assingment does nothing
+
+//super abstract class, may not actually implement the interface but this is ok cos it's not instntiable
+//but the inheritors must!
+
+//code control what u can load etc
+
+// sss\.a = 444 ; <- performs direct field assigment
+
+//(e.g. only the stuff u define, or other things etc)
+
+//when in iteractive mode, abscence of ; will print to console?
+
+//sealed vs open class
+
+//Lowest common class, needs to cater for generic types much better
+
+//interfaces, also with default methods, do this later im tired
+//enums come later
+
+
+
+//write proper tests to account for the likes of: a2 int[2] = r[1:2, 2:3] //box in the array
+
+
+//if can returns
+
+//pattern matching - no
+
+//classes as objects
+
+//return scope anaylsis (ensure present in all paths), dead code analuysis
+//consturcotr call analysis
+//private etc
+
+//val = if(){}else{}
+
+//in place lambda type referenced
+
+//the LOG macro/ log.level("");//and only call if approperiate
+
+//finals | public private etc
+
+//master def called
+
+//infer ret type
+
+//missing a ret, then ok, assume last ref thing is returned - or break , continue
+
+///modules [also with a key for maven integration]
+
+//o = null;// o is object?
+
+//reactive, and temporal logic
+
+
+//maps need to be implemented properly without the m, and ;'s need to be inplace newline blah blah
+
+//odings doing nonsense on line doesnt cause comp failure, e.g.: ahdaksdka //what does this atually do?
+
+
+
+//ensure that superconstructors are callable, also superfunctions, supervars
+
+//? for generic (use object for now)
+
+//interfaces mixins, yntactical changes etc
+
+//seperate files
+//compiled stuff
+
+//optional ()'s on constructors
+//generic consturcor invokation call
+
+//null not allowed?
+
+
+
+
+//classes...
+//TODO: test multiple files, classes, up down sideways and below, ugh - nested and static classes
+//path: user defined java classes/jars/paths
+//user defined compilation directory
+//supers
+//unreachable cos after return and exception do later, or break , continue
+
+// ensure that this syntax works: a[3] = 99; what does the bytecode looks like for this>
+
+//array stuff make sure that rught type is chosen
+
+/*
+class AA(a String, b String)
+
+class A(v String[]) extends AA(v[0], v[1])
+{}
+
+*/
+//this is confusing
+/*
+class A[String]{}
+String = "2hi"
+//this is ok: def String() void {}
+*/
+
+//tests on type inference where it's a bit unclear who should win (bugs here)
+
+//nop removal code must run after the stuff which maps name.name; name.getName();
+
+//interfaces
+
+//array inference stuff
+
+//complete generics implmentation with the ?'s
+
+//This styntax error should give better error: a ArrayList[B] = (ArrayList[A]) (new Object() );
+
+
+/*
+permite the omission of the new keyword:
+
+class Box[T](t T) { 
+}
+In general, to create an instance of such a class, one needs to provide the type parameters:
+
+box Box<Int> = Box<Int>(1);
+box = Box(1) // 1 has type Int, so the compiler figures out that we are talking about Box<Int>
+
+1. perform generic qualificaition inference
+2. remove the need for the new keyword
+*/
+
+/*
+
+variables inside  block...
+
+if(val int = function())
+{
+int lives witin this scope...
+}
+
+
+{ classdef in here... }
+
+
+*/
+

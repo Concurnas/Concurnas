@@ -1,0 +1,25 @@
+x int = 6.6; //err cos wrong type
+x = 6.0f;    //assign existing fail - force this as float else double error on line gets masked by set operation
+
+unoh float =  6.6; //cannot set a double value to a float
+
+y void = 6;//not a valid type
+
+x double = 69.;//has already been defined
+
+z = ay;//reference something doesnt exist
+zz int = ay;
+
+zz=-1;//this is ok because the type of zz has been defined
+f = z;//not ok as no idea what type z is
+
+x -= 4.0;//fail because x is of type int
+g int = 7;
+g += false;//fail as cannot set thing thing to be false as aleady defined as int
+
+//SHOULD BE OK:
+x -=5; //already defined
+impli = 6; // implied type of int
+impli -= 4;
+itsok float = 5f;
+

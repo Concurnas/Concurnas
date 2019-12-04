@@ -1,0 +1,241 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Variable Assignment]{Variable Assignment}
+	\label{ch:assignment}
+Let us first define what is means to declare a variable. A variable declaration consists of a variable name and a type. Variable names can be any combination of standard ASCII alphanumeric characters or non ASCII Unicode characters. Types may be either primitive, tuples, typedefs, Object types (which includes user defined classes) or refs to the aforementioned types. For example:
+\begin{lstlisting}
+anint int //a primative type
+atuple (String, int) //a tuple
+
+typedef MyMap = java.lang.HashMap<String, String> //a typedef
+aMyMap MyMap //use of a typedef
+
+class MyClass //a class declaration
+anObject MyClass //use of a class
+
+aref int: //a ref of type int
+\end{lstlisting}
+
+\section{Scopes}
+Usually if we declare a variable then we'd wish to assign a value to it at some point during the bounded scope of said variable. The bounded scope constitutes the inner most pair of curly braces and any nested braces within in which the variable is declared. Variables can only be assigned to and used within their bounded scope.
+
+\begin{lstlisting}
+if(something()){
+	anint = 99
+	if(somethingelse()){
+		anint = anint + 1
+	}
+}
+//anint cannot be used after this point as that usage would be outside its bounded scope, the following is invalid:
+res = anint//invalid useage
+\end{lstlisting}
+
+It can sometimes be useful to define a scope on its own (i.e. not associated with a control structure such as a if else statement or a function definition etc). This can be achieved as follows:
+
+\begin{lstlisting}
+{
+	anint = 99
+	//do somethiing with anint
+}
+//anint is no longer in scope at this point...
+\end{lstlisting}
+
+\section{Assigning values}
+We can assign a value to a predeclared variable using the assignment operator \lstinline{=} as follows:
+
+\begin{lstlisting}
+avar int//declaration
+
+avar = 99 //assignment
+\end{lstlisting}
+
+More commonly we perform the initial assignment and variable declaration in the same step. This has the added advantage of allowing Concurnas to use type inference (if we wish) in order to determine the type of the variable for us, saving us the effort of having to write out a verbose type and increasing readability of our code. 
+
+So instead of this:
+\begin{lstlisting}
+avar int = 99
+\end{lstlisting}
+
+We can write this:
+
+\begin{lstlisting}
+avar = 99
+\end{lstlisting}
+
+Concurnas is an optionally type inferred language. What this means in practice is that 90\% of the time it’s not necessary to explicitly specify the type of a variable
+
+The optionality in Concurnas’ design regarding inference is useful for describing problems with complex typing structure which otherwise would not be obvious to determine from reading the code.
+
+\section{val and var}
+The \lstinline{val} and \lstinline{var} keywords are useful in two ways. First, either one make it explicitly clear that one is defining a new variable and secondly, the \lstinline{val} keyword stipulates that no assignment post initial declaration/assignment is permitted. For example:
+
+\begin{lstlisting}
+var anint = 99
+val another = 99
+\end{lstlisting}
+
+Both the above variables are new (it would be a compilation error if they had already been declared in the scope prior to the above code), and in the case of the \lstinline{another} variable, it cannot be reassigned.
+
+\section{Unassigned declared variables}
+It's considered a compilation error to define a variable but never assign a value to it (or to attempt to use a variable at a point after declaration when it's possible that execution of the code has progressed through a path in which a value is not assigned). The only case in which it's valid to declare a variable but not assign it a value is where the variable is a of a ref type (used to communicate between isolates - the principle unit of concurrency in Concurnas). For example:
+\begin{lstlisting}
+def assignIntRef(an int:){//function to assign a value to a ref
+	an = 15
+}
+
+aint int: //declaration of a local ref
+
+onchange(aint) => System out println "aint was assigned: {aint}"
+
+assignIntRef(aint)
+\end{lstlisting}
+
+\section{Multi Assignment}
+Sometimes it can be useful to assign a value to more than one variables. To this end Concurnas supports multi assignment:
+
+\begin{lstlisting}
+a = b = 20
+
+//a == 20
+//b == 20
+\end{lstlisting}
+
+We can have as many expressions as we like on the left hand side of the multi assignment before the final expression which we are assigning from. The expressions on the left hand side chain can be of any format normally valid on the left hand side of an expression:
+\begin{lstlisting}
+ar = new int[10](0)
+val aval = ar[1] = ar[5] = 30
+
+//aval == 30
+//ar == [0 30 0 0 0 30 0 0 0 0]
+\end{lstlisting}
+
+Note that the expression on the right hand side is only evaluated once, the assignees on the left hand side chain receive the same reference to the right hand side value, i.e. No copy is made.
+\begin{lstlisting}
+myArray = [1 2 3]
+b = c = myArray
+
+b[0] = 99
+
+//b == [99 2 3]
+//c == [99 2 3]
+\end{lstlisting}
+
+One is not limited to the use of just the \lstinline{=} assignment, one may use any valid assignor in the chain:
+\begin{lstlisting}
+a = 100
+a += b = 2
+
+//a == 102
+//b == 2
+\end{lstlisting}
+
+\section{Compound assignment}
+Compound assignment refers to assignments performed on variables which have been defined already and which apply an operator in addition to assigning a new value to said variable. These are: \lstinline{+=}, \lstinline{-=}, \lstinline{*=}, \lstinline{/=}, \lstinline{**=}, \lstinline{mod=}, \lstinline{or=}, \lstinline{and=}, \lstinline{<<=}, \lstinline{>>=}, \lstinline{>>>=}, \lstinline{band=}, \lstinline{bor=}, \lstinline{bxor=}. Taking the addition assignment operator, \lstinline{+=} as an example, the following two statements are functionally identical:
+
+\begin{lstlisting}
+a1 = a2 = 10
+
+a1 += 1
+a2 = a2 + 1
+
+assert a1 == a2
+\end{lstlisting}
+
+That is to say, \lstinline{a1 += 1} is essentially shorthand for: \lstinline{a1 = a1 + 1}.
+
+The compound assignment operators may be applied to array reference operations as follows:
+
+\begin{lstlisting}
+a1 = [1 2 3]
+
+a1[0] += 1
+
+assert a1 == [2 2 3]
+\end{lstlisting}
+
+Again, \lstinline{a1[0] += 1} is essentially shorthand for: \lstinline{a1[0] = a1[0] + 1}.
+
+\section{Lazy variables}
+The form of evaluation used in Concurnas is "eager evaluation" - i.e. as soon as an expression is bound to a variable, it is evaluated. Additionally, this can occur concurrently in the case of ref assignments occurring in differing iso’s. Let’s look at an ordinary example:
+
+\begin{lstlisting}
+myvar = {1+3}
+\end{lstlisting}
+
+In the above example, after the \lstinline{1+3} expression is bound to the variable myvar, it is executed. Thereafter myvar holds the value of 4.
+
+There are some problems for which this form of eager evaluation is inappropriate and for which we’d prefer to defer execution of the expression until the associated bound variable is accessed. This is lazy evaluation and Concurnas offers a controlled form of this expressed in the form of lazy variables.
+
+We can define a lazy variable as follows:
+\begin{lstlisting}
+lazy myvar = {1+3}
+\end{lstlisting}
+
+Now, only when myvar is accessed is the bound expression \lstinline{1+3} evaluated. Note also that this evaluation occurs only once. Subsequent assignments to the variable are possible and the associated bound expressions will only be evaluated once the variable is accessed, just like the initial assignment.
+
+Let’s look at a more interesting example. First, normal execution without a lazy variable:
+
+\begin{lstlisting}
+a = 100
+myvar = {a=400; 22}//assign, with side effect of re-assigning a
+
+res = [a myvar a] //lets create an array holding the value of a, the evaluated myvar and a again
+
+//res == [400 22 400]
+\end{lstlisting}
+
+In the above case we see that in assigning a value to \lstinline{myvar}, we invoke the side effect of assigning a new value to a. Since this occurs as \lstinline{myvar} is initially created, before we have a chance to first access \lstinline{a}, we only see a as having the new value of \lstinline{400}. And this is reflected in the first and last elements of the \lstinline{res} array referring to the value of variable \lstinline{a}. Let’s change this with a lazy variable:
+
+\begin{lstlisting}
+a = 100
+lazy myvar = {a=400; 22}//assign, with side effect of re-assigning a
+
+res = [a myvar a] //lets create an array holding the value of a, the evaluated myvar and a again
+
+//res == [100 22 400]
+\end{lstlisting}
+
+Now we can see that we can see the initial value of a, since when we are creating our \lstinline{res} array, we access a before we access \lstinline{myvar}, since the expression bound to \lstinline{myvar} is lazy evaluated and has not yet been evaluated, the side effect assigning the value of \lstinline{400} to a has not yet occurred. However, after accessing \lstinline{myvar} for our second array value, a is not assigned the value \lstinline{400} and this is reflected when we extract the value for the final element of the array.
+
+Where function or method parameters are defined as being lazy, the passed bindings are only evaluated upon use within the function or method. For example:
+\begin{lstlisting}
+a = 100
+
+def makeArray(lazy operate int) => [a operate a]
+
+res = makeArray({a=400; 22})
+
+//res == [100 22 400]
+\end{lstlisting}
+
+We see in the above example, that the block passed as an argument to the \lstinline{makeArray} function is only evaluated during execution of said function - and not initial invocation of the function.
+
+Behind the scenes, in order to implement lazy variables, we are overloading the unassign operator(see operator overloading). What if we don't want to evaluate the bound expression of a lazy variable when we refer to it, for instance when passing it to a function invocation? In this case we can use the \lstinline{:} operator as follows:
+\begin{lstlisting}
+a = 100
+lazy myvar = {a=400; 22}//assign, with side effect of re-assigning a
+
+def makeArray(lazy operate int) => [a operate a]
+
+res = makeArray(myvar:)
+
+//res == [100 22 400]
+\end{lstlisting}
+
+Here we are preventing unassignment of \lstinline{myvar}, instead this (and therefore execution of the binding of \lstinline{myvar}) is allowed to occur within the \lstinline{makeArray} function.
+
+We can make use of lazy variables within function/method references as follows:
+
+\begin{lstlisting}
+a = 88
+
+def afunc(lazy operate int) => [a operate a]
+
+xx = afunc&(lazy int)
+res = xx({a=400; 22})
+
+//res == [100 22 400]
+\end{lstlisting}
+
+\end{document}

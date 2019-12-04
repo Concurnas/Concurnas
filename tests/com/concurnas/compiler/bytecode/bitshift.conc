@@ -1,0 +1,673 @@
+//##1. simple bitshifts
+
+def shiftints(){
+	a = 17
+	x1 = a << 2
+	x2 = a >> 2
+	x3 = a >>> 2
+
+	"" + [x1, x2, x3]
+}
+
+
+def shiftlongs(){
+	a = 17L
+	x1 = a << 2
+	x2 = a >> 2
+	x3 = a >>> 2
+
+	"" + [x1, x2, x3]
+}
+
+def shiftintsbox(){
+	a = Integer(17)
+	x1 = a << 2
+	x2 = a >> 2
+	x3 = a >>> 2
+
+	"" + [x1, x2, x3]
+}
+
+def shiftlongsbox(){
+	a = Long(17L)
+	x1 = a << 2
+	x2 = a >> 2
+	x3 = a >>> 2
+
+	"" + [x1, x2, x3]
+}
+
+def shiftchar(){
+	a = 'c' 
+	x1 = a << 2
+	x2 = a >> 2
+	x3 = a >>> 2
+
+	"" + [x1 as int, x2 as int, x3 as int]
+}
+
+def doings(){
+	"" + [shiftints(), shiftlongs(), shiftintsbox(), shiftlongsbox(), shiftchar()]
+}
+
+~~~~~
+//##2. bitshift operator overloading
+class OpOver{
+	def <<(a int){
+		'left shift {a}'
+	}
+	
+	def >>(a int){
+		'right shift {a}'
+	}
+	
+	def >>>(a int){
+		'right shift unsigned {a}'
+	}
+
+}
+
+
+def doings(){
+	oop = OpOver()
+	x1 = oop << 2
+	x2 = oop >> 2
+	x3 = oop >>> 2
+
+	"" + [x1, x2, x3]
+}
+
+~~~~~
+//##3. bitshift assignment
+
+def bitshiftassignInt(){
+	a1 = 16
+	a2 = a1
+	a3 = a1
+	
+	a1 <<= 2
+	a2 >>= 2
+	a3 >>>= 2
+	
+	[a1, a2, a3]
+}
+
+
+def doings(){
+	"" + bitshiftassignInt()
+}
+
+~~~~~
+//##4. bitshift assignment array
+
+def bitshiftassignInt(){
+	a1 = [16]
+	a2 = [16]
+	a3 = [16]
+	
+	a1[0] <<= 2
+	a2[0] >>= 2
+	a3[0] >>>= 2
+	
+	[a1, a2, a3]
+}
+
+
+def doings(){
+	"" + bitshiftassignInt()
+}
+
+~~~~~
+//##5. bitshift assignment list
+
+def bitshiftassignInt(){
+	a1 = [16]
+	a2 = [16]
+	a3 = [16]
+	
+	a1[0] <<= 2
+	a2[0] >>= 2
+	a3[0] >>>= 2
+	
+	[a1, a2, a3]
+}
+
+
+def doings(){
+	"" + bitshiftassignInt()
+}
+
+~~~~~
+//##6. bitshift assignment map
+
+def bitshiftassignInt(){
+	ar = {0 -> 16}
+	a1 = ar
+	a2 = ar@
+	a3 = ar@
+	
+	a1[0] <<= 2
+	a2[0] >>= 2
+	a3[0] >>>= 2
+	
+	[a1[0], a2[0], a3[0]]
+}
+
+def doings(){
+	"" + bitshiftassignInt()
+}
+
+~~~~~
+//##7. bitshift operator overload on assignment
+
+
+class OpOver{
+	msg = 'none' 
+	def +=(a int){
+		msg = 'plus {a}'
+		this
+	}
+	def <<=(a int){
+		msg = 'left shift {a}'
+		this
+	}
+	
+	def >>=(a int){
+		msg = 'right shift {a}'
+		this
+	}
+	
+	def >>>=(a int){
+		msg = 'right shift unsigned {a}'
+		this
+	}
+	
+	override toString() => msg
+}
+
+
+def doings(){
+	oop0 = OpOver()
+	oop1 = OpOver()
+	oop2 = OpOver()
+	oop3 = OpOver()
+	
+	oop0 += 2
+	oop1 <<= 2
+	oop2 >>= 2
+	oop3 >>>= 2
+
+	"" + [oop0, oop1, oop2, oop3]
+}
+
+~~~~~
+//##8. bitshift constant folding
+
+def doings(){
+	oop1  = 16 << 2
+	oop2  = 16 >> 2
+	oop3  = 16 >>> 2
+
+	longer = 100L >> 2
+	chari = 'c' >> 2
+
+	"" + [oop1, oop2, oop3, longer, chari]
+}
+
+~~~~~
+//##9. bitwise compliment
+
+def compx(){
+	a = 0b00000011
+	ll = 3L
+	cc = 'c'
+	
+	x1 = comp a
+	x2 = comp ll
+	x3 = comp cc
+	
+	"" + [x1, x2, x3]
+}
+
+
+def compxBOX(){
+	a Byte = 0b00000011
+	ll Long = 3L
+	cc Character = 'c'
+	
+	x1 = comp a
+	x2 = comp ll
+	x3 = comp cc
+	
+	"" + [x1, x2, x3]
+}
+
+class MyClass1{
+	def comp(){
+		'comp called'
+	}
+}
+
+def opoverload(){
+	mc = comp MyClass1()
+	"" + mc
+}
+
+def constFold(){
+	a = comp 0b00000011
+	"" + a
+}
+
+
+def doings(){
+	"" + [compx(), compxBOX(), opoverload(), constFold()]
+}
+
+~~~~~
+//##10. pretty print
+
+def doings(){
+	orig byte = 0b00000011
+	compilment = comp orig
+	
+	"" + Integer.toBinaryString((compilment+256) mod 256)
+}
+
+~~~~~
+//##11. bitshift operators
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+
+def intOpers(){
+	bitmask = 0b00000001;
+ 	value = 0b00010101;//15
+ 	
+ 	x1 = value band bitmask
+ 	x2 = value bor bitmask
+ 	x3 = value bxor bitmask
+ 	
+ 	""+ [pprint(x1), pprint(x2), pprint(x3)]
+}
+
+def doings(){
+	"" + [intOpers(), ]
+}
+
+~~~~~
+//##12. bitshift operators long
+
+def pprint(xx long) => Long.toBinaryString((xx+256) mod 256)
+
+def intOpers(){
+	bitmask = 123L;
+ 	value = 121;//15
+ 	
+ 	x1 = value band bitmask
+ 	x2 = value bor bitmask
+ 	x3 = value bxor bitmask
+ 	
+ 	""+ [pprint(x1), pprint(x2), pprint(x3)]
+}
+
+def doings(){
+	"" + [intOpers(), ]
+}
+
+~~~~~
+//##13. char and hexes
+
+def pprint(xx int) => Long.toBinaryString((xx+256) mod 256)
+
+def charop(){
+	bitmask = 'c';
+ 	value = 121;//15
+ 	
+ 	x1 = value band bitmask
+ 	x2 = value bor bitmask
+ 	x3 = value bxor bitmask
+ 	
+ 	""+ [pprint(x1), pprint(x2), pprint(x3)]
+}
+
+def hexop(){
+	bitmask = 0x000F;
+ 	value = 0x2222;//15
+ 	
+ 	x1 = value band bitmask
+ 	x2 = value bor bitmask
+ 	x3 = value bxor bitmask
+ 	
+ 	""+ [x1, x2, x3]
+}
+
+
+def doings(){
+	"" + [charop(), hexop()]
+}
+
+~~~~~
+//##14. op overload of bitwise operatrions 
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+
+class MyOpClass{
+	def bor(arg int){
+		"bor called: " + pprint(arg)	
+	}
+
+	def bxor(arg int){
+		"bxor called: " + pprint(arg)		
+	}
+
+	def band(arg int){
+		"band called: " + pprint(arg)		
+	}
+}
+
+def doings(){
+	mc = MyOpClass()
+ 	bitmask = 121;//15
+ 	
+ 	x1 = mc band bitmask
+ 	x2 = mc bor bitmask
+ 	x3 = mc bxor bitmask
+ 	
+ 	""+ [x1, x2, x3]
+}
+
+~~~~~
+//##15. bitwise assignment 
+
+def pprint(xx int) => String.format("%8s", Integer.toBinaryString((xx+256) mod 256)).replace(" ", "0"); 
+
+def intOpers(){
+ 	value1 = 0b00010101;
+ 	value2 = 0b00010101;
+ 	value3 = 0b00010101;
+ 	
+	bitmask = 0b00000001;
+ 	
+ 	value1 band= bitmask
+ 	value2 bor= bitmask
+ 	value3 bxor= bitmask
+ 	
+ 	""+ [pprint(value1), pprint(value2), pprint(value3)]
+}
+
+def doings(){
+	"" + [intOpers(), ]
+}
+
+~~~~~
+//##16. bitwise assignment - array 
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+
+def intOpers(){
+ 	value1 = [0b00010101]//15
+ 	value2 = [0b00010101]//15
+ 	value3 = [0b00010101]//15
+ 	
+	bitmask = 0b00000001;
+ 	
+ 	value1[0] band= bitmask
+ 	value2[0] bor= bitmask
+ 	value3[0] bxor= bitmask
+ 	
+ 	""+ [pprint(value1[0]), pprint(value2[0]), pprint(value3[0])]
+}
+
+def doings(){
+	"" + [intOpers(), ]
+}
+
+~~~~~
+//##17. bitwise assignment - list 
+
+from java.util import ArrayList
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+
+def intOpers(){
+	ar = ArrayList<int>()
+	ar.add(0b00010101)
+
+ 	value1 = ar
+ 	value2 = ar@
+ 	value3 = ar@
+ 	
+	bitmask = 0b00000001;
+ 	
+ 	value1[0] band= bitmask
+ 	value2[0] bor= bitmask
+ 	value3[0] bxor= bitmask
+ 	
+ 	""+ [pprint(value1[0]), pprint(value2[0]), pprint(value3[0])]
+}
+
+def doings(){
+	"" + [intOpers(), ]
+}
+
+~~~~~
+//##18. bitwise assignment - hashmap 
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+
+def intOpers(){
+	ar = { 0 -> 0b00010101 }
+
+ 	value1 = ar
+ 	value2 = ar@
+ 	value3 = ar@
+ 	
+	bitmask = 0b00000001;
+ 	
+ 	value1[0] band= bitmask
+ 	value2[0] bor= bitmask
+ 	value3[0] bxor= bitmask
+ 	
+ 	""+ [pprint(value1[0]), pprint(value2[0]), pprint(value3[0])]
+}
+
+def doings(){
+	"" + [intOpers(), ]
+}
+
+~~~~~
+//##19. bitwise assignment - op overloading 
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+
+class MyOpClass{
+	msg = ""
+	def bor=(arg int){
+		msg = "bor called: " + pprint(arg)	
+		this
+	}
+
+	def bxor=(arg int){
+		msg = "bxor called: " + pprint(arg)
+		this		
+	}
+
+	def band=(arg int){
+		msg = "band called: " + pprint(arg)
+		this		
+	}
+	
+	override toString() => msg
+}
+
+def doings(){
+	mc1 = MyOpClass()
+	mc2 = MyOpClass()
+	mc3 = MyOpClass()
+ 	bitmask = 121;//15
+ 	
+ 	mc1 band= bitmask
+ 	mc2 bor= bitmask
+ 	mc3 bxor= bitmask
+ 	
+ 	""+ [mc1, mc2, mc3]
+}
+
+~~~~~
+//##20. bitwise constant folding 
+
+def pprint(xx int) => Integer.toBinaryString((xx+256) mod 256)
+def pprint(xx long) => Long.toBinaryString((xx+256) mod 256)
+
+def intOpers(){ 	
+ 	x1 = 0b00010101 band 0b00000001
+ 	x2 = 0b00010101 bor 0b00000001
+ 	x3 = 0b00010101 bxor 0b00000001
+ 	
+ 	""+ [pprint(x1), pprint(x2), pprint(x3)]
+}
+
+def longOps(){ 	
+ 	x1 = 21l band 0b00000001
+ 	x2 = 21l bor 0b00000001
+ 	x3 = 21l bxor 0b00000001
+ 	
+ 	""+ [pprint(x1), pprint(x2), pprint(x3)]
+}
+
+def doings(){
+	"" + [intOpers(), longOps()]
+}
+
+~~~~~
+//##21. check short circuting works ok
+
+c1 = 0
+c2 = 0
+
+def r1() => c1++; true
+def r2() => c2++; true
+
+def doings(){
+	if(r1() or r2()){}//r2() should never get called
+	
+	"" + [c1, c2]
+}
+
+~~~~~
+//##22. is statement auto casts usage
+
+class Myclass{
+	def athing() => "lovely"
+}
+
+def proc(an Object){
+	f1 = if(an is Myclass){
+		an.athing()
+	}else {'fail' }
+	
+	f2 = an.athing() if an is Myclass else 'fail'
+	
+	f1+f2
+}
+
+def doings(){
+	proc(Myclass())
+}
+
+~~~~~
+//##23. is statement auto casts pre short ciruit point
+
+class Myclass{
+	def athing() => "lovely"
+}
+
+def dd() => true
+
+def proc(an Object){
+	f1 = if(an is Myclass or dd()){
+		an.athing()//does auto cast as past short cirucuited point
+	}else {'fail' }
+	
+	f2 = an.athing() if an is Myclass or dd() else 'fail'
+	//does auto cast as past short cirucuited point
+	""+f1+f2
+}
+
+def doings(){
+	proc(Myclass())
+}
+
+~~~~~
+//##24. is auto cast on refs
+
+class Myclass{
+	def athing() => "lovely"
+}
+
+
+
+def proc(an Object){
+	f1 = if(an is Myclass: ){
+		an.athing()
+		//(an as Myclass:):get().athing()
+	}else {'fail' }
+	
+	f2 = an.athing() if an is Myclass: else 'fail'
+	"" +f1+f2
+}
+
+def doings(){
+	proc(Myclass():)
+}
+
+~~~~~
+//##25. expression list
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+}
+
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit 4
+	"" + res
+}
+
+~~~~~
+//##26. expression list valid expression consumed first
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+}
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit 2+2
+	"" + res
+}
+
+~~~~~
+//##27. expression list more complex example
+
+class Myclass(b int){
+	def doit(a int) => (a+b)*2
+	def doittwice(a int, c int) => (a+b)*c
+}
+
+def doings(){
+	mc = Myclass(4)
+	res = mc doit 4
+	res2 = mc doittwice 4 3
+	"" + [res, res2]
+}
+
+~~~~~
+//##28. expression list calling an extension function operating on a primative 
+
+def int addtwice(a int) => this + a + a
+
+def doings(){
+
+	"" + (12 addtwice 7)
+}

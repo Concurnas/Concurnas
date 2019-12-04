@@ -1,0 +1,368 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Generics]{Generics}
+	\label{ch:generics}
+
+Generics are an extremely useful part of modern object oriented programming. They allows us to create 'generic' data structures and work with data in a 'generic' fashion, that is to say, they allow us to write code (only once) to work with different classes of instance objects in a type safe manner. Let's look at an example from the pre generic programming days:
+
+\begin{lstlisting}
+class Holder(~holds Object)
+\end{lstlisting}
+
+Above we have defined a \lstinline{Holder} class which holds just one value. So that we can hold instance objects of any type of class, we declared the \lstinline{holds} field (accessible via an auto generated getter and setter) to be of type Object. Now let's use it:
+
+\begin{lstlisting}
+holder = new Holder("hi there")
+got String = holder.getHolds() as String
+\end{lstlisting}
+
+Because \lstinline{getHolds} returns a type Object, we must always cast the return value back to the type which we stored in the Holder. Note that we must remember what the type is, this is not automatic, this code is not type safe. The following would be perfectly valid code at compile time, but would throw a case exception at runtime:
+
+\begin{lstlisting}
+holder = new Holder("hi there")
+
+holder.setHolds(new Integer(123))//this is ok, Integer is a subtype of Object
+
+got String = holder.getHolds() as String //this will throw a cast exception at runtime because the held value is an integer and not a String thanks to the previous setter call
+\end{lstlisting}
+
+Surely, there is a better way to do this. Enter generic programming which provides a typesafe mechanism to achieve this.
+
+First we redefine our Holder class with a generic parameter \lstinline{X} which is used in place of all instances of the type of our generic parameter:
+
+\begin{lstlisting}
+class Holder<X>(holds X){
+	def getHolds() X {
+		return holds
+	}
+	
+	def setHolds(newHolds X) void {
+		this.holds = newHolds
+	}
+}
+\end{lstlisting}
+
+When defining generic types the diamonds \lstinline{<>} are used and a comma separated list of generic type parameters are specified. 
+
+When specifying generic types it has become customary to use a single uppercase letter to denote the generic type. Not that this is not a requirement, the name used can any valid identifier - but watch out for clashes.
+
+We shall now use the holder in a type safe manner:
+
+\begin{lstlisting}
+holder = new Holder<String>("hi there")
+
+holder.setHolds(123)//this now results in a compile time error!
+
+held String = holder.getHolds() //no cast required
+
+holder.setHolds("new value") //this is ok
+\end{lstlisting}
+
+Above we can see that we are creating a generic instance of \lstinline{Holder} with the \lstinline{new} operator by qualifying the generic parameters as a comma separated list inside a diamond pair \lstinline{<>}.
+
+We can use any object type and even primitive types as qualifiers for generic types. For instance the following are all valid variable declarations of the generic type \lstinline{Holder}:
+
+\begin{lstlisting}
+class Holder<X>(holds X)
+
+inst1 Holder<String>
+inst2 Holder<Object>
+inst3 Holder<Integer>
+inst4 Holder<int>
+inst5 Holder<java.util.ArrayList<String>>
+\end{lstlisting}
+
+
+If a class has generic parameters, these must be defined when creating instance objects of them (unless the qualification is inferable, see below) and when referring the type. So for example, the below is not valid:
+
+\begin{lstlisting}
+class Holder2<X>{
+	~holds X
+}
+
+aholder Holder2 //invalid as we are missing a generic type qualification
+another = new Holder2()//also invalid as the generic type qualification is missing and it's not infereable from the constructor (since there are no arguments referencing the generic type)
+\end{lstlisting}
+
+\section{Generic qualifications for super classes}
+Where a super class specifies generic types these can be qualified by using the diamond symbols \lstinline{<>} with either another generic type or a concrete type. For example, the following are all valid:
+
+\begin{lstlisting}
+open class SuperClass<X, Y>
+
+class Child1 < SuperClass<String, Integer>//supertype qualified with concrete types
+
+class Child2<A, B, C> < SuperClass<String, Integer>//generic types defined for subclass, unused as far as the superclass qualification is concerned
+
+class Child3<A> < SuperClass<A, Integer>//we use a generic type from the definition of the sub class.
+
+class Child4<A, B> < SuperClass<B, A>//all superclass generic parameters are taken from the subclass
+
+class Child5<A, B> < SuperClass<java.util.HashSet<B>, java.util.HashMap<B, A>>//Here we are using the generic classes from the subclass within concrete classes qualifying the superclass generic types
+
+typedef MyMap<X> = java.util.HashMap<String, X>
+class Child6<A, B> < SuperClass<int, MyMap<A>>//now we are referring to a typedef. This code is equivalent to writing: class Child6<A, B> < SuperClass<int, java.util.HashMap<String, A>>
+\end{lstlisting}
+
+\section{Inference of generic types}
+Concurnas is able to infer the generic type qualification of a generic type parameter in a generic class via two mechanisms. Constructor argument qualification and Via usage qualification:
+
+\subsection{Constructor argument qualification}
+The generic types of an instance of a generic class type can be inferred provided that they are referenced in a constructor creating an instance of the generic class type by examining the type of the arguments passed to that constructor. For example:
+
+\begin{lstlisting}
+class Holder<X>(~holds X)
+
+inferred = new Holder("hi there")
+\end{lstlisting}
+
+Above, \lstinline{inferred} is inferred as being of type Holder<String>.
+
+In the case where there are multiple potential types which could quality the generic type, the most specific one is used. For example:
+
+\begin{lstlisting}
+class PairHolder<X>(a X, b X)
+
+infered = new PairHolder(12, 56.22)
+\end{lstlisting}
+
+Above, \lstinline{inferred} is inferred as being of type \lstinline{PairHolder<Number>}, as the two arguments satisfying \lstinline{X} are both subtypes of type \lstinline{Number}.
+
+\subsection{Via usage qualification}
+Concurnas is able to infer generic types based on their localized usage, post construction in a local variable, a top level variable or class field. This is a really powerful mechanism and saves us lots of time when writing code which uses generics, especially when we are not initially calling a constructor which Concurnas can use as par above ("Constructor argument qualification"), in order to infer the constructed object's generic qualification(s). For a variable or field that is missing generic qualification(s) Concurnas is able to infer those generics based on (amongst other things) what methods are called on the variable, what method references are created based on the variable, what values it is later assigned, methods it is passed to as an argument, what generic fields are directly set etc. Here is an example:
+
+\begin{lstlisting}
+class Holder<X>{
+	~holds X
+}
+
+holder = new Holder()//holder instance is inferred to be of type Holder<String> based on usesage below
+holder.holds("hi there")
+\end{lstlisting}
+
+Above we see that the \lstinline{holder} variable, when declared, it omitting its single genetic type qualification of \lstinline{X}. Concurnas is able to infer the type of this though via the usage of \lstinline{holder} - the \lstinline{holds}'s method method is called upon it and this information is used to qualify the generic parameter \lstinline{X} to \lstinline{String}.
+
+This is an especially useful feature which allows us to define and use some of the Concurnas built in (and auto included) functions as follows:
+
+\begin{lstlisting}
+typedef set = java.util.HashSet
+
+myset = set()//based on the usage below myset is inferred to be java.util.HashSet<Integer>
+
+myset.add(1)
+myset.add(2)
+myset.add(3)
+\end{lstlisting}
+
+We see above that \lstinline{myset} is inferred to be of generic type \lstinline{java.util.HashSet<Integer>} based on the fact that calls to the \lstinline{add} method pass in a value of (boxed object) type \lstinline{Integer} which qualifies the \lstinline{java.util.HashSet}'s single declared genetic type.
+
+\subsubsection{Partial inference}
+Concurnas is able to infer the full generic type qualification for multiple generic types in the case where one or more is qualified via a constructor, and one of more is qualified via usage like so:
+
+\begin{lstlisting}
+class Both<X, Y>(x X){
+	def takesOne(b Y){}
+}
+
+both = new Both(12)//based on constructor and usage below Both<X, Y> is inferrred to: Both<Integer, String>
+both.takesOne("ok")
+\end{lstlisting}
+
+Above we see that the generic qualifiers for the \lstinline{Both} instance is inferable from the constructor call and subsequent usage of the object \lstinline{bot} to be: \lstinline{Integer, String}
+
+\section{Generics for Methods}
+So far we have seen generics being used in the context of classes to make generic classes. But we can also make generic methods and functions. Here are some examples:
+
+\begin{lstlisting}
+class Holder<X>(~held X)
+
+def extractFromHolder<X>(holder Holder<X>) X {
+	return holder.getHeld()
+}
+
+def swap<X>(h1 Holder<X>, h2 Holder<X>) void {
+	tmp = h1.held
+	h1.held = h2.held
+	h2.held = tmp
+}
+
+def duplicator<X>(todup X) X[]{
+	return [todup todup]
+}
+\end{lstlisting}
+
+We can call the above functions in just the same way as we ordinarily invoke functions:
+
+\begin{lstlisting}
+res = duplicator<String>("x")//we must qulify the generic parameter type
+//res => ["x" "x"]
+\end{lstlisting}
+
+\subsection{Inference of Generics for Methods}
+Concurnas is able to infer the generic types at invocation point for a method having generic types defined. Carrying on from our previous example:
+
+\begin{lstlisting}
+res1 = duplicator(12) //allow Concurnas to infer the generic type
+//res => [12 12]
+\end{lstlisting}
+
+Nested methods/functions may also have generic types.
+
+\section{Generic lambdas}
+Generic Lambdas may be declared and used in the following manner:
+
+\begin{lstlisting}
+lam = def <X>(inst X) X[] { [inst inst]}
+res = lam(12)
+//res == [12 12]
+\end{lstlisting}
+
+Concurnas is able to infer the generic types based upon usage of any objects returned from an object having otherwise unqualified local generic types provided that those types are referenced in the returned object:
+\begin{lstlisting}
+def meMap<X, Y>() => new java.util.HashMap<X, Y>()
+
+counter = meMap()//created without local generics
+counter[0] = "val"
+\end{lstlisting}
+%%needs better example
+
+Above, the invocation of \lstinline{meMap} can have its local generic types inferred as \lstinline{<Integer, String>} based on the usage of the returned type of \lstinline{java.util.HashMap<X, Y>} assigned to variable \lstinline{counter}.
+
+\section{Generic Method References}
+Method references may be specified with generic type qualifications in a relatively unobtrusive manner. Where generic types are involved in method references they can be either qualified at reference creation time, or at invocation time:
+
+\begin{lstlisting}
+def doubler<X>(x X) => [x x]
+
+qualified = doubler<int>&
+differed = doubler&
+
+res1 = qualified(12)
+res2 = differed('hi')//generic type qualification is infered
+}
+//res1 => [12 12]
+//res2 => ['hi' 'hi']
+\end{lstlisting}
+
+\section{Generic type restrictions}
+The following code is not valid:
+
+\begin{lstlisting}
+class Holder<X>(~holds X)
+
+myHolder Holder<Object> = new Holder<String>("something") //this is not valid code
+\end{lstlisting}
+
+When it comes to generic type qualification, the types must match on a 1:1 basis. Hence only the following is valid:
+
+\begin{lstlisting}
+class Holder<X>(~holds X)
+
+myHolder Holder<String> = new Holder<String>("something")
+\end{lstlisting}
+
+In Concurnas, as with most other languages which run on the JVM, generic types are by default, erased at runtime. That is to say that they are not available for reference at runtime. It is for this reason that the following code is not valid:
+
+\begin{lstlisting}
+class Holder<X>(~holds X)
+
+inst Object = new Holder<String>("")
+
+check = inst is Holder<String>//we cannot check the generic qualification
+\end{lstlisting}
+
+This also means that we cannot overload methods with a type signature differing in generic type qualification only:
+
+\begin{lstlisting}
+def aFunction(op1 java.util.ArrayList<String>){
+	//do something
+}
+
+def aFunction(op1 java.util.ArrayList<Integer>){//this won't work!
+	//do something else
+}
+\end{lstlisting}
+
+The above will fail as the two functions are treated as: \lstinline!def aFunction(op1 java.util.ArrayList) {} def aFunction(op1 java.util.ArrayList) {}! which is the same.
+
+However, none of these disadvantages are major and there are some workarounds which we can use to make generic types even more useful. We shall explore some of these next...
+
+\section{Bounded generics}
+Concurnas permits generic type definitions to be bounded such that all qualifications of generic types must be equal to or a subtype of the specified bound. This applies to both class level and method level generic definitions. In fact all generic type definitions in Concurnas are bounded implicitly to Object by default.
+
+This is a useful technique for cases where one wants to have some additional control over the types which are applicable for use within a class or method using a generic type. When defining a generic type one we need to add the type after the parameter name, For example:
+
+\begin{lstlisting}
+class MyClass<T Number>(t T){
+	def doPlus(arg T) => t.doubleValue() + arg.doubleValue()
+}
+
+mc = new MyClass(12.)
+result = mc.doPLus(13)
+
+//result == 25.
+\end{lstlisting}
+
+The above code is possible even though the \lstinline{T} type is generic since it is bounded by Number, thus we know that instances of T must be a subtype of Number.
+
+\section{In out Generics}
+Generic types on the JVM are invariant, that is to say, \lstinline{list<Object>} is not a supertype of \lstinline{list<String>}. This can be a problem if we want to write code like the following:
+
+\begin{lstlisting}
+strList = list<String>()
+objList list<Object> = strList//this is not permitted
+\end{lstlisting}
+
+We cannot assign a variable declared as type \lstinline{list<Object>} a value of type \lstinline{list<String>}\footnote{Of course we can use naughty code like: \lstinline!objList list<Object> = strList as Object as list<Object>! to achieve this but it would be inadvisable to do so.} as it would cause us problems later on when using said lists:
+
+\begin{lstlisting}
+objs.add(1) //totally acceptable, as Integer is a subtype of Object
+s = strList.get(0) //This now fails with a ClassCastException!
+\end{lstlisting}
+
+Above we are adding an \lstinline{Integer} into an \lstinline{Object} list which is actually a \lstinline{String} list. When we come to obtain said value from the list, when it's referenced as a String list we end up with a \lstinline{ClassCastException} as the previously added \lstinline{Integer} is in our \lstinline{String} list (and we expect there to be only objects of type \lstinline{String}).
+
+We can largely solve this problem though the use of in/out generics. These provide for a facility known as co- (\lstinline{out}) and contra- (\lstinline{in}) variance. A neat way to think about this is that \lstinline{in} generic parameters may only be consumed by an object (used as inputs to methods), whereas \lstinline{out} generic parameters may only be produced by an object (used in return values from methods).
+
+%
+%\subsection{Declaration-site variance}
+%Concurnas supports declaration site variance, this enables us to qualify generic parameters when declaring types as %being either \lstinline{in} or \lstinline{out}. This enables us to write code such as the following:
+
+
+\subsection{Use-site variance}
+Concurnas supports use site variance, this enables us to qualify individual generic parameters when declaring variables of generic types as being either \lstinline{in} or \lstinline{out}. This enables us to write code such as the following:
+
+\subsubsection{covariance \lstinline!in!:}
+
+\begin{lstlisting}
+strList = list<String>()
+objList list<out Object> = strList//objList may not have anyting added to it
+\end{lstlisting}
+
+\subsubsection{contravariance \lstinline!out!:}
+
+\begin{lstlisting}
+strList list<in String> = list<String>()//strList may only have elements added to it 
+objList list<out Object> = strList
+\end{lstlisting}
+	
+And so via both these methods we are able to assign our \lstinline{strList} to our \lstinline{objList}. We could use this technique to say pass a \lstinline{list<String>} instance object to a method expecting a \lstinline{list<out Object>} type. Note that this all comes at the price of limiting what we can do with our generic objects.
+
+\section{Wildcards}
+As we have already seen, in Concurnas, where classes or methods require generic types, these must be qualified (or at least be inferable at compile time). However, sometimes if we want to write code which is agnostic to the type of the generic parameter is then using \lstinline{?} to qualify the type will allow us do this:
+\begin{lstlisting}
+from java.util import List, ArrayList
+
+def stringMaker(anyItems List<?>) String {
+	ret = ""
+	for( x Object in anyItems){
+		ret += "" + x
+	}
+	ret
+}
+\end{lstlisting}
+
+
+\end{document}

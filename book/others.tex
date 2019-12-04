@@ -1,0 +1,162 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Other]{Other}
+	
+\section{Assert}
+The assert keyword is a nifty one liner which enables us to check that a condition is true, and throw an exception if it's not. It is commonly used to sanity check input variables to functions. Example:
+\begin{lstlisting}
+def afunction(a int){
+	assert a > 1
+}
+\end{lstlisting}
+
+If the above assertion expression \lstinline{a > 1} resolves to false then an exception of type \lstinline{java.lang.AssertionError} will be thrown with an error message including the offending line of code.
+
+We can provide a custom text string which will be used to populate the \lstinline{AssertionError} exception thrown in case of the assertion expression \lstinline{a > 1} resolving to false as follows:
+\begin{lstlisting}
+def afunction(a int){
+	assert a > 1 "a cannot be larger than 1"
+}
+\end{lstlisting}
+
+Now if the assertion expression \lstinline{a > 1} resolves to false then an \lstinline{java.lang.AssertionError} exception will be thrown with message: "a cannot be larger than 1".
+
+Unlike languages such as Java, assertions are switched on in Concurnas by default and cannot be disabled.
+
+\section{Shutdown handlers}
+\label{sec:shutdownHandle}
+The \lstinline{com.concurnas.lang.concurrent} class includes a function: \lstinline{addShutdownHook(onShutdown () void)} which consumes a single method reference. If this function is called then the passed method reference will be invoked upon shutdown of the JVM process upon which the Concurnas program is running.
+
+Shutdown may occur for instance, in linux via a \lstinline{SIGTERM} being sent to the process, or via the program terminating \textit{naturally} via a call to \lstinline{System.exit} etc.
+
+More than one shutdown hook may be registered though the call order is non deterministic. More information regarding shutdown hooks \href{https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-}{at the JVM level may be found here}.
+
+The \lstinline{com.concurnas.lang.concurrent} class is auto imported thus we are able to write code such as the following:
+
+\begin{lstlisting}
+concurrent.addShutdownHook(def() void { System.out.println("System shutdown initiated") })
+\end{lstlisting}
+
+Note that the code associated with the method reference passed to \lstinline{addShutdownHook} may not create new isolates.
+
+\section{Auto imported classes}
+Concurnas automatically imports a number of commonly used classes. This saves us the effort of having to explicitly import the following. The import name and full paths auto imported are as follows:
+
+\begin{itemize}
+	\item \lstinline{*} - \lstinline{java.lang.*}
+	\item \lstinline{*} - \lstinline{com.concurnas.lang.*} Including:
+	\begin{itemize}
+		\item \lstinline{*} - \lstinline{com.concurnas.lang.ranges}
+		\item \lstinline{*} - \lstinline{com.concurnas.lang.tuples}
+		\item \lstinline{*} - \lstinline{com.concurnas.lang.datautils}
+		\item \lstinline{*} - \lstinline{com.concurnas.lang.nullable}
+		\item \lstinline{*} - \lstinline{com.concurnas.lang.concurrent}
+	\end{itemize}
+	\item \lstinline{Remote} - \lstinline{com.concurnas.lang.dist.Remote}
+\end{itemize}
+
+\section{Custom classloaders}
+Sometimes it can be useful to define custom classloaders. This is supported in Concurnas with some minor caveats:
+
+\begin{itemize}
+	\item Custom classloaders defined for use with a Concurnas program must be subclasses of \lstinline{com.concurnas.ConcurnasClassLoader} - this classloader performs runtime class augmentation to permit the functionality of isolates and actors within the Concurnas runtime.
+	\item Custom classloaders must define a method of signature: \lstinline{getBytecode(name String) byte[]} which should return the bytecode as a byte array of the requested class.
+	\item Custom classloaders may not spawn isolates, but they can call methods on actors.
+\end{itemize}
+
+Here is an example of a custom classloader with a publicly accessible code store:
+
+\begin{lstlisting}
+from com.concurnas.runtime import ConcurnasClassLoader
+
+class MyClassLoader(parent ConcurnasClassLoader) < ConcurnasClassLoader{
+	public classStore = new  map<String, byte[]>()
+	
+	override getBytecode(name String) byte[]{
+		got = parent.getBytecode(name)
+		if(got == null) {
+			got = classStore[name]
+		}
+		got
+	}
+	
+	override loadClass(name String) Class<?>{
+		ret Class<?> = parent.loadClass(name)
+		if(ret == null) {
+			if(name in classStore) {
+				return super.defineClass(name, classStore[name])
+			}
+		}
+		
+		return ret;
+	}
+}
+\end{lstlisting}
+
+\section{Security Managers}
+\label{sec:Security Managers}
+Concurnas has support for security managers. These enable you to run, in a controlled environment, code which you semi-trust or at least wish to exert some restrictions over.
+
+One security manager is defined per Concurnas program instance\footnote{This is a JVM restriction}. This is accessible via the following singleton call: \lstinline{com.concurnas.bootstrap.lang.ConcurnasSecurityManager.getInstance()}. This applies across the entire virtual machine, all isolates, actors etc.
+
+Security policies are definable on a per classloader basis. One must explicitly reference the classloader to which a security policy applies. This binding is achieved by calling the \lstinline{registerClassloader} method of \lstinline{ConcurnasSecurityManager} as follows:
+
+\begin{lstlisting}
+clsLoader java.lang.ClassLoader = //our classloader
+permissions java.security.PermissionCollection = //our security policy here
+
+ConcurnasSecurityManager.getInstance().registerClassloader(clsLoader, permissions)
+\end{lstlisting}
+
+With binding complete as above, every class loaded by the \lstinline{clsLoader} will be subject to the security policy which we have defined and registered for it. Two very simple example policies are defined below:
+
+\begin{lstlisting}
+from java.security import PermissionCollection, Permissions, AllPermission;
+
+allPerms PermissionCollection = new Permissions()
+allPerms.add(new AllPermission())//code can do anything! This is the default case
+
+restrictPerms PermissionCollection = new Permissions()//no permissions added
+\end{lstlisting}
+
+Real security policies are of course much more complex. More information on them can be found here: \href{https://docs.oracle.com/javase/8/docs/technotes/guides/security/spec/security-spec.doc3.html}{Java Security}
+
+It's worth remembering that although the security manager approach to managing code seen here is very effective, it's not bulletproof in the sense that even with a fully "locked down" classloader can run code which either accidentally or maliciously can cause a denial of service by say running a set of infinite loops or consuming a huge amount of ram. For this reason we'd never recommend running untrusted code in a Concurnas shared JVM environment along with other mission critical code. The recommended approach here would be a sandbox provided by the operating system upon which one's JVM operates, or even a dedicated virtual machine (this is the solution which many cloud providers use).
+
+\section{Escaping Keywords}
+Keywords in Concurnas can be escaped, and therefore used as method names, variable names etc by simply prefixing them with a backslash, for example:
+
+\begin{lstlisting}
+\for = "a string"
+\end{lstlisting}
+
+This feature is useful in instances where one is using library code written in languages other than Concurnas which has assets (classes, variables, fields etc) with names that happen to be keywords in Concurnas.
+
+\section{Native code caveats}
+Although Concurnas itself does not have direct support for native code, if calling Java code (or other JVM languages supporting native code), then native code may be callable. One caveat to bear in mind with native code concerns the mechanism by which Concurnas isolates operate.
+
+Behind the scenes, in order to facilitate the pausing of code at arbitrary points in program execution (e.g. when accessing a ref which has not yet a value set) Concurnas makes use of a 'fiber' Object attached to every method invocation. This causes a problem for native code since it does not capture this fiber upon execution. This means that it is not possible to call idiomatic concurrent Concurnas code (e.g. which uses actors and refs) as a callback from within native code.
+
+We must be cognizant of this limitation concerning callbacks when working with native code. In practice however this turns out something which is often easily worked around/not a critical issue.
+
+\section{CObject}
+In Concurnas, all objects are subclasses of class \lstinline{java.lang.Object} and class \lstinline{com.concurnas.lang.CObject}. The \lstinline{CObject} class defines some useful methods such as \lstinline{toBoolean} which can be optionally overridden in order to support instance objects of a class being usable in branching tests:
+
+\begin{lstlisting}
+class MyHolder<X>(~held X?){
+	override toBoolean() => held &<> null
+}
+
+//used as:
+
+inst = new MyHolder<int>(654)
+
+if(inst){
+	System.out.println("A value has been set")
+}
+
+\end{lstlisting}
+
+\end{document}

@@ -1,0 +1,1096 @@
+//##49. weird
+class MyClass(an int){
+	override toString() => "MyClass" + an
+	def anoperation() => an + 100
+}
+
+myAr = [1 2 ; 3 4]
+
+
+def doings(){
+	res1 = actor MyClass(myAr^)
+	"" + res1
+}
+
+
+~~~~~
+//##1. check for null in conditions
+def doings(){
+	a String? = "its fine"
+	
+	result String = if(a <> null){
+		a	
+	}else{
+		"uh oh"
+	}
+	
+	result
+}
+
+~~~~~
+//##2. null unsafe
+def doings(){
+	a String? = "its fine"
+	
+	"" + a??.length()
+}
+
+~~~~~
+//##3. safe operator
+class HolderB{
+	public bfield String? = null
+}
+
+def tt()=> false
+
+def doings(){
+	hhB HolderB? = new HolderB() if tt() else null
+	errok = hhB?.bfield?.length()
+	
+	"" + errok
+} 
+
+~~~~~
+//##4. null unsafe used as operator
+class HolderB{
+	public bfield String? = null
+}
+
+def doings(){
+	a String? = null
+	try{
+		g = a??
+		'error'
+	}catch(e){
+		'npe: ' + e
+	}
+}
+
+~~~~~
+//##5. elvis operator
+def tt() { true}
+
+def doings(){
+	a String? = "hey" if tt() else null
+	b String? = null
+	
+	elv1 = a ?: 'alternative1'
+	elv2 = b ?: 'alternative2'
+	
+	'ok' + [elv1 elv2]
+}
+
+~~~~~
+//##6. non conc type defaults to unknown status unless annotated
+def doings(){
+	mylist = new list<String?>()//qualify as nullable
+	mylist2 = new list<String>()//qualify as not nullable
+	
+	maybeNull String? = "its not"
+	
+	mylist.add(maybeNull)//fine
+	mylist.add(null)//ok
+	
+	mylist2.add(maybeNull??)//fine
+	//mylist2.add(null)//not fine
+	
+	'ok' 
+}
+
+~~~~~
+//##7. non conc type defaults to unknown status unless annotated funcref
+def doings(){
+	mylist = new list<String?>()//qualify as nullable
+	mylist2 = new list<String>()//qualify as not nullable
+	
+	maybeNull String? = "its not"
+	
+	g1 = mylist.add&(maybeNull)//fine
+	g2 = mylist.add&(null)//also fine
+	
+	//g3 = mylist2.add&(maybeNull)//fine
+	//g4 = mylist2.add&(null)//also fine
+	
+	g1()
+	g2()
+	//g3()
+	//g4()
+	
+	'ok' 
+}
+
+~~~~~
+//##8. was a bug now its ok
+def doings(){
+	mylist = new list<String?>()//qualify as nullable
+	maybeNull String? = "its not"
+	g1 = mylist.add&(maybeNull)//also fine
+	g2 = mylist.add&(null)//also fine - bug was in null not having upperbound cleared
+	
+	'ok' 
+}
+
+~~~~~
+//##9.null check on unknown type where known expected
+def takesString(aString String){
+	
+}
+
+error = 'ERRROR! should throw npe'
+
+def doings(){
+	mylist = list<String?>()
+	
+	maybeNull String? = "its not"
+	
+	mylist.add(maybeNull)//fine
+	mylist.add(null)//also fine
+	couldbeNull = mylist.get(0)//does null check
+	takesString(mylist.get(0))//does null check
+	
+	err1 = try{
+		itsnull = mylist.get(1)//checks for null - throw exception
+		error
+	}catch(e){
+		"ok: " + e
+	}
+	
+	err2 = try{
+		itsnull String = mylist.get(1)//checks for null - throw exception
+		error
+	}catch(e){
+		"ok: " + e
+	}
+	
+	err3 = try{
+		takesString(mylist.get(1))//checks for null - throw exception
+		error
+	}catch(e){
+		"ok: " + e
+	}
+	
+	err4 = try{
+		xx = takesString&(mylist.get(1))//checks for null - throw exception
+		xx()
+		error
+	}catch(e){
+		"ok: " + e
+	}
+	 
+	err5 = try{
+		mylist.add(mylist.get(1))//checks for null - throw exception
+		'ok: no check needed'
+	}catch(e){
+		"err didnt expect exception: " + e
+	}
+	
+	//add: no null check for cases where method call takes unknwon or nullable and being passed unknown
+	
+	'ok' + [err1, err2, err3, err4, err5]
+}
+
+~~~~~
+//##10.null check on unknown type field
+
+from com.concurnas.lang.precompiled import NullableThingRetNull
+
+def doings(){
+	inst = NullableThingRetNull()
+	
+	a1 = try{
+		maybe String?= inst.maybeNull
+		'ok'
+	}catch(e){
+		'fail'
+	}
+	
+	a2 = try{
+		maybe = inst.maybeNull
+		'fail'
+	}catch(e){
+		'ok'
+	}
+	
+	hmm = with(inst){
+		try{
+			"fail: "+for(a in arMybeNull){
+				a
+			}
+		}catch(e){
+			'ok'
+		}
+	}
+	
+	"" + [a1, a2, hmm]
+}
+
+
+~~~~~
+//##11.method with local generics qualification skip null
+from com.concurnas.lang.precompiled import HasNoNullItems
+
+def doings(){
+	alist list<String> = ['','']
+	
+	gotNull2 = HasNoNullItems.addToListLGNULL<String>(alist, //ok
+			''//ok
+	)
+	
+	"fine"
+} 
+
+~~~~~
+//##12. when local gen not infered use qualification provided
+class MyClass{
+	def thing<X>(a X, b X) X[] => [a b]
+}
+
+def doings(){
+	mc = MyClass()
+	what = mc.thing<Object>("", "")
+	
+	what[0] = 23
+	
+	found Object = what[0]
+	
+	"fine"
+} 
+
+~~~~~
+//##13. when local gen not infered use qualification provided 2
+class MyClass{
+	def thing<X>(a X, b X) X[] => [a b]
+}
+
+def doings(){
+	mc = MyClass()
+	what = mc.thing<Object>("", 12.)
+	what[1] = 777
+	found Object = what[0]
+	
+	"fine"
+} 
+
+~~~~~
+//##14. when local gen not infered use qualification provided 3 - boxed
+from com.concurnas.lang.precompiled import HasNoNullItems
+
+class MyClass{
+	def thing<X>(a X, b X) X[] => [a b]
+}
+
+def doings(){
+	mc = MyClass()
+	what = mc.thing("", 12.)//2nd arg not being boxed
+	
+	found Object = what[0]
+	
+	"fine"
+} 
+
+~~~~~
+//##15. when local gen not infered use qualification provided 4 - arys
+from com.concurnas.lang.precompiled import HasNoNullItems
+
+class MyClass{
+	def thing<X>(a X, b X) X[] => [a b]
+}
+
+def doings(){
+	mc = MyClass()
+	what = mc.thing("", [12. 13.])
+	
+	found Object = what[0]
+	
+	"fine"
+}
+
+~~~~~
+//##16. buy on type override for class level vars
+from java.io import PrintStream
+
+class LogCap(noisy PrintStream? = null){
+	override hashCode() => 1
+	override equals(an Object) => false
+	def thing(){
+		if(noisy){
+			noisy.println("ok")//maps to classlevel variable but shoiuld be ok
+		}
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##17. bug on type override for module level vars
+from java.io import PrintStream
+
+noisy PrintStream? = null
+
+class LogCap{
+	override hashCode() => 1
+	override equals(an Object) => false
+	def thing(){
+		if(noisy){
+			noisy.println("ok")//maps to classlevel variable but shoiuld be ok
+		}
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##18. if thing established as no null then we can proceed as follows
+from java.io import PrintStream
+
+class LogCap(noisy PrintStream? = null){
+	override hashCode() => 1
+	override equals(an Object) => false
+	def thing1(){
+		if(this.noisy){
+			noisy.println("ok")//maps to classlevel variable but shoiuld be ok
+		}
+	}
+	def thing2(){
+		if(noisy){
+			this.noisy.println("ok")//maps to classlevel variable but shoiuld be ok
+		}
+	}
+	def thing3(){
+		if(this.noisy){
+			this.noisy.println("ok")//maps to classlevel variable but shoiuld be ok
+		}
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##19. infer type correctly given unkown input
+private def getModuleName(){
+	fullname = com.concurnas.lang.CallerContext.getInstnce().getCallerStack()[0].getName()
+	fullname.substring(0, 1)//last op has implicit test for not being nullable
+}//infer to non null
+
+def doings(){
+	except String = getModuleName()
+	
+	"ok" + except
+} 
+
+~~~~~
+//##20. nulls on lists like arrays
+def doings(){
+	arNullable = [1, null]
+	arNotNullable = [Integer(1), 2]
+	arNullableExplicit list<Integer?>= [1, null]
+	arNullableExplicitDD list<Integer?>? = [1, null]
+	
+	arNullable[0] = null//ok
+	//arNotNullable[0] = null//error
+	arNullableExplicit[0] = null//ok
+	//arNullableExplicitDD[0] = null//arNullableExplicitDD may be null
+	
+	"ok"
+}  
+
+~~~~~
+//##21. box elvis operator
+def tt() => true
+
+thing Integer? = Integer(2) if tt() else null
+
+
+def doings(){
+	//res = [1 null 2]^?:3
+	
+	f = thing?:3
+	
+	"ok"
+}
+
+~~~~~
+//##22. vectorized elvis operator
+thing Integer? = Integer(2)
+
+def doings(){
+	res = [1 null 2]^?:3
+	
+	"ok" + res
+}
+
+~~~~~
+//##23. vectorized non null assertion operator
+
+def doings(){
+	thing1 list<int?> =  [Integer(1), 4, 2]
+	thing2 Integer?[] =  [Integer(1) 4 2]
+	thing3 Integer?[] =  [Integer(1) null 2]
+	
+	thing1^^??//in place
+	res1 = thing1^??
+	res2 = thing2^??
+	
+	err = try{
+		f=thing3^??
+		'err'
+	}catch(e){
+		"{e}"
+	}
+	
+	"ok" + [thing1 thing2 err]
+}
+
+~~~~~
+//##24. null safe calls for list elements
+class CallThing(a int){
+	def anOp(){
+		a + 10
+	}
+	override toString() => 'CallThing({a})'
+}
+
+
+def doings(){
+	thing1 list<CallThing?> =  [CallThing(1), CallThing(4), CallThing(2)]
+	
+	res1 = thing1[0]?.anOp()
+	res2 = thing1[0]??
+	res3 = thing1[0]?:12
+		
+	"ok" + [res1 res2 res2]
+}
+
+
+~~~~~
+//##25. vect list
+class CallThing(a int){
+	def anOp(){
+		a + 10
+	}
+}
+
+def doings(){
+	thing1 list<CallThing?> =  [CallThing(1), CallThing(4), CallThing(2)]
+	
+	res1 = thing1?^anOp()
+	
+	"ok" + res1
+}
+
+~~~~~
+//##26. safe call on matrix
+class CallThing(a int){
+	def anOp(){
+		a + 10
+	}
+}
+
+def doings(){
+	thing4 CallThing?[][] =  [[CallThing(1) null CallThing(2)]]
+	res4 = thing4?^anOp()
+	
+	"ok" + res4
+}
+
+~~~~~
+//##27. lists and arrays with vectorized safe calls
+class CallThing(a int){
+	def anOp(){
+		a + 10
+	}
+}
+def doings(){
+	thing1 list<CallThing?> =  [CallThing(1), CallThing(4), CallThing(2)]
+	thing2 CallThing?[] =  [CallThing(1) CallThing(4) CallThing(2)]
+	thing3 CallThing?[] =  [CallThing(1) null CallThing(2)]
+	thing4 CallThing?[][] =  [[CallThing(1) null CallThing(2)]]
+	thing5  =  [[CallThing(1) null CallThing(2)]]
+	thing6  =  [[CallThing(1), null, CallThing(2)]]
+	
+	res1 = thing1?^anOp()
+	res2 = thing2?^anOp()
+	res3 = thing3?^anOp()
+	res4 = thing4?^anOp()
+	res5 = thing5?^anOp()
+	res6 = thing6?^anOp()
+	
+	"ok" + [res1 res2 res3 res4 res5 res6]
+}
+
+~~~~~
+//##28. nullable generics or not
+trait HasThing{
+	def thing() String
+}
+
+class MyClass<X>(x X) ~ HasThing{//not nullable?
+	def thing(){
+		x.toString()
+	}
+}
+
+class MyClassNullable1<X?>(x X) ~ HasThing{//nullable
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+class MyClassNullable2<X Object?>(x X) ~ HasThing{//nullable
+	def thing(){
+		x.toString() if x else 'null res2'
+	}
+}
+
+def doings(){
+	mc1 = MyClass<String>('aString')//vanilla
+	mc2 = MyClassNullable1<String?>(null)//this is ok
+	mc3 = MyClassNullable2<String?>(null)//this is ok
+	mc4 = MyClassNullable1(null)//this is ok
+	mc5 = MyClassNullable2(null)//this is ok
+	"" + [mc1, mc2, mc3, mc4, mc5]^thing()
+}
+
+~~~~~
+//##29. infer generic parameters preserver nullability
+
+trait HasThing{
+	def thing() String
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+
+class MyClassNullable1<X?>(x X) ~ HasThing{//nullable
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+
+class MyClassNullable2<X?> ~ HasThing{//nullable
+	~x X?
+	
+	def thing(){
+		x.toString() if x else 'null res1'
+	}
+}
+
+
+def doings(){
+	mc4 = MyClassNullable1('nice')//this is ok
+	mc5 = MyClassNullable2()
+	mc5.x = "ok"
+	"" + (x.thing() for x in [mc4 mc5])
+}
+
+~~~~~
+//##30. nullable gens for local types
+def MyClassNullable1<X?>(x X){//nullable
+		x.toString() if x else 'null res1'
+}
+def MyClassNullable2<X Object?>(x X){//nullable
+		x.toString() if x else 'null res2'
+}
+
+def doings(){
+	//mc1 = MyClass<String?>('aString')//no cannot use this as thing is nullable but gen says not ok
+	//mc2 = MyClass<String>(null)//no nope as null for string not permitted
+//	mc2b = MyClass(null)//no
+	m1 = MyClassNullable1<String?>(null)
+	m2 = MyClassNullable2<String?>(null)
+	//mc4 = MyClassNullable1<String>('aString')//this is not ok 
+	//mc4b = MyClassNullable2<String>('aString')//this is not ok 
+	m3 = MyClassNullable1(null)
+	m4 = MyClassNullable2(null)
+	m5 = MyClassNullable1('')
+	"" + [m1 m2 m3 m4 m5]
+}
+
+~~~~~
+//##31. arrays correctly concatinate and nullable type respected
+def x() => 23
+
+
+def doings(){
+	wtf = [1 Integer(2); Integer(3) null; null] if x() else null
+	g1=wtf??
+	g2=wtf?[0]
+	g3=wtf?[0]?[0]
+	
+	"" + wtf
+}
+
+~~~~~
+//##32. bug with concat
+def doings(){
+	wtf1 = [Integer(1) Integer(2); [null]]
+	wtf2 = [Integer(1) Integer(2); null]
+	"" +[wtf1, wtf2]//+ [wtf, wtf2]
+}
+
+~~~~~
+//##33. ensure correct nullable type infered for concat
+one = [Integer(1) 2]
+f Integer[]? = null
+
+def doings(){
+	sdf="hi2"
+	weird = [one ; f]
+	
+	ok = weird[0]??
+	
+	"ok " + weird
+}
+
+~~~~~
+//##34. ensure funcref just does null check on toBoolean
+def x() => false
+
+def doings(){
+	"" + if(x){//x is a funcref
+		1
+	}else{
+		2
+	}
+}
+
+~~~~~
+//##35. this just looked fun to do
+inject class MyClass(an2 String){
+	inject anInt String?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "uh oh"
+}
+
+def doings(){
+	pp = MCPRovider().MyClass()
+	"ok" + pp
+}
+
+~~~~~
+//##36. logic check progressive within if test
+a String? = "hi there"
+
+def doings(){
+	if(a <> null and a.length() > 2){
+		"ok"
+	}else{
+		"fail"
+	}
+}
+
+~~~~~
+//##37. if non null assertion on own no dup
+def x() => false
+
+def doings(){
+	a String? = "thing"
+	if(x()){
+		a??
+	}else{
+		
+	}
+	//if duped then will cause inconsistancy on stack
+	
+	"ok"
+}
+
+~~~~~
+//##38. elvis operator any expr on rhs
+def tt() => true
+def doings(){
+	nullableVar String? = "a String" if tt() else null
+	len = nullableVar?.length()?:-1 
+	"" + len
+}
+
+~~~~~
+//##39. null safe array operator
+def tt() => true
+def doings(){
+ 	maybeNull1 int[]? = [1 2 3 4] if tt() else null
+ 	
+ 	got1 = maybeNull1?[0]//ok
+ 	
+	"" + got1
+}
+ 
+~~~~~
+//##40. null safe array operator with null
+def doings(){
+ 	maybeNull1 int[]? =  null//required an explicit cast else cannot figure out type
+ 	
+ 	got1 = maybeNull1?[0]
+ 	
+	"" +got1
+}
+ 
+~~~~~
+//##41. not null assertion with array
+def doings(){
+ 	maybeNull int[]? = [1 2 3 4]
+ 	
+ 	got = maybeNull??[0]//also ok
+ 	
+ 	"" + got
+}
+ 
+~~~~~
+//##42. chained safe calls
+def tt() => true
+enum Color{BLUE, GREEN, RED}
+class Child(-favColour Color)
+class Parent(-children Child...)
+
+parent Parent? = Parent(Child(Color.GREEN), Child(Color.RED)) if tt() else null
+
+def doings(){
+	
+	"" + parent?.children?[0]?.favColour
+}
+
+~~~~~
+//##43. broken now its ok
+def tt() => true
+def doings(){
+ 	maybeNull1 int[]? = [1 2 3 4] if tt() else null
+ 	maybeNull2 = a[[1 2 3 4], maybeNull1]
+ 	
+ 	got1 = maybeNull1?[0]//ok
+ 	
+	"" + [got1, maybeNull2]
+} 
+
+~~~~~
+//##44. bugfixes to safe dot op calls
+class HasOne{
+	public instance list<String>?
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings(){
+	ho = new HasOne()
+	xyz = new list()
+	ho.instance = xyz
+	
+	"res: " + try{
+		ho.instance?.iterator()?.next()//add("hey there")
+		'err'
+	}catch(e){
+		e
+	}
+}
+
+~~~~~
+//##45. bugfixes to safe dot op calls pop last one
+class HasOne{
+	public instance list<String>?
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def tt() => true
+
+def doings(){
+	ho HasOne? = new HasOne() if tt() else null
+	xyz = new list()
+	ho?.instance = xyz
+	
+	ho?.instance?.add("hey there")
+		
+	"res: " + xyz
+} 
+
+~~~~~
+//##46. allow non null assertion to be used in chain
+class HasOne{
+	public instance list<String>?
+	override equals(an Object) => false
+	override hashCode() => 1
+}
+
+def doings(){
+	ho = new HasOne()
+	xyz = new list()
+	ho.instance = xyz
+	
+	ho.instance??.add("hey there")
+		
+	"res: " + xyz
+} 
+
+~~~~~
+//##47. precompiled with default params
+from com.concurnas.tests.helpers.nullable import ThingWithDefaultsNull
+
+def doings(){
+	"ok: " + ThingWithDefaultsNull()
+}
+
+~~~~~
+//##48. null ref
+def doings(){
+	aa1 java.lang.Integer:? = null//ok
+
+	""+ aa1
+}
+~~~~~
+//##49. weird was blowing up due to bug in static var being set in compiler and not copy object
+class MyClass(an int){
+	override toString() => "MyClass" + an
+	def anoperation() => an + 100
+}
+
+myAr = [1 2 ; 3 4]
+
+
+def doings(){
+	res1 = actor MyClass(myAr^)
+	"" + res1
+}
+
+~~~~~
+//##50. null check logic
+xyz=true
+
+thing ((int) int)? = def (a int) => a + 10
+
+def f1(){//fail maybe nullable
+	1//thing(1) //FAIL
+}
+
+def f2(){//normal
+	thing(1) if(thing <> null) else 0
+}
+
+def f2b(){//normal implicit non null
+	thing(1) if(thing) else 0
+}
+
+def f3(){//inverse
+	0 if(thing == null) else thing(1)
+}
+
+def f4(){//fail as uncertain to be non nullable
+	1//thing(1) if(xyz or thing <> null) else 0//FAIL
+}
+
+def f5(){//ok certain non nullable
+	thing(1) if(xyz and thing <> null) else 0
+}
+
+def f5b(){//normal implicit non null implicit
+	thing(1) if(xyz and thing) else 0
+}
+
+def f6(){//ok certain non nullable inverse
+	thing if(xyz and thing == null) else thing(1)  
+}
+
+def f7(){//complex but ok
+	thing(1) if((xyz and thing) or thing) else 0
+}
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	thing ((int) int)? = def (a int) => a + 10
+
+	def f3(){//inverse
+		x1=thing(1) if(thing <> null) else 0
+		x2=0 if(thing == null) else thing(1)
+		x3=0 if(thing == null) else this.thing(1)
+		x4=0 if(this.thing == null) else this.thing(1)
+		x5=0 if(this.thing == null) else thing(1)
+		[x1 x2 x3 x4 x5]
+	}
+}
+
+def doings(){
+	
+	"ok" + [f1() f2() f2b() f3() f4() f5() f5b() f6() f7() MyClass().f3()]
+}
+
+~~~~~
+//##51. null check logic pt 2
+xyz=true
+
+thing ((int) int)? = def (a int) => a + 10
+
+def f2(){//normal
+	if(thing == null){
+		0
+	}elif(xyz){
+		thing(1)
+	}else{
+		99
+	}
+}
+
+def f3(){//normal
+	if(not xyz){
+		0
+	}elif(thing <> null){
+		thing(1)
+	}else{
+		99
+	}
+}
+
+def doings(){
+	
+	"ok" + [f2() f3()]
+}
+
+~~~~~
+//##52. null check logic pt 3 - not
+ok String? = "ok"
+ 
+def doings(){
+ 	res String = 'weird' if not ok else ok
+ 	res
+}
+
+~~~~~
+//##53. null check logic pt 4 - while
+def doings(){
+ 	client String? = "ok"
+ 	lens = while(client <> null){
+ 		x=client.length()
+ 		client=null
+ 		x
+ 	}
+ 	
+ 	"" + lens
+}
+
+~~~~~
+//##54. ae to known nullable type shouldnt check npe
+from com.concurnas.lang.precompiled.NullableThingRetNull import retNull
+
+nullable String? = retNull()
+
+def doings(){
+	nullable  = retNull()//used to npe though it should not since we're assining to a nullable type
+	
+	"ok"
+}
+
+~~~~~
+//##55. bug when creating lambdas at top level
+def tt() => false
+
+thing ((int) int)? = if(tt()){
+	(def (a int) => a + 10)
+} else {
+	null
+}
+
+thing2  = if(tt()){
+	(def (a int) => a + 10)
+} else {
+	null
+}
+
+def doings(){
+	'ok'
+}
+
+~~~~~
+//##56. type infer post assertion
+def tt() => true
+
+def assertion(){
+	athing String? = "ok" if tt() else null
+	assert athing <> null
+	
+	"" + athing.length()
+}
+
+def doings() => "ok" + assertion()
+
+~~~~~
+//##57. type infer post isolated block
+def tt() => true
+
+def certain6(){
+	a String? = "ok" if tt() else null
+	{
+		a = 'ey'
+	}
+	a.length()//ok
+}
+
+def doings() => "ok"
+
+~~~~~
+//##58. type infer branch simple
+def tt() => true
+
+def certain4(){
+	a String? = "ok" if tt() else null
+	if(a==null){
+		a='ey'
+	}
+	
+	a.length()//OK - a is certainly set
+}
+
+def doings() => "ok"
+
+~~~~~
+//##59. Nullable wrapper
+
+def doings(){
+	aString1 = new Nullable<String?>():
+	aString1.set("ok")
+	w = aString1.get()
+	
+ 	"ok"
+}
+
+~~~~~
+//##60. nullable arrays pre defined
+from com.concurnas.tests.helpers.nullable import nullableStringArray
+
+def doings(){
+	f=nullableStringArray
+ 	"ok" + nullableStringArray[0]?.length()
+}
+
+~~~~~
+//##61. most generic of nullable types
+open class Superla<X>(~x X)
+
+class ChildClass<Y?>(x Y) < Superla<Y>(x)
+
+def doings(){
+	a1 = Superla<String>('ok')
+	a2 = ChildClass<String?>('ok')
+	
+	w = [a1 a2]//array of Superla<String?>
+	item = w[0]
+	inst = item.x
+	"" + inst?.length()
+}
+
+~~~~~
+//##62. most generic of nullable types - list
+def x() => false
+
+def doings(){
+	x2 = ["1", "2"] if x() else ["1", null]
+	"ok" + x2[0]?.length()
+}

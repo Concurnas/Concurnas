@@ -1,0 +1,1666 @@
+//##00. run first to check for mem leak
+def doings(){
+	pool = concurrent.DedicatedThreadWorkerPool()
+	
+	res = {1+6}!(pool)
+	await(res)
+	its = res
+	pool.terminate()
+	
+	"got: " + res
+}
+
+~~~~~
+//##0. load class remotely
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		ans = {1+1234}!(rm.onfailRetry())
+		"" + [ans, 'Sent: sREQUESTDEPENDENCY' in serverLogs]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##1. easy executor
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+
+class TestRemote ~ ISOExecutor<Object:>{
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void{
+		(task as () Void)()
+	}
+}
+
+def doings(){
+	rm = TestRemote()
+	ans = {1+2}!(rm)
+	"ans: " + ans 
+}
+
+~~~~~
+//##2. exe more complex
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+
+wrote = 0
+
+class TestRemote(an int) ~ ISOExecutor<Object:>{
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void{
+		(task as () Void)()
+		wrote = an
+	}
+}
+
+
+
+def doings(){
+	ans = {1+2}!(TestRemote(22))
+	"ans: " + [ans wrote] 
+}
+
+~~~~~
+//##3. exe more advanced version
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+
+wrote = 0
+
+trait Doing{
+	def thing(an int) int
+}
+
+class TestRemote(an Doing) ~ ISOExecutor<Object:>{
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void{
+		(task as () Void)()
+		wrote = an thing(21)
+	}
+}
+
+
+def doings(){
+	a = 9
+	ans = {1+2}!(TestRemote({e => e + a}))
+	"ans: " + [ans wrote] 
+}
+
+~~~~~
+//##4. test retry
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+
+
+class TestRemote{
+	def onfail(fh FailHandler){
+		new Executor(fh)
+	}	
+}
+
+class RemoteFailureContext(error Throwable){
+	+isoExecutor Executor?
+	
+	def retry(){
+		isoExecutor??.runRemoteTask()
+	}
+	
+	def result(){
+		
+	}
+	
+	def reason() => error
+}
+
+trait FailHandler{
+	def thefailure(an RemoteFailureContext) void
+}
+
+
+runcnt = 0
+
+class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
+	task IsoTask<Object:>?
+	desc String?
+	ct CopyTracker?
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void{
+		this.task = task
+		this.desc = desc
+		this.ct = ct
+		runRemoteTask()
+	}
+	
+	def runRemoteTask(){
+		try{
+			if(runcnt++ < 1){
+				throw new Exception("")
+			}
+			
+			(task as () Void)()
+		}catch(e){
+			rf = new RemoteFailureContext(e)
+			rf.isoExecutor = this
+			fh.thefailure(rf)
+		}
+	}
+}
+
+def torun(){
+	runcnt
+}
+
+def doings(){
+	tr = TestRemote()
+	ans = torun()!(tr.onfail( e => {e.retry() } ))
+	//ans = torun()!(tr.onfail( e => System.err.println("" + e) ))
+	"ans: " + ans
+}
+
+~~~~~
+//##5. test retry 2
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+
+trait FailHandler{
+	def thefailure(an RemoteFailureContext) void
+}
+
+class TestRemote{
+	def onfail(fh FailHandler){
+		new Executor(fh)
+	}	
+}
+
+class RemoteFailureContext(error Throwable){
+	+isoExecutor Executor?
+	
+	def retry(){
+		isoExecutor??.runRemoteTask()
+	}
+	
+	def result(){
+		
+	}
+	
+	def reason() => error
+}
+
+
+
+runcnt = 0
+
+class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
+	task IsoTask<Object:>?
+	desc String?
+	ct CopyTracker?
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void {
+		this.task = task
+		this.desc = desc
+		this.ct = ct
+		runRemoteTask()
+	}
+	
+	def runRemoteTask(){
+		try{
+			if(runcnt++ < 1){
+				throw new Exception("")
+			}
+			
+			(task as () Void)()
+		}catch(e){
+			rf = new RemoteFailureContext(e)
+			rf.isoExecutor = this
+			fh.thefailure(rf)
+		}
+	}
+}
+
+def torun(){
+	runcnt
+}
+
+def doings(){
+	tr = TestRemote()
+	ans = torun()!(tr.onfail( e => {e.retry() } ))
+	//ans = torun()!(tr.onfail( e => System.err.println("" + e) ))
+	"ans: " + ans
+}
+
+~~~~~
+//##6. result is available for exception assignment etc
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+from com.concurnas.bootstrap.runtime.ref import Ref
+
+trait FailHandler{
+	def thefailure(an RemoteFailureContext) void
+}
+
+class TestRemote{
+	def onfail(fh FailHandler){
+		new Executor(fh)
+	}	
+}
+
+package class RemoteFailureContext(error Throwable){
+	+isoExecutor Executor?
+	
+	def retry(){
+		isoExecutor??.runRemoteTask()
+	}
+	
+	def result() Object: => isoExecutor??.getResultRef()
+	
+	def reason() => error
+}
+
+
+
+runcnt = 0
+
+package class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
+	task IsoTask<Object:>?
+	desc String?
+	ct CopyTracker?
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void {
+		this.task = task
+		this.desc = desc
+		this.ct = ct
+		runRemoteTask()
+	}
+	
+	def getResultRef() Object: => task??.getResultRef()
+	
+	def runRemoteTask(){
+		try{
+			if(runcnt++ < 1){
+				throw new Exception("fail as expected")
+			}
+			
+			(task as () Void)();;
+		}catch(e){
+			rf = new RemoteFailureContext(e)
+			rf.isoExecutor = this
+			try{
+				fh.thefailure(rf)
+			}catch(e){
+				res Object: = getResultRef()
+				if(null <> res:){
+					res:setException(e)
+				}
+				throw e
+				//swallow exception
+			}
+			
+		}
+	}
+}
+
+def torun(){
+	runcnt
+}
+
+def doings(){
+	tr = TestRemote()
+	ans = torun()!(tr.onfail( e => {e.result():setException(e.reason()) } ))
+	"ans: " + try{
+		"fail" + ans
+	}catch(e){
+		e getMessage
+	}
+}
+
+~~~~~
+//##7. stateful dist comp
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime import CopyTracker
+from com.concurnas.bootstrap.runtime.ref import Ref
+
+trait RemoteFailureHandler{
+	def handle(an RemoteFailureContext) void
+}
+
+class TestRemote{
+	def onfail(fh RemoteFailureHandler){
+		new Executor(fh)
+	}	
+}
+
+package class RemoteFailureContext(error Throwable){
+	+isoExecutor Executor?
+	
+	def retry(){
+		isoExecutor??.runRemoteTask()
+	}
+	
+	def result() Object: => isoExecutor??.getResultRef()
+	
+	def reason() => error
+}
+
+
+
+runcnt = 0
+LIMIT = 1
+
+package class Executor(fh RemoteFailureHandler) ~ ISOExecutor<Object:>{
+	task IsoTask<Object:>?
+	desc String?
+	ct CopyTracker?
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker) void {
+		this.task = task
+		this.desc = desc
+		this.ct = ct
+		runRemoteTask()
+	}
+	
+	def getResultRef() Object: => task??.getResultRef()
+	
+	def runRemoteTask(){
+		try{
+			if(runcnt++ < LIMIT){
+				throw new Exception("fail as expected")
+			}
+			
+			(task as () Void)();;
+		}catch(e){
+			rf = new RemoteFailureContext(e)
+			rf.isoExecutor = this
+			try{
+				fh.handle(rf)
+			}catch(e){
+				res Object: = getResultRef()
+				if(null <> res:){
+					res:setException(e)
+				}
+				throw e//swallow exception
+			}
+			
+		}
+	}
+}
+
+def doings(){
+	tr = TestRemote()
+	
+	""+for(x in [0 100]){
+		LIMIT = x
+		ans = {1+1}!(tr.onfail( new RemoteFailureHandler{  
+			attempts = 1
+			
+			def handle(e RemoteFailureContext){
+				if(attempts++ > 10){
+					e.result():setException(e.reason())
+				}else{
+					e.retry()
+				}
+				
+			}
+		
+		} ))
+		"ans: " + try{
+			ans
+		}catch(e){
+			e getMessage
+		}
+	}
+}
+
+~~~~~
+//##8. check shared vars can be overriden
+from com.concurnas.tests.helpers.traits import LoggerProvider
+def doings(){
+	xxx = new LoggerProvider{
+		def provideLoggerFor(theClass Class<?>) {
+			className String = theClass getSimpleName
+			def (msg String) void{
+				//System.out.println("hi mom {className} {msg}")
+			}
+		}
+	} 
+	
+	"ok"
+}
+
+
+~~~~~
+//##9. connect and disconnect
+
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.lang.dist import Remote
+from com.concurnas.lang.dist import LoggerProvider
+
+shared events Integer=0;
+
+com.concurnas.lang.dist.defaultLoggerProvider = new LoggerProvider{
+	def provideLoggerFor(theClass Class<?>) (String) void{
+		className String = theClass getSimpleName
+		def (msg String){
+			//System.err.println("" + msg)
+			events++;;//should use trans but should be ok
+		}
+	}
+} 
+
+def doings(){
+	remServer = RemoteServer()
+	rm = Remote('localhost')
+	try{
+		remServer.startServer()
+		rm.connect()
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+	
+	"ok"
+}
+
+
+~~~~~
+//##10. override global static variable
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.lang.dist import LoggerProvider
+
+shared events Integer=0;
+
+orig = com.concurnas.lang.dist.defaultLoggerProvider
+com.concurnas.lang.dist.defaultLoggerProvider = new LoggerProvider{
+	def provideLoggerFor(theClass Class<?>) (String) void{
+		className String = theClass getSimpleName
+		def (msg String){
+			//System.err.println("" + msg)
+			events++;;//should use trans but should be ok
+		}
+	}
+} 
+
+def doings(){
+	remServer = RemoteServer(port=4321)
+	rm = Remote('localhost', port=4321)
+	
+	try{
+		try{
+			remServer.startServer()
+			rm.connect()
+			"ok" + (events > 0)
+		}finally{
+			rm.close()
+			remServer.close()
+		}
+	}finally{
+		com.concurnas.lang.dist.defaultLoggerProvider = orig
+	}
+	
+}
+
+~~~~~
+//##11. connect and disconnect
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov= serverLogs)
+	remServer.startServer()
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	rm.connect()
+	
+	rm.close()
+	remServer.close()
+	
+	"" + ['Protocol initiated to' in clientLogs, 
+		'Sent: cDISCONNECT' in clientLogs,
+		'Shutting down session state for sid' in serverLogs, 
+		'Received new connection request' in serverLogs
+	]
+}
+
+~~~~~
+//##12. basic encode decode with string
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(aString String){
+	override toString() => "MyClass:({aString})"
+}
+
+def doings(){
+	mc = new MyClass("hi")
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##13. serizliaze null refs
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(aString String, another String?, last String){
+	override toString() => "MyClass:({aString}, {another}, {last})"
+}
+
+def doings(){
+	mc = new MyClass("one", null, "three")
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##14. serizliaze graph cycle
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(aString String, ~friend MyClass?){
+	override toString() => "MyClass:({aString}, {friend <> null}, {friend?.aString}, {friend == this}, {friend &== this})"
+}
+
+def doings(){
+	mc = new MyClass("one", null)
+	mc.friend = mc
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##15. serizliaze primatives
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(aString String, a int, b short, c long, d float, e double, f1 boolean, f2 boolean, g byte, h char){
+	override toString() => "MyClass:({aString}, {a}, {b}, {c}, {d}, {e}, {f1}, {f2}, {g}, {h})"
+}
+
+def doings(){
+	mc = new MyClass("one", 12, 2, 200, 23.f, 243.545d, true, false, 3, 'c')
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##16. serizliaze boxed primatives
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(aString String, a Integer, b Short, c Long, d Float, e Double, f1 Boolean, f2 Boolean, g Byte, h Character){
+	override toString() => "MyClass:({aString}, {a}, {b}, {c}, {d}, {e}, {f1}, {f2}, {g}, {h})"
+}
+
+def doings(){
+	mc = new MyClass("one", 12, 2, 200, 23.f, 243.545d, true, false, 3, 'c')
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##17. serizliaze primative int array
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b int[]){
+	override toString() => "MyClass:({a}, {b})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [3 4 5])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##18. serizliaze primative int array with nulls
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b int[], c int[]?, d int[]){
+	override toString() => "MyClass:({a}, {b}, {c}, {d})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [1 2 3], null, int[0])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##19. serizliaze multi deimentional arrays w null
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b int[2]){
+	override toString() => "MyClass:({a}, {b})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [ 1 2 3 ; 4 5 6; null ; 7 8 9])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##20. serizliaze other primative arrays
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b double[2]){
+	override toString() => "MyClass:({a}, {b})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [ 1 2.d 3 ; 4 5.d 6; null ; 7.d 8 9])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##21. serizliaze boxed obj array
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b Integer[]){
+	override toString() => "MyClass:({a}, {b})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [Integer(2) 3 4 ])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##22. serizliaze more than one
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b1 Integer[], b2 Integer[]){
+	override toString() => "MyClass:({a}, {b1}, {b2})"
+}
+
+def doings(){
+	x1 = [Integer(2) 3 4 ]
+	x2 = [Integer(9) 6 7 ]
+	mc = new MyClass(12.f, x1, x2)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##23. serizliaze obj array dups
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b1 Integer[], b2 Integer[]){
+	override toString() => "MyClass:({a}, {b1}, {b2})"
+}
+
+def doings(){
+	x1 = [Integer(2) 3 4 ]
+	x2 = x1
+	mc = new MyClass(12.f, x1, x2)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##24. serizliaze obj array with nulls
+//in memory: encoder, decoder
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b1 Integer[2]){
+	override toString() => "MyClass:({a}, {b1})"
+}
+
+def doings(){
+	f Integer[]? = null
+	x1 = [Integer(2) 3 4 ; f; f; 5 6 Integer(9)]
+	mc = new MyClass(12.f, x1)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + [mc myObj]
+}
+
+~~~~~
+//##25. serizliaze obj int array ref dup
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b1 int[], b2 int[]){
+	override toString() => "MyClass:({a}, {b1}, {b2}, {b1&==b2})"
+}
+
+def doings(){
+	x1 = [1 2 3]
+	mc = new MyClass(12.f, x1, x1)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##26. serizliaze obj double array ref dup
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b1 double[], b2 double[]){
+	override toString() => "MyClass:({a}, {b1}, {b2}, {b1&==b2})"
+}
+
+def doings(){
+	x1 = [1. 2 3]
+	mc = new MyClass(12.f, x1, x1)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##27. serizliaze special encoding for class
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, aClass Class<?>){
+	override toString() => "MyClass:({a}, {aClass})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, String.class)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##28. serizliaze enum
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+enum MyEnum{
+	ONE, TWO, THREE
+}
+
+class MyClass(a float, me MyEnum){
+	override toString() => "MyClass:({a}, {me})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, MyEnum.TWO)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##29. serizliaze primative array masked as object
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, something Object){
+	override toString() => "MyClass:({a}, {something})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [1 2 3])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##30. serizliaze other primative array masked as object
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(something Object, a float, another Object){
+	override toString() => "MyClass:({something}, {a}, {another})"
+}
+
+def doings(){
+	mc = new MyClass([false true], 12.f, [1 2. 3])
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##31. serizliaze check boxed object type dupe
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, b1 Integer[], b2 Integer[]){
+	override toString() => "MyClass:({a}, {b1}, {b2}, {b1&==b2})"
+}
+
+def doings(){
+	x = [Integer(2) 3 4 ]
+	mc = new MyClass(12.f, x, x)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##32. serizliaze boxed array type masked as object
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, something Object, d double){
+	override toString() => "MyClass:({a}, {something}, {d})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [1 Integer(2) 3], 56.8)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+
+~~~~~
+//##33. serizliaze list of arrays
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, something Object, d double){
+	override toString() => "MyClass:({a}, {something}, {d})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, [[1 Integer(2) 3] , [5.6 5.6] , ["hi"] ], 56.8)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##34. serizliaze array multitype
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, ~something Object, d double){
+	override toString() => "MyClass:({a}, {something}, {d})"
+}
+
+def doings(){
+	thing = Object[2]
+	thing[0] = [1 Integer(2) 3]
+	thing[1] = ["hi"]
+	mc = new MyClass(12.f, thing, 56.8)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	ss = myObj.something as Object[]
+	
+	"" + [myObj ss[1]]
+}
+
+~~~~~
+//##35. serizliaze with default params
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, d double, defut = 99){
+	override toString() => "MyClass:({a}, {d}, {defut})"
+}
+
+def doings(){
+	""+for(mc in [new MyClass(12.f, 56.8) new MyClass(12.f, 56.8, 100)]){
+		encoded byte[] = SerializationEncoder.encode(mc)
+		SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	}
+}
+
+~~~~~
+//##36. serizliaze object type masks single boxed thing
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+
+class MyClass(a float, something Object, d double){
+	override toString() => "MyClass:({a}, {something}, {d})"
+}
+
+def doings(){
+	mc = new MyClass(12.f, Float(454.4), 56.8)
+	
+	encoded byte[] = SerializationEncoder.encode(mc)
+	
+	myObj = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as MyClass
+	
+	"" + myObj
+}
+
+~~~~~
+//##37. test PausableLinkedQueue
+from com.concurnas.lang.channels import PausableLinkedQueue
+
+actor CallCount(){
+	private called:=0;
+	def called() => called++;;
+	def getCount() int: => called
+}
+
+
+def doings(){
+	plq = new PausableLinkedQueue<String>()
+	cc = CallCount()
+	
+	started boolean:
+	{
+		cnt = 0
+		started=true
+		loop{
+			str = plq.get()
+			cc.called()
+			if(++cnt==2){
+				break;
+			}
+		}
+	}!
+	await(started)
+	
+	plq.add("one")
+	plq.add("two")
+	
+	count := cc.getCount()
+	
+	await(count;count==2)
+	"done"
+}
+
+~~~~~
+//##38. quick spawn connect disconnect etc
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	for(x in [0 1 2 3 4 5 6 7 8 9 10]){
+		remServer = RemoteServer(loggerprov = serverLogs)
+		remServer.startServer()
+	
+		rm = Remote('localhost', loggerprov = clientLogs)
+		rm.connect()
+		
+		rm.close()
+		remServer.close()//ensure that disconnection and shutdwn is complete before proceeding
+	}
+		
+	"ok"  
+}
+
+~~~~~
+//##39. connect do work disconnect
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs)
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		ans = {1+1234}!(rm.onfailRetry())
+		"ok: " + ans
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##40. BlockingLocalRef
+
+from com.concurnas.runtime import ConcurnasClassLoader
+from com.concurnas.lang import BlockingLocalRef
+
+class DistFetchingClassLoader < ConcurnasClassLoader{
+	private parent ConcurnasClassLoader
+	this(){
+		parent = (DistFetchingClassLoader.class.getClassLoader() as ConcurnasClassLoader)
+	}
+	
+	override getBytecode(name String) byte[]{//check parent first
+		parent.getBytecode(name)
+	}
+	
+	override loadClass(name String) Class<?> {
+		res int:BlockingLocalRef
+		res = 12
+		x = res
+		
+		parent.loadClass(name)
+	} 
+}
+
+def doings(){
+	dfc = new DistFetchingClassLoader()
+	
+	"" + dfc.loadClass("java.lang.String")
+}
+
+~~~~~
+//##41. DedicatedThreadWorkerPool
+def doings(){
+	pool = concurrent.DedicatedThreadWorkerPool()
+	
+	res = {1+6}!(pool)
+	await(res)
+	its = res
+	pool.terminate()
+	
+	"got: " + res
+}
+
+~~~~~
+//##42. serialize an exception stack 1
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+from java.lang import StackTraceElement
+
+class FourThings(declaringClass String, methodName String, fileName String, lineNumber int){
+	override toString() => "FourThings({declaringClass}, {methodName}, {fileName}, {lineNumber})"
+	this(ste StackTraceElement, x int){
+		this(ste.getClassName(), ste.getMethodName(), ste.getFileName(), ste.getLineNumber()+x)
+	}
+}
+
+def getStackTrace() FourThings[] {
+	rtest = new RuntimeException("oops").getStackTrace()
+	
+	gens = new FourThings[rtest.length]
+	
+	for(x in 0 to 3){
+		gens[x] = new FourThings(rtest[0], x)
+	}
+	
+	gens[1 ... 6]
+}
+
+def doings(){
+	st = getStackTrace()
+	encoded = SerializationEncoder.encode(st)
+	b = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as FourThings[]
+	"" + [st, b]
+}
+
+~~~~~
+//##43. serialize an exception stack 2
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from java.nio import ByteBuffer
+from java.lang import StackTraceElement
+
+def getStackTrace() StackTraceElement[] {
+	new RuntimeException("oops").getStackTrace()
+}
+
+def doings(){
+	st = getStackTrace()
+	encoded = SerializationEncoder.encode(st)
+	b = SerializationDecoder.decode(ByteBuffer.wrap(encoded)) as StackTraceElement[]
+	"" + (st == b)
+}
+
+~~~~~
+//##44. request more dependancies
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+class DoWork(addWhat int){
+	def operation(avar int) => addWhat + avar
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		dw = DoWork(12)
+		
+		ans = {dw.operation(15)}!(rm.onfailRetry())
+		"" + [ans, 'Sent: sREQUESTDEPENDENCY' in serverLogs, 'DoWork found!' in clientLogs]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##45. basic dependency analysis
+class AnotherClass(name = "freddie")
+
+trait ATrait
+
+open class SuperClass(a String)
+
+annotation Annot
+
+class TopLevelClass()
+
+someTopLevels = [new TopLevelClass(), new TopLevelClass()]
+
+@Annot
+class MyClass(a String, b AnotherClass) < SuperClass(a) ~ ATrait{
+	def myFunction() => someTopLevels
+}
+
+
+def doings(){ 
+	"deps are: " + com.concurnas.lang.DependencyAnalyzer.getDependenciesOf(MyClass.class).keySet()
+}
+
+~~~~~
+//##46. dependency analysis - generic param
+from java.util import HashMap
+
+class Anotherclass
+
+class MyClass{
+	def myFunction(xyz HashMap<String, Anotherclass>) => null
+}
+
+def doings(){ 
+	"deps are: " + com.concurnas.lang.DependencyAnalyzer.getDependenciesOf(MyClass.class).keySet()
+}
+
+~~~~~
+//##47. dependency analysis - generic and in seperate module
+//##MODULE com.myorg.code
+class Anotherclass
+
+//##MODULE
+from java.util import HashMap
+from com.myorg.code import Anotherclass
+class MyClass{
+	def myFunction(xyz HashMap<String, Anotherclass>) => null
+}
+
+def doings(){ 
+	"deps are: " + com.concurnas.lang.DependencyAnalyzer.getDependenciesOf(MyClass.class).keySet()
+}
+
+~~~~~
+//##48. dependency analysis - submit deps upfront
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+class DoWork(addWhat int){
+	def operation(avar int) => addWhat + avar
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		dw = DoWork(12)
+		
+		ans = {dw.operation(15)}!(rm.onfailRetry())
+		"" + [ans, 'Client has specified 3 dependencies' in serverLogs, 'Sent: sREQUESTDEPENDENCY' in serverLogs, 'DoWork found!' in clientLogs]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##49. dont send deps client already has
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+class DoWork(addWhat int){
+	def operation(avar int) => addWhat + avar
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		dw = DoWork(12)
+		
+		ans1 = {dw.operation(15)}!(rm.onfailRetry())
+		ans2 = {dw.operation(16)}!(rm.onfailRetry())
+		"" + [ans1, ans2, 'Client has specified 4 dependencies' in serverLogs,
+						  'Client has specified no dependencies' in serverLogs,
+						  'DoWork found!' not in clientLogs
+		]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##50. deps sent with unknown dependencies loaded via reflection
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+class PlussOp(){
+	def doplus(a int, b int) => a + b
+}
+
+class DoWork(addWhat int){
+	def operation(avar int) => PlussOp().doplus(addWhat, avar)
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		//dw = DoWork(12)
+		clsname = DoWork.class.getName()
+		
+		ans1 = {
+			cls = Class.forName(clsname);
+			cls.getMethod("operation", int.class).invoke(cls.getConstructor(int.class).newInstance(12), 12)
+		}!(rm.onfailRetry())
+		"" + [ans1, 'Client has specified 2 dependencies' in serverLogs,
+					'Sent: sREQUESTDEPENDENCY' in serverLogs, 
+					'DoWork found' in clientLogs,
+					'PlussOp found' not in clientLogs,
+		]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##51. task name is submit
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		
+		ans1 = {100 + 12}!(rm.onfailRetry())
+		"done: " + [ans1, "taskname: 'x51tasknameissubmit:17'"in serverLogs]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##52. no copy security manager
+def doings(){
+	secMan = com.concurnas.bootstrap.lang.ConcurnasSecurityManager.getInstance()
+	a = System.identityHashCode(secMan)
+	
+	b = sync{{secMan = com.concurnas.bootstrap.lang.ConcurnasSecurityManager.getInstance(); System.identityHashCode(secMan)}!}
+	
+	"ok" + [a == b]//, a, b]
+}
+
+~~~~~
+//##53. custom security manager all permissions
+from java.security import Permissions, AllPermission
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	ebp = EverythingToParentButClassLoader()
+	perms = Permissions()
+	perms.add(new AllPermission())
+	
+	remServer = RemoteServer(loggerprov = serverLogs, 
+		classLoader = ebp,
+		permissions = perms
+	)
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		
+		ans1 = {pp = Pluser(); pp.plus(100, 12)}!(rm.onfailRetry())
+		"done: " + [ans1, "taskname: 'x53customsecuritymanagerallpermissions:28'"in serverLogs]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##54. security manager no permissions!
+from java.security import Permissions, AllPermission
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	ebp = EverythingToParentButClassLoader()
+	perms = Permissions()//no permissions
+	//perms.add(new AllPermission())
+	
+	remServer = RemoteServer(loggerprov = serverLogs, 
+		classLoader = ebp,
+		permissions = perms
+	)
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	""+try{
+		remServer.startServer()
+		
+		ans1 = {pp = Pluser(); pp.plus(100, 12)}!(rm.onfailRetry())
+		"done: " + [ans1, "taskname: 'bytecodeSandbox:20'"in serverLogs]
+	}catch(e){
+		"excep"
+		//'access denied ("java/lang/reflect/ReflectPermission" "suppressAccessChecks")' in "{e}"
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##55. startup and restart server and client
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs)
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		rm.connect()
+		
+		rm.close()
+		remServer.close()
+		
+		remServer.startServer()
+		rm.connect()
+		
+		ans = {10+10}!(rm.onfailRetry())
+		
+		"ok" + ans
+		
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##56. connect when already connected fail
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def expectFail(what () void){
+	try{
+		what()
+		"fail"
+	}catch(e){
+		"ok err: " + e
+	}
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs)
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		res1 = expectFail({remServer.startServer()})
+		
+		rm.connect()
+		res2 = expectFail({rm.connect()})
+		
+		"ok" + [res1, res2]
+		
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+
+~~~~~
+//##57. close connection before already connected
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def expectFail(what () void){
+	try{
+		what()
+		"fail"
+	}catch(e){
+		"ok err: " + e
+	}
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs)
+	rm = Remote('localhost', loggerprov = clientLogs)
+		res1 = expectFail({remServer.close()})
+		res2 = expectFail({rm.close(throwOnConnected=true)})
+		
+		"ok" + [res1, res2]
+}
+
+~~~~~
+//##58. auto close and explicit connect
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs)
+	rm = Remote('localhost', loggerprov = clientLogs)
+	try(remServer; rm){//close client and server
+		remServer.startServer()	
+		rm.connect()//explicit connect
+		ans = {10+10}!(rm.onfailRetry())
+		
+		"ok" + ans
+		
+	}
+}
+
+~~~~~
+//##59. cancel reamining on disconnect
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture
+
+class Pluser(){
+	def plus(a int, b int) => a + b
+}
+
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs)
+	rm = Remote('localhost', loggerprov = clientLogs)
+	try(remServer;){//close server - its ok to trail a ;
+		remServer.startServer()	
+		rm.connect()//explicit connect
+		ans := {
+			x int: = 99
+			await(x; x == 6)
+			10+10
+		}!(rm.onfailRetry())
+		
+		rm.close()
+		
+		try{"fail" + ans}catch(e){"as expected"}
+	}
+}
+

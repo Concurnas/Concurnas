@@ -1,0 +1,58 @@
+
+map = {1->2, 4->3}
+
+a int = 5; b aasd = 6;
+
+j String = new String("")
+
+
+
+
+/*
+a=21
+funco(a++)
+
+if( 1 in map)
+{
+	
+}
+
+for(int a = 0; a <== len(); a+)
+{
+
+}
+
+zzz = new A.new C(2,3); //init a nested c;ass
+
+//all 3 are the same...
+a := {3+4}!
+a int := {3+4}! //haz to be an object
+a = {3+4}!
+a int = {3+4}!
+
+
+def something(a int:) int
+{
+	a.get() + 1
+}
+
+//ompa = def () int { return 5	} <- this is still a bug oops
+
+
+class Clow[A,B](-a A, -b B) {}
+class Clow[A extends String, B extemds Number](-a A, -b B) {} //when changed to this can do check against type
+
+
+
+if(a)
+{
+a(); b=5
+}
+
+a = 5;
+a=5
+a=5; t=7 //etc, newline nonesense...
+
+//etc
+
+*/

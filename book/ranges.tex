@@ -1,0 +1,96 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Ranges]{Ranges}
+
+Concurnas has native support for numerical ranges. For example:
+\begin{lstlisting}
+range = 0 to 10 //integer range from 1 to 10 inclusive
+\end{lstlisting}
+
+Above, range is now of type \lstinline{IntSequence}. In Concurnas, sequences implement the \lstinline{java.util.Iterable} interface, meaning that they are able to be used within for loops and anywhere else where an iterator is appropriate. Let’s extract the values of the above range:
+\begin{lstlisting}
+result = x for x in range 
+
+//result == [0, 1, 2, 34, 5,6 7, 8, 9, 10]
+//note that the range is inclusive of the start and finishing items specified
+\end{lstlisting}
+
+The above example denotes a integer sequence. A long sequence is created when either of the range bounds specified are of type long:
+\begin{lstlisting}
+range LongSequence = 0L to 10
+\end{lstlisting}
+
+\section{Steps}
+Sequences can be created with specific increments via the step method:
+\begin{lstlisting}
+stepped = 0 to 10 step 2
+result = x for x in stepped 
+
+//result == [0, 2, 4, 6, 8, 10]
+\end{lstlisting}
+
+\section{Decrementing sequences}
+So far we have only explored ascending sequences, we can create descending sequences by inverting the boundary arguments:
+\begin{lstlisting}
+descending = 10 to 0 step 2
+result = x for x in descending 
+
+//result == [10, 8, 6, 4, 2, 0]
+\end{lstlisting}
+
+\section{Reversed sequences}
+As an alternative to decrementing sequences, a reversed sequence can be created as follows:
+\begin{lstlisting}
+norm = 0 to 4
+rev = norm reversed
+
+//norm == [0, 1, 2, 3, 4]
+//rev == [4, 3, 2, 1, 0]
+\end{lstlisting}
+
+\section{Infinite sequences}
+Infinite sequences can be created simply by omitting a to argument:
+\begin{lstlisting}
+infi = 0 to
+
+//infi => 0, 1, 2, 3, ...
+\end{lstlisting}
+
+And they can be stepped as follows:
+\begin{lstlisting}
+infi = 0 to step 10
+
+//infi == 0, 10, 20, 30,...
+\end{lstlisting}
+
+Note that adding a step also enables us to create infinitely decreasing sequences:
+\begin{lstlisting}
+infi = 0 to step -1
+
+//infi == 0, -1, -2, -3,...
+\end{lstlisting}
+
+Infinite sequences cannot be reversed.
+
+\section{In}
+Sequences have direct support for the in operator (without requiring calculation of the entire contents of the range). For example:
+\begin{lstlisting}
+range  = 0 to 5
+cont1 = 4 in range //cont1 resolves to true as 4 is in the range
+cont2 = 88 not in range//con2 resolves to true as 88 is not in the range
+\end{lstlisting}
+
+\section{Char, double, float sequences}
+Concurnas doesn't have direct support for non \lstinline{int/long} sequences, however the effects can be easily achieved. For example, a char sequence:
+\begin{lstlisting}
+chars = x as char for x in 65 to 70
+
+//chars == [A, B, C, D, E, F]
+\end{lstlisting}
+
+\section{Under the hood}
+Ranges are implemented via a clever use of both extension functions,expression lists, operator overloading and auto importing of the relevant extension functions and sequence classes. See: \lstinline{com/concurnas/lang/ranges.conc} for more details.
+
+\end{document}

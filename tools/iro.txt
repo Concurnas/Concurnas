@@ -1,0 +1,338 @@
+#Iro is a handy tool for gennerating Atom and Sublime Text grammars...
+#################################################################
+## Iro - https://eeyo.io/iro/
+################################################################ 
+##
+## * Press Ctrl + '+'/'-' To Zoom in
+## * Press Ctrl + S to save and recalculate... 
+## * Documents are saved to web storage.
+## * Only one save slot supported.
+## * Matches cannot span lines.
+## * Unicode chars must be defined in \u0000 to \uffff format.
+## * All matches must be contained by a single group ( ... )
+## * Look behinds not permitted, (?<= or (?<!
+## * Look forwards are permitted (?= or (?!
+## * Constants are defined as __my_const = (......)
+## * The \= format allows unescaped regular expressions
+## * Constants referenced by match \= $${__my_const}
+## * Constants can reference other constants
+## * You are free to delete all the default scopes.
+## * Twitter : ainslec , Web: http://eeyo.io/iro
+##
+################################################################
+
+name                   = concurnas
+file_extensions []     = conc;
+
+################################################################
+## Constants
+################################################################
+
+__MY_CONSTANT \= (\b[a-z][a-z0-9]*)
+
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.comment : style {
+   color                 = light_green
+   italic                = true
+   textmate_scope        = comment
+}
+
+.keyword : style {
+   color     = light_blue
+   textmate_scope        = keyword.control.concurnass
+}
+
+.numeric : style {
+   color                 = gold
+   textmate_scope        = constant.numeric.concurnass
+}
+
+.type : style {
+   color     = cyan
+   textmate_scope        = entity.name.type.concurnass
+}
+
+.storage : style {
+   color     = cyan
+   textmate_scope        = storage.modifier.concurnas
+}
+
+.operator : style {
+   color     = cyan
+   textmate_scope        = keyword.operator.concurnas
+}
+
+.constant : style {
+   color     = green
+   textmate_scope        = constant.language.concurnass
+}
+
+.text : style{
+   color = brown
+   textmate_scope = string.quoted  
+}
+
+.textregex : style{
+   color = red
+   textmate_scope = string.regexp   
+}
+
+}
+
+#################################################
+## Parse contexts
+#################################################
+
+contexts [] {
+
+##############################################
+## Main Context - Entry point context
+##############################################
+
+main : context {
+     
+   : include "multi_line_comment" ;
+   
+   : pattern {
+      regex          \= (//.*)
+      styles []       = .comment;
+   }
+   
+   : include "integers" ;
+   : include "floatingPoints" ;
+   
+   : pattern{
+      regex          \= \b(void|int|long|short|float|double|boolean|bool|byte|char|lambda|size_t)\b
+      styles []       = .type;
+   }
+   
+   : pattern{
+      regex          \= \b(import|from|assert|as|is|new|isnot)\b
+      styles []       = .keyword;
+   }
+      
+   : pattern{
+      regex          \= \b(private|public|package|protected)\b
+      styles []       = .storage;
+   }
+   
+   : pattern{
+      regex          \= \b(true|false|null|this|super)\b
+      styles []       = .constant;
+   }
+   
+   : pattern{
+      regex          \= \b(fun|def|gpudef|gpukernel|init|annotation|class|trait|enum|await|transient|extends|implements)\b
+      styles []       = .keyword;
+   }
+   
+   : pattern{
+      regex          \= \b(global|local|constant|val|var|typedef|abstract|override)\b
+      styles []       = .storage;
+   }
+   
+   : pattern{
+      regex          \= \b(\.\.|\.|in|out|del|default|sizeof|trans|while|for|using|match|with|if|elif|else|throw|try|catch|finally|onchange|every|async|pre|post|loop|also|open|closed|sync|parfor|parforsync|return|break|continue|actor|in|of|changed|match|case)\b
+      styles []       = .keyword;
+   }
+   
+   : pattern{
+      regex          \= (&|@|==|&==|<>|&<>|>|<|==>|==<|:|<=|<-|->|\.\.\.)
+      styles []       = .operator;
+   }
+   
+   : pattern{
+      regex          \= \b(comp|mod|or|and|not|band|bor|bxor)\b
+      styles []       = .operator;
+   }
+   
+   : pattern{
+      regex          \= \b(inject|provider|provide|single|shared)\b
+      styles []       = .keyword;
+   }
+   
+   : pattern{
+      regex          \= \b(nodefault|unchecked)\b
+      styles []       = .keyword;
+   }
+   
+   : pattern{
+      regex          \= (\^|\+|-|~|\*|/|>>|<<|>>>|\*\*|!|<|>)
+      styles []       = .operator;
+   }
+   
+   : pattern{
+      regex          \= (=>|\?|\+=|\*=|\*\*=|-=|/=|or=|and=|bxor=|bor=|band=|mod=|>>=|<<=|>>>=)
+      styles []       = .operator;
+   }
+   
+###########################################
+## strings Context
+###########################################
+
+   : inline_push {
+      regex         \= (")
+      styles []      = .text;
+      : pop {
+         regex      \= (")
+         styles []   = .text;
+      }
+      : pattern {
+         regex      \= (\\(?:\\|"))
+         styles [] = .text;
+      }
+      : pattern {
+         regex      \= ([^"\\]+)
+         styles [] = .text;
+      }
+   }
+   
+    : inline_push {
+      regex         \= (')
+      styles []      = .text;
+      : pop {
+         regex      \= (')
+         styles []   = .text;
+      }
+      : pattern {
+         regex      \= (\\(?:\\|'))
+         styles [] = .text;
+      }
+      : pattern {
+         regex      \= ([^'\\]+)
+         styles [] = .text;
+      }
+   }
+   
+   : inline_push {
+      regex         \= (r")
+      styles []      = .textregex;
+      : pop {
+         regex      \= (")
+         styles []   = .textregex;
+      }
+      : pattern {
+         regex      \= (\\(?:\\|"))
+         styles [] = .textregex;
+      }
+      : pattern {
+         regex      \= ([^"\\]+)
+         styles [] = .textregex;
+      }
+   }
+   
+   : inline_push {
+      regex         \= (r')
+      styles []      = .textregex;
+      : pop {
+         regex      \= (')
+         styles []   = .textregex;
+      }
+      : pattern {
+         regex      \= (\\(?:\\|'))
+         styles [] = .textregex;
+      }
+      : pattern {
+         regex      \= ([^'\\]+)
+         styles [] = .textregex;
+      }
+   }
+   
+   : inline_push {
+      regex         \= (\|\|)
+      styles []      = .textregex;
+      : pop {
+         regex      \= (\|\|)
+         styles []   = .textregex;
+      }
+      : pattern {
+         regex      \= (\\(?:\\|(\|\|)))
+         styles [] = .textregex;
+      }
+      : pattern {
+         regex      \= ([^(\|\|)\\]+)
+         styles [] = .textregex;
+      }
+   }
+   
+
+}
+###########################################
+## numbers Context
+###########################################
+
+integers : context {//optional L or S at end
+
+   : pattern {//octal?
+      regex          \= (\b0(B|b)\d+(l|L|s|S|f|F|d|D)?)
+      styles []       = .numeric;
+   }
+   
+   : pattern {//hex
+      regex          \= (\b0(X|x)([a-f|0-9|A-F])+(l|L|s|S|f|F|d|D)?)
+      styles []       = .numeric;
+   }
+   
+   : pattern {//normal
+      regex          \= (\b[0-9][0-9]*(l|L|s|S|f|F|d|D)?)
+      styles []       = .numeric;
+   }
+   
+  
+}
+
+floatingPoints : context {
+   //(e|E)(+|-)?[0-9]+
+   
+   //float      FLOAT : (DBL_FRAG ) (f|F|d|D)?;
+   : pattern {
+      regex          \= (([1-9][0-9]*|0[0-9]*)?\.[0-9]+((e|E)(\+|-)?[0-9]+)?(f|F|d|D)?)
+      styles []       = .numeric;
+   }
+   
+   : pattern {
+      regex          \= (([0-9][1-9]*)?((e|E)(\+|-)?[0-9]+)(f|F|d|D)?)
+      styles []       = .numeric;
+   }
+}
+
+###########################################
+## Multi Line Comment Context
+###########################################
+
+
+/*
+
+repository:
+  multilinecomment:
+    begin:         \\*|
+    end:           \*
+    name:          comment
+    contentName:   comment
+    patterns:
+    - include:     "#multilinecomment"
+      name:        comment
+      
+*/
+
+
+multi_line_comment : context {
+   description        = multiline
+   : inline_push {
+      regex          \= (/\*)
+      styles []       = .comment;
+      default_style   = .comment
+      : pop {
+         regex       \= (\*/)
+         styles []    = .comment;
+      }
+     //: include "multi_line_comment" ;
+   }
+}
+   
+}

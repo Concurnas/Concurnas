@@ -1,0 +1,12 @@
+import x;
+from b import x;
+from b import x, y as s,z;
+from b import x, y as s, z, x as j;
+
+from java.awt import Checkbox;
+import x.y.z;
+
+
+
+a = new x.y.z();
+

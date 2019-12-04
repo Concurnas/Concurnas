@@ -1,0 +1,765 @@
+//##1. basic enum
+
+enum MyEnum{
+	ONE, TWO//has default constructor
+}
+
+def doings(){
+	me = MyEnum.ONE;
+	"hi " + me
+}
+
+~~~~~
+//##2. basic enum supporting methods
+enum MyEnum{ONE, TWO}
+
+from com.concurnas.lang.precompiled import CheckModifiers 
+
+from java.util import List
+
+def count(a List<String>) => a.size()
+
+def doings(){
+	me = MyEnum.ONE;
+	c = MyEnum.class
+	
+	ise = c.isEnum()
+	isenum = CheckModifiers.isEnum(c)
+	
+	
+	mm java.lang.reflect.Method = c.getMethod("values", new Class<Object>[0])
+	vo = mm.invoke(null, new Object[0])//TODO: really need varargs support
+	
+	valof = me.valueOf("ONE")
+	vals = me.values()
+	
+	//nn = me.name()
+	//ord = me.ordinal()
+	
+	"hi " + [me, c, ise, ise, c.getSuperclass(), 
+	c.getModifiers(),
+	vo,
+	count(for( a in c.getMethods()) { x = "\n" + a ; if ('copy' in x){  x }  }),//i thought this was cool so left it in
+	vals //the thing above is slow
+	]
+}
+
+~~~~~
+//##3. check popping
+
+enum MyEnum{ONE, TWO}
+
+def doings(){
+	me = MyEnum.ONE;
+	//extra demand to support static functions
+	
+	valof1 = MyEnum.valueOf("ONE")//no pop
+	valof2 = me.valueOf("ONE")//pops off the me from the stack as not used
+	
+	"" + [valof1, valof2]
+}
+
+~~~~~
+//##4. check popping of fields
+
+enum MyEnum{ONE, TWO}
+
+from com.concurnas.lang.precompiled import CheckModifiers 
+
+
+def doings(){
+	cm = CheckModifiers()
+	
+	s = CheckModifiers.Something
+	s2 = cm.Something
+	
+	"" + [s, s2]
+}
+
+~~~~~
+//##5. methods of enum types instances themselves
+
+enum MyEnum{ONE, TWO}
+
+def doings(){
+	one = MyEnum.ONE
+	
+	ord = one.ordinal()
+	nn = one.name()
+	
+	"" + [ord, nn]
+}
+
+~~~~~
+//##6. methods inside enums
+
+enum MyEnum{ONE, TWO
+	def afunc() => "hi " + [super.name(), name()]
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+	
+	caller = MyEnum.afunc&()//wow works ok!
+	caller.bind(one)
+	
+	caller2 = two.afunc&()
+	
+	"" + [one.afunc(), two.afunc(), caller(), caller2()]
+}
+
+~~~~~
+//##7. private methods are ok
+
+enum MyEnum{ONE, TWO
+	private def afunc() => "ok"
+	def pubone() => "ok" + afunc()
+}
+
+def doings(){
+	one = MyEnum.ONE
+	"" + one.pubone()
+}
+
+~~~~~
+//##8. equality 1
+
+enum MyEnum{ONE, TWO
+}
+
+def doings(){
+	one = MyEnum.ONE
+	"" + [one == one, one&==one]
+}
+
+~~~~~
+//##9. equality 2
+
+enum MyEnum{ONE, TWO}
+
+class MyClass(~a int){}
+
+def doings(){
+	one = MyEnum.ONE
+	
+	idhc = System.identityHashCode&(? Object)
+	
+	ida = idhc(one)
+	ida2 = {idhc(one)}! //expect this to be the same as immutable
+	
+	mc = MyClass(12)
+	
+	testd1 = idhc(mc)
+	testd2 = {idhc(mc)}! //we expect this to be different as acting on a copy - of course, no way to tell with 100% accurany as idhc is a hash.. but mostly work...
+	
+	"" + [ida == ida2, testd1 <> testd2]
+}
+
+~~~~~
+//##10. enum fields
+
+enum MyEnum{ONE, TWO
+	public ~f = 9;
+	
+	def incandret() => f++
+	
+}
+
+def doings(){
+	one = MyEnum.ONE
+	a  = one.incandret()
+	a2 = one.incandret()
+	g = one.f
+	one.f=10
+	"" + [one, a, a2, g, one.f, one\.f]
+}
+
+~~~~~
+//##10.b enum fields
+
+enum MyEnum{ONE, TWO
+	public ~f = 9;
+	
+	def incandret() => f++
+	
+}
+
+one = MyEnum.ONE
+
+def doings(){
+	a  = one.incandret()
+	a2 = one.incandret()
+	g = one.f
+	one.f=10
+	"" + [one, a, a2, g, one.f, one\.f]
+}
+
+~~~~~
+//##11. enum fields
+enum MyEnum{ONE, TWO
+	public ~f = 9;
+	
+	def incandret() => f++
+}
+
+def doings(){
+	one = MyEnum.ONE
+	
+	idhc = System.identityHashCode&(? Object)
+	
+	ida = idhc(one)
+	ida2 = {one.f=99; idhc(one)}! //expect this to be the same as immutable
+	
+	await(ida2)
+	//this enum is mutable therefore we need to copy it
+	"" + [ida == ida2, one.f, (one@) == one]
+}
+
+~~~~~
+//##12. check immutability
+
+closed class MYClass(val a int)//immutable
+
+enum MyEnum{ONE, TWO}//immutable
+
+def doings(){
+	mc = MYClass(1)
+	em = MyEnum.ONE
+	
+	"" + [(em &== (em@)), (mc &== (mc@))]
+}
+
+~~~~~
+//##13. field init correctly
+
+enum MyEnum{
+	ONE
+	
+	~f=99
+}
+
+def doings(){
+	one = MyEnum.ONE
+	
+	"" + one.f
+}
+
+~~~~~
+//##14. class specific private fields
+
+enum MyEnum{
+	ONE{
+		f = 9
+	}, //hac block with stuff therefore subclass it
+	TWO{}//no stuff so no subclass just ingore
+}
+
+def doings(){
+	one = MyEnum.ONE
+	
+	"" + one
+}
+
+~~~~~
+//##15. enum item specific methods
+
+enum MyEnum{
+	ONE{
+		f = 9 //not permitted
+		override def something() => f++
+	},
+	TWO{}//no stuff so no subclass just ingore
+	def something() => 0
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+		
+	"" + [[one.something(), two.something()], [one.something(), two.something()]]
+}
+
+~~~~~
+//##16. enum final fields done ok
+
+enum MyEnum{
+	ONE(),
+	TWO()
+	
+	val a int=1;
+	val b double=2.;
+	
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+		
+	"" + [one, two]
+}
+
+~~~~~
+//##17. enum constructors
+
+enum MyEnum{
+	ONE(1, 2.3),
+	TWO(2, 5.65),
+	THREE, 
+	FOUR(99)
+	
+	a int=1;
+	b double=2.;
+		
+	this(a int, b double){
+		this.a = a;
+		this.b=b;
+	}
+	
+	this()=>	this(8,.34)
+	
+	this(a int)=>this(a,.11)
+	
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+	three = MyEnum.THREE
+	four = MyEnum.FOUR
+	
+	"" + [[one, two, three, four], MyEnum.values()]
+}
+
+~~~~~
+//##18. no weirdnes with psar anymore
+
+enum MyEnum{
+	ONE("hi"){
+		my String = ""
+		//subtype has its own constructor!
+		this(g String){
+			super(100, 90.)
+			my = g
+		}
+		
+		private def som(){
+			super.a=99
+			f=afunc()
+		}
+		
+		override toString() => som(); "{name()}({a}, {b}) : {my}"
+		
+	},
+	TWO(22, 8.){
+		h=99//and all the ones from the parent
+	}
+	
+	protected a int
+	protected b double
+	
+	this(a int, b double ){//no only private is permitted
+		this.a=a; this.b=b;
+	}
+	
+	protected def afunc() => 99
+	
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+		
+	"" + [one, two]
+}
+
+~~~~~
+//##19. enum default and calling therof
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13),
+	TWO(22, 33),
+	THREE(12)
+	
+	this(b int){
+		this(11, b)
+	}
+		
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+	three = MyEnum.THREE
+		
+	"" + [one, two, three, one.a, one.b]
+}
+
+~~~~~
+//##20. enums with fields from one line definition plus calling from constructor
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13),
+	TWO(22, 33),
+	THREE(12)
+	
+	this(b int){
+		this(11, b)
+	}
+		
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+	three = MyEnum.THREE
+		
+	"" + [one, two, three, one.a, one.b]
+}
+
+~~~~~
+//##21. check enum default fields are created as protected by default
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13),
+	TWO(22, 33),
+	THREE(12){
+		private def sds(){
+			p=a//good, protected by defualt
+		}
+	}
+	
+	this(b int){
+		this(11, b)
+	}
+		
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+	three = MyEnum.THREE
+		
+	"" + [one, two, three, one.a, one.b]
+}
+
+~~~~~
+//##22. simple nested enum
+
+class Outer{
+	public enum MyEnum(~a int, ~b int){
+		ONE(12, 13),
+		TWO(22, 33)
+		override toString() => "{name()}({a}, {b})"
+	}
+}
+
+def doings(){
+	one = Outer.MyEnum.ONE //fine
+	two = Outer.MyEnum.TWO //does exist
+	
+	"" + [one, two]
+}
+
+~~~~~
+//##23. nested enums
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13),
+	TWO(22, 33)
+	
+	public enum InnerEnum{
+		GREEN, BLUE
+	}
+}
+
+def doings(){
+	v = MyEnum.InnerEnum.GREEN
+	
+	"" + v
+}
+
+~~~~~
+//##24. nested class in enum accesing stuff
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13),
+	TWO(22, 33)
+	
+	private class MyClass(~ass int){
+		//can access stuff in the outer enum actually
+		override toString() => "{ass} -> {a}"
+	}
+	
+	public def getMyClass() {
+		new MyClass(a)
+	}
+}
+
+
+def doings(){
+	v = MyEnum.ONE //accessiable
+	mc MyEnum.MyClass =  v.getMyClass()
+	
+	"" + [v, mc]
+}
+
+~~~~~
+//##25. nested class in enum accesing stuff above with functions
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13),
+	TWO(22, 33)
+	
+	private def privates() => "lol"
+	
+	private class MyClass(~ass int){
+		//can access stuff in the outer enum actually
+		override toString() => "{ass} -> {a}" + privates()
+	}
+	
+	public def getMyClass() {
+		new MyClass(a)
+	}
+}
+
+
+def doings(){
+	v = MyEnum.ONE //accessiable
+	mc MyEnum.MyClass =  v.getMyClass()
+	
+	"" + [v, mc]
+}
+
+~~~~~
+//##26. enum sub element constructors fiddly stuff
+
+enum MyEnum(~a int, ~b int){
+	ONE(9){
+		this(a int){
+			this(7,8)//ok cos hidden definition
+		}
+	},
+	TWO(22, 33)
+	
+	override toString() => "{a} {b}"
+}
+
+
+def doings(){
+	"" + MyEnum.values()
+}
+
+~~~~~
+//##27. enum sub element constructors fiddly stuff x2
+
+enum MyEnum(~a int, ~b int){
+	ONE(9){
+		this(a int){
+			super(a,8)//ok cos hidden definition
+		}
+	},
+	TWO(22, 33)
+	
+	override toString() => "{a} {b}"
+}
+
+
+def doings(){
+	"" + MyEnum.values()
+}
+
+~~~~~
+//##28. a nice test to round things off
+
+public enum Operation {
+  PLUS   { public def eval(x double,  y double) {  x + y; } },
+  MINUS  { public def eval(x double,  y double) {  x - y; } },
+  TIMES  { public def eval(x double,  y double) {  x * y; } },
+  DIVIDE { public def eval(x double,  y double) {  x / y; } }
+
+  def eval(x double, y double) double
+}
+
+def doings(){
+	op = Operation.PLUS;
+	"" + op.eval(1, 1);
+}
+
+~~~~~
+//##29. access enum
+
+from com.concurnas.lang.precompiled import AnnotationHelper as AH
+
+def doings() {
+	x = AH.TheEnum.ONE
+	"" + x //ensure this is accssible in this way
+}
+
+~~~~~
+//##30. double chec nesting
+
+class MyClass(a int){
+	
+	public enum MYEnum{
+		ONE, TWO
+		def sdf(){
+			1//but a is not visible
+		}
+	}
+}
+
+def doings() {
+	"" + MyClass.MYEnum.ONE
+}
+
+~~~~~
+//##31. call valueOf
+
+from java.lang import Enum
+
+enum MyEnum{ONE, TWO}
+
+def doings(){
+	kk = Enum.valueOf(MyEnum.class, 'ONE')
+	//above used to fail due to being unable to qualify local T variable AND supertype generics being incorrectly qualified for Enum subtype: MyEnum
+	
+	"" + kk
+}
+
+~~~~~
+//##32. cannot copy enums now proper singltons
+
+from com.concurnas.lang.offheap.storage import OffHeapRAM
+from java.lang import Enum
+
+enum MyEnum{ONE, TWO
+	public transient dt=4
+	public d=4
+	override toString() => super.toString() +": "+ [d, dt]
+	def incd() => dt++; d++;;
+}
+
+def allsame(items Integer...){
+	alls=true
+	prev Integer? = null
+	for(i in items){
+		if(null == prev){
+			prev = i
+			continue
+		}
+		if(i <> prev??){
+			alls=false
+		}
+	}
+	
+	alls
+}
+
+11_meg = 11*1024*1024//parser used to not like stuff starting with a number
+
+def doings(){
+	v1 = try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//null object
+		orig = MyEnum.ONE
+		orig.incd()
+		orig.incd()
+		offHeapObj = engine.put(orig)
+		got = engine.get(offHeapObj) as MyEnum
+		f="wierd"
+		//"" + [orig, got, orig == got, got == MyEnum.ONE, MyEnum.values()[0]]//MyEnum.d
+		got
+	}
+	
+	v2 = try(engine = new OffHeapRAM<Object>(11_meg)){
+		engine.start()
+		//null object
+		orig = MyEnum.ONE
+		orig.incd()
+		orig.incd()
+		offHeapObj = engine.put(orig)
+		got = engine.get(offHeapObj) as MyEnum
+		f="wierd"
+		//"" + [orig, got, orig == got, got == MyEnum.ONE, MyEnum.values()[0]]//MyEnum.d
+		got
+	}
+	
+	kk = Enum.valueOf(MyEnum.class, 'ONE')
+	
+	weird = {System.identityHashCode(MyEnum.ONE)}!
+	//all methods by which we can obtain enums, resolves to the same instance
+	//globalizer, via offheap and via Enum reflector
+	"" + allsame([System.identityHashCode(v1) System.identityHashCode(v2) System.identityHashCode(MyEnum.ONE) System.identityHashCode(kk) weird ])
+}
+
+~~~~~
+//##33. was prevsoiuly only adding one constructor
+
+enum MyEnum{
+	ONE(12, 13){
+		public def sds(){
+		}
+	}
+	
+	
+	public def sds() void
+	
+	this(b int){
+		this(11, b)
+	}
+	this(a int, b int){
+		this.a=a
+		this.b=b
+	}
+	~a int
+	~b int
+	
+		
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+		
+	"" + one
+}
+
+~~~~~
+//##34. as above so below 
+
+enum MyEnum(~a int, ~b int){
+	ONE(12, 13){
+		public def sds(){
+		}},
+	TWO(22, 33){
+		public def sds(){
+		}},
+	THREE(12){
+		public def sds(){
+		}
+	}
+	
+	
+	public def sds() void
+	
+	this(b int){
+		this(11, b)
+	}
+		
+	override toString() => "{name()}({a}, {b})"
+}
+
+def doings(){
+	one = MyEnum.ONE
+	two = MyEnum.TWO
+	three = MyEnum.THREE
+		
+	"" + [one, two, three, one.a, one.b]
+}

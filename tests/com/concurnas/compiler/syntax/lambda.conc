@@ -1,0 +1,99 @@
+n&(2);
+n(2).k;
+h;
+n&(2)(2);
+
+
+n();
+n(23,6);
+n&();
+n&()();
+
+z = b&();
+z = b&(8);
+z = b&(8)(6);
+z = b&(8, 9);
+z = b&(8, ? int);
+z = b&(8, Int)(9)&(5, ? float)(5.);
+z = b&(8, ? int)(9)&(5, ? float)&(5.)();
+z = b&(8, ? int)(9)&(5, ? float)(5.)();
+
+z lambda =  b&(); //genneral catch all for a funcref/lambda
+
+
+ax[2].b()(5);
+
+ax[3][2].a()(3);//takes no args
+
+
+ax[3][2].a&(? int)(3);
+ax[3][2].a&(5,? int)(3);
+ax[3][2].a&(5,? int,7)(3);
+ax[3][2].a&(5,? int,? int)&(3,? int)(9)[1].print();
+
+p = a[1, 2, 3]
+
+
+//check still works...
+nnn(5).f = 6;
+(func())(1);
+a int = 77;
+
+//function and lambda spec
+
+
+//as a function definition
+def plus1(p int) int { return p+1;}
+
+//as a func reference
+plus1v2 (int)int = def (n int) int { return n+1;};
+
+
+def map(input int[], func (int) int ) List<String>
+{
+	//map function
+	ret List<String> = [];
+	for(a int in input)
+	{
+		ret += func(a);
+	}
+	
+	return ret;
+}
+
+
+
+map([1,2,3], def ( n int)int {return n+1;});
+
+map([1,2,3], plus1&());
+map([1,2,3], plus1v2&());
+
+def plusN(m int, n int) int{return m+n;}
+
+
+
+def doings() String{
+	raw = 8
+	ref1l = 8!
+	ref2l = (8!)!
+	
+
+	rawAOnes = [def () { x ::= raw }, 
+			  def () { x := raw },
+			  def () { x = raw } ]
+	
+	l1ones =  [def () { x ::= ref1l },
+				def () { x := ref1l },
+				def () { x = ref1l } ]
+	
+	l2ones =  [def () { x ::= ref2l },
+			def () { x := ref2l },
+			def () { x = ref2l } ]
+	
+	proc = def (  funcl () x ) { x ::= orig; funcl()  } //this is ok, you can define the functype as not needing to have void when passed as an arg, of course, this fails if it's permmitted as a general tpy e as funcl() would be parsed as Newvar: name(funcl) functype( () ) )! 
+	
+	//now with 2 level ref
+	//1 level ref [check placement]
+	
+	return "" 
+}

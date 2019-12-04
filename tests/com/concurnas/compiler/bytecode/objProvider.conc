@@ -1,0 +1,3735 @@
+//##1. simple
+
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class ConsoleNotify ~ NotificationService{
+	def notify(msg String){
+		System err println msg
+	}
+}
+
+
+inject class MessageProvider(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+inject class Client{
+	inject service NotificationService?
+	inject msgProv MessageProvider?
+	
+	def doperation(){
+		service??.notify(msgProv??.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	//provide Client client2
+	NotificationService => new ConsoleNotify()
+	MessageProvider => new MessageProvider(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix")
+	cl Client = cp.Client()
+	//cl.doperation()
+	"ok"
+}
+
+~~~~~
+//##2. two instances
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class ConsoleNotify ~ NotificationService{
+	def notify(msg String){
+		System err println msg
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+inject class Client{
+	inject service NotificationService?
+	inject msgGen MessageGennerator?
+	
+	def doperation(){
+		service??.notify(msgGen??.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	provide client2 Client
+	NotificationService => new ConsoleNotify()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix")
+	cl Client = cp.Client()
+	cl2 Client = cp.client2()
+	//cl.doperation()
+	"ok"
+}
+
+~~~~~
+//##3. zero arg constructor for injectable fields
+
+class Client{
+	inject this(){}
+	
+	inject service String?
+	inject msgGen String?
+	
+}
+
+def doings() => "ok"
+
+~~~~~
+//##4. three ways to inject a zero arg constructor
+
+inject class Client{
+	inject service String?
+	inject msgGen String	?
+}
+
+inject class Client2{
+	this(){}
+	inject service String?
+	inject msgGen String?
+	
+}
+
+class Client3{
+	inject this(){}
+	inject service String?
+	inject msgGen String?
+	
+}
+
+def doings() => "ok"
+
+~~~~~
+//##5. basic field injection
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+class Client{
+	inject this(){}
+	
+	inject service NotificationService?
+	inject msgGen MessageGennerator?
+	
+	def doperation(){
+		service??.notify(msgGen??.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	NotificationService => new MessageCapture()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.service as MessageCapture).items
+}
+
+~~~~~
+//##6. method injection
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+class Client{
+	inject this(){}
+	
+	service NotificationService?
+	msgGen MessageGennerator?
+	
+	inject def setAll(service NotificationService, msgGen MessageGennerator){
+		this.service = service
+		this.msgGen = msgGen
+	}
+	
+	def doperation(){
+		service??.notify(msgGen??.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	NotificationService => new MessageCapture()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.service as MessageCapture).items
+}
+
+~~~~~
+//##7. constructor injection
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+inject class Client(service NotificationService, msgGen MessageGennerator){
+	def doperation(){
+		service.notify(msgGen.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	NotificationService => new MessageCapture()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.service as MessageCapture).items
+}
+
+~~~~~
+//##8. qualify superfields
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+abstract class Supclient{
+	inject service NotificationService?
+}
+
+class Client < Supclient{
+	inject this(){}
+	
+	inject msgGen MessageGennerator?
+	
+	def doperation(){
+		service??.notify(msgGen??.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	NotificationService => new MessageCapture()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.service as MessageCapture).items
+}
+
+~~~~~
+//##9. qualify super methods needing inject
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+abstract class Supclient{
+	service NotificationService?
+	inject def setService(service NotificationService){
+		this.service = service
+	}
+	
+}
+
+class Client < Supclient{
+	inject this(){}
+	
+	inject msgGen MessageGennerator?
+	
+	def doperation(){
+		service??.notify(msgGen??.get())
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	NotificationService => new MessageCapture()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.service as MessageCapture).items
+}
+
+~~~~~
+//##10. ensure no arg construtor added only once
+
+inject class Client{
+	inject service String?
+	inject msgProv String?
+	override toString() => "its fine"
+}
+
+def doings(){
+	"ok" + Client()
+}
+
+
+~~~~~
+//##11. transient dependancy
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+inject class ClientWorker(public service NotificationService, msgGen MessageGennerator){
+	def doperation(){
+		service.notify(msgGen.get())
+	}
+}
+	
+
+inject class Client(public worker ClientWorker){
+	def doperation(){
+		worker.doperation()
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	NotificationService => new MessageCapture()
+	MessageGennerator => new MessageGennerator(msgprefix)
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.worker.service as MessageCapture).items
+}
+
+~~~~~
+//##12. transient dependancy - direct
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+
+inject class MessageGennerator(prefix String){
+	def get(){
+		prefix + "real message"
+	}
+}
+
+
+inject class ClientWorker(public service NotificationService, msgGen MessageGennerator){
+	def doperation(){
+		service.notify(msgGen.get())
+	}
+}
+	
+
+inject class Client(public worker ClientWorker){
+	def doperation(){
+		worker.doperation()
+	}
+}
+
+
+
+provider ClientProvider(msgprefix String){
+	provide Client
+	ClientWorker => new ClientWorker(new MessageCapture(), new MessageGennerator(msgprefix))
+}
+
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.worker.service as MessageCapture).items
+}
+
+~~~~~
+//##13. provide can also be a dependancy
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+inject class PrefixHolder(){
+	public prefix = "PrefixHolder: "
+}
+
+inject class MessageGennerator(prefixh PrefixHolder){
+	def get(){
+		prefixh.prefix + "real message"
+	}
+}
+
+
+inject class ClientWorker(public service NotificationService, msgGen MessageGennerator){
+	def doperation(){
+		service.notify(msgGen.get())
+	}
+}
+	
+
+inject class Client(public worker ClientWorker){
+	def doperation(){
+		worker.doperation()
+	}
+}
+
+
+
+provider ClientProvider(){
+	provide Client
+	provide PrefixHolder
+	NotificationService => new MessageCapture()
+}
+
+
+def doings(){
+	cp = new ClientProvider()
+	cl Client = cp.Client()
+	ph PrefixHolder = cp.PrefixHolder()
+	cl.doperation()
+	"ok" + [(cl.worker.service as MessageCapture).items, ph.prefix]
+}
+
+~~~~~
+//##14. provide has expr on rhs
+
+from java.util import ArrayList
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+class PrefixHolder(public prefix String){
+}
+
+inject class MessageGennerator(prefixh PrefixHolder){
+	def get(){
+		prefixh.prefix + "real message"
+	}
+}
+
+
+inject class ClientWorker(public service NotificationService, msgGen MessageGennerator){
+	def doperation(){
+		service.notify(msgGen.get())
+	}
+}
+	
+
+inject class Client(public worker ClientWorker){
+	def doperation(){
+		worker.doperation()
+	}
+}
+
+
+
+provider ClientProvider(theprfix String){
+	provide Client
+	provide PrefixHolder => new PrefixHolder(theprfix)
+	NotificationService => new MessageCapture()
+}
+
+
+def doings(){
+	cp = new ClientProvider('prefix: ')
+	cl Client = cp.Client()
+	ph PrefixHolder = cp.PrefixHolder()
+	cl.doperation()
+	"ok" + [(cl.worker.service as MessageCapture).items, ph.prefix]
+}
+
+~~~~~
+//##15. provide method name
+
+from java.util import ArrayList
+
+class Client(public msgprefix String)
+
+provider ClientProvider(msgprefix String){
+	provide getThing Client =>  new Client(msgprefix)
+}
+
+def doings(){
+	cp = new ClientProvider("msg prefix: ")
+	"fail" + cp.getThing().msgprefix
+}
+
+~~~~~
+//##16. compiled classes tagged with Inject can be injected
+
+from com.concurnas.lang.precompiled import ToInjectHelpers
+
+//test constructor, method and field inject annotation
+provider ClientProvider(part1 String, part2 String){
+	provide ToInjectHelpers.Client
+	ToInjectHelpers.MessageProvider => new ToInjectHelpers.MessageProvider(part1)
+	ToInjectHelpers.StringHolder => new ToInjectHelpers.StringHolder(part2)
+	ToInjectHelpers.Doer => new ToInjectHelpers.Doer
+	
+}
+
+def doings(){
+	cp = new ClientProvider("part1", "part2")
+	"cool: " + cp.Client().runOperation()
+}
+
+~~~~~
+//##17. object provider can depend on other object providers
+from java.util import ArrayList
+
+
+trait NotificationService{
+	def notify(msg String) 
+}
+
+class MessageCapture ~ NotificationService{
+	public items = new ArrayList<String>()
+	def notify(msg String){
+		items.add(msg);;
+	}
+}
+
+class PrefixHolder(public prefix String){
+}
+
+inject class MessageGennerator(prefixh PrefixHolder){
+	def get(){
+		prefixh.prefix + "real message"
+	}
+}
+
+
+inject class ClientWorker(public service NotificationService, msgGen MessageGennerator){
+	def doperation(){
+		service.notify(msgGen.get())
+	}
+}
+	
+
+inject class Client(public worker ClientWorker){
+	def doperation(){
+		worker.doperation()
+	}
+}
+
+provider PHProvider(theprfix String){
+	provide PrefixHolder => new PrefixHolder(theprfix)
+}
+
+
+provider ClientProvider(prov PHProvider){
+	provide Client
+	NotificationService => new MessageCapture()
+	PrefixHolder => prov.PrefixHolder()
+}
+
+
+def doings(){
+	php = new PHProvider('prefix: ')
+		
+	cp = new ClientProvider(php)
+	cl Client = cp.Client()
+	cl.doperation()
+	"ok" + (cl.worker.service as MessageCapture).items
+}
+
+~~~~~
+//##18. basic generics
+from java.util import ArrayList
+
+trait NotificationService<X>{
+	def notify(msg X) 
+}
+
+class MessageCapture<X> ~ NotificationService<X>{
+	public items = new ArrayList<X>()
+	def notify(msg X){
+		items.add(msg);;
+	}
+}
+
+
+inject class Client<X>(public noti NotificationService<X>){
+	def doperation(thing X){
+		noti.notify(thing)
+	}
+}
+
+
+provider ClientProvider<X>{
+	provide Client<X>
+	NotificationService<X> => new MessageCapture<X>()
+}
+
+
+def doings(){
+	cp = new ClientProvider<String>()
+	cl Client<String> = cp.Client()
+	cl.doperation("hi")
+	"ok" + (cl.noti as MessageCapture<String>).items
+}
+
+~~~~~
+//##19. fully qualified generics
+
+from java.util import ArrayList
+
+
+trait NotificationService<X>{
+	def notify(msg X) 
+}
+
+class MessageCapture<X> ~ NotificationService<X>{
+	public items = new ArrayList<X>()
+	def notify(msg X){
+		items.add(msg);;
+	}
+}
+
+inject class Client<X>(public noti NotificationService<X>){
+	def doperation(thing X){
+		noti.notify(thing)
+	}
+}
+
+
+provider ClientProvider{
+	provide Client<String>
+	NotificationService<String> => new MessageCapture<String>()
+}
+
+
+def doings(){
+	cp = new ClientProvider()
+	cl Client<String> = cp.Client()
+	cl.doperation("hi")
+	"ok" + (cl.noti as MessageCapture<String>).items
+}
+
+~~~~~
+//##20. object provider defined before classes it provides
+
+provider ClientProvider{
+	provide Client
+	String => "hi"
+}
+
+inject class Client(msg String){
+	def doperation(){
+		msg
+	}
+}
+
+
+def doings(){
+	cp = new ClientProvider()
+	cl Client = cp.Client()
+	
+	"ok" + cl.doperation()
+}
+
+~~~~~
+//##21. provider expression generic
+
+from java.util import ArrayList
+
+provider ARProvider{
+	provide<Y> ArrayList<Y> => new ArrayList<Y>()
+}
+
+def doings(){
+	arp = ARProvider()
+	res ArrayList<String> = arp.ArrayList<String>()
+	"nice: " + res.getClass()
+}
+
+~~~~~
+//##22. generic dependancies
+
+from java.util import ArrayList
+
+class Holder<X>(x X)
+
+inject class Userclass(h Holder<String>){
+	def getter() => h.x
+}
+
+provider UserClassProvider{
+	provide Userclass
+	Holder<String> => new Holder<String>("ok") 
+}
+
+def doings(){
+	arp = UserClassProvider()
+	res = arp.Userclass()
+	"nice: " + res.getter()
+}
+
+~~~~~
+//##23. private provider
+
+from java.util import ArrayList
+
+class Holder<X>(x X)
+
+inject class Userclass<X>(h Holder<X>){
+	def getter() => h.x
+}
+
+
+private provider UserClassProviderStr{
+	provide Userclass<String> => new Userclass<String>(new Holder<String>("ok"))
+}
+
+
+def doings(){
+	arp = new UserClassProviderStr()
+	res = arp.Userclass()
+	"nice: " + res.getter()
+}
+
+~~~~~
+//##24. this just works
+
+from java.util import ArrayList
+
+class Userclass{
+	held String
+	
+	inject this(a Integer, b String){
+		held = b + a
+	}
+	
+	def getter() => held
+}
+
+
+private provider UCProvider{
+	provide Userclass
+	String => "ok"
+	Integer => 12
+}
+
+
+def doings(){
+	arp = new UCProvider()
+	res = arp.Userclass()
+	"nice: " + res.getter()
+}
+
+~~~~~
+//##25. trait fields
+
+from java.util import ArrayList
+
+trait AThing{
+	inject something1 String?
+	something2 String?
+	something3 String?
+}
+
+class Userclass ~ AThing{
+	held String
+	override something1 String = "one hundred"
+	override something2 String = "one hundred"
+	inject override something3 String = "one hundred"
+	
+	inject this(a Integer, b String){
+		held = b + a
+	}
+	
+	def getter() => held
+}
+
+
+private provider UCProvider{
+	provide Userclass
+	String => "ok"
+	Integer => 12
+}
+
+
+def doings(){
+	arp = new UCProvider()
+	res = arp.Userclass()
+	"nice: " + [res.getter() res.something1 res.something2 res.something3]
+}
+
+~~~~~
+//##26. provide specific dependancies
+
+from java.util import ArrayList
+
+trait Ge{
+	def getter() String
+}
+
+class Userclass ~ Ge {
+	held String
+	
+	inject this(a Integer, b String){
+		held = "{a, b}"
+	}
+	
+	def getter() => held
+}
+
+
+inject class Userclass2(held String)  ~ Ge {
+	def getter() => held
+}
+
+private provider UCProvider{
+	provide Userclass{
+		String => "ok" 
+		Integer => 12
+	}
+	provide Userclass2
+	String => "mighty"
+}
+
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	res2 = arp.Userclass2()
+	"nice: " + (x.getter() for x in [res1 res2])
+}
+
+~~~~~
+//##27. provide an actor
+
+inject class Userclass(a Integer, b String) {
+	def getter() => "{a, b}"
+}
+
+private provider UCProvider{
+	provide actor Userclass
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	"nice: " + res1.getter()
+}
+
+~~~~~
+//##28. dependancy can be an actor
+
+class StringHolder(public aString String){
+	override toString() => aString
+}
+
+inject class Userclass(a Integer, b actor StringHolder) {
+	def getter() => "{a, b}"
+}
+
+private provider UCProvider{
+	provide Userclass
+	actor StringHolder => actor StringHolder("ok") 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	"nice: " + res1.getter()
+}
+
+~~~~~
+//##29. provide a typed actor
+
+class StringHolder(public aString String){
+	override toString() => aString
+}
+
+class IntHoler(an int){
+	override toString() => ""+an
+}
+
+inject class Userclass(a Integer, b StringHolder) {
+	def getter() => "{a, b}"
+	private an IntHoler?
+	inject def seteIHolder(an IntHoler){
+		this.an = an
+	}
+	override toString() => getter() + an
+}
+
+inject actor MyActor(a Integer, b StringHolder) of Userclass(a, b)
+
+private provider UCProvider{
+	provide MyActor
+	StringHolder => StringHolder("ok") 
+	Integer => 12
+	IntHoler => new IntHoler(100)
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	"nice: " + res1
+}
+ 
+~~~~~
+//##30. actor as dependancy 1
+ 
+class StringHolder(public aString String){
+	override toString() => aString
+}
+
+
+actor StrHolActor(aString String) of StringHolder(aString)
+
+inject class Userclass(a Integer, b StrHolActor) {
+	def getter() => "{a, b}"
+	override toString() => getter()
+}
+
+
+private provider UCProvider{
+	provide Userclass
+	StrHolActor => new StrHolActor("ok") 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	"nice: " + res1
+}
+ 
+~~~~~
+//##31. actor as dependancy 2
+class StringHolder(public aString String){
+	override toString() => aString
+}
+
+class StrHolderHolder(aString StringHolder){
+	override toString() => ""+aString
+}
+
+inject actor StrHolActor(aString StringHolder) of StrHolderHolder(aString)
+
+inject class Userclass(a Integer, b StrHolActor) {
+	def getter() => "{a, b}"
+	override toString() => getter()
+}
+
+
+private provider UCProvider{
+	provide Userclass
+	StringHolder => new StringHolder("ok") 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.Userclass()
+	"nice: " + res1
+}
+
+~~~~~
+//##32. untyped actor
+
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+private provider UCProvider{
+	provide MyActor
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyActor()
+	"nice: " + res1
+}
+ 
+~~~~~
+//##33. untyped actor with pass though
+ 
+inject class ThingHolder(an String){
+	override toString() => an
+}
+
+
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b, an}"
+	
+	private an ThingHolder?
+	
+	inject def thingHolder(an ThingHolder){
+		this.an = an;//and injectable methods
+	}
+}
+
+private provider UCProvider{
+	provide MyActor
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyActor()
+	"nice: " + res1
+}
+
+~~~~~
+//##34. untyped actor as implicit dependancy
+
+inject class ThingHolder(an String){
+	override toString() => an
+}
+
+
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b, an}"
+	
+	private an ThingHolder?
+	
+	inject def thingHolder(an ThingHolder){
+		this.an = an;
+	}
+}
+
+inject class MyClass(an MyActor){
+	override toString() => ""+an
+}
+
+
+private provider UCProvider{
+	provide MyClass
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+	"nice: " + res1
+}
+ 
+~~~~~
+//##35. untyped actor as explicit dependancy
+ 
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b}"
+	
+}
+
+inject class MyClass(an MyActor){
+	override toString() => ""+an
+}
+
+
+private provider UCProvider{
+	provide MyClass
+	MyActor => MyActor("ok", 12)
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+	"nice: " + res1
+}
+ 
+~~~~~
+//##36. default actor with injectable methods
+ 
+inject class ThingHolder(an String){
+	override toString() => an
+}
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b, an}"
+	
+	private an ThingHolder?
+	
+	inject def thingHolder(an ThingHolder){
+		this.an = an;
+	}
+}
+
+private provider UCProvider{
+	provide actor MyClass
+	String => "ok"
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+	"nice: " + res1
+}
+ 
+~~~~~
+//##37. use provide nested elements
+ 
+inject class ThingHolder(an String){
+	override toString() => an
+}
+
+
+inject actor MyActor(a String, b Integer){
+	override toString() => "{a, b, an}"
+	
+	private an ThingHolder?
+	
+	inject def thingHolder(an ThingHolder){
+		this.an = an;
+	}
+}
+
+private provider UCProvider{
+	provide MyActor
+	 provide ThingHolder{
+		String => "thing"
+	}
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyActor()
+	lething = arp.ThingHolder()
+	"nice: " + res1
+}
+
+~~~~~
+//##38. provide ref
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+private provider UCProvider{
+	provide MyClass:
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+		
+	"nice: " + res1
+}
+
+
+~~~~~
+//##39. provide ref 2 levels
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+private provider UCProvider{
+	provide MyClass::
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##40. custom refs
+
+class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+	inject this(type Class<?>[]){
+		this(type, 0)
+	}
+
+}
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass:GPURef
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 := arp.MyClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##41. custom refs - no inject
+
+class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+	this(type Class<?>[]){
+		this(type, 0)
+	}
+
+}
+
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass:GPURef
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 := arp.MyClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##42. custom refs - injected
+
+class AThing(athing String){
+	override toString() => athing
+}
+
+class GPURef<X>(type Class<?>[], ~event int, public xx AThing?) < com.concurnas.runtime.ref.Local<X>(type){
+	this(type Class<?>[]){
+		this(type, 0, null)
+	}
+	inject this(type Class<?>[], xx AThing){
+		this(type, 0, xx)
+	}
+
+}
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass:GPURef
+	String => "ok" 
+	Integer => 12
+	AThing => new AThing("nice works")
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 := arp.MyClass()
+		
+	"nice: " + [res1, res1:xx]
+}
+
+~~~~~
+//##43. ref as pass though dependancy
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+inject class MainClass(mc MyClass:){
+	override toString() => "" + mc 
+}
+
+private provider UCProvider{
+	provide MainClass
+	String => "ok" 
+	Integer => 12
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MainClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##44. ref as normal dependancy
+
+inject class MyClass(a String, b Integer){
+	override toString() => "{a, b}"
+}
+
+inject class MainClass(mc MyClass:){
+	override toString() => "" + mc 
+}
+
+private provider UCProvider{
+	provide MainClass
+	MyClass: => new MyClass("ok" , 12):
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MainClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##45. zero arg constructor
+
+inject class MyClass{
+	inject a String?
+	inject b Integer?
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass
+	String => "ok"
+	Integer => 11
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##46. primative dep ok
+
+inject class MyClass{
+	inject a String?
+	inject b int
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass
+	String => "ok"
+	int => 11
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##47. primative dep ok provide specific
+
+inject class MyClass{
+	inject a String?
+	inject b int
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass{
+		String => "ok"
+		int => 11
+	}
+}
+
+def doings(){
+	arp = new UCProvider()
+	res1 = arp.MyClass()
+		
+	"nice: " + res1
+}
+
+~~~~~
+//##48. primative ref dep
+
+inject class MyClass{
+	inject a String?
+	inject b int:
+	override toString() => "{a, b}"
+}
+
+
+private provider UCProvider{
+	provide MyClass
+	String => "ingf"
+	int: => 23:
+}
+
+def doings(){
+	ucp = UCProvider()
+	res = ucp.MyClass()
+	"nice: " + res
+}
+
+~~~~~
+//##49. another generic instance
+
+inject class MyGenericThing<X>(an X){
+	override toString() => "" + an
+}
+
+provider AProvider2{
+	provide MyGenericThing<String>
+	String => "good"
+}
+
+
+def doings(){
+	apu = AProvider2()
+	inst = apu.MyGenericThing()
+	
+	"" + inst
+}
+
+~~~~~
+//##50. provider unique single instances
+
+inject class IntHolder(myInt Integer){
+	override toString() => "{myInt}"
+}
+
+inject class MyClass(public an IntHolder){
+	override toString() => "" + an
+}
+
+provider AProvider1{
+	single provide MyClass
+	IntHolder => new IntHolder(55)
+}
+
+provider AProvider2{
+	provide MyClass
+	single IntHolder => new IntHolder(55)
+}
+
+def doings(){
+	apu1 = AProvider1()
+	inst1 = apu1.MyClass()
+	inst2 = apu1.MyClass()
+	
+	apu2 = AProvider2()
+	inst3 = apu2.MyClass()
+	inst4 = apu2.MyClass()
+	
+	"nice: " + [inst1 &== inst2, inst1.an &== inst2.an, inst2 &<> inst3, inst3 &<> inst4, inst3.an &== inst4.an]
+}
+
+~~~~~
+//##51. single provide expression
+
+inject class IntHolder(myInt Integer){
+	override toString() => "{myInt}"
+}
+
+inject class MyClass(public an IntHolder){
+	override toString() => "" + an
+}
+
+provider AProvider1{
+	single provide MyClass => MyClass(IntHolder(222))
+}
+
+def doings(){
+	apu1 = AProvider1()
+	inst1 = apu1.MyClass()
+	inst2 = apu1.MyClass()
+		
+	"nice: " + (inst1 &== inst2)
+}
+
+~~~~~
+//##52. provider nested dep
+
+inject class IntHolder(myInt Integer){
+	override toString() => "{myInt}"
+}
+
+inject class MyClass(public an IntHolder){
+	override toString() => "" + an
+}
+
+provider AProvider1{
+	provide MyClass{
+		single IntHolder => IntHolder(222)
+	}
+}
+
+def doings(){
+	apu1 = AProvider1()
+	inst1 = apu1.MyClass()
+	inst2 = apu1.MyClass()
+		
+	"nice: " + [inst1 &<> inst2 inst1.an &== inst2.an]
+}
+
+~~~~~
+//##53. zero arg constructor is ok
+//actually its not
+class MyClass{
+	inject this(){}
+	inject an String?
+	override toString() => an
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "ok"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##54. lazy val new 1
+
+lazy something int = new com.concurnas.lang.types.Lazy<int>(def () {200})
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##55. lazy val new 2
+lazy something int = 200
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##56. lazy val ae new
+
+lazy something = 200
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##57. easy lazy example
+
+avar = 300
+lazy something = {avar = 400; 56}
+
+
+def doings(){
+	"" + [avar something avar]
+}
+
+~~~~~
+//##58. lazy assign existing 1
+lazy something int = 200
+something = def () {400}
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##59. lazy assign existing 2
+
+lazy something int = 200
+something = 400
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##60. lazy assign existing - field
+
+class MyClass{
+	public lazy something int = 200
+}
+
+def doings(){
+	mc = MyClass()
+	a = mc.something
+	mc.something = 400
+	
+	"" + [a mc.something]
+}
+
+~~~~~
+//##61. new lazy arg with no rhs
+
+class MyClass{
+	public lazy something int
+}
+
+def doings(){
+	mc = MyClass()
+	a = mc.something
+	mc.something = 400
+	
+	"" + [a mc.something]
+}
+
+~~~~~
+//##62. lazy ref
+
+lazy something int: = new com.concurnas.lang.types.Lazy < java.lang.Integer: > ( def ( ) Integer: { Integer(200):})
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##63. lazy ref 2
+
+lazy something int: = 200:
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##64. lazy ref 3 ae
+
+lazy something = 200:
+
+def doings(){
+	"" + something
+}
+
+~~~~~
+//##65. lazy ref 4 ae and assignment
+
+lazy something int: = 200
+
+def doings(){
+	a = something
+	something = 444
+	"" + [a something]
+}
+
+~~~~~
+//##66. lazy tuple
+
+lazy xx (int, int) = 12, 23
+
+def doings(){
+	"" + xx
+}
+
+~~~~~
+//##67. pass around lazy vals
+
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+
+def doings(){
+	lazy something = {avar = 99; 200}
+	
+	"" + afunc(something:)
+}
+ 
+~~~~~
+//##68. lazy val in function arg
+ 
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+
+def doings(){
+	"" + afunc({avar = 99; 200})
+}
+
+~~~~~
+//##69. lazy val in function arg dont call
+ 
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+//def afunc(operate int) => [avar operate avar]
+
+def doings(){
+	"" + afunc({avar = 99; 200})
+}
+ 
+~~~~~
+//##70. go for non lazy one
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+//def afunc(operate int) => [avar operate avar]
+
+def doings(){
+	xx = afunc&({avar = 99; 200})
+	"" + xx()
+} 
+ 
+~~~~~
+//##71. lazy funcref bound
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+
+def doings(){
+	xx = afunc&({avar = 99; 200})
+	"" + xx()
+} 
+ 
+~~~~~
+//##72. lazy funcref unbound no arg
+ 
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+
+def doings(){
+	xx = afunc&
+	"" + xx({avar = 99; 200})
+}
+
+~~~~~
+//##73. lazy funcref bound no arg
+
+avar = 88
+
+def afunc(lazy operate int) => [avar operate avar]
+
+def doings(){
+	xx = afunc&(lazy int)
+	"" + xx({avar = 99; 200})
+}
+
+~~~~~
+//##74. lazy default value as arg
+
+avar = 88
+
+def afunc(lazy operate int = new com.concurnas.lang.types.Lazy <int> ( def ( )  { return {avar = 99; 200}})) => [avar operate avar]
+
+def doings(){
+	xx = afunc()
+	"" + xx
+} 
+
+~~~~~
+//##75. lazy default value in params
+
+avar = 88
+
+//def afunc(lazy operate int = 200) => [avar operate avar]
+//def afunc(lazy operate int = new com.concurnas.lang.types.Lazy <int> ( def ( )  { 200})) => [avar operate avar]
+def afunc(lazy operate int = new com.concurnas.lang.types.Lazy <int> ( def ( )  { return 1111})) => [avar operate avar]
+
+def doings(){
+	xx = afunc({avar = 99; 200})
+	"" + xx
+} 
+
+~~~~~
+//##76. lazy default value short version no arg arg
+
+avar = 88
+
+def afunc(lazy operate int = {avar=11; 200}) => [avar operate avar]
+
+def doings(){
+	"" + [afunc() afunc({avar=55; 200})]
+} 
+
+~~~~~
+//##77. lazy classdefarg
+avar = 88
+
+class MyClass(lazy operate int){
+	override toString() => ""+[avar operate avar]
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def doings(){
+	xx = MyClass({avar=100; 22 })
+	"" + xx
+}
+
+~~~~~
+//##78. lazy classdefarg via super
+
+avar = 88
+
+open class MyClass(lazy operate int){
+	override toString() => ""+[avar operate avar]
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+class SubMyClass(lazy operate int) < MyClass(operate:){
+	override toString() => super.toString()
+	override hashCode() => 1
+	override equals(an Object) => false
+}
+
+def doings(){
+	xx = SubMyClass({avar=100; 22 })
+	"" + xx
+}
+
+~~~~~
+//##79. lazy vararg
+
+avar = 88
+
+def afunc(lazy operate int...) => [avar operate avar]
+
+def doings(){
+	""+ afunc({avar = 99; [200 300]})
+}
+
+~~~~~
+//##80. lazy vararg funcred
+
+avar = 88
+
+def afunc(lazy operate int...) => [avar operate avar]
+
+def doings(){
+	xx = afunc&({avar = 99; [200 300]})
+	""+ xx()
+}
+
+~~~~~
+//##81. lazy vararg normal plus varafuncref
+
+avar = 88
+
+def afunc(lazy operate int...) => [avar operate avar]
+
+def doings(){
+	d = afunc(23, 57, 99)
+	x = afunc&(23, 57, 99)
+	""+ [d x()]
+}
+
+~~~~~
+//##82. lazy vararg no arg
+avar = 88
+
+def afunc( lazy operate int...) => [avar operate avar]
+
+def doings(){
+	d = afunc()
+	f = afunc&()
+	""+ [d f()]
+}
+
+~~~~~
+//##83. basic lazy lhs def
+
+avar = 88
+
+class MyClass{
+	inject this(){}
+	inject lazy an String
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	lazy String => new com.concurnas.lang.types.Lazy<String>(def () {avar = 99; "ok"} ) 
+	///{avar = 99; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##84. basic lasy dependancy provide
+
+avar = 88
+
+class MyClass{
+	inject this(){}
+	inject lazy an String
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	lazy String => {avar = 99; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##85. basic lasy dependancy provide method
+
+avar = 88
+
+class MyClass{
+	inject this(){}
+	private lazy an String
+	
+	inject def thLazy(lazy an String){
+		this.an = an:
+	}
+	
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	lazy String => {avar = 99; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##86. basic lasy dependancy provide constructor
+
+avar = 88
+
+inject class MyClass( lazy an String){
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	lazy String => {avar = 99; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##87. provide lazy
+
+avar = 88
+
+inject class MyClass( an String){
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide lazy MyClass
+	String => "ok"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1:
+}
+
+~~~~~
+//##88. provide lazy expr
+
+avar = 88
+
+inject class MyClass( an String){
+	override toString() => "" + [avar an avar]
+}
+
+provider MCPRovider{
+	provide lazy MyClass => MyClass("ok")
+	//String => "ok"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1:
+}
+
+~~~~~
+//##89. normal dep to qualify lazy
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	inject lazy an2 String
+	private lazy an3 String
+	
+	inject def SetThingamy(lazy an3 String){
+		this.an3 = an3:
+	}
+	
+	override toString() => "" + [avar an an2 an3 avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => {avar++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##90. normal dep to qualify lazy local dep
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	inject lazy an2 String
+	private lazy an3 String
+	
+	inject def SetThingamy(lazy an3 String){
+		this.an3 = an3:
+	}
+	
+	override toString() => "" + [avar an an2 an3 avar]
+}
+
+provider MCPRovider{
+	provide MyClass{
+		String => {avar++; "ok"}
+	}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##91. provide expr as dependancy qualifcation for lazy variable
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	inject lazy an2 String
+	private lazy an3 String
+	
+	inject def SetThingamy(lazy an3 String){
+		this.an3 = an3:
+	}
+	
+	override toString() => "" + [avar an an2 an3 avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	provide String => {avar++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##92. single provide expr as dependancy qualifcation for lazy variable
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	inject lazy an2 String
+	private lazy an3 String
+	
+	inject def SetThingamy(lazy an3 String){
+		this.an3 = an3:
+	}
+	
+	override toString() => "" + [avar an an2 an3 avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	single provide String => {avar++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##93. single dependancy for lazy
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	inject lazy an2 String
+	private lazy an3 String
+	
+	inject def SetThingamy(lazy an3 String){
+		this.an3 = an3:
+	}
+	
+	override toString() => "" + [avar an an2 an3 avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	single String => {avar++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##94. single lazy dependancy
+
+avar = 88
+
+inject class MyClass(lazy an String){
+	inject lazy an2 String
+	private lazy an3 String
+	
+	inject def SetThingamy(lazy an3 String){
+		this.an3 = an3:
+	}
+	
+	override toString() => "" + [avar an an2 an3 avar]
+}
+
+provider MCPRovider{
+	provide MyClass
+	single lazy String => {avar++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##95. basic provider
+
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class MyClass(an Provider<String>){
+	inject an2 Provider<String>?
+	private an3 Provider<String>?
+	
+	inject def SetThingamy(an3 Provider<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	Provider<String> => new Provider<String>(def () {cnt++; "ok"} )
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##96. provider use normal dep
+
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class MyClass(an Provider<String>){
+	inject an2 Provider<String>?
+	private an3 Provider<String>?
+	
+	inject def SetThingamy(an3 Provider<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##97. provider use normal dep single
+
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class MyClass(an Provider<String>){
+	inject an2 Provider<String>?
+	private an3 Provider<String>?
+	
+	inject def SetThingamy(an3 Provider<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	single String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##98. provider with expr
+
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class MyClass(an Provider<String>){
+	inject an2 Provider<String>?
+	private an3 Provider<String>?
+	
+	inject def SetThingamy(an3 Provider<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	provide String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##99. provider with expr single
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class MyClass(an Provider<String>){
+	inject an2 Provider<String>?
+	private an3 Provider<String>?
+	
+	inject def SetThingamy(an3 Provider<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	single provide String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##100. provide transient instance
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class Doer(an String){
+	override toString() => "" + an
+}
+
+inject class MyClass(an Provider<Doer>){
+	inject an2 Provider<Doer>?
+	private an3 Provider<Doer>?
+	
+	inject def SetThingamy(an3 Provider<Doer>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	provide String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##101. dep transient instance for provide
+
+cnt = 0
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+inject class Doer(an String){
+	override toString() => "" + an
+}
+
+inject class MyClass(an Provider<Doer>){
+	inject an2 Provider<Doer>?
+	private an3 Provider<Doer>?
+	
+	inject def SetThingamy(an3 Provider<Doer>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##102. optional single
+
+cnt = 0
+
+from java.util import Optional
+
+inject class MyClass(an Optional<String>){
+	inject an2 Optional<String>?
+	private an3 Optional<String>?
+	
+	inject def SetThingamy(an3 Optional<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	single String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##103. optional 
+cnt = 0
+
+from java.util import Optional
+
+inject class MyClass(an Optional<String>){
+	inject an2 Optional<String>?
+	private an3 Optional<String>?
+	
+	inject def SetThingamy(an3 Optional<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.get() an2??.get() an3??.get() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##104. optional not included
+
+cnt = 0
+
+from java.util import Optional
+
+inject class MyClass(an Optional<String>){
+	inject an2 Optional<String>?
+	private an3 Optional<String>?
+	
+	inject def SetThingamy(an3 Optional<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.isPresent() an2??.isPresent() an3??.isPresent() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	//String => {cnt++; "ok"}
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##105. optional is null
+cnt = 0
+
+from java.util import Optional
+
+inject class MyClass(an Optional<String>){
+	inject an2 Optional<String>?
+	private an3 Optional<String>?
+	
+	inject def SetThingamy(an3 Optional<String>){
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [cnt an.isPresent() an2??.isPresent() an3??.isPresent() cnt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => null
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##106. named - field by param name
+
+inject class MyClass{
+	inject an2 String?
+	inject an3 String?
+	
+	def thing(a int){
+		
+	}
+	
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'an2' String => "String2"
+	String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##107. named - field by param name - precompiled
+
+from com.concurnas.lang.precompiled.Injectables import UnNamedFields
+
+provider MCPRovider{
+	provide UnNamedFields
+	'an2' String => "String2"
+	String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.UnNamedFields()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##108. named - field by Named
+
+inject class MyClass{
+	@Named('Field 2') inject an2 String?
+	@Named('Field 3') inject an3 String?
+	
+	def thing(a int){
+		
+	}
+	
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'Field 2' String => "String2"
+	"Field 3" String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##109. named - field by Named - precompiled
+
+from com.concurnas.lang.precompiled.Injectables import NamedFields
+
+provider MCPRovider{
+	provide NamedFields
+	'Second Field' String => "String2"
+	"Third Field" String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.NamedFields()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##110. named - method param
+
+inject class MyClass{
+	an2 String?
+	an3 String?
+	
+	inject def thing(an2 String, an3 String){
+		this.an2 = an2
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'an2' String => "String2"
+	String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##111. named - method param - precompiled
+
+from com.concurnas.lang.precompiled.Injectables import UnNamedMethodPNameFOK
+
+provider MCPRovider{
+	provide UnNamedMethodPNameFOK
+	'an2' String => "String2"
+	"an3" String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.UnNamedMethodPNameFOK()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##112. named - method param - named
+
+inject class MyClass{
+	an2 String?
+	an3 String?
+	
+	inject def thing(@Named('String 2') an2 String, an3 String){
+		this.an2 = an2
+		this.an3 = an3
+	}
+	
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'String 2' String => "String2"
+	String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##113. named - method param - named - precompiled
+
+from com.concurnas.lang.precompiled.Injectables import NamedMethodParams
+
+provider MCPRovider{
+	provide NamedMethodParams
+	'an2' String => "String2"
+	String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.NamedMethodParams()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##114. named - constrcutor param - arg
+
+inject class MyClass(an2 String, an3 String){
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'an2' String => "String2"
+	String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##115. named - constrcutor param - arg - precompiled
+
+from com.concurnas.lang.precompiled.Injectables import NamedWConstrcutorArgs
+
+provider MCPRovider{
+	provide NamedWConstrcutorArgs
+	'an2' String => "String2"
+	String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.NamedWConstrcutorArgs()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##116. named - constrcutor param - named
+
+inject class MyClass(@Named('first string') an2 String, an3 String){
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	'first string' String => "first String"
+	String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##117. named - constrcutor param - named precompiled
+from com.concurnas.lang.precompiled.Injectables import NamedWConstrcutorNamed
+
+provider MCPRovider{
+	provide NamedWConstrcutorNamed
+	'first arg' String => "String2"
+	String => "String3"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.NamedWConstrcutorNamed()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##118. named - use special provides
+inject class MyClass(an2 String, an3 String){
+	override toString() => "" + [an2 an3]
+}
+
+provider MCPRovider{
+	provide MyClass
+	provide 'an2' String => "String2"
+	provide fella String => "normal String"
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##119. arrays
+
+inject class MyClass(an2 String[]){
+	inject anInt Integer?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String[] => ["String"  "another"]
+	Integer => 33
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##120. arrays 2 with prim
+
+inject class MyClass(an2 String[]){
+	inject anInt int[]?
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String[] => ["String"  "another"]
+	int[] => [33 3434]
+}
+
+def doings(){
+	apu1 = MCPRovider()
+	inst1 = apu1.MyClass()
+		
+	"nice: " + inst1
+}
+
+~~~~~
+//##121. oh you can have int
+inject class MyClass(an2 String){
+	inject anInt int
+	
+	override toString() => "" + [an2 anInt]
+}
+
+provider MCPRovider{
+	provide MyClass
+	String => "aString"
+	int => 33
+	
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##122. bug with lazy varargs
+
+avar = 88
+
+def afunc( lazy operate int:...) => [avar operate avar]
+
+def doings(){
+	d = afunc()
+	f = afunc&()
+	""+ [d f()]
+}
+
+~~~~~
+//##123. type only dep quali
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String =>  msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG//type only dependency qualification
+	SimpleMG => new SimpleMG("theMessage")
+}
+
+def doings(){
+	mpProvider = new MPProvider()
+	mp = mpProvider.MessageProcessor()
+	"" + mp.processMessage()
+}
+
+~~~~~
+//##124. type only dep quali - field name quali
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer1 MessageGetter, obtainer2 MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage(this.obtainer1.getMessage() + " " + this.obtainer2.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => theMessage
+}
+
+inject class SimpleMG2(theMessage String) ~ MessageGetter {
+	def getMessage() String => theMessage + "2"
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String =>  msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG
+	'obtainer2' MessageGetter <= SimpleMG2
+	SimpleMG => new SimpleMG("theMessage")
+	SimpleMG2 => new SimpleMG2("othermsg")
+}
+
+def doings(){
+	mpProvider = new MPProvider()
+	mp = mpProvider.MessageProcessor()
+	"" + mp.processMessage()
+}
+
+~~~~~
+//##125. type only dep quali - another one
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+			this.sender.sendMessage('proc: ' + this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG//type only dependency qualification
+	'theMessage' String => 'a message'
+}
+
+
+def doings(){
+	mpProvider = new MPProvider()
+	mp = mpProvider.MessageProcessor()
+
+	"ok" + mp.processMessage()
+}
+
+~~~~~
+//##126. nested deps
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+			this.sender.sendMessage('proc: ' + this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => 'a message'
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG{
+		'theMessage' String => 'a message'
+	}//type only dependency qualification
+	
+}
+
+def doings(){
+	mpProvider = new MPProvider()
+	mp = mpProvider.MessageProcessor()
+
+	"ok" + mp.processMessage()
+}
+
+~~~~~
+//##127. nested deps in provider
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage('proc: ' + this.obtainer.getMessage())
+	}
+}
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	def getMessage() String => 'a message'
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor{
+		MessageSender => new MessagePrinter()
+		MessageGetter <= SimpleMG{
+			'theMessage' String => 'a message'
+		}
+	}
+}
+
+
+def doings(){
+	mpProvider = new MPProvider()
+	mp = mpProvider.MessageProcessor()
+
+	"ok" + mp.processMessage()
+}
+
+~~~~~
+//##128. partial type qualification bug
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(lazy obtainer MessageGetter, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage('proc: ' + this.obtainer.getMessage())//double this on the ast redirect was causing a bug
+	}
+}
+
+cnt = 0
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	init{
+		cnt++
+	}
+	def getMessage() String => 'a message: ' + theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	
+	MessageSender => new MessagePrinter()
+	MessageGetter <= SimpleMG{
+		String => "ok"
+	}
+}
+
+
+def doings(){
+	prov = MPProvider()
+	mp1 = prov.MessageProcessor()
+	"" + [cnt mp1.processMessage() cnt]
+}
+
+~~~~~
+//##129. partial type for provider
+
+typedef Provider<X> = com.concurnas.lang.types.Provider<X>
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer Provider<MessageGetter>, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage('proc: ' + this.obtainer.get().getMessage())//double this on the ast redirect was causing a bug
+	}
+}
+
+cnt = 0
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	init{
+		cnt++
+	}
+	def getMessage() String => 'a message: ' + theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	
+	MessageSender => new MessagePrinter()
+	//MessageGetter => SimpleMG('ok')
+	MessageGetter <= SimpleMG{
+		String => "ok"
+	}
+}
+
+
+def doings(){
+	prov = MPProvider()
+	mp1 = prov.MessageProcessor()
+	"" + [cnt mp1.processMessage() cnt]
+}
+
+~~~~~
+//##130. partial type for optional
+
+from java.util import Optional
+
+trait MessageGetter {
+	public def getMessage() String
+}
+
+trait MessageSender{
+	public def sendMessage(msg String) String
+}
+
+inject class MessageProcessor(obtainer Optional<MessageGetter>, sender MessageSender){
+	public def processMessage(){//processing
+		this.sender.sendMessage('proc: ' + this.obtainer.get().getMessage())//double this on the ast redirect was causing a bug
+	}
+}
+
+cnt = 0
+
+inject class SimpleMG(theMessage String) ~ MessageGetter {
+	init{
+		cnt++
+	}
+	def getMessage() String => 'a message: ' + theMessage
+}
+
+class MessagePrinter ~ MessageSender{
+	def sendMessage(msg String) String => 'sent: ' + msg
+}
+
+provider MPProvider{
+	provide MessageProcessor
+	
+	MessageSender => new MessagePrinter()
+	//MessageGetter => SimpleMG('ok')
+	MessageGetter <= SimpleMG{
+		String => "ok"
+	}
+}
+
+provider MPProvider2{
+	provide MessageProcessor
+	
+	MessageSender => new MessagePrinter()
+}
+
+
+def doings(){
+	prov = MPProvider()
+	prov2 = MPProvider2()
+	mp1 = prov.MessageProcessor()
+	mp2 = prov2.MessageProcessor()
+	res = [cnt mp1.processMessage() cnt]
+	
+	msg = try{
+		mp2.processMessage()
+		'ok'
+	}catch(e){
+		"" + e
+	}
+	
+	"" + [res, msg]
+}
+
+~~~~~
+//##131. always use provider to satify dependancies if there is one
+callCount = 0
+madeCount = 0
+ss = 0
+
+inject class Thing{
+	this(){
+		madeCount++
+	}
+	
+	inject def setString(a String){
+		ss++
+	}
+}
+
+inject class UsesThingAsWell(a Thing)
+
+inject class InjectInto(utaw UsesThingAsWell){
+	inject def setThing(a Thing){
+		callCount++
+	}
+}
+
+provider Prov(){
+	provide InjectInto
+	single provide Thing//make me once!
+	String => "ok"
+}
+
+def doings(){
+	pp = new Prov()
+	ii = pp.InjectInto()
+	
+	"callCount:{callCount} madeCount:{madeCount}, ss:{ss}"
+}
+
+~~~~~
+//##132. single dependancy no elaboration
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	single Bean 
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	bcInst1 = bcProvider.BeanCounter()
+	bcInst2 = bcProvider.BeanCounter()
+	
+	"" + [bcInst1.red &== bcInst1.blue, bcInst2.red &== bcInst1.red]
+}
+
+
+~~~~~
+//##133. shared dependancy no elaboration
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	shared Bean => new Bean()
+	//shared int => 22//error
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	bcInst1 = bcProvider.BeanCounter()
+	bcInst2 = bcProvider.BeanCounter()
+	
+	"" + [bcInst1.red &== bcInst1.blue, bcInst2.red &== bcInst1.red]
+}
+
+~~~~~
+//##134. shared dependancy no elaboration no rhs
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	shared Bean
+	//shared int => 22//error
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	bcInst1 = bcProvider.BeanCounter()
+	bcInst2 = bcProvider.BeanCounter()
+	
+	"" + [bcInst1.red &== bcInst1.blue, bcInst2.red &== bcInst1.red]
+}
+
+
+~~~~~
+//##135. shared provide
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	shared provide Bean => new Bean()
+	//shared int => 22//error
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	bcInst1 = bcProvider.BeanCounter()
+	bcInst2 = bcProvider.BeanCounter()
+	
+	"" + [bcInst1.red &== bcInst1.blue, bcInst2.red &== bcInst1.red]
+}
+
+~~~~~
+//##136. named single dep use
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	provide PairOfBeans
+	single 'red' Bean => new Bean()
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	pair1 = bcProvider.PairOfBeans()
+	pair2 = bcProvider.PairOfBeans()
+	
+	"" + [pair1.left.red &== pair1.right.red, pair1.left.red &== pair2.left.red]
+}
+
+~~~~~
+//##137. named shared dep use
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	provide PairOfBeans
+	shared 'red' Bean => new Bean()
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	pair1 = bcProvider.PairOfBeans()
+	pair2 = bcProvider.PairOfBeans()
+	
+	"" + [pair1.left.red &== pair1.right.red, pair1.left.red &== pair2.left.red]
+}
+
+~~~~~
+//##138. named shared dep use no rhs
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	provide PairOfBeans
+	shared 'red' Bean
+	//shared int => 22//error
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	pair1 = bcProvider.PairOfBeans()
+	pair2 = bcProvider.PairOfBeans()
+	
+	"" + [pair1.left.red &== pair1.right.red, pair1.left.red &== pair2.left.red]
+}
+
+~~~~~
+//##139. nested shared no rhs
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	single Bean
+	
+	provide PairOfBeans{
+		shared 'red' Bean
+	}
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	pair1 = bcProvider.PairOfBeans()
+	pair2 = bcProvider.PairOfBeans()
+	
+	"" + [pair1.left.red &== pair1.right.red, pair1.left.red &== pair2.left.red]
+}
+
+~~~~~
+//##140. nested shared rhs
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	single Bean
+	
+	provide PairOfBeans{
+		shared 'red' Bean => new Bean()
+	}
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	pair1 = bcProvider.PairOfBeans()
+	pair2 = bcProvider.PairOfBeans()
+	
+	"" + [pair1.left.red &== pair1.right.red, pair1.left.red &== pair2.left.red]
+}
+
+~~~~~
+//##141. nested shared rhs ensure override correctly
+inject class Bean(count = 0){
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+inject class PairOfBeans(-red Bean, -left BeanCounter, -right BeanCounter)
+
+provider CounterProvider{
+	shared Bean => new Bean(0)
+	provide PairOfBeans
+		
+	provide BeanCounter{
+		shared 'red' Bean =>{new Bean(3)}
+	}
+}
+
+def doings(){
+	bcProvider = new CounterProvider()
+	pair1 = bcProvider.PairOfBeans()
+	pair2 = bcProvider.PairOfBeans()
+	
+	"" + [pair1.left.red &== pair1.right.red, pair1.left.red &<> pair2.left.red]
+}
+
+~~~~~
+//##142. ensure nested used dep is marked as being used
+class SessionId(id long)
+
+inject class NeedsSid(sid SessionId)
+
+
+inject class ToProv(ns NeedsSid)
+
+
+provider MyProv(sid SessionId){
+	provide ToProv
+	shared NeedsSid
+	SessionId => sid
+}
+
+def doings(){
+	ssid = SessionId(96)
+	MyProv(ssid).ToProv()
+	
+	"ok"
+}
+
+~~~~~
+//##143. inject private etc
+
+inject private class Myclass(name String){//inject
+	override toString() => 'Myclass({name})'
+}
+
+inject class Myclass2(name String){//public by default
+	override toString() => 'Myclass2({name})'
+}
+
+provider MyClassProvider{
+	provide Myclass
+	provide Myclass2
+	'name' String => "dave"
+}
+
+def doings(){
+	mcp = new MyClassProvider()
+	"" + [mcp.Myclass() mcp.Myclass2()]
+}
+
+~~~~~
+//##144. shared qualification
+inject class Bean{
+	count = 0
+	def increment() void => count++ 
+}
+
+inject class BeanCounter(-red Bean, -blue Bean)
+
+provider CounterProvider{
+	provide BeanCounter
+	shared Bean => new Bean()
+}
+
+bcProvider = new CounterProvider()
+bcInst1 = bcProvider.BeanCounter()
+bcInst2 = bcProvider.BeanCounter()
+
+
+def doings(){
+	a1 = bcInst1.red &== bcInst1.blue //same bean for single object
+	a2 = bcInst2.red &<> bcInst1.red  //the two beans on seperate invokations of the provider differ
+	
+	"" + [a1 a2]
+}

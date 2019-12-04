@@ -1,0 +1,649 @@
+//##1. simple pulsars
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+from java.util.concurrent import TimeUnit
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 String:
+	beenCalled2 String:
+	order String: = ""
+	
+	waite := pp.after(Duration.ofSeconds(4))
+	
+	TimeUnit.SECONDS.sleep(1);
+	
+	waite2 := pp.after(Duration.ofSeconds(2))
+	
+	every(waite){
+		trans{
+			beenCalled1 = "yup"
+			order += 1
+		}
+	}
+	every(waite2){
+		trans{
+			beenCalled2 = "yup"
+			order += 2
+		}
+		
+	}
+	
+	"called: " + [beenCalled1, beenCalled2, waite:isClosed(), waite2:isClosed()]
+}
+
+~~~~~
+//##2. repeat forever
+
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	order String: = ""
+	
+	repeater := pp.repeat(Duration.ofMillis(25))
+	
+	cnt :=0
+	every(repeater){
+		trans{
+			cnt++
+			order += cnt
+			if(cnt == 10){
+				repeater.close()
+			}
+		}
+	}
+	
+	await(cnt; cnt == 10)
+	
+	"called: " + [order, repeater.isClosed()]
+}
+
+~~~~~
+//##3. repeat until certain time
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	order String: = ""
+	
+	ctime = pp.getCurrentTime()
+	endat = ctime + Duration.ofSeconds(3)
+	
+	repeater := pp.repeat(Duration.ofMillis(250), until = endat)
+	
+	cnt :=0
+	every(repeater){
+		trans{
+			cnt++
+			order += cnt
+		}
+	}
+	
+	await(repeater; repeater.isClosed())
+	//await(cnt; cnt == 12)
+	
+	"called: " + repeater.isClosed()
+}
+
+~~~~~
+//##4. repeat certain number of times
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	order String: = ""
+	
+	repeater := pp.repeat(Duration.ofMillis(250), times=10)
+	
+	cnt :=0
+	every(repeater){
+		trans{
+			cnt++
+			order += cnt
+		}
+	}
+	
+	await(repeater; repeater.isClosed())
+	await(cnt; cnt == 10)
+	
+	"called: " + [order, repeater.isClosed()]
+}
+
+~~~~~
+//##5. test schedule
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+from java.util.concurrent import TimeUnit
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 String:
+	beenCalled2 String:
+	order String: = ""
+	
+	ctime = pp.getCurrentTime()
+	
+	waite := pp.schedule(ctime + Duration.ofSeconds(4))
+	
+	TimeUnit.SECONDS.sleep(1);
+	
+	waite2 := pp.schedule(ctime + Duration.ofSeconds(2))
+	
+	every(waite){
+		trans{
+			beenCalled1 = "yup"
+			order += 1
+		}
+	}
+	every(waite2){
+		trans{
+			beenCalled2 = "yup"
+			order += 2
+		}
+		
+	}
+	
+	"called: " + [beenCalled1, beenCalled2, waite:isClosed(), waite2:isClosed(), order]
+}
+
+~~~~~
+//##6. not negative intervals
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 String:
+	beenCalled2 String:
+	order String: = ""
+	
+	try{
+		repeater := pp.repeat(Duration.ofMillis(-25))
+		"fail"
+	}catch(ae AssertionError){
+		"" + ae
+	}
+}
+
+~~~~~
+//##7. submit in past immediate execution
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 String:
+	
+	ctime = pp.getCurrentTime()
+	
+	waite := pp.schedule(ctime - Duration.ofSeconds(10))
+	
+	every(waite){
+		beenCalled1 = "yup"
+	}
+	
+	"called: " + [beenCalled1, waite:isClosed()]
+}
+
+~~~~~
+//##8. stop processor on stop for actor being called
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 String:
+	
+	ctime = pp.getCurrentTime()
+	
+	waite := pp.schedule(ctime - Duration.ofSeconds(10))
+	
+	every(waite){
+		beenCalled1 = "yup"
+	}
+	await(beenCalled1)
+	
+	pp.stop()
+	
+	"called: " + [beenCalled1, waite:isClosed()]
+}
+
+~~~~~
+//##9. stop and start event handler as approperiate
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+from java.util.concurrent import TimeUnit
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 boolean:
+		
+	waite := pp.after(Duration.ofSeconds(2))
+	
+	waite.close()
+	TimeUnit.SECONDS.sleep(2)
+	waite2 := pp.after(Duration.ofSeconds(2))
+	TimeUnit.SECONDS.sleep(2)
+	waite2.close()
+	
+	
+	waite3 := pp.after(Duration.ofSeconds(2))
+	every(waite3){
+		beenCalled1 = true
+	}
+	
+	"called: " + [beenCalled1, waite3:isClosed()]
+}
+
+~~~~~
+//##10. on stop of pulsar, close all childern
+
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+from java.util.concurrent import TimeUnit
+
+def doings(){
+	pp Pulsar = new RealtimePulsar()
+		
+	waite1 := pp.after( Duration.ofSeconds(100))
+	waite2 := pp.after( Duration.ofSeconds(100))
+	pp.stop()
+	"good: " + [waite1:isClosed(), waite2:isClosed()]
+}
+
+~~~~~
+//##11. simple pulsars - frozen
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp FrozenPulsar = new FrozenPulsar()
+	
+	ctime = pp.currentTime
+	 
+	beenCalled1 String:
+	beenCalled2 String:
+	order String: = ""
+	
+	waite := pp.after(Duration.ofDays(4))
+	
+	waite2 := pp.after(Duration.ofDays(2))
+	
+	every(waite){
+		trans{
+			beenCalled1 = "yup"
+			order += 1
+		}
+	}
+	every(waite2){
+		trans{
+			beenCalled2 = "yup"
+			order += 2
+		}
+		
+	}
+		
+	pp.setCurrentTime(ctime + Duration.ofDays(3))
+	await(beenCalled2)//ensure this called after time triggered for it
+	
+	pp.setCurrentTime(ctime + Duration.ofDays(5))
+	
+	"called: " + [beenCalled1, beenCalled2, waite:isClosed(), waite2:isClosed(), order]
+}
+
+~~~~~
+//##12. repeat forever - frozen
+from com.concurnas.lang.pulsar import *
+from java.time import Duration, LocalDateTime
+
+def doings(){
+	pp FrozenPulsar = new FrozenPulsar()
+	
+	order String: = ""
+	
+	repeater := pp.repeat(Duration.ofDays(25))
+	
+	cnt :=0
+	lastThing LocalDateTime:
+	every(repeater){
+		trans{
+			cnt++
+			order += cnt
+			if(cnt == 10){
+				repeater.close()
+			}
+		}
+	}
+	
+	for( x in 1 to 10){
+		want = pp.currentTime + Duration.ofDays(25)
+		pp.currentTime = want
+		await(repeater;  repeater == want )
+		
+	}
+	
+	await(repeater; repeater.isClosed())
+	
+	"called: " + [cnt, order, repeater.isClosed()]
+}
+
+~~~~~
+//##13. repeat until certain time - frozen
+from com.concurnas.lang.pulsar import *
+from java.time import Duration, LocalDateTime
+
+def doings(){
+	pp FrozenPulsar = new FrozenPulsar()
+	ctime = pp.currentTime
+	
+	order String: = ""
+	
+	endat = ctime + Duration.ofHours(10)
+	
+	repeater := pp.repeat(Duration.ofHours(1), until = endat)
+	
+	cnt :=0
+	lastThing LocalDateTime:
+	every(repeater){
+		trans{
+			cnt++
+			order += cnt
+			lastThing = repeater
+		}
+	}
+	
+	for(x in 0 to 9){
+		ctime = ctime + Duration.ofHours(1)
+		pp.currentTime = ctime
+		await(lastThing; lastThing == ctime)
+	}
+	
+	await(repeater; repeater.isClosed())
+	await(cnt; cnt==10)
+	
+	"called: " + [order, repeater.isClosed()]
+}
+
+
+~~~~~
+//##14. repeat certain number of times - frozen
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp FrozenPulsar = new FrozenPulsar()
+	ctime = pp.currentTime
+	
+	order String: = ""
+	
+	endat = ctime + Duration.ofDays(3)
+	
+	repeater := pp.repeat(Duration.ofHours(1), times=10)
+	
+	cnt :=0
+	every(repeater){
+		trans{
+			cnt++
+			order += cnt
+		}
+	}
+	
+	for(x in 0 to 11){
+		ctime = ctime + Duration.ofHours(1)
+		pp.setCurrentTime(ctime)
+	}
+	
+	await(repeater; repeater.isClosed())
+	await(cnt; cnt==10)
+	
+	"called: " + [order, repeater.isClosed()]
+}
+
+~~~~~
+//##15. test schedule - frozen
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp FrozenPulsar = new FrozenPulsar()
+	ctime = pp.currentTime
+	
+	beenCalled1 String:
+	beenCalled2 String:
+	order String: = ""
+	
+	waite := pp.schedule(ctime + Duration.ofDays(4))
+	
+	
+	waite2 := pp.schedule(ctime + Duration.ofDays(2))
+	
+	every(waite){
+		trans{
+			beenCalled1 = "yup"
+			order += 1
+		}
+	}
+	every(waite2){
+		trans{
+			beenCalled2 = "yup"
+			order += 2
+		}
+	}
+	
+	pp.setCurrentTime(ctime + Duration.ofDays(3))
+	await(beenCalled2)
+	
+	pp.setCurrentTime(ctime + Duration.ofDays(5))
+	
+	"called: " + [beenCalled1, beenCalled2, waite:isClosed(), waite2:isClosed(), order]
+}
+
+~~~~~
+//##18. stop processor on stop for actor being called - frozen
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new FrozenPulsar()
+	ctime = pp.currentTime
+		
+	beenCalled1 String:
+	
+	waite := pp.schedule(ctime - Duration.ofSeconds(10))
+	
+	every(waite){
+		beenCalled1 = "yup"
+	}
+	await(beenCalled1)
+	
+	pp.stop()
+	
+	"called: " + [beenCalled1, waite:isClosed()]
+}
+
+~~~~~
+//##20. on stop of pulsar, close all childern
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def doings(){
+	pp Pulsar = new FrozenPulsar()
+		
+	waite1 := pp.after( Duration.ofSeconds(100))
+	waite2 := pp.after( Duration.ofSeconds(100))
+	pp.stop()
+	"good: " + [waite1:isClosed(), waite2:isClosed()]
+}
+
+
+~~~~~
+//##21. example useage from book
+from com.concurnas.lang.pulsar import Pulsar, FrozenPulsar
+from java.time import Duration
+
+trait TaskToDo{
+	def doTask() void
+}
+
+inject class EventScheduler(pulsar Pulsar, task TaskToDo){
+	
+	def scheduleEvent(){
+		tigger := pulsar.after(Duration.ofSeconds(10))
+		every(tigger){
+			task.doTask()
+		}
+	}
+}
+
+
+class TestTask() ~ TaskToDo{
+	-taskRun boolean:
+	def doTask(){
+		taskRun = true
+	}
+}
+
+
+provider TemporalTest{
+	provide EventScheduler
+	single provide Pulsar => new FrozenPulsar()
+	single provide TaskToDo => new TestTask()
+}
+
+
+def doings(){
+	tempoTest = new TemporalTest()
+	scheduler = tempoTest.EventScheduler()
+	scheduler.scheduleEvent()
+	task = tempoTest.TaskToDo() as TestTask
+	
+	pulsar = tempoTest.Pulsar() as FrozenPulsar
+	
+	pulsar.currentTime = pulsar.currentTime + Duration.ofSeconds(10)
+
+	await(task.taskRun)
+	"ok " + task.taskRun
+}
+/*
+-~~~~
+//#~#22. found a few bugs with this
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def log(a String) => ;;//System err println a
+
+def getId(a Object) => log('pp:' + System.identityHashCode(a))
+
+
+def gcd(x int, y int, i int){//greatest common divisor of two integers
+	pp Pulsar = new RealtimePulsar()
+	while(y){
+		(x, y) = (y, x mod y)
+		}
+	log('enter sleep: {x, y, i}')
+	res := pp.after(Duration.ofMillis(1000))
+	log('{i} - res object: ' + System.identityHashCode(res:))
+	//every(res){
+	//	System.err.println("{i}, {res}, {res:isClosed()}" )
+	///}
+	
+	await(res)
+	log('done gcd({x}, {y}, {i})')
+	x
+	
+}
+
+
+
+def doingsx(a int){
+	calc1 int:
+	calc2 int:
+	
+	log('create: {a}')
+	//sync{
+		calc1 = {gcd(8, 20, a)}!
+		calc2 = {gcd(6, 45, a)}!
+	//}
+	
+	//System.err.println('complete: {a}')
+	"ok" + (calc1, calc2)
+}
+
+def doings(){
+	"" + (doingsx(x) for x in 0 to 30)
+}
+
+-~~~~
+//#~#23. found a few bugs with this with sync
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+
+def log(a String) => ;;//System err println a
+
+def getId(a Object) => log('pp:' + System.identityHashCode(a))
+
+
+
+def gcd(x int, y int, i int){//greatest common divisor of two integers
+	pp Pulsar = new RealtimePulsar()
+	while(y){
+		(x, y) = (y, x mod y)
+		}
+	log('enter sleep: {x, y, i}')
+	res := pp.after(Duration.ofMillis(1000))
+	log('{i} - res object: ' + System.identityHashCode(res:))
+	//every(res){
+	//	System.err.println("{i}, {res}, {res:isClosed()}" )
+	///}
+	
+	await(res)
+	log('done gcd({x}, {y}, {i})')
+	x
+	
+}
+
+
+
+def doingsx(a int){
+	calc1 int:
+	calc2 int:
+	
+	log('create: {a}')
+	sync{
+		calc1 = {gcd(8, 20, a)}!
+		calc2 = {gcd(6, 45, a)}!
+	}
+	
+	"ok" + (calc1, calc2)
+}
+
+def doings(){
+	"" + (doingsx(x) for x in 0 to 30)
+}
+
+-~~~~
+//#~#22. found a few bugs with this
+[ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:)]
+
+-~~~~
+//#~#23. found a few bugs with this with sync
+[ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:), ok(4:, 3:)]
+
+
+* 
+* 
+* 
+* */

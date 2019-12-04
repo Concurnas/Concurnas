@@ -1,0 +1,133 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Copying Objects]{Copying Objects}
+
+\begin{tikzpicture}[overlay]
+\draw[anchor=north west] (9cm,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=45pt]{\strut\makebox[6cm]{}};
+
+\draw[anchor=north west,text width=8cm] (9.2cm,10.8cm) node {\begin{footnotesize}"But the little things they make me so happy\\
+	All I want to do is live by the sea\\
+	Little things they make me so happy\\
+	But it's good it's good it's good to be free"\\
+	\begin{flushright}- (It's Good) To Be Free from Definitely Maybe by Oasis (1994).\end{flushright}\end{footnotesize}};
+\end{tikzpicture}
+
+Concurnas provides a convenient syntax for performing a default deep copy of any Object via the copy operator, the Syntax of which being:
+\begin{center}
+	\lstinline{copyOperator: expression @ copyDefinition?}
+\end{center}
+
+When no copyDefinition is specified the copy operator will provide a deep copy of the expression on the left hand side. E.g.:
+
+\begin{lstlisting}
+class Details(age int=21, firstname String="john", sirname String="doe", friendCount int){
+	override toString() => "{(age, firstname, sirname, friendCount)}"
+}
+
+det = new Details(12, "dave", "whatson", 5)
+copy = det@
+
+//copy == 12, dave, whatson, 5
+\end{lstlisting}
+
+Immutable objects, composed of completely immutable objects are not copied since post creation they are unchangeable. 
+
+References are not copied since they have their own built mechanism for managing access (from different iso's) - this applies even when an explicit copy operation is performed.
+
+\section{Copy Definitions}
+The copy operator provides us with a deep copy of our object structure. Sometimes a deep copy is more than what we need (especially for complex data structures) and it can often be helpful to have control over which fields of an object are copied and how. Copy definitions allow us to control this, the syntax of which is:
+
+\begin{center}
+	\lstinline!copyDefinition: '(' (cdComponent (',' cdComponent)? )?  (; ('nodefault'|'unchecked')*)? ')'!
+\end{center}
+
+\begin{center}
+\lstinline{cdComponent: fieldName  ('=' expression?) 	}\\
+\lstinline{          |  fieldName (',' fieldName)* 	}\\
+\lstinline{         | fieldName @copyDefinition?  	}\\
+\lstinline{      | 'super' @ copyDefinition?}
+\end{center}
+
+\subsection{Inclusion list}
+We can explicitly define which fields of our object we wish to copy. Any fields not included in the list will not be included in the copy and their default values will be used:
+
+\begin{lstlisting}
+copy = det@(age)
+
+//copy == 12, john, doe, 0
+\end{lstlisting}
+
+Note above that since we have defined a default value for the \lstinline{firstname} and \lstinline{sirname} fields, these default values are used for the copy. Otherwise, as in the case of \lstinline{friendCount}, the default value for the type is used (\lstinline{0} for integer).
+
+\subsection{Exclusion list}
+We can explicitly define an exclusion list, meaning "copy every field except for those defined in the list". Example:
+\begin{lstlisting}
+copy = det@(<age>)//do not copy the age field instead populate with default value
+
+//copy == 21, dave, whatson, 5
+\end{lstlisting}
+
+\subsection{Overriding fields}
+We can override the value of an object field as follows:
+\begin{lstlisting}
+copy = det@(age = 300, firstname = "fred")
+
+//copy == 300, fred, whatson, 5
+\end{lstlisting}
+
+\subsection{Nested copy definitions}
+We can control the way in which fields which are themselves objects are copied by using a nested copy definition referencing said field:
+\begin{lstlisting}
+class Link(count int, details Details){
+	def toString() => "{(count, details)}"
+}
+link = new Link(2, det)
+
+lcopy = link@(count, details@(age=18))//override age of details field
+
+//lcopy == 2, 18, dave, whatson, 5
+\end{lstlisting}
+
+\subsection{Super copy definition}
+We can control the way in which the superclass of the object is copied by nesting a super copy definition as follows:
+\begin{lstlisting}
+open class Parent(a int=12, b int=13)
+class Child(a int, b int, c int) < Parent(a, b){
+	override toString() => "{(super.a, super.b, c)}"
+}
+
+cc = new Child(1, 2, 3)
+ccopy = cc@(super@(a=89, b), c)
+
+//ccopy == 89, 2, 3
+\end{lstlisting}
+
+\subsection{Empty Copy}
+We can choose to not specify any contents to the copy definition. In this instance we are instructing the copy operator to copy the object with all fields being of their default value:
+\begin{lstlisting}
+copy = det@()
+
+//copy == 21, john, doe, 0
+\end{lstlisting}
+
+\subsection{Ignoring default values}
+As we have seen previously, where a default value for a field is defined, this will be used if the field is excluded (either explicitly or implicitly) from the copy operation. To suppress this behaviour and instead use the default value for the type of the field, the \lstinline{nodefault} keyword can be used:
+\begin{lstlisting}
+copy = det@(;nodefault)
+
+//copy == 0, null, null, 0
+\end{lstlisting}
+
+\subsection{Unchecked copies}
+By default Concurnas will check the copy definition to ensure that the fields referenced exist on object to be copied. In order to suppress this behaviour, the \lstinline{unchecked} keyword can be applied:
+\begin{lstlisting}
+asObject Object = det
+copy = asObject@(age = 66; unchecked)
+
+//copy == 66, dave, whatson, 5
+\end{lstlisting}
+
+
+\end{document}

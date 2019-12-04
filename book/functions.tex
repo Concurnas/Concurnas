@@ -1,0 +1,299 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Functions]{Functions}
+	
+Functions are a major part of procedural programming. They allows us to split up our programs into subroutines of logic designed to perform specific tasks. They are an incredibly useful abstraction which is used at all levels of the computational process of transforming a human readable description of how to perform a task, right down to the level machine code that our computer CPUs can understand.
+
+Broadly speaking, a function takes a set of inputs variables and returns an output (or outputs if one takes advantage of Concurnas' ability for functions to return tuples) having executed code specified in a block of code associated with the function. The function has a name in order to make it possible for other functions to call it. The input variables have their specified types as does the return value. The input variables and return type constitute the signature of the function and along with the name (and package path) must be unique.
+
+Here is a function, the \lstinline{def} keyword on its own is used to indicate that we are creating a function, followed by the name of the function, and any comma separated input parameters surrounded by a pair of parentheses \lstinline{( )} and a (optional) return type:
+
+\begin{lstlisting}
+def addTogether(a int, b int) int {
+	return a + b
+}
+\end{lstlisting}
+
+The /return/ keyword is used within a function in order to cease further execution and literally return the value on the right hand side of it from the function (or the innermost nested function if they are nested).
+
+Now, the above is a perfectly acceptable way to define a function and although it is very verbose, is often the preferred method when writing complex code, or code for which the intended audience may require the extra verbosity in order to aid in their understanding of what is happening.
+
+But there are a few refinements to the above which can make writing functions in Concurnas a quicker, more enjoyable less verbose experience with very little compromise to clarity.
+
+Firstly, the type of the return value is usually inferable by Concurnas, in the above case it's \lstinline{int} so we can omit this from the definition and leave it implicit:
+
+\begin{lstlisting}
+def addTogether(a int, b int) {
+	return a + b
+}
+\end{lstlisting}
+
+Next we know that blocks are able to return values, so we don't need the \lstinline{return} keyword at all:
+
+\begin{lstlisting}
+def addTogether(a int, b int) {
+	a + b
+}
+\end{lstlisting}
+
+Now let us use the compact one line form of the \lstinline{block}, via \lstinline{=>}:
+
+\begin{lstlisting}
+def addTogether(a int, b int) => a + b
+\end{lstlisting}
+
+The above is functionally identical to our first definition but far more compact. It's a matter of discretion in so far as the degree to which one wishes to compact one's functions definitions, sometimes a less compact, more verbose form is more appropriate.
+
+\section{Functions vs Methods}
+In Concurnas, a distinction is drawn between the concept of functions and methods.
+
+Simply put, functions are defined at root source code level, methods are defined within classes and have access to the internal state of instance objects of their host class (and any parent nestor classes if relevant), via the \lstinline{this} and \lstinline{super} keywords. Methods are covered in more detail here See Classes and Objects section. For now lets look at a simple example highlighting the distinction:
+
+
+\begin{lstlisting}
+def iAmAFunction() => "hi I'm a function"
+
+class MyClass(id int){
+	def iAmAMethod() => "hi I'm a method, my class holds the number: " + this.id
+}
+\end{lstlisting}
+
+\section{Calling functions and methods}
+Ordinarily, we require three things when calling a function, 1). the name of the function, 2). input arguments to qualify it's input parameters and 3). an understanding of the return type.
+
+We can call our \lstinline{addTogether} function defined previously as follows:
+\begin{lstlisting}
+result int = addTogether(1, 1)
+\end{lstlisting}
+
+Also, we may use named arguments in order to call our function. This can often make method calls easier to read, especially where there are lots of arguments involved, some with default values some not etc. Named arguments do not have to be specified in the order in which they are defined in the function:
+
+\begin{lstlisting}
+result = addTogether(a=1, b=1)
+result = addTogether(b=1, a=1)
+\end{lstlisting}
+
+The above two calls to \lstinline{addTogether} are functionally identical.
+
+When it comes to calling (or invoking) methods, we need an additional component; an object to call the method on. To indicate that we are calling a function on a method, we need to use a dot \lstinline{.}, for example:
+
+\begin{lstlisting}
+class MyClass(state int){
+	def myMethod(an input) => state += an; state
+}
+
+obj = new MyClass(10)
+result = obj.myMethod(2)
+
+//result == 12
+\end{lstlisting}
+
+If instead of whatever is returned from the method (if anything) we wish to return a reference to the object upon which we called the method, we can use the double dot notation: \lstinline{..}:
+
+\begin{lstlisting}
+obj = new MyClass(10)
+result = obj..myMethod(2)..myMethod(10)
+
+//result == 22
+\end{lstlisting}
+
+The double dot notation \lstinline{..} is particularly useful when we need to chain together multiple calls on the same object and do not wish to do perform any sort of operation on the returned values from the intermediate method calls.
+
+We can use named arguments when calling methods:
+
+\begin{lstlisting}
+obj = new MyClass(10)
+result = obj.myMethod(input = 2)
+
+//result == 12
+\end{lstlisting}
+
+\section{Input parameters}
+Functions specify a comma separated list of input variables consisting of a name and type. Each input variable name must be unique. They may optionally be preceded by \lstinline{var} or \lstinline{val}:
+
+\begin{lstlisting}
+def addTwo(var a int, val b int) => a+b
+
+\end{lstlisting}
+
+\section{Default arguments}
+Function input arguments may specify a default value to use in cases where the input argument is not specified by the caller. When this is done, the type of the variable does not have to be specified if you're happy for Concurnas to infer the input parameter type:
+
+\begin{lstlisting}
+def doMath(an int, b int = 100, c = 10) => (an + b) * c
+
+\end{lstlisting}
+
+Then, when we call a function with default arguments, we do need to specify the arguments for which a default value has been defined:
+
+\begin{lstlisting}
+res = doMath(5)
+
+//res == 1050
+\end{lstlisting}
+
+\section{Varargs}
+Function parameters may consume more than one input parameter if they are declared as a vararg. A varag input parameter is signified by postfixing \lstinline{...} to the type of the parameter - note that this converts the input parameter to be an array if it's a single value type, or an n+1 dimensional array if it's already an n dimensional array. For example:
+
+\begin{lstlisting}
+def stringAndSum(prefix String, items int...){
+	summ = 0L
+	for( i in items){
+		summ += i
+	}
+	prefix + summ
+}
+
+\end{lstlisting}
+
+We can call a function with vararg parameters we can pass as many inputs to the vararg component as we need, seperated via a commas as par normal function invocation arguments:
+\begin{lstlisting}
+result = stringAndSum("the sum is: ", 2, 3, 2, 1, 3, 2, 1, 3, 4, 2, 4)
+
+//result == "ths sum is: 27"
+\end{lstlisting}
+
+The vararg may alternatively be passed as an array type (or n+1 dimensional array as eluded previously):
+\begin{lstlisting}
+result = stringAndSum("the sum is: ", [2 3 2 1 3 2 1 3 4 2 4])
+
+//result == "ths sum is: 27"
+\end{lstlisting}
+
+It's perfectly acceptable to not pass any input to the vararg parameter, e.g:
+
+\begin{lstlisting}
+result = stringAndSum("the sum is: ")
+
+//result == "ths sum is: 27"
+\end{lstlisting}
+
+An n dimensional array type can be used as a varrag:
+\begin{lstlisting}
+def stringAndSum(prefix String, items int[]){
+	summ = 0L
+	for( i in items){
+		summ += i
+	}
+	prefix + summ
+}
+
+result = stringAndSum("the sum is: ", 2, 3, 2, 1, 3, 2, 1, 3, 4, 2, 4)
+
+//result == "ths sum is: 27"
+\end{lstlisting}
+
+\section{Nested functions}
+Nested functions are appropriate in two cases:
+
+\begin{enumerate}
+	\item It makes sense to break one's code down into a subroutine - for instance, in order to avoid what would otherwise be code duplication
+	\item One wishes for that sub function to only be callable within the nestor function - i.e. the nestor function is the only caller.
+\end{enumerate}
+
+
+
+
+A nested function is simply a function defined within a function. The scope of that function is bound to the scope of the nestor function, it cannot directly be called by code outside of the nestor function. Example:
+
+\begin{lstlisting}
+def parentFunction(apply int){
+	result = 0L
+	def dosomething(){
+		result + (result + apply) * apply
+	}
+	//we wish to perform the above four times but avoid the code duplication, we also don't require any other code outside of parentFunction to be able to call it.
+	
+	result = dosomething()
+	result = dosomething()
+	result = dosomething()
+	result = dosomething()
+}
+\end{lstlisting}
+
+When it comes to using variables which are defined in the nestor function within the nested function, they are implicitly passed to the function but the nested function itself is defined as if it were separate from the nestor. For this reason, and by virtue of the fact that Concurnas uses pass by value for function arguments when calling functions the following is true:
+
+\begin{lstlisting}
+def parentFun(){
+	parentVar = 100
+	
+	def nestedFunc(){
+		parentVar += 100
+		parentVar
+	}
+	
+	result = nestedFunc()
+	assert result == 200
+	assert parentVar ==100
+}
+\end{lstlisting}
+
+We see above that although our \lstinline{nestedFunc} has access to a copy of the value of the nestor variable \lstinline{parentVar} (as it is implicitly passed into the function), changes made to that variable within the function do not apply to the one in scope of the \lstinline{parentFun}.
+
+But note that if we pass in an object, a copy of the reference to that object is passed to the nested function, so the behaviour is as follows:
+
+\begin{lstlisting}
+class IntHolder(~an int)
+
+def parentFun(){
+	parentVar = IntHolder(100)
+	
+	def nestedFunc(){
+		parentVar.an += 100
+		parentVar.an
+	}
+	
+	result = nestedFunc()
+	assert result == 200
+	assert parentVar.an == 200
+}
+\end{lstlisting}
+
+As \lstinline{parentVar} holds a reference to an object, the reference is copied, not the object itself, therefore the nestor function \lstinline{parentFun} and nested function \lstinline{nestedFunc} versions of the object referenced by variable \lstinline{parentVar} are the same - they are shared.
+
+\section{Recursion}
+Recursion is the process by which a function, either directly or indirectly calls itself. Concurnas permits function recursion (except for within GPU functions and GPU kernels). The classic textbook example of this being factorial number calculation:
+
+\begin{lstlisting}
+def factorial(n int){
+	match(n){
+		1 or 2 => 1
+		else => factorial(n-1)+factorial(n-2)
+	}
+}
+
+res = factorial(5)
+
+//res == 5
+\end{lstlisting}
+
+It turns out that the above, for any value of n greater than 2 performs a lot of unnecessary repetitive work in terms of calling factorial for values already previously calculated. There are far better ways of calculating factorial numbers (some of which don't use recursion at all). Here is a different recursion example more likely to be seen in the wild, a tree traversal:
+
+\begin{lstlisting}
+open class Node
+
+class Branch(~children Node...) < Node
+class Leaf(~value String) < Node
+
+def create(){
+	Branch(Branch(Leaf("a"), Leaf("z")), Leaf("c"))
+}
+
+def explore(node Node){
+	match(node){
+		Branch => String.join(", ", (explore(n) for n in node.children))
+		Leaf => "Leaf: {node.value}"
+	}
+}
+
+tree = create()
+res = explore(tree)
+
+//res == Leaf: a, Leaf: z, Leaf: c
+\end{lstlisting}
+
+One thing to bear in mind with recursion is the fact that as we recurse, with every direct or indirect self call, we deepen the call stack. This is not a big deal if we recurse to a small degree, but if we are recursing a lot\footnote{\textit{A lot} sounds vague but this is intentional because the stack size is platform specific, so really we cannot be more precise than this.}, then we will be eating up our call stack which may result in us running out of stack causing a \lstinline{java.lang.StackOverflowError} exception to be thrown. It is for this reason that some organizations restrict the use of, or even outright ban the use of recursion.
+
+\end{document}

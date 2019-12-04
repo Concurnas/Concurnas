@@ -1,0 +1,15 @@
+
+name: myproject;
+version: 1.0.0.1;
+main: joda:com.joda.timeMain;
+
+depends:{
+	joda:"c:/include/joda"
+}
+
+//export everything? (like all fields public)
+exports:
+{
+	com.mine.*
+}
+

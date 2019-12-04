@@ -1,0 +1,246 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	\chapter[Casting and Checking Types]{Casting and Checking Types}
+	\label{ch:castAndcheck}
+Casting and checking of types enable us to take one type and either check it can be treated as another (via \lstinline{is} and \lstinline{isnot}) or actually be treated as another type (via \lstinline{as}). Intuitively this sounds like not something of much use, however consider the case where an object of type \lstinline{java.lang.Object} is passed to a function which expects an \lstinline{java.lang.Object} argument, but, contingent upon the type of said object uses that object differently. For example:
+
+\begin{lstlisting}
+def doSomething(an Object){
+	if(an is String){
+		aString = an as String
+		//...
+	}else if(an is Integer){
+		anInt = an as Integer
+		//...
+	}
+}
+\end{lstlisting}
+
+To implement the above we needed to use both \lstinline{is} and \lstinline{as}\footnote{Actually, as we shall see in the Is with automatic cast section later on, the as cast was unnecessary.}.
+
+\section{Primitive type Implicit and Explicit conversions}
+Generally speaking we can use a lower bit width value where a larger bit width value is expected (e.g. in assignment). For example we can implicitly 'upcast 'like this:
+
+\begin{lstlisting}
+anint int =123
+along long = anint //implicity 'upcast' to a long
+\end{lstlisting}
+
+We see above that the value of \lstinline{anint} is converted ('upcast') to a long value. Of course, this makes the following code possible:
+
+\begin{lstlisting}
+expectLong long = 123//123 is converted to a long value
+
+def operateOnLong(along long) => along+1
+
+operateOnLong(123)//123 is converted to a long value
+\end{lstlisting}
+
+Note however that if we were to attempt a 'downcast' it would be considered a compilation error, as there is the potential for data loss (imagine a long value larger than $2^{31} - 1$ being stored in an int variable, it's not possible as we don't have enough bits of information):
+
+\begin{lstlisting}
+along = 100l
+anint int = along//compilation error!
+\end{lstlisting}
+
+The way to achieve the above is to use an explicit cast in order to convert the value:
+
+\begin{lstlisting}
+along = 100l
+anint int = along as int
+\end{lstlisting}
+
+But generally speaking this is not considered a good idea.
+
+\subsection{Casting boxed types}
+Boxed types may be explicitly cast to other boxed types follows:
+\begin{lstlisting}
+anInt = Integer(20)
+asDouble = anInt as Double
+\end{lstlisting}
+
+This conversion can take place on an implicit basis as long as the cast operation is an 'upcast' (e.g. \lstinline{Integer} to \lstinline{Long}, \lstinline{Integer} to \lstinline{Double} etc). So the following is perfectly acceptable:
+\begin{lstlisting}
+def expectsDouble(an Double) => an
+
+anInt = Integer(20)
+expectsDouble(anInt)//this is ok the Integer is 'upcast' to Double
+\end{lstlisting}
+
+But of the following, representing a 'downcast' is only possible via an explicit cast operation:
+
+\begin{lstlisting}
+def takesInteger(an Integer) => an
+
+aDouble = Double(0.32)
+takesInteger(aDouble)//this is not ok as an implicit 'downcast' is required, potentially losing data
+takesInteger(aDouble as Integer)//this will work, though is inadvisable
+\end{lstlisting}
+
+\section{Primitive type operators}
+Something that often catches out new programmers is the following scenario, say we wish to perform division, we'd use code like the following and expect to get the result \lstinline{0.25}:
+
+\begin{lstlisting}
+1/4
+\end{lstlisting}
+
+But actually we'd get the result /0/. This is because, by virtue of the fact that both our input primitive types to the division operator are integer, whole number division is applied. If we wish to perform fractional division then we'd need to convert at least one of the inputs to the division operator a floating point number, this is easy to achieve:
+
+\begin{lstlisting}
+1/4.
+\end{lstlisting}
+
+Now we get the desired result: \lstinline{0.25}
+
+\section{checking and casting for non primitive Types}
+Any object subtype may be implicitly upcast to a supertype. Also, as has been touched upon earlier all non primitive types are subclasses of type \lstinline{java.lang.Object}. As such this is perfectly valid code:
+
+\begin{lstlisting}
+open class SuperClass
+class ChildClass < SuperClass
+
+inst1 SuperClass = new ChildClass()
+inst2 Object = new ChildClass()
+\end{lstlisting}
+
+In cases where we are converting to a non supertype, then the \lstinline{is} and \lstinline{isnot} operators come into play as follows:
+
+\begin{lstlisting}
+something Object = "hi"
+
+assert something is String
+assert something isnot Integer
+\end{lstlisting}
+
+Once we are sure of the type (eithr by using \lstinline{is} or by another means) we may wish to cast the object to the type of interest such that we can use it as such (i.e. access fields call methods etc):
+
+\begin{lstlisting}
+something Object = "hi"
+asString = something as String
+\end{lstlisting}
+
+When it comes to objects with generic types, we cannot perform a cast on generic type qualifiers. As such types requiring generic type qualification cannot be expressed with qualifiers:
+
+\begin{lstlisting}
+class MyGenClass<X>
+
+anObj Object = MyGenClass<String>()
+
+check = anObj is MyGenClass<String>//not valid
+convert = anObj as MyGenClass<String>//also not valid
+
+okcheck = anObj is MyGenClass<?>//ok
+okconvert = anObj as MyGenClass<?>//ok
+\end{lstlisting}
+
+Function refs, tuples, refs and actors are refried types which makes code like the following possible:
+\begin{lstlisting}
+afuncRef Object = def (a int, b int) => a+b
+
+checkfuncRef = afuncRef is (int, int) int
+asafuncRef = afuncRef as (int, int) int
+
+
+aTuple Object = 12, "hi", false
+
+checkTuple = aTuple is (int, String, bool)
+asaTuple (int, String, bool) = aTuple as (int, String, bool)
+
+
+aRef Object = 12:
+
+checkRef = aRef is int:
+asaRef = aRef as int:
+
+
+anActor = actor String()
+
+checkActor = anActor is actor String
+asaActor = anActor as actor String
+\end{lstlisting}
+
+We can cast an array to be a supertype (unlike lists - due to the restrictions of generic types previously outlined), but care must be taken when assigning values to said array since upon assignment type of the value will be checked so as to ensure that it matches the real component type of the array. This is because when we are casting Objects (which arrays are - they are a Subtype of \lstinline{java.lang.Object}) we are treating them as another type, we are not actually transforming the type itself, thus an \lstinline{int[]} array stays as an \lstinline{Integer[]} array when we cast it to an \lstinline{Object[]}.
+
+\begin{lstlisting}
+anArray Object[] = [ 1 2 3 4 5 6 ] as Object[] //this is ok
+anArray[0] = 99 //this is ok as the type of the array is really Integer[]
+anArray[1] = "hi"//this is not ok as we cannot set a String value in an Integer[] array
+\end{lstlisting}
+
+A variable holding a value null can be cast to anything, it will remain null:
+\begin{lstlisting}
+nullObj Object = null
+stillnull String = nullObj as String
+\end{lstlisting}
+
+Null is considered an instance of any object type:
+\begin{lstlisting}
+nullObj Object = null
+
+assert nullObj is Integer
+assert nullObj is String
+\end{lstlisting}
+
+\section{Casting Arrays}
+
+Although it is not possible to directly cast an n dimensional array of primitive type to a differing n dimensional array of primitive type. The effect can nevertheless be achieved via use of vectorization. This will of course create a new n dimensional array:
+\begin{lstlisting}
+vec = [ 1.0 2.0 ; 3.0 4.0]
+res = vec^ as int
+/
+res = > [ 1 2; 3 4 ]
+\end{lstlisting}
+
+\section{Is with automatic cast}
+Is with automatic cast is a massive time saving feature of Concurnas in cases where one has already tested to ensure a variable is of a certain type and now needs to perform operations on said variable with it as cast to the type tested for. If the /is/ operator is used on a variable in an if or elif test, then throughout the remainder of the test and the block associated with the test that variable will be automatically cast for us as the type checked against. Example:
+\begin{lstlisting}
+class Dog(~age int)
+
+def getAge(an Object){
+	if(an is Dog){an.age}//an is automatically as cast to type Dog. Thus we do not need an explicit cast
+	else{"unknown"}
+}
+
+getAge(Dog(3))//returns 3
+\end{lstlisting}
+
+This also applies to if expressions:
+\begin{lstlisting}
+class Dog(~age int)
+
+def getAge(an Object){
+	an.age if(an is Dog) else "unknown"//an is automatically as cast to Dog 
+}
+
+getAge(Dog(3))//returns 3
+\end{lstlisting}
+
+The automatic cast resulting from the is test applies to the remaining body of an if test:
+\begin{lstlisting}
+class Treatment(~level int)
+
+def matcher(an Object) 
+	=> 'match' if an is Treatment and an.level > 5 else 'none'
+
+[matcher(Treatment(7)), matcher(Treatment(2))]//resolsves to [match, none]
+\end{lstlisting}
+
+Note that this only applies if the is operator is used on a variable. e.g. This does not apply to values resulting from function calls, array indexes etc.
+
+This also does not apply to is operators used within tests which can be short circuited if the is is referenced past a short circuit point. For example, the following is invalid:
+
+\begin{lstlisting}
+class Dog(~age int)
+
+maybe = true
+
+def getAge(an Object){
+	if(maybe or an is Dog){an.age}//compilation error as  required as cast to be used in this way
+	else{"unknown"}
+}
+
+getAge(Dog(3))
+\end{lstlisting}
+
+\end{document}

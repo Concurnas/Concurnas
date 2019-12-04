@@ -1,0 +1,132 @@
+\documentclass[conc-doc]{subfiles}
+
+\begin{document}
+	
+	\chapter[Tuples]{Tuples}
+	\label{chap:tuples}
+The syntax for creating tuple types is defined as:
+\begin{center}
+	\lstinline{'(' type (',' tuple)* ')'}
+\end{center}
+
+In order to create an instance of a tuple we need only separate the individual tuple values with a comma, the syntax being:
+\begin{center}
+	\lstinline{expression (',' expression)+}
+\end{center}
+
+The maximum number of elements within a tuple is 24.
+
+Tuples are an excellent tool for working with collections of typed data, whilst avoiding the need to define a container class specifically to hold it, or by having to use a list. For example:
+\begin{lstlisting}
+ageAndName (int, String) = 24, "dave" //a tuple definition
+ageAndNameAlt Tuple2<int, String> = 24, "dave" //a tuple definition with alternative mechanism for declaring tuple type
+ageAndName2 = 67, "mary" //tuple type is inferred to be (int, String)
+\end{lstlisting}
+
+Without tuples, the above would have to be captured in the following ways (amongst others):
+\begin{lstlisting}
+class AgeAndNameHolder(-age int, -name String)//using a holder object
+ageAndName = new AgeAndNameHolder(24, "dave")
+
+ageAndName2 = [67, "mary"] //holding the data within a list
+\end{lstlisting}
+
+The holder object can become a very heavy weight pattern to use in code, especially for cases where the data lifetime or manipulation context is very short (contained within a method for instance). Likewise, the list pattern is inconvenient as we must remember to explicitly cast got values and it’s mutable, meaning the contents can be accidentally changed. Tuples provide a nice middle ground between the two, as much type safety as classes, but with as much convenience in defining as lists.
+
+A nice advantage of tuples is that they are naturally immutable - once created they cannot be changed (note that the objects they contain, if not immutable can be changed).
+
+Tuples are often used for returning multiple values to or from a function or method invocation:
+\begin{lstlisting}
+def getAgeAndName(){
+	return 12, "dave"
+}
+
+def getAgeAndName2() (int, String) {//with explicit return type definition
+	return 12, "dave"
+}
+\end{lstlisting}
+
+Tuples are often used to return multiple values from functions as illustrated in the \lstinline{getAgeAndName2} function above.
+
+\section{Tuple decomposition}
+We can extract values from tuples in one of two ways. We can explicitly refer to the field being extracted:
+\begin{lstlisting}
+x = 12, 14
+e1 = x.f0
+e2 = x.f1
+\end{lstlisting}
+
+Or we can use a decomposition assignment:
+\begin{lstlisting}
+x = 12, 14
+(e1, e2) = x
+\end{lstlisting}
+
+If only certain values need to be extracted this can be achieved by simply following the space to ignore with a comma:
+\begin{lstlisting}
+x = 12, 14, 15
+(e1, , e3) = x
+
+//e1 == 12
+//e3 == 15
+\end{lstlisting}
+
+We can make use of the decomposition assignment within for loops like so:
+\begin{lstlisting}
+toSum = [(1, 2), (3, 4), (5, 6)]
+
+for((a, b) in toSum ) { a + b }
+//== [3, 7, 11]
+\end{lstlisting}
+
+This same effect can be achieved within list comprehensions of tuples:
+
+\begin{lstlisting}
+toSum = [(1, 2), (3, 4), (5, 6)]
+
+(a+b) for (a, b) in toSum 
+//== [3, 7, 11]
+\end{lstlisting}
+
+\section{Iterating over Tuples}
+Tuples support iteration (i.e. can be used in for loops etc):
+\begin{lstlisting}
+x = 12, 13
+combined = "" + ("el: " + e for e in x)
+
+//combined == "el: 12 el: 13"
+\end{lstlisting}
+
+\section{Tuples are Reified Types}
+Tuples are reified types, which means that the following is perfectly valid code:
+\begin{lstlisting}
+def extractAgeIfNameAndAge(an Object){
+	if(an is (int, String)){
+		(age,) = an
+		age
+	}
+	-1
+}
+\end{lstlisting}
+
+\section{Tuples in multiple assignment}
+Tuples can be used in multiple assignment statements, e.g:
+\begin{lstlisting}
+(a, b) = (c, d) = 1, 2
+
+//a == 1
+//b == 2
+//c == 1
+//d == 2
+\end{lstlisting}
+
+\section{Tuples in typedefs}
+Tuples can be used in typedef statements. E.g.
+\begin{lstlisting}
+typedef tuple3 = (int, String, double)
+typedef myTuple2<x> = (int, x)//with one parameter: x
+\end{lstlisting}
+
+
+
+\end{document}

@@ -1,0 +1,616 @@
+//##1. simple translate to getter
+
+class Cls(){ public ~x int=9  }
+
+def doings() String {
+	cls = new Cls()
+	a = cls.x; 
+	b = cls\.x; //no translate
+	
+	many = [cls, cls];
+	a2 = many[0].x; 
+	b2 = many[0]\.x; //no translate
+	
+	return "" + [a, b, a2, b2]
+	
+}
+
+~~~~~
+//##2. advanced translate to getter
+
+class Cls(){ public ~y int =98 }
+class Cls2(){ public ~x = new Cls() }
+
+def doings() String {
+	obj = new Cls2()
+	a = obj.x.y
+	b = obj\.x.y
+	c = obj.x\.y
+	d = obj\.x\.y
+	
+	return "" + [a, b, c, d]
+}
+
+~~~~~
+//##2b. advanced translate to getter - arrays
+
+class Cls(){ public ~y int =88 }
+class Cls2(){ public  ~x = [new Cls(), new Cls()] }
+
+def doings() String {
+	obj = new Cls2()
+	a = obj.x[0].y
+	b = obj\.x[0].y
+	c = obj.x[0]\.y
+	d = obj\.x[0]\.y
+	return "" + [a, b, c, d]
+}
+
+~~~~~
+//##3. setter - simple
+
+class Cls(){ public ~x int =2  }
+
+def doings() String {
+	cls = new Cls()
+	a = cls.x
+	cls.x = 99;
+	b= cls.x
+	cls\.x = 91;//no translate
+	c= cls.x
+	
+	return "" + [a, b, c]
+	
+}
+
+~~~~~
+//##3b. setter - simple arrays
+
+class Cls(){ public ~x int =11; override def toString() String { return ""+x;}  }
+
+def doings() String {
+	cls = [new Cls(), new Cls()]
+	cls[0].x = 99;
+	cls[1]\.x = 29;//no translate
+	return ""+ cls
+}
+
+~~~~~
+//##3c. setter - simple arrays rhs
+
+class Cls(){ public ~x =[1,2,3]  }
+
+def doings() String {
+	cls = new Cls()
+	cls.x[0] = 99;
+	cls\.x[1] = 299;//no translate
+	return "" + cls.x
+}
+
+
+~~~~~
+//##4. setter - advanced
+
+class Cls(){ public ~y int =9  }
+class Cls2(){ public ~x = new Cls() }
+
+def doings() String {
+	obj = new Cls2()
+	obj.x.y = 12
+	obj\.x.y = 12
+	obj.x\.y = 12
+	obj\.x\.y = 12
+	
+	return "" + obj.x.y
+	
+}
+
+
+~~~~~
+//##5. no setter, no getter defined
+
+class Cls(){public  x int =8 }
+
+def doings() String {
+	cls = new Cls()
+	a = cls.x; 
+	cls.x = a+1;
+	
+	b = cls\.x; 
+	cls\.x = b;
+	
+	return "" + [a, cls.x, b]
+}
+
+~~~~~
+//##6. no setter, no getter if in self
+
+class Cls(){ 
+	~x int
+	
+	def doWork(){
+		this.x = 88
+		y = this.x
+		
+		x = 992 + this.x
+		y = x
+	}
+}
+
+def doings() String
+{
+	cls = new Cls()
+	cls.doWork()
+	return "" + cls.x
+}
+
+~~~~~
+//##7. no setter, no getter if reference to self
+
+class Cls(){ 
+	~x int
+	
+	def doWork(arg Cls){
+		arg.x = 88
+		y = arg.x
+	}
+}
+
+def doings() String
+{
+	cls = new Cls()
+	cls.doWork(cls)
+	return "" + cls.x
+}
+
+
+~~~~~
+//##7b. do setter and gett if refernce to a super or a different child
+
+open class Sup{ ~x int }
+
+class ClsOther extends Sup{}
+
+class Cls extends Sup{ 
+	~x int
+	
+	def doWork(arg Sup){
+		arg.x = 88
+		y = arg.x
+	}
+	
+	def doWork(arg ClsOther){
+		arg.x = 88
+		y = arg.x
+	}
+}
+
+def doings() String
+{
+	cls = new Cls()
+	cls2 = new Cls()
+	cls.doWork(cls)
+	cls.doWork(cls2 as Sup)
+	return "" + [cls.x , cls2.x]
+}
+
+~~~~~
+//##7c. no setter and getter if ref via super
+
+open class Sup{ ~x int=9 }
+
+class Cls extends Sup{ 
+	~x int
+	
+	def doWork(){
+		super.x = 88
+		y = super.x
+	}
+}
+
+def doings() String
+{
+	cls = new Cls()
+	cls.doWork()
+	return "" + cls.x
+}
+
+~~~~~
+//##10.1. non eq setters
+
+class Cls{ ~x int=1; ~y double =10 }
+
+def doings() String {
+	obj = new Cls()
+	a = obj.x
+	obj.x += 69 // -> obj.setX(obj.getX() + 69)
+	obj.y *= 2
+	b=obj.x
+	return "" + [a,b, ] + [obj.y]
+}
+
+~~~~~
+//##10.1.b non eq setters - require cast to setter type
+
+class Cls{ x int=1 
+	def getX() int { return x;}
+	def setX(g double) void { x=g as int;}
+}
+
+def doings() String {
+	obj = new Cls()
+	a = obj.x
+	obj.x += 69 // -> obj.setX(obj.getX() + 69)
+	b=obj.x
+	return "" + [a,b]
+}
+
+~~~~~
+//##10.2 advanced non eq setters
+
+class Held { ~y int }
+class Cls{ ~x = new Held() }
+
+def doings() String {
+	obj = new Cls()
+	obj.x.y += 10 // -> obj.getX.SYN-getXSetX(PLUS, pre, 69) [duffassign]
+	obj.x.y *= 2 // -> obj.getX.SYN-getXSetX(MUL, pre, 69) [duffassign]
+	
+	return "" + [obj.x.y, obj.x.y]
+}
+
+~~~~~
+//##10.3 advanced non eq setters via arrastuff
+
+class Holder{ ~x int = 20 }
+
+class AnotherM{
+	hh = [new Holder() new Holder()]
+	
+	def funcCall() Holder[]
+	{
+		return hh
+	} 
+}
+
+def doings() String {
+	m = new AnotherM()
+	m.funcCall()[0].x += 12 //->  funcCall()[0].SYN-getXSetX(PLUS, pre, 69) [duffassign]
+
+	return "" + m.funcCall()[0].x
+}
+
+~~~~~
+//##10.3b advanced non eq setters via otherarray stuff
+
+class Holder{ ~x =[1 2 3] }
+
+class AnotherM{
+	hh = [new Holder() new Holder()]
+	
+	def funcCall() Holder[]
+	{
+		return hh
+	} 
+}
+
+def doings() String {
+	m = new AnotherM()
+	m.funcCall()[0].x[0] += 12 //->  funcCall()[0].SYN-getXSetX(PLUS, pre, 69) [duffassign]
+
+	return "" + m.funcCall()[0].x[0]
+}
+
+
+~~~~~
+//##10.4 inc dec operations
+
+class Cls{ ~x int=10; ~y int = 10 }
+
+def doings() String {
+	cls = new Cls()
+	cls.x++
+	++cls.x
+	
+	a=cls.x++
+	b=++cls.x
+	
+	cls.y--
+	--cls.y
+	
+	a2=cls.y--
+	b2=--cls.y	
+	return "" + [a,b, cls.x, a2, b2, cls.y]
+}
+
+~~~~~
+//##10.4a advanced inc dec operations
+
+class A{ ~x int=99 }
+
+class B{ ~h int }
+
+class Handle{
+	~inp int;
+	-ff = new B()
+	
+	def functo( inp int ) B {
+		this.inp = inp
+		return ff;
+	}
+}
+
+def doings() String{
+	han = new Handle()
+	a = new A()
+	han.functo(a.x++).h = 91 //-> def (a.SYN-getXSetX(PLUS, POST, 1)).setX(9); [duffassign]
+	return "" + [ han.ff.h, a.x, han.inp ]
+}
+
+~~~~~
+//##10.4b advanced inc dec operations
+
+class A{ ~x int =9 }
+
+class B{ ~h int=90 }
+
+inpa int = 0
+myB = new B()
+def functo( inp int ) B{
+	inpa = inp
+	return myB;
+}
+
+def doings() String
+{
+	a = new A()
+	res = functo(++a.x).h-- //-> res = def (a.SYN-getXSetX(PLUS, POST, 1)).SYN-getXSetX(PLUS, POST, 1)
+	return "" + [ myB.h, a.x, inpa ]
+}
+
+
+~~~~~
+//##10.5 neg should be left as a pre-post op
+
+class Cls{ ~x int=10}
+
+def doings() String {
+	cls = new Cls()
+	x = -cls.x
+	return "" + x
+}
+
+~~~~~
+//##10.6 string add
+
+class Cls{ ~x String="hi"}
+
+def doings() String {
+	cls = new Cls()
+	cls.x += " there"
+	
+	return cls.x
+}
+
+~~~~~
+//##12.1 setter and getter different types - ok case
+
+class Cls{
+	x int = 89
+	def getX() String{
+		return "" + x	
+	}
+	
+	def setX(wow String) {
+		x = 99
+	}
+}
+
+def doings() String {
+	cc = new Cls()
+	hi String = cc.x
+	cc.x = "hi"
+	
+	return "" + [hi, cc.x]
+}
+
+~~~~~
+//##12.3 setter and getter different types - increment ok case
+
+class Cls{
+	x int = 70
+	public str = "em"
+	def getX() String
+	{
+		return "" + x	
+	}
+	
+	def setX(wow String) void
+	{
+	 	str+= ":" + wow
+		x = 99//really should parse...
+	}
+}
+
+def doings() String {
+	cc = new Cls()
+	cc.x += "hi"
+	cc.x += 26
+	cc.x++
+	
+	return "" + [cc.x, cc.str]
+}
+
+
+
+~~~~~
+//##13 def with ifexpr
+
+class Cls{ ~x int = 89 }
+def xxx() => 4==4
+def doings() String {
+	cc = new Cls()
+	
+	ag = cc.x++ if xxx() else cc.x
+	
+	return "" + [ag, cc.x]
+}
+
+
+~~~~~
+//##14 field ops with cast
+
+class MyClass(public ~y Integer, public ~x Integer ){ }
+
+def doings() String {
+	cls = new MyClass(90, 90)
+	
+	cls.y--
+	--cls.y
+	
+	a=cls.y++
+	b= ++cls.y
+	cls.y += 2
+	cls.y *= 3
+	cls.y /= 2
+	cls.x **= 2
+	cls\.x *= 2
+	cls\.x += 2
+	
+	//check field ops work when cast is required
+	
+	return "" + [cls.y, cls.x, a, b]
+}
+~~~~~
+//##14.b field ops with cast Int -> Int
+
+class MyClass(public ~y Integer, public ~x Integer ){ }
+
+def doings() String {
+	cls = new MyClass(90, 90)
+	
+	inter2 Integer = new Integer(2)
+		
+	cls.y--
+	--cls.y
+	
+	a=cls.y++
+	b= ++cls.y
+	
+	cls.y += inter2
+	cls.y *= new Integer(3)
+	cls.y /= new Integer(2)
+	cls.x **= inter2
+	cls\.x *= inter2
+	cls\.x += new Integer(2)
+	
+	return "" + [cls.y, cls.x, a, b]
+}
+
+~~~~~
+//##14.c field ops with cast Int -> int
+class MyClass(public ~y int, public ~x int ){ }
+
+def doings() String {
+	cls = new MyClass(90, 90)
+	
+	inter2 Integer = new Integer(2)
+		
+	cls.y--
+	--cls.y
+	
+	a=cls.y++
+	b= ++cls.y
+	
+	cls.y += inter2
+	cls.y *= new Integer(3)
+	cls.y /= new Integer(2)
+	cls.x **= inter2
+	cls\.x *= inter2
+	cls\.x += new Integer(2)
+	
+	return "" + [cls.y, cls.x, a, b]
+}
+
+~~~~~
+//##14.d field ops with cast int -> int
+class MyClass(public ~y int, public ~x int ){ }
+
+def doings() String {
+	cls = new MyClass(90, 90)
+	
+	inter2 = 2
+		
+	cls.y--
+	--cls.y
+	
+	a=cls.y++
+	b= ++cls.y
+	
+	cls.y += 2
+	cls.y *= 3
+	cls.y /= 2
+	cls.x **= 2
+	cls\.x *= 2
+	cls\.x += 2
+	
+	return "" + [cls.y, cls.x, a, b]
+}
+
+~~~~~
+//##14.e with str
+class MyClass(public ~y String, public ~x String ){ }
+
+def doings() String {
+	cls = new MyClass("90", "90")
+	
+	inter2 = 2
+		
+	cls.y += 2
+	cls\.x += 2
+	
+	return "" + [cls.y, cls.x]
+}
+
+~~~~~
+//##15. ensure that overrite occurs even when doing nested access
+class MyClass( y int){
+	public cnter = 0
+	def getY() int{ cnter++; return y; }
+
+}
+
+def dummy(a int) {}
+
+def doings() String {
+	cls = new MyClass(12)
+	dummy(cls.y);
+	dummy(cls.y);
+	dummy(cls.y);
+	x = cls.cnter
+	return ""+ x
+}
+
+
+~~~~~
+//##7bb. call method setter getter on field of type superclass
+
+open class Sup{ 
+	def par() int{
+		return 99
+	}
+}
+
+class Cls(x Sup) extends Sup{ 
+		
+	def doWork( ) int {
+		return x.par()//phew! invoke special not called here
+	}
+	
+}
+
+def doings() String{
+	sup = new Sup()
+	cls = new Cls(sup)
+	return "" + cls.doWork()
+}

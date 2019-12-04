@@ -1,0 +1,2 @@
+arr1 int[] = [1,2,3];
+arr2 double[]= arr1;

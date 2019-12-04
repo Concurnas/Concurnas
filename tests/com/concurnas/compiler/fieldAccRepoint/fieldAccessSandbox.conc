@@ -1,0 +1,107 @@
+
+
+class Cls(){ public ~x int  }
+
+def doings() {
+	cls = new Cls()
+	a = cls.x; 
+	b = cls\.x; //no translate
+	
+	many = [cls, cls];
+	a2 = many[0].x; 
+	b2 = many[0]\.x; //no translate
+}
+
+
+
+
+//ALL DONE!!!
+
+
+
+
+
+
+/*
+TODO TESTS:
+
+
+add tests for:
+
+
+
+
+
+
+
+
+
+
+-----
+
+//contidionals are a real pain
+//look ahead and see if u can find any potential matches
+//if so, perform the following remapping...
+ag = a==4?x.c++:x.c
+	-> ag type;
+	   if(a==4){ ag = x.c++} else {ag =  x.c}
+	   -> logic as above
+
+def (a==4?x.c++:x.c)
+
+
+
+
+//do some extra bytecode tests
+
+
+~~~~~~~~~#
+
+
+DONE:
+
+
+pre/post fix tests
+a.v++ -> a.setV(a.getV() + 1)
+++a.v -> a.setV(a.getV() + 1)
+
+z = a.v++
+	-> $temp = a.getV(); a.setV($temp + 1); z = $temp
+x = ++a.v
+	-> $temp = a.getV() + 1; a.setV($temp); z = $temp
+
+
+res = def (a.v++)
+	-> $temp = a.getV(); a.setV($temp + 1); res = def ($temp)
+res = def (++a.v)
+	-> $temp = a.getV() + 1; a.setV($temp); res = def ($temp)
+	
+res = def (a.v++).h
+	-> $temp = a.getV(); a.setV($temp + 1); res = def ($temp).getH()
+	
+
+ror = def (56).j++
+	-> $temp1 = def (56); 
+		$temp2 = $temp1.getV(); 
+		$temp1.setV($temp2 + 1); 
+	    z = $temp2
+	
+	
+res = def (a.v++).h++
+	-> $temp = a.getV(); 
+		a.setV($temp + 1); 
+		$temp2 = def ($temp); 
+		$temp2 = a.getH(); 
+		a.setH($temp2 + 1); 
+		res = $temp2
+	
+def (a.v++).h = 9
+	-> $temp = a.getV(); a.setV($temp + 1); z = def ($temp).setH() = 9
+	
+
+//todo: check this is invalid def (a.v++).v++ = 8
+
+
+
+
+*/

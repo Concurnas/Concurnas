@@ -1,0 +1,24 @@
+//##1 simple normal interface - abstract mixin - implementation and call
+
+from com.concurnas.lang.precompiled import AnItnerface
+//TODO mixins - add generic mapping here
+
+def takesAnInterface(x AnItnerface){
+	"cool: " + x.meth()	
+}
+
+class MyClass ~ AnItnerface{
+	override hashCode() => 1
+	override equals(an Object) => false
+	def meth() => "hi"
+}
+
+def doings(){
+	mc = MyClass()
+	"" + takesAnInterface(mc)
+}
+
+~~~~~
+//##2 default maps check type if not type then null
+
+def doings() => "hi"

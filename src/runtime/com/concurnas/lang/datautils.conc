@@ -1,0 +1,402 @@
+/**
+ * Auto included built in functions for performing various common data oriented activities in Concurnas. 
+ * Inspired by the set of standard Python built in functions 
+*/ 
+from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+from com.concurnas.lang import DefaultMap
+
+/** typedef set resolves to a HashSet requiring inference of generic qualifiers*/
+typedef set = HashSet
+/** typedef set resolves to a HashSet with generic qualification*/
+typedef set<X> = HashSet<X>
+
+/** typedef list resolves to a ArrayList requiring inference of generic qualifiers*/
+typedef list = ArrayList
+/** typedef list resolves to a ArrayList with generic qualification*/
+typedef list<X> = ArrayList<X>
+
+/** typedef map resolves to a HashMap requiring inference of generic qualifiers*/
+typedef map = HashMap
+/** typedef map resolves to a HashMap with generic qualification*/
+typedef map<K, V> = HashMap<K, V>
+/**Function will create a new HashMap from a collection of Key Value tuples. For example: map([(1, "a"), (2, "b"), (3, "c")]) will create: {1: "a", 2: "b", 3: "c"} */
+def map<K, V>(values Collection<(K, V)>) map<K, V> {
+	ret = new map<K, V>()
+	for((key, value) in values){
+		ret[key] = value
+	}
+	return ret
+}
+
+/**Function will create a new DefaultMap using the provided function in order to */
+def map<K, V>(deffunc (K) V) => return new DefaultMap<K, V>(deffunc) 
+
+/**Converts the specified java.lang.Collection into a java.lang.List instance and sorts the instance in ascending order.
+ * A comparator may be specified to define the sorting order, if non is specified then the elements will be sorted in their natural order.
+
+ * @returns: a new, sorted java.lang.List
+ */
+def sorted<X>(what Collection<X>, comparator Comparator<X>?=null) List<X> {
+	return sorted(new ArrayList<X>(what), comparator, false)
+}
+/**Sorts the specified java.lang.List instance in ascending order.
+ * A comparator may be specified to define the sorting order, if non is specified then the elements will be sorted in their natural order.
+ * The java.lang.List may be modified in place by setting inplace=true
+ * 
+ * @returns: a new, sorted java.lang.List. If inplace=true then a no new list will be created
+ */
+def sorted<X>(what List<X>, comparator Comparator<X>?=null, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.sort(ret) if comparator == null else Collections.sort(ret, comparator) 
+	ret
+}
+
+/**Converts the specified java.lang.Collection into a java.lang.List instance and reverses the instance.
+
+ * @returns: a new, reversed java.lang.List
+ */
+def reversed<X>(what Collection<X>) List<X> {
+	return reversed(new ArrayList<X>(what), false)
+}
+/**Reverses the specified java.lang.List instance.
+ * The java.lang.List may be modified in place by setting inplace=true
+ * 
+ * @returns: a new, reversed java.lang.List. If inplace=true then a no new list will be created
+ */
+def reversed<X>(what List<X>, inplace = false) List<X> {
+	ret = what if inplace else what@
+	Collections.reverse(ret)
+	ret
+}
+
+/**
+ * The enumerate() method adds counter to a java.lang.Iterable instance object and returns it.
+ * @returns: a list of Integer, X tuples where X is the generic type of the Iterable argument passed
+ */
+def enumerate<X>(what Iterable<X>) List<(Integer, X)> {
+	n=0
+	(n++, x) for x in what
+}
+
+////////////////////////// zip //////////////////////////////////////////////
+//TODO: would be better to create this via a code gennerator?
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2>(a1 List<A1>, a2 List<A2>) List<(A1, A2)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], a2[n mod sa2])
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+) List<(A1, A2, A3)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+) List<(A1, A2, A3, A4)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4, A5>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+	a5 List<A5>,
+) List<(A1, A2, A3, A4, A5)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	assert a5 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	sa5 = a5.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+			a5[n mod sa5], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4, A5, A6>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+	a5 List<A5>,
+	a6 List<A6>,
+) List<(A1, A2, A3, A4, A5, A6)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	assert a5 &<> null
+	assert a6 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	sa5 = a5.size()
+	sa6 = a6.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+			a5[n mod sa5], 
+			a6[n mod sa6], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4, A5, A6, A7>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+	a5 List<A5>,
+	a6 List<A6>,
+	a7 List<A7>,
+) List<(A1, A2, A3, A4, A5, A6, A7)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	assert a5 &<> null
+	assert a6 &<> null
+	assert a7 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	sa5 = a5.size()
+	sa6 = a6.size()
+	sa7 = a7.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+			a5[n mod sa5], 
+			a6[n mod sa6], 
+			a7[n mod sa7], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4, A5, A6, A7, A8>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+	a5 List<A5>,
+	a6 List<A6>,
+	a7 List<A7>,
+	a8 List<A8>,
+) List<(A1, A2, A3, A4, A5, A6, A7, A8)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	assert a5 &<> null
+	assert a6 &<> null
+	assert a7 &<> null
+	assert a8 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	sa5 = a5.size()
+	sa6 = a6.size()
+	sa7 = a7.size()
+	sa8 = a8.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+			a5[n mod sa5], 
+			a6[n mod sa6], 
+			a7[n mod sa7], 
+			a8[n mod sa8], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+	a5 List<A5>,
+	a6 List<A6>,
+	a7 List<A7>,
+	a8 List<A8>,
+	a9 List<A9>,
+) List<(A1, A2, A3, A4, A5, A6, A7, A8, A9)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	assert a5 &<> null
+	assert a6 &<> null
+	assert a7 &<> null
+	assert a8 &<> null
+	assert a9 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	sa5 = a5.size()
+	sa6 = a6.size()
+	sa7 = a7.size()
+	sa8 = a8.size()
+	sa9 = a9.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+			a5[n mod sa5], 
+			a6[n mod sa6], 
+			a7[n mod sa7], 
+			a8[n mod sa8], 
+			a9[n mod sa9], 
+		)
+	}
+}
+
+/**zip creates a java.lang.List of n dimensional tuples from the provided n java.lang.List instances. 
+ * The i-th tuple contains the i-th element from each of the input arguments. 
+ * The length of the returned list equals the length of the first input argument list.
+ * Example: 
+ * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
+ * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
+def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(a1 List<A1>,
+	a2 List<A2>,
+	a3 List<A3>,
+	a4 List<A4>,
+	a5 List<A5>,
+	a6 List<A6>,
+	a7 List<A7>,
+	a8 List<A8>,
+	a9 List<A9>,
+	a10 List<A10>,
+) List<(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)> {
+	assert a1 &<> null
+	assert a2 &<> null
+	assert a3 &<> null
+	assert a4 &<> null
+	assert a5 &<> null
+	assert a6 &<> null
+	assert a7 &<> null
+	assert a8 &<> null
+	assert a9 &<> null
+	assert a10 &<> null
+	sa1 = a1.size()
+	sa2 = a2.size()
+	sa3 = a3.size()
+	sa4 = a4.size()
+	sa5 = a5.size()
+	sa6 = a6.size()
+	sa7 = a7.size()
+	sa8 = a8.size()
+	sa9 = a9.size()
+	sa10 = a10.size()
+	for(n =0; n < sa1; n++){
+		(a1[n mod sa1], 
+			a2[n mod sa2], 
+			a3[n mod sa3], 
+			a4[n mod sa4], 
+			a5[n mod sa5], 
+			a6[n mod sa6], 
+			a7[n mod sa7], 
+			a8[n mod sa8], 
+			a9[n mod sa9], 
+			a10[n mod sa10],
+		)
+	}
+}

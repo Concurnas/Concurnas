@@ -1,0 +1,1537 @@
+/**
+ * Distributed computing
+ */
+ 
+from java.nio.channels import Selector, SocketChannel, ServerSocketChannel, SelectionKey 
+from java.nio.channels import ClosedSelectorException, AsynchronousCloseException
+from java.nio import ByteBuffer
+from java.net import InetSocketAddress
+from java.util import HashMap, Set, HashSet, List, ArrayList
+from java.util import UUID
+from java.lang import ClassNotFoundException
+from com.concurnas.runtime.cps import ISOExecutor
+from com.concurnas.bootstrap.runtime.cps import IsoTask
+from com.concurnas.bootstrap.runtime import CopyTracker
+from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
+from com.concurnas.runtime.ref import Local
+from com.concurnas.lang.channels import PausableLinkedQueue
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from com.concurnas.bootstrap.runtime.ref import DirectlyAssignable 
+from com.concurnas.lang import BlockingLocalRef
+from java.util import WeakHashMap
+from com.concurnas.lang import DependencyAnalyzer
+from java.util import Collections
+from com.concurnas.bootstrap.lang import ConcurnasSecurityManager
+from java.security import PermissionCollection
+
+/*
+ * Protocol v1:
+ * 
+ * s - from server
+ * c - from client
+ * 
+ * client|server, message:
+ * s - error [reason]
+ * c - connect [protocol version(long), sID(SessionID)]
+ *  s - ok [sID(SessionID), next expected id]
+ * 	s - authenticate needed [sID(byte[])]
+ * c - reconnect info [response,...]
+ * s - authenticate OK
+ * s - authenticate Fail
+ 
+ * c - submit: rID, taskname, serializedJob(byte[]), deps(Dependancy...)
+ * s - response: rID [P|F|S] - Pending, Fail, Sucess + result?
+ 
+ * c - disconnect
+ * s - heatbeat 
+ * c - heartbeat 
+ * s - request dependancy: name(String)
+ * c - provide dependency: Dependancy... //transient dependencies may be included
+ * 
+ * Definitions:
+ *  Dependancy - ok(boolean), name(String), data (byte[])?
+ *  sID - SessionID [128 bit, 2 longs]
+ *  rID - RequestID
+ *  Dependancy - className, byte[]
+ *
+ */
+
+private val DEFAULT_CONC_PORT = 42000
+private val PROTOCOL_VERSION = 1
+
+class SessionID(-msb long, -lsb long){
+	override toString() => "{Long.toHexString(msb)}{Long.toHexString(lsb)}"
+}
+private shared nullSid = new SessionID(0l, 0l)
+
+
+trait LoggerProvider(){
+	def provideLoggerFor(theClass Class<?>) (String) void
+}
+
+private shared dateLog = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS Z");
+public shared defaultLoggerProvider LoggerProvider = new LoggerProvider{
+	def provideLoggerFor(theClass Class<?>) (String) void{
+		className String = theClass getSimpleName
+		def (msg String){
+			System.out.println("{dateLog.format(new java.util.Date())} {className}:: {msg}")
+		}
+	}
+}
+
+
+class RemoteFailureContext(error Throwable){
+	+isoExecutor RemoteExecutor?
+	
+	def retry() void => isoExecutor??.runRemoteTask();;
+	
+	def result() Object: => isoExecutor??.getResultRef()
+	
+	def reason() Throwable => error
+}
+
+trait RemoteFailureHandler{
+	def handle(e RemoteFailureContext) void
+}
+
+private enum AsyncComponentStatus{
+	NOT_STARTED, RUNNING, TERMINATING, TERMINATED, STARTFAIL;
+}
+
+
+////////////
+//Networking Protocol:
+
+//TODO: add protocol info here
+
+enum Protocol{
+	sERROR, cERROR, 
+	cCONNECT, sCONNECT_OK, sCONNECT_AUTH_NEEDED,
+	cDISCONNECT,
+	cSUBMIT,
+	sRESPONSE,
+	cHEARTBEAT,
+	sHEARTBEAT,
+	sREQUESTDEPENDENCY,
+	cPROVIDEDEPENDENCY;
+	def getCode() long => this.ordinal()
+}
+
+codeToProtocol = new HashMap<long, Protocol>()
+{
+	for(p in Protocol.values()){
+		codeToProtocol[p.code] = p
+	}
+}
+
+enum TaskStatus{
+	PENDING, FAIL, SUCCESS
+	def getCode() long => this.ordinal()
+}
+
+/////////////////////////////////
+//messages
+
+private class Dependency(public val depName String, public val code byte[]?){
+	public def getSucess() => code <> null
+} 
+
+/////////////////////////////////
+//encoders etc
+
+private open class MessageConverter(loggerprov LoggerProvider, socketChannel SocketChannel, clientStr String){
+	log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(this.getClass())
+	}
+	
+	protected def sendMessage(buf ByteBuffer, header Protocol){
+		log("Sending: {header} -> {clientStr}")
+		buf.flip();
+		while(buf.hasRemaining()) {
+		    this.socketChannel.write(buf);
+		}
+		log("Sent: {header} -> {clientStr}")
+	}
+}
+
+private class ClientMessageConverter(loggerprov LoggerProvider, socketChannel SocketChannel, clientStr String)
+		< MessageConverter(loggerprov, socketChannel, clientStr){
+		
+	def reconnect(sessionId SessionID) => connect(sessionId)
+	
+	def connect() => connect(nullSid)
+	
+	private def connect(sID SessionID) void {
+		buf = ByteBuffer.allocate(8*4)
+		buf.putLong(Protocol.cCONNECT.code)
+		buf.putLong(PROTOCOL_VERSION)
+		buf.putLong(sID.msb);
+		buf.putLong(sID.lsb);
+		sendMessage(buf, Protocol.cCONNECT)
+	}
+	
+	def close(){
+		buf = ByteBuffer.allocate(8)
+		buf.putLong(Protocol.cDISCONNECT.code)
+		sendMessage(buf, Protocol.cDISCONNECT)
+	}
+	
+	def request(nextExpectedId long, taskname String, serializedJob byte[], deps List<Dependency>){
+		nameBytes = taskname.getBytes();
+		size = 8 + 8 + 8 + 8 + nameBytes.length + 8 + serializedJob.length
+		depNameBytes = if(deps){
+			for(dep in deps){
+				dnbytes byte[] = dep.depName.getBytes()
+				size += dnbytes.length + dep.code??.length +8 +8 + 1
+				dnbytes
+			}
+		}else{
+			null
+		}
+		buf = ByteBuffer.allocate(8 + size)
+		
+		buf.putLong(Protocol.cSUBMIT.code)
+		buf.putLong(size)
+		buf.putLong(nextExpectedId)
+		buf.putLong(nameBytes.length)
+		buf.put(nameBytes)
+		buf.putLong(serializedJob.length)
+		buf.put(serializedJob)
+		
+		if(depNameBytes){
+			buf.putLong(deps.size())
+			for(depName in depNameBytes; idx){
+				buf.put(1 as byte)
+				buf.putLong(depName.length)
+				buf.put(depName)
+				buf.putLong(deps[idx as int].code??.length)
+				buf.put(deps[idx as int].code)
+			}
+		}else{
+			buf.putLong(0)
+		}
+		
+		sendMessage(buf, Protocol.cSUBMIT)
+	}
+	
+	+sessionId byte[]? = null
+	
+	def decodeServerReponse(fromServer SocketChannel) (long, TaskStatus, byte[]) {
+		header = ByteBuffer.allocate(8 + 8)
+		fromServer.read(header)
+		header.flip()
+		
+		taskId = header.getLong()
+		status = TaskStatus.values()[header.getLong() as int] 
+		
+		if(status == TaskStatus.PENDING){
+			return taskId, status, null
+		}else{
+			//if...
+			sizeBuf = ByteBuffer.allocate(8)
+			fromServer.read(sizeBuf)
+			sizeBuf.flip()
+			remainSize = sizeBuf.getLong()
+			
+			buf = ByteBuffer.allocate(remainSize as int)
+			fromServer.read(buf)
+			return taskId, status, buf.flip().array() as byte[]
+		}
+	}
+	
+	def toServerProvideDependency(deps List<Dependency>){
+		size = 8 + 8 
+		depNameBytes = for(dep in deps){
+			dnbytes byte[] = dep.depName.getBytes()
+			codelen = 0 if dep.code == null else dep.code??.length
+			size += dnbytes.length + codelen + 8 + 8 + 1
+			dnbytes
+		}
+		
+		buf = ByteBuffer.allocate( size +8 )
+		buf.putLong(Protocol.cPROVIDEDEPENDENCY.code)
+		
+		buf.putLong(size)//8
+				
+		buf.putLong(deps.size())//8
+		
+		for(depName in depNameBytes; idx){
+			dep = deps[idx as int]
+			
+			buf.put((0 if dep.code == null else 1) as byte)//1
+			buf.putLong(depName.length)//8
+			buf.put(depName)//vlen
+			if(dep.code <> null){
+				buf.putLong(dep.code??.length)//8
+				buf.put(dep.code)//vlen
+			}
+		}
+		
+		sendMessage(buf, Protocol.cPROVIDEDEPENDENCY)
+	}
+	
+	def decodeServerDependencyRequest(fromServer SocketChannel) String{
+		header = ByteBuffer.allocate(8)//include more than one in the future
+		fromServer.read(header)
+		header.flip()
+		
+		classNameLength = header.getLong() as int
+		buf = ByteBuffer.allocate(classNameLength)
+		fromServer.read(buf)
+		buf.flip()
+		
+		nameBytes byte[] = new byte[classNameLength]//TODO: should be int
+		buf.get(nameBytes)
+		new String(nameBytes)
+	}
+	
+}
+//bit of a mess, this really should be just creating messages, not sending them!
+public class ServerMessageConverter(loggerprov LoggerProvider, socketChannel SocketChannel, clientStr String)
+		< MessageConverter(loggerprov, socketChannel, clientStr){
+	def replyConnect(sID SessionID, nextExpectedId long){
+		buf = ByteBuffer.allocate(8*4)
+		buf.putLong(Protocol.sCONNECT_OK.code)
+		buf.putLong(sID.msb)
+		buf.putLong(sID.lsb)
+		buf.putLong(nextExpectedId)
+		sendMessage(buf, Protocol.sCONNECT_OK)
+	}
+	
+	def decodeClientSubmit(client SocketChannel){
+		sizeBuf = ByteBuffer.allocate(8)
+		client.read(sizeBuf)
+		sizeBuf.flip()
+		remainSize = sizeBuf.getLong()
+		
+		buf = ByteBuffer.allocate(remainSize as int)
+		client.read(buf)
+		buf.flip()
+		requestId = buf.getLong()
+		
+		nameBytes byte[] = new byte[buf.getLong() as int]//TODO: should be int
+		buf.get(nameBytes)
+		name = String(nameBytes)
+		
+		serizaliedJob byte[] = new byte[buf.getLong() as int]//TODO: should be int
+		buf.get(serizaliedJob)
+		//rID, taskname, serializedJob(byte[]), deps(Dependency...)
+		depsCount = buf.getLong()
+		deps = while(depsCount-- > 0){
+			decodeDependency(buf)
+		}
+				
+		(requestId, new String(nameBytes), serizaliedJob, deps)
+	}
+	
+	private def decodeDependency(buf ByteBuffer) Dependency{
+		//Dependency
+		sucess = buf.get() == 1 as byte
+		
+		nameBytes byte[] = new byte[buf.getLong() as int]//TODO: should be int
+		buf.get(nameBytes)
+		name = String(nameBytes)
+		
+		code byte[]? = null
+		if(sucess){
+			code = new byte[buf.getLong() as int]
+			buf.get(code)
+		}
+				
+		new Dependency(name, code)
+	}
+	
+	def decodeDependencyReply(client SocketChannel) List<Dependency>{
+		sizeBuf = ByteBuffer.allocate(8)
+		client.read(sizeBuf)
+		sizeBuf.flip()
+		remainSize = sizeBuf.getLong()
+		
+		buf = ByteBuffer.allocate(remainSize as int)
+		client.read(buf)
+		buf.flip()
+		depcnt = buf.getLong()
+		for(x = 0; x < depcnt; x++){
+			decodeDependency(buf)
+		}
+	}
+	
+	public def toClientPendingStatus(taskId long) byte[]{
+		buf = ByteBuffer.allocate(8+8+8)
+		buf.putLong(Protocol.sRESPONSE.getCode())
+		buf.putLong(taskId)
+		buf.putLong(TaskStatus.PENDING.getCode())
+		buf.array()
+	}
+	
+	public def toClientFailStatus(taskId long, serializedReason byte[]) byte[]{
+		buf = ByteBuffer.allocate(8+8+8+8+serializedReason.length)
+		buf.putLong(Protocol.sRESPONSE.getCode())
+		buf.putLong(taskId)
+		buf.putLong(TaskStatus.FAIL.getCode())
+		buf.putLong(serializedReason.length)
+		buf.put(serializedReason)
+		buf.array()
+	}
+	
+	public def toClientSuccessStatus(taskId long, serializedResult byte[]) byte[]{
+		buf = ByteBuffer.allocate(8+8+8+8+serializedResult.length)
+		buf.putLong(Protocol.sRESPONSE.getCode())
+		buf.putLong(taskId)
+		buf.putLong(TaskStatus.SUCCESS.getCode())
+		buf.putLong(serializedResult.length)
+		buf.put(serializedResult)
+		buf.array()
+	}
+	
+	public def toClientClassDefinitionRequest(className String) byte[]{
+		cnBytes = className.getBytes();
+		
+		buf = ByteBuffer.allocate(8+ 8+cnBytes.length)
+		buf.putLong(Protocol.sREQUESTDEPENDENCY.getCode())
+		buf.putLong(cnBytes.length as long)
+		buf.put(cnBytes)
+		buf.array()
+	}
+	
+	
+	//requestClassFromClient
+	//decodeClassFromClient
+}
+
+
+/////////////////////////////////
+//classloading
+
+inject class DistFetchingClassLoader(store DistClassStore, 
+										sid SessionID, 
+										loggerprov LoggerProvider,
+										classLoader ConcurnasClassLoader?,
+										permissions PermissionCollection?) < ConcurnasClassLoader{
+	private parent ConcurnasClassLoader
+	private log (String) void
+	init{
+		parent = (DistFetchingClassLoader.class.getClassLoader() as ConcurnasClassLoader) if classLoader==null else classLoader
+		log = loggerprov.provideLoggerFor(DistFetchingClassLoader.class)
+		
+		if(permissions <> null){
+			log("Permissions have been defined for classloader associated with remote server for sid: {sid}")
+			ConcurnasSecurityManager.getInstance().registerClassloader(this, permissions??)
+		}
+	}
+	
+	override getBytecode(name String) byte[]{//check parent first
+		if(name.endsWith("$Globals$")){
+			return null
+		}
+	
+		fromSuper byte[]? = super.getBytecode(name)
+		if(fromSuper <> null){
+			fromSuper
+		}else{
+			fromParent byte[]? = parent.getBytecode(name)
+			if(fromParent == null){
+				//log("No local bytecode found for: getBytecode({name}) requesting from code store associated with session: {sid}")
+				store.getBytecode(name).get()
+			}else{
+				fromParent
+			}
+		}//yuck, gen incorrectly
+	}
+	
+	loadedAlready = new HashSet<String>()
+	
+	override loadClass(name String) Class<?> {
+		try{
+			what Class<?>? = parent.loadClass(name)
+			if(what <> null){
+				return what
+			}
+		}catch(e ClassNotFoundException){}
+				
+		if(name.endsWith("$Globals$")){
+			noglobname = name.substring(0, name.length() - 9)
+			if(noglobname not in loadedAlready){
+				loadClass(noglobname)
+			}//load super if have normal version already
+			//else load from remote the non global, call define then call this
+			return super.loadClass(name)
+		}
+		
+		code byte[] = store.getBytecode(name).get()??
+		loadedAlready.add(name)
+		super.defineClass(name, code)
+	} 
+}
+
+inject actor DistClassStore(toClient RMServerResponseQueue, smc ServerMessageConverter, sid SessionID, loggerprov LoggerProvider){
+	private nameToBytecode = new HashMap<String, Nullable<byte[]?>:BlockingLocalRef>()//TODO: default map would be better here
+	private log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(DistClassStore.class)
+		log("Created new DistClassStore for sid: {sid}")
+	}
+	
+	def getBytecode(name String) Nullable<byte[]?>:BlockingLocalRef {
+		if(name not in nameToBytecode){
+			toFetch Nullable<byte[]?>:BlockingLocalRef
+			nameToBytecode[name] := toFetch//clean bug here
+			
+			log("Requesting class definition for class: '{name}' from client with SessionID: {sid}")
+			
+			data byte[] = smc.toClientClassDefinitionRequest(name)
+			msg = new Message(Protocol.sREQUESTDEPENDENCY, data)
+			
+			sent = toClient.sendMessage(msg)
+		}
+		
+		nameToBytecode[name]
+	}
+	
+	def onClientDisconnect(){
+		log("client associated with sid: {sid} has disconnected, invalidating all outstanding requests for code")
+		cnt = 0
+		for(name in nameToBytecode){
+			toFetch Nullable<byte[]?>:BlockingLocalRef = nameToBytecode[name]
+			if(not toFetch:isSet()){
+				log("invalidating: {name}")
+				toFetch:setException(new ClientDisconnected("Client disconnected before providing class: {name}"))
+				cnt++
+			}
+		}
+		
+		if(cnt){
+			log("Invalidated {cnt} outstanding requests")
+		}
+	}
+	
+	def onClientRespond(name String?, code byte[]?){
+		log("Setting code for sid: {sid} dependency class: {name}")
+		if(name in nameToBytecode){
+			nameToBytecode[name] = new Nullable<byte[]?>(code)
+		}else{
+			br Nullable<byte[]?>:BlockingLocalRef
+			br = new Nullable<byte[]?>(code)
+			nameToBytecode[name] := br
+		}
+		
+	}
+	
+	def onClientMissingClass(name String){
+		log("Setting code as missing for sid: {sid} dependency class: {name}")
+		if(name not in nameToBytecode){
+			toFetch Nullable<byte[]?>:BlockingLocalRef
+			nameToBytecode[name] = toFetch
+		}
+		nameToBytecode[name]:setException(new ClientMissingClass("Client missing class: {name}"))	
+	}
+}
+
+//log
+
+private class Message(-type Protocol?, -data byte[]?, ~onsent (() void)? = null, ~onfail (() void)? = null){
+	override toString(){
+		"Message({type})"
+	}
+}
+
+/////////////////////////////////
+//server
+private shared sessionId = new java.util.concurrent.atomic.AtomicLong()
+def sessionIDGennerator() SessionID {//provided by server
+	sid = UUID.randomUUID()
+	new SessionID(sid.getMostSignificantBits(), sid.getLeastSignificantBits())
+}
+
+private class ResponseQueueSender(sid SessionID, toSend PausableLinkedQueue<Message>, client SocketChannel:, clientStr String, runState AsyncComponentStatus:, loggerprov LoggerProvider ){
+	shared log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(ResponseQueueSender.class)
+	}
+	
+	def send(){
+		doSend()!(concurrent.DedicatedThread())
+	}
+	
+	private def doSend(){
+		while(runState == AsyncComponentStatus.RUNNING){
+			await(client, runState; this.client <> null or (runState <> AsyncComponentStatus.RUNNING))
+			//log("enter into post await")
+			while(this.client <> null and (runState == AsyncComponentStatus.RUNNING)){
+				msg Message = toSend.get()//pauses until more available
+				header = msg.type
+				data = msg.data
+				
+				if(data == null){
+					runState=AsyncComponentStatus.TERMINATING
+					break;
+				}
+				
+				try{
+					log("Sending: {header} -> {clientStr} with sid: {sid}")
+					buf = ByteBuffer.wrap(data)
+					//data.flip()
+					while(buf.hasRemaining()) {
+					    this.client.write(buf);
+					}
+					
+					log("Sent: {header} -> {clientStr} with sid: {sid}")
+				}catch(e){
+					if(msg.onfail <> null){msg.onfail()}
+					this.client = null
+					break;
+				}
+				
+				if(msg.onsent <> null){msg.onsent()}
+			}
+		}
+		
+		this.runState=AsyncComponentStatus.TERMINATED
+		log("Terminated outbound queue for sid: {sid}")
+	}
+}
+
+
+inject actor RMServerResponseQueue(sid SessionID, loggerprov LoggerProvider){
+	shared log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(RMServerResponseQueue.class)
+	}
+
+	private toSend PausableLinkedQueue<Message> = new PausableLinkedQueue<Message>()
+
+ 	private client SocketChannel:? = null
+ 	private shared clientStr String?
+ 
+ 	
+ 	inject def setResponseClient(shared client SocketChannel){
+ 		this.client = client;
+ 		clientStr = ""+client.getRemoteAddress()
+		log("Setting client RMServerResponseQueue for: {sid} -> {clientStr}")
+		if(runState <> AsyncComponentStatus.RUNNING){
+			runState=AsyncComponentStatus.RUNNING
+			startSender()
+		}
+ 	}
+ 	
+ 	private rqs ResponseQueueSender?
+ 	private runState AsyncComponentStatus: = AsyncComponentStatus.NOT_STARTED 
+ 
+ 	def startSender(){
+		log("Starting RMServerResponseQueue for: {sid}")
+		rqs = new ResponseQueueSender(sid, toSend, client??, clientStr??, runState, loggerprov )
+		rqs??.send()
+		log("Started RMServerResponseQueue for: {sid}")
+	}
+ 	
+ 
+	def sendMessage(msg Message) boolean {
+		if(this.client <> null and (runState == AsyncComponentStatus.RUNNING)){
+			toSend.add(msg)
+			true
+		}else{
+			log("Cannot send message: {msg} at this time since client not available or shutdown requested ({this.client}, {runState})")
+			false
+		}
+	}
+	
+	override stop(){
+		log("Stopping ResponseQueue for: {sid}")
+		trans{
+			this.client = null
+			this.runState=AsyncComponentStatus.TERMINATING
+		}
+		toSend.add(Message(null, null))
+		await(this.runState; this.runState == AsyncComponentStatus.TERMINATED)
+		//clear queue and shutdown
+		super.stop()
+	}
+}
+
+
+inject actor TaskStore(sid SessionID, toClient RMServerResponseQueue, loggerprov LoggerProvider, smc ServerMessageConverter){
+	log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(TaskStore.class)
+	}
+	
+	//add store here
+	
+	def setPending(taskId long){
+		data byte[] = smc.toClientPendingStatus(taskId)
+		msg = new Message(Protocol.sRESPONSE, data)
+		toClient.sendMessage(msg)
+		addToStore(taskId, msg)
+	}
+		
+	def setSuccess(taskId long, status Object){
+		//serialize
+		serila byte[] = SerializationEncoder.encode(status)
+		data byte[] = smc.toClientSuccessStatus(taskId, serila)
+		
+		msg = new Message(Protocol.sRESPONSE, data, onsent=removeFromStore&(taskId))
+		msg.onfail=addToStore&(taskId, msg)
+		
+		sent = toClient.sendMessage(msg)
+		
+		if(not sent){//this certainly has not arrived at the client...
+			addToStore(taskId, msg)
+		}
+	}
+	
+	def setFail(taskId long, e Throwable){
+		errSeri byte[] = SerializationEncoder.encode(e)
+		data byte[] = smc.toClientFailStatus(taskId, errSeri)
+		
+		msg = new Message(Protocol.sRESPONSE, data, onsent=removeFromStore&(taskId))
+		msg.onfail=addToStore&(taskId, msg)
+		
+		sent = toClient.sendMessage(msg)
+		
+		if(not sent){//this certainly has not arrived at the client...
+			addToStore(taskId, msg)
+		}
+	}
+	
+	private taskToStatus OffHeapMapDisk<Long, Message>? = null//store results on disk until client reconnects
+	
+	def addToStore(taskId long, msg Message){
+		if(not stopped){
+			if(null == taskToStatus){
+				log("Creating new disk based cache of results for: {sid}")
+				taskToStatus = new OffHeapMapDisk<Long, Message>();
+				taskToStatus??.setCapacity(20*(1024**2))//20 meg is probably enough
+				//TODO: make results buffer size an option
+				taskToStatus??.setRemoveOnClose(true)
+				taskToStatus??.start()
+			}
+			taskToStatus??.put(taskId, msg@(<onfail, onsent>))
+		}
+	}
+	
+	def removeFromStore(taskId long){
+		if(null <> taskToStatus){
+			taskToStatus.remove(taskId)//close taskToStatus if unused?
+		}
+	}
+	
+	def onClientReconnect(){
+		//send status of store
+		if(null <> taskToStatus){
+			log("On client Reconnection, sending client missed updates for session: {sid}")
+			
+			for(taskId long in taskToStatus??){
+				data Message = taskToStatus??[taskId]
+				msg = new Message(Protocol.sRESPONSE, data??.data, onsent=removeFromStore&(taskId))
+				
+				sent = toClient.sendMessage(msg)
+				if(not sent){
+					break;
+				}
+			}
+			
+		}else{
+			log("On client Reconnection, no missed updates to send for session: {sid}")
+		}
+	}
+	
+	private stopped=false;
+	
+	override stop(){
+		log("Stopping TaskStore.")
+		stopped=true;
+		if(null <> taskToStatus){
+			if(not taskToStatus.isEmpty()){
+				taskStr = ",".join("{a}" for a in taskToStatus??.keySet())
+				log("Stopping TaskStore. Client with sid: {sid} will be missing updates for tasks: {taskStr}")
+			}
+			
+			taskToStatus??.close()
+		}
+		super.stop()
+		//TODO: look inside store, log out all tasks not responded to?
+	}
+}
+
+inject class SessionState(-taskStore TaskStore, 
+							-classloader DistFetchingClassLoader?,
+							-dcs DistClassStore,
+							rspQ RMServerResponseQueue,
+							loggerprov LoggerProvider,
+							sid SessionID){
+	log (String) void
+	public exePool concurrent.DedicatedThreadWorkerPool
+	init{
+		log = loggerprov.provideLoggerFor(SessionState.class)
+		log("Creating dedicated worker pool for sid: {sid}")
+		exePool = new concurrent.DedicatedThreadWorkerPool(workerNamePrefix="DistWorker-{sid}")
+	}
+	
+	def stop(){
+		log("Shutting down session state for sid: {sid}")
+		dcs.onClientDisconnect()
+		taskStore.stop()
+		rspQ.stop()
+		exePool.terminate()//memory leak?
+	}
+}
+
+provider SessionStateProvider(sid SessionID, loggerprov LoggerProvider, smc ServerMessageConverter, initialclient SocketChannel, classLoader ConcurnasClassLoader?, permissions PermissionCollection?){
+	provide SessionState
+	shared RMServerResponseQueue
+	SessionID => sid
+	LoggerProvider => loggerprov
+	shared DistClassStore
+	ServerMessageConverter => smc
+	SocketChannel => initialclient
+	ConcurnasClassLoader => classLoader
+	PermissionCollection => permissions
+}
+
+private class RemoteServerListner(remServer RemoteServerActor, port int, runStatus AsyncComponentStatus:, loggerprov LoggerProvider){
+	log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(RemoteServerListner.class)
+		port int
+	}
+	
+	def listen() Throwable: {
+		startupError Throwable:
+		dolisten(startupError:)!(concurrent.DedicatedThread())
+		startupError
+	}	
+	
+	shared selector Selector= Selector.\open()
+	
+	shared clientToSocket = new WeakHashMap<SocketChannel, ServerMessageConverter>()
+	
+	private def dolisten(startupError Throwable:){
+		ssChannel ServerSocketChannel? = null
+		
+		try{
+			log("Create on port: {this.port}")
+	        ssChannel = ServerSocketChannel.\open()
+			sock = ssChannel??.socket()
+	        sock.setReuseAddress(true)
+	                
+	        sock.bind(new InetSocketAddress("localhost", this.port))
+	        ssChannel??.configureBlocking(false)
+	        ssChannel??.register(selector, SelectionKey.OP_ACCEPT)
+			log("Created on port: {this.port}")
+		}catch(e){
+			trans{
+				runStatus = AsyncComponentStatus.STARTFAIL
+				startupError = e
+			}
+			return
+		}
+		
+ 		try{
+	 		runStatus = AsyncComponentStatus.RUNNING
+ 			while (runStatus == AsyncComponentStatus.RUNNING) {
+	            selector.select();
+	            selectedKeys  = selector.selectedKeys()
+	            iter = selectedKeys.iterator()
+	            toRem = list()
+	            while (iter.hasNext()) {
+	                key SelectionKey = iter.next()
+    			
+	                if (key.isAcceptable()) {
+	                	cs = ssChannel??.accept()
+	        			cs.configureBlocking(false)
+	        			cs.register(selector, SelectionKey.OP_READ)
+	                }
+	 
+	                if (key.isReadable()) {
+				        client = key.channel() as SocketChannel
+						
+						smc ServerMessageConverter? = clientToSocket[client]
+						
+						if(smc == null){
+							smc = new ServerMessageConverter(loggerprov, client, "" + client.getRemoteAddress())
+	        				clientToSocket[client] = smc
+						}
+						processRequest(client, key, smc)
+				    }
+				    toRem.add(key)
+	                //iter.remove();
+	            }
+	            selectedKeys.removeAll(toRem)
+	        }
+ 		}
+ 		catch(e ClosedSelectorException){
+ 			if(runStatus == AsyncComponentStatus.RUNNING){
+ 				log("Error in remote server: {e} closing server")
+ 				e.printStackTrace()
+ 				remServer.close(false)
+ 			}else{
+ 				log("Selector closed, shutting down server")
+ 			}
+ 		}
+ 		catch(e){
+ 			log("Error in remote server: {e} closing server")
+ 			e.printStackTrace()
+ 			remServer.close(false)
+ 		}
+
+		
+		if(ssChannel <> null){
+			log("Close server port: {this.port}")
+			try{
+				selector.close()
+				ssChannel.close()
+				
+				if(ssChannel.socket().isClosed()){
+					log("Closed server port: {this.port}") 
+				}
+			}catch(e){
+				e.printStackTrace()
+				log("Cannot close server port: {this.port} due to error: " + e)
+			}
+		}else{
+			log("Cannot close server port: {this.port} - as it's not open")
+		}
+ 		
+
+		runStatus = AsyncComponentStatus.TERMINATED
+		log("Listener loop terminated")
+	}
+	
+	def close(){
+		if(selector <> null){
+			selector.close()
+		}
+	}
+	
+	private def processRequest(client SocketChannel, key SelectionKey, smc ServerMessageConverter){
+		clientStr = "" + client.getRemoteAddress()
+		try{
+			opBuffer = ByteBuffer.allocate(8)
+	        numRead = client.read(opBuffer)
+	        if (numRead == -1) {
+	        	log("Client: {clientStr} disconnected")
+	        	client.close();
+		        key.cancel();
+	        }else{
+	        	opBuffer.flip()
+				opcode = opBuffer.getLong()
+				operation Protocol? = codeToProtocol[opcode]
+		        log("Received request from client {clientStr}: {operation}")
+		        match(operation){
+		        	Protocol.cCONNECT => remServer.handleConnect(client, smc)
+		        	Protocol.cDISCONNECT => remServer.handleDisconnect(client, smc)
+		        	Protocol.cSUBMIT => remServer.handleClientSubmit(client, smc)
+		        	Protocol.cPROVIDEDEPENDENCY => remServer.handleClientDependencyReply(client, smc)
+		        	null => log("Received unknown opcode: {opcode} from client {clientStr}. Sending requester error and closing connection");
+		        	else => log("Received unexpected opcode: {operation} from client {clientStr}. Sending requester error and closing connection");
+		       	}
+	        }
+       	}
+        catch(e){
+        	//e.printStackTrace()
+ 			log("Error in processing client {clientStr} request: {e}. Sending requester error and closing connection")
+ 			
+	        client.close();
+		    key.cancel();
+ 		}
+	}
+}
+
+private actor RemoteServerActor(port int, loggerprov LoggerProvider, classLoader ConcurnasClassLoader?, permissions PermissionCollection?){
+	log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(RemoteServerActor.class)
+	}
+	package this(port int){
+		this.port = port
+		log = loggerprov.provideLoggerFor(RemoteServerActor.class)
+	}	
+	
+	runStatus := AsyncComponentStatus.NOT_STARTED
+	listener RemoteServerListner?
+	
+	chanelToSid = new HashMap<SocketChannel, SessionID>()
+	sidToSessionState = new HashMap<SessionID, SessionState>()
+	sidToChanel = new HashMap<SessionID, SocketChannel>()
+	chanelToLastRequestId = new HashMap<SocketChannel, long>()
+	
+	def startServer(){
+		if(runStatus == AsyncComponentStatus.TERMINATED){
+			log("Restarting remote server")
+			runStatus = AsyncComponentStatus.NOT_STARTED
+		}elif(runStatus == AsyncComponentStatus.NOT_STARTED){
+			log("Starting remote server")
+		}else{
+			throw new ServerAlreadyRunning("Cannot restart server as it is already running")
+		}
+		
+		listener = RemoteServerListner(this, port, runStatus, loggerprov)
+		startupError := listener??.listen()
+		await(runStatus; runStatus == AsyncComponentStatus.RUNNING or runStatus == AsyncComponentStatus.STARTFAIL)
+		
+		if(startupError:isSet()){
+			throw startupError
+		}
+		
+		log("Started remote server")
+	}
+	
+	
+	def handleConnect(shared client SocketChannel, smc ServerMessageConverter){
+		opBuffer = ByteBuffer.allocate(3*8)
+		client.read(opBuffer)
+		opBuffer.flip()
+		
+		protocolVersion = opBuffer.getLong()
+		sID = new SessionID(opBuffer.getLong(), opBuffer.getLong())
+		
+		if(sID == nullSid){
+			while(sID == nullSid or sID in sidToChanel){//should be rare that our uid function returns a clash
+				sID = sessionIDGennerator()
+			}
+			
+			sidToChanel[sID] = client 
+			chanelToLastRequestId[client] = 0
+			chanelToSid[client] = sID
+			ssp = new SessionStateProvider(sID, loggerprov, smc, client, classLoader, permissions)
+			
+			ssss = ssp.SessionState()
+						
+			sidToSessionState[sID] = ssss
+		
+			log("Received new connection request protocolVersion: {protocolVersion} from: {client.getRemoteAddress()} Assigned new sID: {sID}")
+			smc.replyConnect(sID, 1)
+		}
+		//else{} //reconnect, check valid for thing
+	}
+	
+	def handleDisconnect(shared client SocketChannel, smc ServerMessageConverter){
+		//remove any pending  taskas associated with this
+		if(client in chanelToSid){
+			sID = doClientDisconnection(client)
+			log("Received disconnection notification from client with sID: {sID}")
+		}else{
+			log("Received disconnection notification from unknown client: {client}")
+		}
+	}
+	
+	def doClientDisconnection(shared client SocketChannel) SessionID{
+		if(client in chanelToSid){
+			sID = chanelToSid.remove(client)
+			sidToChanel.remove(sID)
+			ss SessionState? = sidToSessionState.remove(sID)
+			if(null <> ss){//why would it be null?
+				ss.stop()
+			}
+			chanelToLastRequestId.remove(client)
+			sID
+		}else{
+			null
+		}
+	}
+	
+	def handleClientSubmit(shared client SocketChannel, smc ServerMessageConverter){
+		(requestId, taskName, serizaliedJob, deps) = smc.decodeClientSubmit(client)
+		sID = chanelToSid.get(client)
+		chanelToLastRequestId[client] = requestId
+		
+		log("Received client submit request: {requestId}, taskname: '{taskName}' from: {client.getRemoteAddress()} with SessionID: {sID}")
+		
+		state SessionState = sidToSessionState[sID]??
+		taskStore = state.taskStore
+		
+		taskStore.setPending(requestId)
+		
+		taskExecutor(requestId, taskName, serizaliedJob, deps, state, taskStore, log)
+		
+		log("Created ISO to run request: {requestId}, Task Name: {taskName}")
+	}
+	
+	def handleClientDependencyReply(shared client SocketChannel, smc ServerMessageConverter){
+		deps List<Dependency> = smc.decodeDependencyReply(client)
+		Collections.reverse(deps)//load trans deps first, then initiator
+		sid = chanelToSid.get(client)
+		
+		state SessionState? = sidToSessionState[sid]
+		if(state){
+			for(dep in deps){
+				if(dep.getSucess()){
+					state.dcs.onClientRespond(dep.depName, dep.code)
+				}else{
+					state.dcs.onClientMissingClass(dep.depName)
+				}
+			}
+		}else{
+			log("No state found for sid: {sid}")
+		}
+	}
+	
+	
+	def close(awaitShutdownConfirmation = true){
+		log("Requesting RemoteServer Stop")
+		runStatus=AsyncComponentStatus.TERMINATING
+		for(client in chanelToSid){
+			doClientDisconnection(client)
+		}
+		if(null <> listener){
+			listener.close()
+		}else{
+			runStatus = AsyncComponentStatus.TERMINATED
+		}
+		super.stop()
+		runStatus:
+	}
+	
+	def stopRemoteGraceful(){
+		
+	}
+	
+	def stopRemoteHard(){
+		
+	}
+}
+
+class RemoteServer(port int = DEFAULT_CONC_PORT, 
+					loggerprov LoggerProvider = defaultLoggerProvider,
+					classLoader ConcurnasClassLoader? = null,
+					shared permissions PermissionCollection? = null
+){	
+	rmServerActor RemoteServerActor?
+	
+	def startServer(){
+		if(rmServerActor <> null){
+			throw new Exception("RemoteServer has already been started")
+		}
+		
+		rmServerActor = new RemoteServerActor(port, loggerprov, classLoader, permissions) 
+		rmServerActor.startServer()
+	}
+	
+	def close(){
+		if(rmServerActor == null){
+			throw new Exception("RemoteServer has not been started")
+		}
+		
+		runStatus := rmServerActor??.close(true)
+		await(runStatus; runStatus == AsyncComponentStatus.TERMINATED)
+		rmServerActor = null
+	}
+}
+
+
+def taskExecutor(requestId long, taskName String, serizaliedJob byte[], deps List<Dependency>, state SessionState, taskStore TaskStore, log (String) void) void {
+	//excuted outside of the actor so as to not capture its state
+	classloader = state.classloader
+	taskStore = state.taskStore
+	exePool = state.exePool
+	dcs = state.dcs
+		
+	{
+		log("Starting ISO for request: {requestId}, Task Name: {taskName}")
+		tic = System.currentTimeMillis()
+		try{
+			if(deps){
+				cnt = deps.size()
+				spec = new ArrayList<String>(cnt)
+				for(dep in deps){
+					depName = dep.depName
+					dcs.onClientRespond(depName, dep.code)
+					spec.add(depName)
+				}
+				log("Client has specified {cnt} dependencies: {spec}")
+			}else{
+				log("Client has specified no dependencies")
+			}
+			
+			taskInstance = SerializationDecoder.decode(serizaliedJob, classloader) as IsoTask<?>
+			taskInstance.apply()
+			rref = taskInstance.getResultRef() as Local<?>
+			taskStore.setSuccess(requestId, rref:get())
+			//exe time includes encoding/decoding, dependency obtination, and actual execution
+			toc = System.currentTimeMillis()
+			log("Success obtained for request: {requestId}, Task Name: {taskName}. Took: {toc-tic}ms")
+		}catch(e){//on error send this back to client
+			//e.printStackTrace()
+			taskStore.setFail(requestId, e)
+			toc = System.currentTimeMillis()
+			log("Failure obtained for request: {requestId}, Task Name: {taskName}. Took: {toc-tic}ms, error: {e}")
+		}
+	}!(exePool)//move this out of the actor
+}
+
+
+///////////
+//Exceptions:
+class ConnectionError(msg String, cause Throwable) < Exception(msg, cause)
+class ServerAlreadyRunning(msg String) < Exception(msg, null)
+
+abstract class Unrecoverable(msg String, cause Throwable?) < Exception(msg, cause)
+class ClassloaderError(msg String) < Unrecoverable(msg, null)
+class ClientDisconnected(msg String) < Unrecoverable(msg, null)
+class ClientMissingClass(msg String) < Unrecoverable(msg, null)
+class ClientPrematureDisconnection(msg String) < Unrecoverable(msg, null)
+class InternalDistError(msg String, cause Throwable) < Unrecoverable(msg, cause)
+class MissingBytecode(msg String) < Unrecoverable(msg, null){
+	this(msg String, cause Throwable){
+		super(msg, cause)
+	}
+}
+class ClientRecievedUnexpectedMessage(msg String) < Unrecoverable(msg, null)
+class UnknownClientError < Unrecoverable('Unknown client Error', null)
+
+///////////
+//Client: 
+
+@SuppressWarnings("redefine-import")
+actor Remote(hostname String, port = DEFAULT_CONC_PORT, loggerprov LoggerProvider = defaultLoggerProvider){
+	dependenciesSubmitAlready = new HashSet<String>()
+	log (String) void
+	hostAndPortStr String
+	classLoader ConcurnasClassLoader
+	init{
+		log = loggerprov.provideLoggerFor(Remote.class)
+		hostAndPortStr = "{this.hostname}:{this.port}"
+		classLoader = Remote.class.getClassLoader() as ConcurnasClassLoader
+	}
+	
+	def onfail(handler RemoteFailureHandler) RemoteExecutor {
+		new RemoteExecutor(this, handler)
+	}
+
+	def onfailRetry(atttempts=10){
+		handler = new RemoteFailureHandler{  
+			attemptn = 1
+			def handle(e RemoteFailureContext){
+				if(attemptn++ > atttempts){
+					e.result():setException(e.reason())
+				}else{
+					e.retry()
+				}
+				
+			}
+		}
+		new RemoteExecutor(this, handler)
+	}
+	
+	/**
+	 * No re-submission on initial failure
+	 */
+	def onFailFail(){
+		handler = new RemoteFailureHandler{  
+			def handle(e RemoteFailureContext){
+				e.result():setException(e.reason())
+			}
+		}
+		new RemoteExecutor(this, handler)
+	}
+
+	private def getTransDepenedencies(cls Class<?>?, clsName String){
+		if(cls == null){
+			cls = this.classLoader.loadClass(clsName)
+		}
+		
+		mostDeps = new ArrayList<Dependency>()
+		depMap = DependencyAnalyzer.getDependenciesOf(cls??)
+		depKeys Set<String> = depMap.keySet()
+		for(depname in depKeys){
+			if(depname == clsName or depname not in dependenciesSubmitAlready){
+				dependenciesSubmitAlready.add(depname)
+				mostDeps.add(new Dependency(depname, depMap[depname]))
+			}
+		}
+		depKeys, mostDeps
+	}
+
+	def request(task IsoTask<Object:>, taskName String){
+		try{
+			cls = task.getClass()
+			clsName = cls.getCanonicalName()
+			
+			log("Submitting request for iso: {clsName} with taskname: '{taskName}'...")
+			codeClassloader ConcurnasClassLoader = {
+				 cl = cls.getClassLoader()
+				 if(cl is not ConcurnasClassLoader){
+				 	throw new ClassloaderError("Classloader for {clsName}: {cl} is not a subclass of com.concurnas.runtime.ConcurnasClassLoader")
+				 }
+				 cl as ConcurnasClassLoader
+			}
+			
+			bc byte[]? = try{
+				codeClassloader.getBytecode(clsName)
+			}catch(e){
+				throw new MissingBytecode("Unable to obtain Bytecode for: {clsName} due to: {e}", e)
+			}
+			if(bc == null){
+				throw new MissingBytecode("Unable to obtain Bytecode for: {clsName}")
+			}
+			
+			if(not connected){
+				log("No currently connected, connecting now...")
+				connect()//TODO: connect asynchronously?
+			}
+						
+			serializedTask = SerializationEncoder.encode(task)
+			
+			(depKeys, mostDeps) = if(clsName not in dependenciesSubmitAlready){
+				this.getTransDepenedencies(cls, clsName)
+			}else{//if we have already submit a task with the same isolate code to the remote server... No need to submit the code again
+				new HashSet<String>(), new ArrayList<Dependency>() 
+			}
+									
+			rid = gennerateRequestId(task)
+			
+			cmc??.request(rid, taskName, serializedTask, mostDeps)
+			
+			log("...Submitted task: {clsName} with taskname: '{taskName}', requestId: {rid}, with dependencies: {depKeys}")
+			
+			//submit request and run
+		}catch(e){
+			throw new InternalDistError("Internal error in submitting: {taskName} {e}", e)
+		}
+	}
+	
+	def gennerateRequestId(task IsoTask<Object:>) long {
+		rid = nextExpectedId++
+		while(rid in idToOutstandingTask){//should not occur
+			rid = nextExpectedId++
+		}
+		idToOutstandingTask[rid] = task
+		rid
+	}
+	
+	private idToOutstandingTask = new HashMap<Long, IsoTask<Object:>>()
+	
+	private connected := false
+	private socketChannel SocketChannel?
+	private cmc ClientMessageConverter?
+	private clientListner RemoteListner?
+	
+	def connect(){
+		if(connected){
+			throw new Exception("Connection to: {this.hostAndPortStr} already established")
+		}else{
+			log("Open connection to: {this.hostAndPortStr}")
+			idToOutstandingTask = new HashMap<Long, IsoTask<Object:>>()
+			try{
+				socketChannel = SocketChannel.\open()??;
+				//socketChannel.configureBlocking(false);
+				socketChannel.connect(new InetSocketAddress(this.hostname, this.port));
+			}catch(e){
+				throw new ConnectionError("Unable to connect to: {this.hostAndPortStr} as: {e}", e)
+			}
+			log("Connection established to: {this.hostAndPortStr}, initiating protocol")
+			
+			connected = true;
+			//spawn response handler
+			onConnect boolean:
+			clientListner = new RemoteListner(this, socketChannel??, hostAndPortStr, loggerprov)
+			clientListner.listen(onConnect, connected)
+			cmc = ClientMessageConverter(loggerprov, socketChannel??, this.hostAndPortStr)
+			
+			cmc.connect()
+			
+			await(onConnect)
+			log("Protocol initiated to: {this.hostAndPortStr}")
+		}
+	}
+	
+	def failOutStanding(err Throwable? = null){
+		if(idToOutstandingTask){
+			cnt = idToOutstandingTask.size()
+			log("Setting error state on {cnt} outstanding tasks...")
+			if(err &== null){
+				err = UnknownClientError()
+			}
+			
+			for(id in idToOutstandingTask){
+				idToOutstandingTask[id].getResultRef():setException(err)
+			}
+			log("Finished setting error state on {cnt} outstanding tasks")
+		}
+	}
+	
+	private sID SessionID?
+	private nextExpectedId long
+	
+	def handleOnConnect() {
+		opBuffer = ByteBuffer.allocate(8*3)
+		socketChannel??.read(opBuffer)
+		opBuffer.flip()
+		
+		this.sID = new SessionID(opBuffer.getLong(), opBuffer.getLong())//msg, lsb
+		this.nextExpectedId = opBuffer.getLong()
+		connected=true
+		log("Connection to {this.hostAndPortStr} established. Session ID : {sID}, NextExpectedId: {nextExpectedId}")
+	}
+	
+	def handleDependencyRequest(){
+		className = cmc??.decodeServerDependencyRequest(socketChannel??)
+		//JPT: apply dependancy analysis here in order
+		log("Server for sid: {sID} has requested class dependency: {className}")
+		
+		(depKeys, mostDeps) = try{
+			this.getTransDepenedencies(null, className)
+		}catch(e){
+			log("Cannot extract requested bytecode for class: {}className} due to: {e}")
+			cmc??.toServerProvideDependency([new Dependency(className, null),])
+			return
+		}
+		
+		log("Code for requested class: {className} { 'found' if className in depKeys else 'missing' } in overall dependencies: {depKeys}")
+		
+		cmc??.toServerProvideDependency(mostDeps)
+	}
+	
+	
+	def handleServerResponse(){
+		(rID, status, data) = cmc??.decodeServerReponse(socketChannel??)
+		
+		known = rID in idToOutstandingTask
+		
+		log("Received{'' if known else ' unknown (so ignoring)'} server response of: {status} on sid: {sID} for task: {rID}")
+		
+		if(known){
+			if(status <> TaskStatus.PENDING){
+				try{
+					decoded = SerializationDecoder.decode(data)
+					task = idToOutstandingTask[rID].getResultRef(): as DirectlyAssignable<?>
+					if(status == TaskStatus.FAIL){
+						task:setException(decoded as Throwable)
+					}else{//SUCCESS
+						task:set(decoded)
+					}
+					idToOutstandingTask.remove(rID)
+					log("Response set on {status} on sid: {sID} for task: {rID}")
+				}catch(e){
+					throw InternalDistError('Unable to set server response of: {status} on sid: {sID}  for task: {rID} due to: {e}', e)
+				}
+			}
+		}
+	}
+	
+	def close(throwOnConnected = false){
+		//send bye message
+		if(connected){
+			connected=false
+			if(cmc <> null){
+				cmc.close()
+			}
+			socketChannel??.close()
+			
+			if(not idToOutstandingTask.isEmpty()){
+				excep = new ClientPrematureDisconnection("Client disconnected before remote isolate completed execution")
+				for(outstand IsoTask<Object:> in idToOutstandingTask.values()){
+					outstand.getResultRef():setException(excep)
+				}
+			}
+		}elif(throwOnConnected){
+			throw new Exception("Attempted disconnection but not currently connected")
+		}
+	}
+}
+
+
+private class RemoteListner(remClient Remote, socketChannel SocketChannel, hostAndPortStr String, loggerprov LoggerProvider){
+	log (String) void
+	init{
+		log = loggerprov.provideLoggerFor(RemoteListner.class)
+	}
+	
+	def listen(onConnect boolean:, connected boolean:) void {
+		dolisten(onConnect, connected)!(concurrent.DedicatedThread())
+	}
+	
+	def dolisten(onConnect boolean:, connected boolean:) void {
+		firstRun = true;
+		//handle inital connect and reconnect
+		opBuffer = ByteBuffer.allocate(8)
+		read = true
+		err Throwable? = null
+		while(read) {
+			try{
+				read = socketChannel.read(opBuffer) <> -1
+				if(read){
+					opBuffer.flip()
+					opcode = opBuffer.getLong()
+					operation Protocol? = codeToProtocol[opcode]
+			        log("Received message from server {this.hostAndPortStr}: {operation}")
+			        match(operation){
+			        	Protocol.sCONNECT_OK => if(firstRun){onConnect=true; firstRun=false;}; remClient.handleOnConnect()
+			        	Protocol.sRESPONSE => remClient.handleServerResponse()
+			        	Protocol.sREQUESTDEPENDENCY => remClient.handleDependencyRequest()
+			        	null => {
+			        		msg = "Received unknown opcode: {opcode} from server {this.hostAndPortStr}"
+			        		log(msg + " - Closing connection"); 
+			        		err = ClientRecievedUnexpectedMessage(msg)
+			        		break;
+			        	}
+			        	else => {
+			        		msg = "Received unexpected opcode: {operation} from server {this.hostAndPortStr}"
+			        		log(msg + " - Closing connection"); 
+			        		err =  ClientRecievedUnexpectedMessage(msg)
+			        		break;
+			        	}
+			       	}
+					opBuffer.clear()
+				}
+			}
+			catch(e AsynchronousCloseException){
+				err=e
+				read=false
+			}catch(e){
+				err=e
+				log("Disconnection experienced whilst listening to {this.hostAndPortStr}: {e}")
+				read=false
+			}
+        }
+		if(connected){
+			log("Currently connected, attempting disconnection...")
+			remClient.close()
+		}else{
+			log("Not currently connected so not attempting disconnection")
+		}
+		//fail existing requests
+		remClient.failOutStanding(err)
+		//TODO: timeout on initial connection?
+		//TODO: reconnection
+	}
+}
+
+class RemoteExecutor(remConnection Remote, handler RemoteFailureHandler) ~ ISOExecutor<Object:>{
+	task IsoTask<Object:>?
+	desc String?
+	ct CopyTracker?
+
+	def execute(task IsoTask<Object:>, desc String, ct CopyTracker){
+		this.task = task
+		this.desc = desc
+		this.ct = ct
+		runRemoteTask()
+	}
+	
+	def getResultRef() Object: => task??.getResultRef()
+	
+	def runRemoteTask(){
+		try{
+			remConnection.request(this.task??, this.desc??)
+			//(task as () void)()
+		}catch(unr Unrecoverable){
+			throw unr				
+		}catch(e){
+			rf = new RemoteFailureContext(e)
+			rf.isoExecutor = this
+			try{
+				handler.handle(rf)
+			}catch(e){
+				res Object: = getResultRef()
+				if(null <> res:){
+					res:setException(e)
+				}
+				throw e
+			}
+			
+		}
+	}
+}

@@ -1,0 +1,687 @@
+//##1. locations
+from com.concurnas.tests.helpers.langExt using MyHiLang//ok
+
+res1 = MyHiLang||(+ 1 2 3 )||;
+
+class Myclass{
+	-res2 = MyHiLang||(+ 1 2 3 )||;
+}
+
+def doings(){
+	res3 = MyHiLang||(+ 1 2 3 )||;
+
+	mc = Myclass()
+	
+	"ok: " + [res1, mc.res2, res3]
+}
+
+~~~~~
+//##2. simple lang ext
+//##MODULE com.myorg.langs.lispLike
+
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation, Result, IterationResult, ErrorOrWarning
+class MyLisp ~ LanguageExtension{
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "'hello world'")
+	}
+}
+
+class MyFaulty
+
+//##MODULE
+from com.myorg.langs.lispLike using MyLisp
+
+def doings(){
+	
+	res = MyLisp||(+ 1 2 3)||;
+	
+	
+	"0k" + res
+}
+
+~~~~~
+//##3. simple lang ext with escape
+//##MODULE com.myorg.langs.lispLike
+
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation, Result, IterationResult, ErrorOrWarning
+class MyLisp ~ LanguageExtension{
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), "'hello world'")
+	}
+}
+
+class MyFaulty
+
+//##MODULE
+from com.myorg.langs.lispLike using MyLisp
+
+def doings(){
+	
+	res = MyLisp||(+ 1 2 3 \|)||;
+	
+	
+	"0k" + res
+}
+
+~~~~~
+//##4. escape character
+from com.concurnas.tests.helpers.langExt using SimpleLang
+
+def doings(){
+	res1 = SimpleLang||'(+ 1 \|\| 2 3 )'||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##5. simple lisp
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def doings(){
+	res1 = SimpleLisp||(+ 1 2 (* 3 3 ) )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##6. use ext vars
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def doings(){
+	n=3L
+	res1 = SimpleLisp||(+ 1 2 n )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##7. use ext methods
+from com.concurnas.tests.helpers.miniLangs using SimpleLisp
+
+def bigger(a int, b int) => a if a > b else b
+
+def dbl(item int) => item*2
+
+def doings(){
+	res1 = SimpleLisp||(bigger 4 (dbl 4 ) )||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##8. get info about classes etc
+from com.concurnas.tests.helpers.langExt using ClassExplorer
+
+def asd(a String) => 12
+
+class MyClass{
+	this(a String, b int){}
+	this(a int, b int){}
+		
+	a int = 9
+	b int = 9
+	def something(a int) int
+	
+	class Nested{
+		
+	}
+}
+
+def doings(){
+	res1 = ClassExplorer||MyClass  ||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##9. info about class long import 
+//##MODULE com.myorg.langs
+class MyClass{
+	a int = 9
+	b int = 9
+	def something(a int) int
+	
+	class Nested{
+		
+	}
+}
+
+//##MODULE
+from com.concurnas.tests.helpers.langExt using ClassExplorer
+
+def doings(){
+	res1 = ClassExplorer||com.myorg.langs.MyClass  ||;
+	
+	"ok: " + res1
+}
+
+~~~~~
+//##10. nested location exploration
+from com.concurnas.tests.helpers.langExt using LocationExplorer
+
+class MyClass{
+	
+	def myFunc(){
+		
+		def nestfunc(){
+			LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+~~~~~
+//##11. load via module
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			if(loc is com.concurnas.lang.LangExt.Class){
+				ret += (loc as com.concurnas.lang.LangExt.Class).name
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				ret += (loc as com.concurnas.lang.LangExt.Method).name
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+}
+
+
+//##MODULE
+//from com.concurnas.tests.helpers.langExt using LocationExplorer
+from com.myorg.langs using LocationExplorer
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc() String {
+			return LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+~~~~~
+//##12. load via module v2
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			if(loc is com.concurnas.lang.LangExt.Class){
+				ret += (loc as com.concurnas.lang.LangExt.Class).name
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				ret += (loc as com.concurnas.lang.LangExt.Method).name
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+}
+
+
+//##MODULE
+//from com.concurnas.tests.helpers.langExt using LocationExplorer
+from com.myorg.langs using LocationExplorer
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc()  {//was a bug here
+			 LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+~~~~~
+//##13. can create variables
+from com.concurnas.tests.helpers.langExt using VarMaker
+
+def doings(){
+	VarMaker|| xx ||
+	
+	"ok: " + xx
+}
+
+~~~~~
+//##14. expanded locations
+
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			if(loc is com.concurnas.lang.LangExt.Class){
+				ret += 'class:' + (loc as com.concurnas.lang.LangExt.Class).name
+			}else if(loc is com.concurnas.lang.LangExt.Function){
+				ff = loc as com.concurnas.lang.LangExt.Function
+				ret += 'func:' + ff.name
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				me = loc as com.concurnas.lang.LangExt.Method
+				ret += 'method:' + me.name
+			}else if(loc is com.concurnas.lang.LangExt.Constructor){
+				me = loc as com.concurnas.lang.LangExt.Constructor
+				ret += 'const:'
+			}
+			
+			if(loc is com.concurnas.lang.LangExt.Method){
+				extFunc String? = (loc as com.concurnas.lang.LangExt.Method).getExtentionFunctionOf()
+				if(extFunc){
+					ret += "[Ext Func of:" + extFunc + "]"
+				}
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+}
+
+
+//##MODULE
+//from com.concurnas.tests.helpers.langExt using LocationExplorer
+from com.myorg.langs using LocationExplorer
+
+def int inExtFunc(){
+	return LocationExplorer|| extfunc ||
+}
+def inFunc(){
+	return LocationExplorer|| regFunc ||
+}
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	+cons String = "" 
+	
+	this(a int, b int){
+		cons = LocationExplorer|| inConst ||
+	}
+	
+	def myFunc(){
+		def nestfunc() String {
+			return LocationExplorer|| funcInMethod ||
+		}
+		
+		nestfunc()
+	}
+	
+	def myFunc2(){
+		def int nestfunc() {
+			return LocationExplorer|| funcInExtMethod ||
+		}
+		
+		13\.nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass(12, 12)
+	"ok: " + [mc.myFunc(), mc.myFunc2(), inFunc(), 12\.inExtFunc(), mc.cons]
+}
+
+~~~~~
+//##15. smart cast bugs
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			if(loc is com.concurnas.lang.LangExt.Class){
+				asd = "oh no!"
+				ret += loc.name//used to blow up since cast to wront type due to generic upper bounding logic
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				ret += loc.name
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+} 
+
+
+//##MODULE
+//from com.concurnas.tests.helpers.langExt using LocationExplorer
+from com.myorg.langs using LocationExplorer
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc()  {//was a bug here
+			 LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+~~~~~
+//##16. bug on label allocation
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+ 
+class LocationExplorer {
+	source String = ""
+		
+	
+	def iterate(ctx Context) IterationResult{
+		ret = "'" + source + "' + '"
+		
+		for ( loc in ctx . getNesting ( ) ) {
+         {
+           if ( loc is com.concurnas.lang.LangExt.Class) {
+             ret += "ok1"//go to end of block...
+           }
+           elif ( if ( loc is com.concurnas.lang.LangExt.Method ) {
+             true ;
+           }
+           else {
+             false ;
+           }
+           ) {
+             ret += "ok2"
+           }
+         }
+         
+         ret += "oh no" ;
+       }
+	
+		new IterationResult(new list<ErrorOrWarning>(), new list<ErrorOrWarning>(), ret)
+	}
+}
+ 
+def doings(){
+	"ok:" 
+}
+
+
+
+
+def sdf()  {
+	xs int: = 6
+	await(xs;{ if(xs==6) {return true}; true})//ok
+	await(xs;{ if(xs==6) {break true}; true})
+	await(xs;{ if(xs==6) {continue true}; true})
+	
+	"" + xs
+}
+
+~~~~~
+//##17. bug on label allocation
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			if(loc is com.concurnas.lang.LangExt.Class){
+				ret += loc.name
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				ret += loc.name
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+} 
+
+//##MODULE
+from com.myorg.langs using LocationExplorer
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc()  {//was a bug here
+			 LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+~~~~~
+//##18. name matching
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			match(loc){
+				com.concurnas.lang.LangExt.Class => ret += loc.name
+				com.concurnas.lang.LangExt.Method => ret += loc.name
+			}
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+} 
+
+//##MODULE
+from com.myorg.langs using LocationExplorer
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc()  {//was a bug here
+			 LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+~~~~~
+//##19. map import to overriding naem correctly
+//##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			match(loc){
+				Class => ret += loc.name//maps to LangExt no java.lang
+				Method => ret += loc.name
+			}
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+} 
+
+//##MODULE
+from com.myorg.langs using LocationExplorer
+
+class MyClzass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc()  {//was a bug here
+			 LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClzass()
+	"ok: " + mc.myFunc()
+}

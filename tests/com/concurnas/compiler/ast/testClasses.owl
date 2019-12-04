@@ -1,0 +1,30 @@
+//define classes, interfaces et al
+d=s;
+class MyClass<X>(-n String, -m String)
+{
+	a =6;
+	def add(toAdd X) void	{	}
+	
+	def do(n int) void
+	{
+		this.a= n**5;
+	}
+	
+	class Inner
+	{
+	
+	}
+}
+
+class Singleton
+{
+}
+
+zzz = new A.C(2,3);
+
+bobby List<Integer> = new List<Integer>(1);
+
+a = actor MyClass<String>(3);
+
+stuff = zzz.a
+stuff = zzz\.a
