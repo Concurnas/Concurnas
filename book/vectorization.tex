@@ -35,8 +35,8 @@ class MyClass{
 myAr = [MyClass() MyClass()]
 
 res = myAr^anOperation()//apply anOperation to each element of the array
-/
-res -> [result! result!]
+
+//res == [result! result!]
 \end{lstlisting}
 
 Function references can be created in a similar manner:
@@ -51,8 +51,7 @@ myAr = [MyClass() MyClass()]
 funcrefs= myAr^anOperation&()//create a funcref to anOperation
 res = x() for x in funcrefs
 
-/
-res -> [result! result!]
+//res == [result! result!]
 \end{lstlisting}
 
 \section{Element wise field access and assignment}
@@ -63,8 +62,8 @@ class Myclass(public field int)
 A = [Myclass(1) Myclass(2) Myclass(3)]
 
 res =A^field //extract the value of field from each object of array A
-/
-res => [1 2 3]
+
+//res == [1 2 3]
 \end{lstlisting}
 
 And fields can be assigned via vectorization as well:
@@ -76,8 +75,7 @@ A = [Myclass(1) Myclass(2) Myclass(3)]
 
 A^field = 99//set value of each field in object in array A to 99
 
-/
-A => [Myclass: 1  Myclass: 2 Myclass: 3]
+//A == [Myclass: 1  Myclass: 2 Myclass: 3]
 \end{lstlisting}
 
 Access and assignment to fields can be chained using the vectorization operator \lstinline{^}:
@@ -94,9 +92,9 @@ A = Myclass( [FieldCls(1) FieldCls(2) ; FieldCls(3) FieldCls(4)]^)
 
 res1 = A^field^valu
 A^field^valu = 99
-/
-res1  => [1 2 ; 3 4]
-A => [Myclass: FieldCls 99 Myclass: FieldCls 99 ; Myclass: FieldCls 99 Myclass: FieldCls 99]
+
+//res1  == [1 2 ; 3 4]
+//A 	== [Myclass: FieldCls 99 Myclass: FieldCls 99 ; Myclass: FieldCls 99 Myclass: FieldCls 99]
 \end{lstlisting}
 
 \section{Chained Vectorization}
@@ -149,9 +147,8 @@ def foo(a int[]) = '2d: ' + a
 def foo(a int) = '1d: ' + a
 
 res = foo(myarray^)//maps to foo(a int[])
-/
-res =>
-[2d: [1, 2], 2d: [3, 4]]
+
+//res == [2d: [1, 2], 2d: [3, 4]]
 \end{lstlisting}
 
 \section{Vectorizable expressions}
@@ -192,9 +189,9 @@ objs = new IntPair(12, ar^)//an array of IntPair's
 incrementees = inca&(ar^, _ int)//an array of function refences of type: (int) int
 
 res = x(10) for x in incrementees
-/
-objs => [ (IntPair: 12 1) (IntPair: 12 2) (IntPair: 12 3) ]
-res => [11 12 13 ]
+
+//objs == [ (IntPair: 12 1) (IntPair: 12 2) (IntPair: 12 3) ]
+//res  == [11 12 13 ]
 \end{lstlisting}
 
 Array access and assignment operations can be vectorized:
@@ -210,14 +207,14 @@ oneOfEach   = C^[ [ 0 1 2]^ ]
 A^[0] = 99
 B[ [ 0 1 2]^, 0] = 99
 C^[ [ 0 1 2]^ ] = 99
-/
-firstOfEach1  => [ 1 4 7]
-firstOfEach2  => [1 4 7]
-oneOfEach => [1 5 9]
 
-A => [ 99 2 3 ; 99 5 6 ; 99 8 9 ]
-B => [ 99 2 3 ; 99 5 6 ; 99 8 9 ]
-C => [ 99 2 3 ; 4 99 6 ; 7 8 99 ]
+//firstOfEach1  == 1 4 7]
+//firstOfEach2  == [1 4 7]
+//oneOfEach 	== [1 5 9]
+
+//A == [ 99 2 3 ; 99 5 6 ; 99 8 9 ]
+//B == [ 99 2 3 ; 99 5 6 ; 99 8 9 ]
+//C == [ 99 2 3 ; 4 99 6 ; 7 8 99 ]
 \end{lstlisting}
 
 \section{No hat needed}
@@ -252,6 +249,6 @@ C = [5 6]
 Result = A + B + C
 \end{lstlisting}
 
-A naive implementation would create a temporary matrix used to hold the calculated value of A+B before performing the +C component. Concurnas avoids the creation of the temporary array and just creates one holding the result.
+A naive implementation would create a temporary matrix used to hold the calculated value of A+B before performing the +C component. Concurnas avoids the creation of the temporary matrix and just creates one holding the result.
 
 \end{document}
