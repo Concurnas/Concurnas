@@ -223,10 +223,10 @@ Sync blocks may return a value:
 
 \begin{lstlisting}
 def gcd(x int, y int){//greatest common divisor of two integers
-while(y){
-(x, y) = (y, x mod y)
-}
-x
+	while(y){
+		(x, y) = (y, x mod y)
+	}
+	x
 }
 
 calc1 int:
@@ -243,7 +243,7 @@ complete = sync{
 
 \section{Shared variables and classes}
 \label{sec:shared}
-Isolates will make a copy of all of their non ref and non actor dependencies in order to ensure that no state is accidentally shared between instances. This default behavior is always safe but sometimes is inappropriate, for instance when making use of Java objects which have their own concurrency control, and for read only data structures (especially when they are large since the copy operation performs a deep copy). This can be overridden by making use of the /shared/ keyword.
+Isolates will make a copy of all of their non ref and non actor dependencies in order to ensure that no state is accidentally shared between instances. This default behaviour is always safe but sometimes is inappropriate, for instance when making use of Java objects which have their own concurrency control, and for read only data structures (especially when they are large since the copy operation performs a deep copy). This can be overridden by making use of the \lstinline{shared} keyword.
 
 We can declare a new variable assignment as being shared and use it as normal within an isolate as follows:
 \begin{lstlisting}
@@ -300,7 +300,7 @@ defmymethod()// == [50 50:]
 The shared tag is ignored when shared variables are assigned to, or read from refs... they are still copied, though refs themselves are naturally shareable between isolates.
 
 \subsection{Shared Classes}
-Classes may be tagged as shared, this has the same effect as tagging a variable as shared but applies to all instances of objects of the shared class (including subclasses). See Shared Classes for more information.
+Classes may be tagged as shared, this has the same effect as tagging a variable as shared but applies to all instances of objects of the shared class (including subclasses). See the \hyperref[sec:sharedClasses]{Shared Classes section} for more information.
 
 \section{Actors}
 \label{sec:actors}

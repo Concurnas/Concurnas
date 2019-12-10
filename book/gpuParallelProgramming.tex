@@ -936,11 +936,11 @@ def main(){
 }
 
 ///////////
-Output:
-InputDataSize: 1024000 elements
-PASS! result: 1024399
+//Output:
+//InputDataSize: 1024000 elements
+//PASS! result: 1024399
 
-Assuming execution is taking place on a gpu with the first MaxWorkItemSize elemnt of 1024 .
+//Assuming execution is taking place on a gpu with the first MaxWorkItemSize elemnt of 1024 .
 \end{lstlisting}
 
 The only significant change we make here in terms of execution vs a kernel with only global memory interaction is in having to provide a local work size dimension array, in the same way as we do global dimensions - \lstinline{device.exe(inst, [ItemCount], [localItemSize], c1)}.
