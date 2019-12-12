@@ -5,7 +5,7 @@ Concurnas is an open source programming language designed for building reliable,
 
 **The main website (including documentation) for Concurnas can be found at: [http://concurnas.com](http://concurnas.com)**
 
-**Discord: [https://discordapp.com/invite/jFHfsqR](https://discordapp.com/invite/jFHfsqR)**
+**Discord: [discord.gg/jFHfsqR](https://discord.gg/jFHfsqR)**
 
 ## Authors and major contributors
 * [Jason Tatton](http://concurnas.com/concurnasltd/leadership.html), [jason.tatton@concurnas.com](jason.tatton@concurnas.com) - Founder of Concurnas
