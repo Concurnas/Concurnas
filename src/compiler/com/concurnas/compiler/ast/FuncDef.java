@@ -142,6 +142,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 		ret.isInjected=isInjected;
 		ret.origfuncName = origfuncName;
 		ret.supressErrors = supressErrors;
+		ret.isNestedFuncionDef = isNestedFuncionDef;
 	}
 
 	
@@ -315,6 +316,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 	private Boolean getShouldBeDeletedOnUsusedReturnCache = null;
 	public boolean createTraitStaticMethod;
 	public boolean supressErrors=false;
+	public boolean isNestedFuncionDef=false;
 	
 	private boolean hasAnnotation(NamedType wantannot) {
 		Annotations annots = getAnnotations();

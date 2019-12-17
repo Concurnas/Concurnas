@@ -2484,6 +2484,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				ret.add(new RefName(afi.funName));
 				ret.add(afi.args.asnames.get(0));
 			}
+		}else if(expr instanceof FuncRefInvoke){
+			//can only be one argument
+			FuncRefInvoke afi = (FuncRefInvoke)expr;
+			if(afi.args.asnames.size()==1 && afi.args.nameMap.isEmpty()){
+				ret.add(afi.funcRef);
+				ret.add(afi.args.asnames.get(0));
+			}
 		}else if(expr instanceof DotOperator) {
 			DotOperator asDot = (DotOperator)expr;
 			ArrayList<Expression> tmp = new ArrayList<Expression>();
@@ -6957,8 +6964,15 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 
 		TypeAndLocation tal = mostSpecificTAL.getB();
+
+		funcInvoke.isReallyLambda = null!= tal.getLocation()?tal.getLocation().isLambda():false;
 		
 		if(mostSpec.hasBeenVectorized != null ){
+			FuncType ft = (FuncType)tal.getType();
+			if(ft.origonatingFuncDef.isNestedFuncionDef) {
+				funcInvoke.resolvedFuncTypeAndLocation = tal;
+			}
+			
 			//dealt with later
 			funcInvoke.vectroizedDegreeAndArgs = mostSpec.hasBeenVectorized; 
 			
@@ -6975,9 +6989,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 			
 			return funcInvoke.setTaggedType(mostSpec.retType);
+		}else {
+			funcInvoke.resolvedFuncTypeAndLocation = tal;
 		}
-		
-		
 		
 		if(tal.getLocation().redirectExtFuncOrWithExpr != null){//i.e. repoint to: "this$extFunc. xxx ()..."
 			funcInvoke.primaryASTOverride = null;
@@ -6993,8 +7007,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		
-		funcInvoke.resolvedFuncTypeAndLocation = tal;
-		funcInvoke.isReallyLambda = null!= tal.getLocation()?tal.getLocation().isLambda():false;
 
 		Type fromTal = tal.getType();
 		if(fromTal instanceof FuncType ) {
@@ -20572,6 +20584,11 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		funcDef.ignore = false;
 		
 		//System.err.println("funcDef: " + funcDef.funcName);
+		
+		TheScopeFrame cs = this.currentScopeFrame;
+		if(cs.isconstructor || cs.isFuncDefBlock || cs.isExtFunc) {
+			funcDef.isNestedFuncionDef = true;
+		}
 		
 		if(funcDef.checkForFDVariants && null == funcDef.funcDefVariants) {
 			//TODO: find way to perm exclude if we know thing works

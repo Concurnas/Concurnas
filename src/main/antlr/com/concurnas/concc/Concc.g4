@@ -13,7 +13,7 @@ sources:
 	ford+=fileOrDirNode+
 	| root=fileOrDirNode '[' (ford+=fileOrDirNode)+ ']'
 	;
-	
+
 options:
 	'-d' fileOrDirNode #OptionOutputDir
 	| ('-a' | '-all') #AllCopy

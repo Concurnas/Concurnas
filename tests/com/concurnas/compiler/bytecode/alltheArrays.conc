@@ -2374,3 +2374,13 @@ def doings() String{
 	return "" +  my + v+f
 }
 
+~~~~~
+//##27 bugfix for paranthesis used within array definitions
+def doings(){
+	x=1
+	toinvert1 = [16 x (1-3) 4 5 -1 3 (10-3) 4 9 3 4]
+	toinvert2 = [16 -1 -2 -3 4 9 -3 4]
+	toinvert3 = [16 1 1 -2 4 5 -1 3 4 9 3 4]
+	
+	"" + [toinvert1, toinvert2, toinvert3]
+}

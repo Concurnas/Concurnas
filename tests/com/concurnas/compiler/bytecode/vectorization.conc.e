@@ -378,3 +378,7 @@ asdasd[22 24 ; 26 28]
 ~~~~~
 //##94. vect on the funcref creation
 11
+
+~~~~~
+//##95. vectorization of NIF method
+[[-1 -2 3 -4], [-1 -2 3 -4], [-1 -2 3 -4]]

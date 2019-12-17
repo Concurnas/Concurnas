@@ -125,17 +125,19 @@ def getToRad() = true
 rsin(myarry^^, getToRad())//applies the sin function to every element of the array in place with radian conversion
 \end{lstlisting}
 
-Note that in the above function invocation, the second expression( /getToRad()/) bound to the torad parameter is executed for each element of myarry.
+Note that in the above function invocation, the second expression (\lstinline{getToRad()}) bound to the torad parameter is executed for each element of myarry.
 
 Our invocation, chained and/or containing vectorized operator calls, may reference more than one array, however both the dimensions and number of elements per dimension should match those of the first referenced array. If subsequent arrays exceed the first referenced array in elements then the excess will not be processed. If subsequent arrays do not contain enough elements then an array access exception may (depending on the first underlying structure) be thrown. A null pointer exception maybe be thrown if null elements are present.
 \begin{lstlisting}
-choices = [false false true, true]
 toinvert = [-1 -2 -3 4]
+choices = [false false true true]
 
-def inverer(arg int, choice boolean) => -arg if choice else arg
+def inverter(arg int, choice boolean) => -arg if choice else arg
 
-applied = inverer(choices., toinvert.)//apply inverter function to each element and return result to applied
-inverer(choices.., toinvert.)//result stored in place within choices  array
+applied = inverter(toinvert^, choices^)//apply inverter function to each element and return result to applied
+inverter(toinvert^^, choices^)//result stored in place within choices array
+
+//applied and toinvert == [-1 -2 3 -4]
 \end{lstlisting}
 
 \section{Disambiguation of vectorized calls}
@@ -152,7 +154,7 @@ res = foo(myarray^)//maps to foo(a int[])
 \end{lstlisting}
 
 \section{Vectorizable expressions}
-In addition to function and methods being vectorized as we have previously seen. All the operators may be vectoried. /See section on operators/. Examples:
+In addition to function and methods being vectorized as we have previously seen. All the operators may be vectorized (see the \hyperref[ch:Operators]{Operators} chapter). Examples:
 \begin{lstlisting}
 myAr = [1 2 3 4 5]
 gt = myAr^ > 5

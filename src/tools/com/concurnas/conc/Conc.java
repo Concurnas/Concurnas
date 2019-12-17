@@ -1,6 +1,7 @@
 package com.concurnas.conc;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.lang.annotation.Retention;
 import java.lang.reflect.Method;
@@ -9,11 +10,10 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -380,7 +380,7 @@ public class Conc {
 				Path srcFile = this.fileLoader.getPath(concInstance.sourceFile);
 				String entryPoint = srcFile.toString();
 				boolean haserr = false;
-				if(!Files.exists(srcFile)) {//try as class and jar
+				if(!Files.exists(srcFile) || Files.isDirectory(srcFile)) {//try as class and jar
 					if(!entryPoint.endsWith(".jar") && !entryPoint.endsWith(".class")) {
 						//srcFile = null;
 						Path asJar = this.fileLoader.getPath(concInstance.sourceFile + ".jar");
@@ -448,9 +448,17 @@ public class Conc {
 						clasRef = clasRef.replace('/', '.');
 					}
 					
+					boolean wasEmptyCp = classpath.isEmpty();
 					if(jarOrClass) {
 						classpath.add(srcFile);
+						
+						if(wasEmptyCp && !srcFile.toString().contains(File.separator)) {//if it's in the root 
+							classpath.add(this.fileLoader.getPath("./"));
+						}
 					}
+					
+					
+					
 					
 					
 					concClassLoader = getConcClassloader(classpath);

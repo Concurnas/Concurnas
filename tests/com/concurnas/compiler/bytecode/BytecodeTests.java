@@ -360,7 +360,7 @@ public class BytecodeTests extends TestCase implements Opcodes {
 		boolean pops = BytecodeOutputter.PRINT_OPCODES;
 		try {
 			BytecodeOutputter.PRINT_OPCODES=true;
-			runCompilation("bytecodeSandbox", true, false, true);
+			runCompilation("bytecodeSandbox", true, false, true, false);
 		}finally {
 			BytecodeOutputter.PRINT_OPCODES=pops;
 		}
@@ -674,9 +674,10 @@ public class BytecodeTests extends TestCase implements Opcodes {
 	}
 	
 	
-	private InMemoryClassLoader runCompilation(String inputFileorig, boolean printSource, boolean immutableStuff, boolean profile) throws Throwable {
+	protected InMemoryClassLoader runCompilation(String inputFileorig, boolean printSource, boolean immutableStuff, boolean profile, boolean convertShortfileRef) throws Throwable {
 		String inputFile = inputFileorig + ".conc";
 		String absSrcFilePath = SrcDir + File.separator + inputFile;
+		absSrcFilePath = Paths.get(absSrcFilePath).toFile().getCanonicalPath().toString();
 
 		checkExists(absSrcFilePath);
 
@@ -684,7 +685,13 @@ public class BytecodeTests extends TestCase implements Opcodes {
 
 		String data = FileUtils.readFile(absSrcFilePath);
 		
+		if(convertShortfileRef) {
+			inputFile = absSrcFilePath.substring(absSrcFilePath.lastIndexOf(File.separator)+1 );
+			inputFileorig = inputFile.substring(0, inputFile.length() - 5);
+		}
+		
 		MockFileLoader mockLoader = produceLoader(inputFile, data);
+		
 		
 		MainLoop mainLoop = new MainLoop(SrcDir, mockLoader, true, false, mfw, false);
 		if(profile) {

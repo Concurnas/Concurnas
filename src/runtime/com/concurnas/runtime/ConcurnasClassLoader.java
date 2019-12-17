@@ -9,7 +9,6 @@ import java.util.Stack;
 import com.concurnas.bootstrap.runtime.InitUncreatable;
 import com.concurnas.bootstrap.runtime.cps.Fiber;
 import com.concurnas.compiler.ast.FuncType;
-import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.lang.Shared;
 import com.concurnas.lang.Uninterruptible;

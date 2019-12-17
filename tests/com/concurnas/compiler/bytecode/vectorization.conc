@@ -1392,3 +1392,17 @@ def doings(){
 	//"" + thing() //bug
 	"" + thing[0]() //ok
 }
+
+~~~~~
+//##95. vectorization of NIF method
+def doings(){
+	toinvert = [-1 -2 -3 4]
+	choices = [false false true true]
+	
+	def inverter(arg int, choice boolean) => -arg if choice else arg
+	
+	applied = inverter(toinvert^, choices^)//apply inverter function to each element and return result to applied
+	x = inverter(toinvert^^, choices^)//result stored in place within choices  array
+	
+	"" + [applied, toinvert, x]
+}

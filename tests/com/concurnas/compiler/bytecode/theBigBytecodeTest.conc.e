@@ -1049,8 +1049,8 @@ k
 
 ~~~~~
 //##134.c the joy of lambdas
-D:\work\Concurnas-prer\tests\com\concurnas\compiler\bytecode\x134cthejoyoflambdas.conc line 10:9 Unable to find method with matching name: constructor and arguments (def () java.lang.Integer)
-D:\work\Concurnas-prer\tests\com\concurnas\compiler\bytecode\x134cthejoyoflambdas.conc line 11:9 Unable to find method with matching name: constructor and arguments (def () java.lang.Integer)
+D:\work\Concurnas\tests\com\concurnas\compiler\bytecode\x134cthejoyoflambdas.conc line 10:9 Unable to find method with matching name: constructor and arguments (def () java.lang.Integer)
+D:\work\Concurnas\tests\com\concurnas\compiler\bytecode\x134cthejoyoflambdas.conc line 11:9 Unable to find method with matching name: constructor and arguments (def () java.lang.Integer)
 
 ~~~~~
 //##134.d the joy of lambdas Function

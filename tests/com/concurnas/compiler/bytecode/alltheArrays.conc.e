@@ -316,3 +316,7 @@ put(x int, y Integer), put(x int, y int), put(x int, y int), put(x int, y String
 ~~~~~
 //##26 lists can have custom set functions too
 [31, 0, 0, 0, 0, 3, 3, 3, 0, 0]3031
+
+~~~~~
+//##27 bugfix for paranthesis used within array definitions
+[[16 1 -2 4 5 -1 3 7 4 9 3 4], [16 -1 -2 -3 4 9 -3 4], [16 1 1 -2 4 5 -1 3 4 9 3 4]]

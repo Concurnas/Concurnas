@@ -52,6 +52,9 @@ public class ConccToConc {
 			List<String> procCmd = new ArrayList<String>(5 + jvmArgs.size());
 			procCmd.add(javaBin);
 			procCmd.addAll(jvmArgs);
+			if(tempDirWithPrefix != null) {
+				procCmd.add("-Dcom.concurnas.rtCache=../../installed");
+			}
 			procCmd.add("-cp");
 			procCmd.add(classpath);
 			procCmd.add(className);
@@ -144,8 +147,28 @@ public class ConccToConc {
 			
 			subprocExec(Concc.class, String.format("-jar myJar[MyClass] -d %s %s", bindir, srcdir), 0, null, false, null);
 			Path outputJar = bindir.resolve("myJar.jar");
-
+			
 			subprocExec(Conc.class, String.format("%s", outputJar), 0, "hey there", false, null);
+			
+		}finally {
+			Utils.deleteDirectory(tempDirWithPrefix.toFile());
+		}
+	}
+	
+	@Test
+	public void testConcctoConcViaJarNoFilePostfix() throws Throwable {
+		
+		Path tempDirWithPrefix = Files.createTempDirectory("c2cJar");
+		try {
+			Path myJardir = tempDirWithPrefix.resolve("myJar");
+			Files.createDirectories(myJardir );
+			
+			Path myClass = tempDirWithPrefix.resolve("MyClass.conc");
+			Files.write(myClass, ListMaker.make("def main() => System.err.println('hey there')"), StandardCharsets.UTF_8);
+			
+			subprocExec(Concc.class, "-jar myJar[MyClass] -d . MyClass.conc", 0, null, false, tempDirWithPrefix);
+
+			subprocExec(Conc.class, "myJar", 0, "hey there", false, tempDirWithPrefix);
 			
 		}finally {
 			Utils.deleteDirectory(tempDirWithPrefix.toFile());
@@ -277,6 +300,29 @@ public class ConccToConc {
 			Path myclass = bindir.resolve(Paths.get("com/mycompany/myproject/MyClass.class"));
 			
 			subprocExec(Conc.class, String.format("-cp %s %s", bindir, myclass), 0, "hey there", false, null);
+			
+		}finally {
+			Utils.deleteDirectory(tempDirWithPrefix.toFile());
+		}
+	}
+	
+	
+	@Test
+	public void oneLinerWithDepsAutoIncludeDir() throws Throwable {
+		Path tempDirWithPrefix = Files.createTempDirectory("c2cJar");
+		try {
+			
+			Path myClass = tempDirWithPrefix.resolve("MyClass.conc"); 
+			Files.write(myClass, ListMaker.make("def main() => xx = Deps.getMessage(); System.err.println(xx)"), StandardCharsets.UTF_8);
+			
+			Path depscls = tempDirWithPrefix.resolve("Deps.conc"); 
+			Files.write(depscls, ListMaker.make("def getMessage() => 'hey there'"), StandardCharsets.UTF_8);
+			
+			
+			subprocExec(Concc.class, "./", 0, null, false, tempDirWithPrefix);
+
+			
+			subprocExec(Conc.class, "MyClass", 0, "hey there", false, tempDirWithPrefix);
 			
 		}finally {
 			Utils.deleteDirectory(tempDirWithPrefix.toFile());
