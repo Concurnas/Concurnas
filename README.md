@@ -3,11 +3,11 @@
 # The Concurnas programming Language
 Concurnas is an open source programming language designed for building reliable, scalable, high performance concurrent, distributed and parallel systems
 
-**The main website (including documentation) for Concurnas can be found at: [https://concurnas.com](http://concurnas.com)**
+* **The main website** (including documentation) for Concurnas can be found at: [https://concurnas.com](http://concurnas.com)
 
-**Download page (including prerequisites) for Concurnas can be found at: [https://concurnas.com/download.html](https://concurnas.com/download.html)**
+* **Download page** (including prerequisites) for Concurnas can be found at: [https://concurnas.com/download.html](https://concurnas.com/download.html)
 
-**Discord: [discord.gg/jFHfsqR](https://discord.gg/jFHfsqR)**
+* **Discord: [discord.gg/jFHfsqR](https://discord.gg/jFHfsqR)**
 
 ## Authors and major contributors
 * [Jason Tatton](http://concurnas.com/concurnasltd/leadership.html), [jason.tatton@concurnas.com](jason.tatton@concurnas.com) - Founder of Concurnas
