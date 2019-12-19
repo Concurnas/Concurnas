@@ -46,8 +46,8 @@ gps = gpus.GPU()
 gpudevices = gps.getGPUDevices()
 firstDevice = gpudevices[0]
 deviceDetails = firstDevice.toString()
-/
-deviceDetails => NVIDIA CUDA: [GeForce GTX 570]
+
+//deviceDetails == NVIDIA CUDA: [GeForce GTX 570]
 \end{lstlisting}
 
 Note that \lstinline{com.concurnas.lang.gpus} is an auto import, therefore it is not necessary to explicitly import \lstinline{gpus}, and we shall cease to do so in the subsequent examples.
@@ -171,7 +171,7 @@ got = inoutGPU.readFromBuffer(copyComplete)//readFromBuffer will execute when co
 
 In the above example the blocking of the readFromBuffer call will take place within the OpenCL framework. Generally speaking this is the preferred method of synchronization as the control takes place closer to the hardware and the code is easier to write (at least in omitting the explicit call to await).
 
-If one forgets to capture the resultant GPURef from an asynchronous, non blocking GPU operation, then the operation will turn into a blocking one as the calling code will wait for the resulting GPURef to be set. This is because all the asynchronous non blocking GPU operations are marked with the /@com.concurnas.lang.DeleteOnUnusedReturn/ annotation.
+If one forgets to capture the resultant GPURef from an asynchronous, non blocking GPU operation, then the operation will turn into a blocking one as the calling code will wait for the resulting GPURef to be set. This is because all the asynchronous non blocking GPU operations are marked with the \lstinline{@com.concurnas.lang.DeleteOnUnusedReturn} annotation.
 
 \section{Data transference}
 \subsection{Buffers}
@@ -245,7 +245,7 @@ g1 := intoutGPU1.copyToBuffer(intoutGPU2, c1)
 The above copy mechanism can be used in order to copy non overlapping regions of data inside the same buffer.
 
 \subsection{Writing, Reading and Copying subregions}
-We can copy subregions of data to and from as well as between buffers using the \lstinline{[a ... b]}, \lstinline{[a .. ]} and \lstinline{[ ... b]} syntax and via additional arguments to the \lstinline{copyToBuffer} method. When using the [ … ] syntax since we have no way of capturing the resultant GPURef of the write or read operation, the caller will block implicitly until this is returned, and will call delete on the GPURef object freeing the memory used for it on the GPU.
+We can copy subregions of data to and from as well as between buffers using the \lstinline{[a ... b]}, \lstinline{[a .. ]} and \lstinline{[ ... b]} syntax and via additional arguments to the \lstinline{copyToBuffer} method. When using the \lstinline{[ ... ]} syntax since we have no way of capturing the resultant GPURef of the write or read operation, the caller will block implicitly until this is returned, and will call delete on the GPURef object freeing the memory used for it on the GPU.
 
 \begin{lstlisting}
 intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 20)
@@ -264,7 +264,7 @@ await(result2)
 
 The other variants of subregion are intuitive.
 
-When copying between regions we can add additional arguments to the /copyToBuffer/ method:
+When copying between regions we can add additional arguments to the \lstinline{copyToBuffer} method:
 \begin{lstlisting}
 intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
 intoutGPU2 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
@@ -273,10 +273,10 @@ c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
 g1 := intoutGPU1.copyToBuffer(intoutGPU2, 2, 4, 2, c1)
 \end{lstlisting}
 
-Here, we are copying two items from intoutGPU1 into the 2nd index of intoutGPU2.
+Here, we are copying two items from \lstinline{intoutGPU1} into the 2nd index of \lstinline{intoutGPU2}.
 
 \section{sizeof}
-It can be useful to know how many bytes of memory a structure will take up on the GPU. To this end a qualifier can be specified to the sizeof command as follows:
+It can be useful to know how many bytes of memory a structure will take up on the GPU. To this end a qualifier can be specified to the \lstinline{sizeof} keyword as follows:
 
 \begin{lstlisting}
 myArray = [0 1 2 3 4 5 6 7 8 9]

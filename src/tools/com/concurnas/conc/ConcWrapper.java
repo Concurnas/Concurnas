@@ -150,7 +150,7 @@ public class ConcWrapper {
 				if (null == vendor || !vendor.equals("Oracle Corporation")) {
 					String vmname = System.getProperty("java.vm.name");
 					if(null == vmname || !vmname.contains("OpenJDK")) {
-						System.err.println(String.format("WARN: Only Oracle JVM is supported, results with %s are unknown", vendor));
+						System.err.println(String.format("WARN: Only Oracle JDK and OpenJDK is supported, results with %s are unknown", vendor));
 					}
 				}
 			}

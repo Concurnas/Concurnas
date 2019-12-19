@@ -31,7 +31,7 @@ ageAndName = new AgeAndNameHolder(24, "dave")
 ageAndName2 = [67, "mary"] //holding the data within a list
 \end{lstlisting}
 
-The holder object can become a very heavy weight pattern to use in code, especially for cases where the data lifetime or manipulation context is very short (contained within a method for instance). Likewise, the list pattern is inconvenient as we must remember to explicitly cast got values and it’s mutable, meaning the contents can be accidentally changed. Tuples provide a nice middle ground between the two, as much type safety as classes, but with as much convenience in defining as lists.
+The holder object can become a very heavy weight pattern to use in code, especially for cases where the data lifetime or manipulation context is very short (contained within a method for instance). Likewise, the list pattern is inconvenient as we must remember to explicitly cast got values and it's mutable, meaning the contents can be accidentally changed. Tuples provide a nice middle ground between the two, as much type safety as classes, but with as much convenience in defining as lists.
 
 A nice advantage of tuples is that they are naturally immutable - once created they cannot be changed (note that the objects they contain, if not immutable can be changed).
 

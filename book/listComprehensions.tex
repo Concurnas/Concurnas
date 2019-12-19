@@ -27,7 +27,7 @@ The expression on the right hand side of the in token above must return either a
 \end{table}
 
 
-Let’s say we wish to produce a list for which the values of all elements have 100 added to them:
+Let's say we wish to produce a list for which the values of all elements have 100 added to them:
 \begin{lstlisting}
 mylist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 mynewlist = a+100 for a in mylist
@@ -41,7 +41,7 @@ mynewlist = {x=a+100; x} for a in mylist
 //mynewlist == [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
 \end{lstlisting}
 
-Now let’s say we wish to only include those items divisible by two. This is a filter condition. We can add this filter condition as follows:
+Now let's say we wish to only include those items divisible by two. This is a filter condition. We can add this filter condition as follows:
 \begin{lstlisting}
 mylist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 mynewlist = a+100 for a in mylist if a mod 2 == 0

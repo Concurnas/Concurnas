@@ -20,7 +20,7 @@ Traits allow us to define elements of reusable functionality (both methods and s
 Traits can be compared to interfaces with default methods such as in languages like Java. However, they differ in that they can be chained together, may extend non trait classes and allow classes to be composed of stacked trait super method calls.
 
 \section{Defining traits}
-Traits are defined in a similar way to classes. But they may not be nested as they don’t have access to nested state. Like abstract classes, they may define both concrete and abstract methods.
+Traits are defined in a similar way to classes. But they may not be nested as they don't have access to nested state. Like abstract classes, they may define both concrete and abstract methods.
 \begin{lstlisting}
 trait Eater{
 	def eat() String => "eating {favouriteFood()}" //concrete method
@@ -52,7 +52,7 @@ trait Plant extends NonAnimalEntity with Eater{
 }
 \end{lstlisting}
 
-Note in the above example, for our Plant trait we are implementing the abstract class \lstinline{LivingEntity}, and the trait Eater, by using the with keyword. We will look into using the with keyword (and it’s abbreviation ~) in more detail below. We also choose to implement the abstract method, \lstinline{favouriteFood} at this level, though it can of course be overridden again in any composing classes or traits.
+Note in the above example, for our Plant trait we are implementing the abstract class \lstinline{LivingEntity}, and the trait Eater, by using the with keyword. We will look into using the with keyword (and it's abbreviation ~) in more detail below. We also choose to implement the abstract method, \lstinline{favouriteFood} at this level, though it can of course be overridden again in any composing classes or traits.
 
 Traits cannot be directly instantiated, rather they are composed or mixed-in to other concrete or abstract classes. For this reason they do not have constructors. They also cannot have \lstinline{init} blocks.
 
@@ -105,7 +105,7 @@ aInstance.foo()
 //returns: trait method called, superTrait method called
 \end{lstlisting}
 
-As stated previously, traits may extend non trait classes, i.e. concrete and abstract classes. If a concrete class is composed of a trait which extends a non trait classes, and it itself does not extend a class, then it will implicitly extend the trait classes’ non trait superclass.
+As stated previously, traits may extend non trait classes, i.e. concrete and abstract classes. If a concrete class is composed of a trait which extends a non trait classes, and it itself does not extend a class, then it will implicitly extend the trait classes' non trait superclass.
 
 \begin{lstlisting}
 abstract class AbstractClass{
@@ -160,7 +160,7 @@ new IntIncrementor().operation(12)
 //returns: 13.0
 \end{lstlisting}
 
-It’s possible to compose concrete classes with reference to a trait more than once in a class definition. Normally this is not a problem but with generics this can result in an incompatible generic type qualification for the trait in question. For example:
+It's possible to compose concrete classes with reference to a trait more than once in a class definition. Normally this is not a problem but with generics this can result in an incompatible generic type qualification for the trait in question. For example:
 \begin{lstlisting}
 trait A<X>
 trait B ~ A<int>//valid
@@ -217,7 +217,7 @@ RealFooClass().foo()
 //returns: version RealFooClass
 \end{lstlisting}
 
-Often, we’d just like to call the rightmost defined trait version of foo by using the super keyword:
+Often, we'd just like to call the rightmost defined trait version of foo by using the super keyword:
 \begin{lstlisting}
 abstract class AbstractFooClass{
 	def foo() => "version AbstractFooClass"
@@ -242,7 +242,7 @@ fc.foo() for fc in [FooClassA(), FooClassB()]
 //returns: [version A, version B]
 \end{lstlisting}
 
-The above are fine solutions, but usually we’d like to call one, or more, versions from the offending method from the traits by referring to them explicitly. To this end we can use the qualified super syntax:
+The above are fine solutions, but usually we'd like to call one, or more, versions from the offending method from the traits by referring to them explicitly. To this end we can use the qualified super syntax:
 
 \begin{center}
 	\lstinline{ Super [ className ] }
@@ -436,9 +436,9 @@ From the perspective of our Concrete class, there are two ways to look at this s
 
 When we are invoking a method with a super chain (if any) the following, flattened chain, will be checked in order to satisfy an invocation: Concrete, C, B, A, Abstract, Object.
 
-\textbf{Linearization algorithm}. It’s not necessary to fully understand the details of the linearization algorithm in order to make use of stacked traits, but the algorithm itself is interesting...
+\textbf{Linearization algorithm}. It's not necessary to fully understand the details of the linearization algorithm in order to make use of stacked traits, but the algorithm itself is interesting...
 
-Let’s define the Linearization function, acting on a class $C$ as $Lin$:
+Let's define the Linearization function, acting on a class $C$ as $Lin$:
 
 \begin{center}
 	$Lin(C) = C, Lin(C_n) \leftarrow \dots \leftarrow Lin(C_0)$
@@ -453,13 +453,13 @@ Where $C_0 \dots C_n$ denotes the superclass and composing traits of class $C$, 
 	\end{align*}
 \end{center}
 
-Let’s now look at this for class Concrete as defined above:
+Let's now look at this for class Concrete as defined above:
 
 \begin{center}
 	$Lin(Concrete) = Concrete, Lin(C) \leftarrow Lin(A) \leftarrow Lin(Abstract)$
 \end{center}
 
-Let’s now recursivity apply the $Lin$ operator to each element on the right hand side of the above:
+Let's now recursivity apply the $Lin$ operator to each element on the right hand side of the above:
 
 \begin{center}
 	\begin{align*}

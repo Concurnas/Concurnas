@@ -4,7 +4,6 @@ package com.concurnas.concAndConcc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +30,6 @@ import junit.framework.TestCase;
  */
 public class ConccToConc {
 	public static void subprocExec(Class<?> exeCls, String cmd, int expectedEV, String expectedOutput, boolean shouldterm, Path tempDirWithPrefix) {
-				
 					
 		try {
 			String javaHome = System.getProperty("java.home");

@@ -63,9 +63,9 @@ We can write this:
 avar = 99
 \end{lstlisting}
 
-Concurnas is an optionally type inferred language. What this means in practice is that 90\% of the time it’s not necessary to explicitly specify the type of a variable
+Concurnas is an optionally type inferred language. What this means in practice is that 90\% of the time it's not necessary to explicitly specify the type of a variable
 
-The optionality in Concurnas’ design regarding inference is useful for describing problems with complex typing structure which otherwise would not be obvious to determine from reading the code.
+The optionality in Concurnas' design regarding inference is useful for describing problems with complex typing structure which otherwise would not be obvious to determine from reading the code.
 
 \section{val and var}
 The \lstinline{val} and \lstinline{var} keywords are useful in two ways. First, either one make it explicitly clear that one is defining a new variable and secondly, the \lstinline{val} keyword stipulates that no assignment post initial declaration/assignment is permitted. For example:
@@ -157,7 +157,7 @@ assert a1 == [2 2 3]
 Again, \lstinline{a1[0] += 1} is essentially shorthand for: \lstinline{a1[0] = a1[0] + 1}.
 
 \section{Lazy variables}
-The form of evaluation used in Concurnas is "eager evaluation" - i.e. as soon as an expression is bound to a variable, it is evaluated. Additionally, this can occur concurrently in the case of ref assignments occurring in differing iso’s. Let’s look at an ordinary example:
+The form of evaluation used in Concurnas is "eager evaluation" - i.e. as soon as an expression is bound to a variable, it is evaluated. Additionally, this can occur concurrently in the case of ref assignments occurring in differing iso's. Let's look at an ordinary example:
 
 \begin{lstlisting}
 myvar = {1+3}
@@ -165,7 +165,7 @@ myvar = {1+3}
 
 In the above example, after the \lstinline{1+3} expression is bound to the variable myvar, it is executed. Thereafter myvar holds the value of 4.
 
-There are some problems for which this form of eager evaluation is inappropriate and for which we’d prefer to defer execution of the expression until the associated bound variable is accessed. This is lazy evaluation and Concurnas offers a controlled form of this expressed in the form of lazy variables.
+There are some problems for which this form of eager evaluation is inappropriate and for which we'd prefer to defer execution of the expression until the associated bound variable is accessed. This is lazy evaluation and Concurnas offers a controlled form of this expressed in the form of lazy variables.
 
 We can define a lazy variable as follows:
 \begin{lstlisting}
@@ -174,7 +174,7 @@ lazy myvar = {1+3}
 
 Now, only when myvar is accessed is the bound expression \lstinline{1+3} evaluated. Note also that this evaluation occurs only once. Subsequent assignments to the variable are possible and the associated bound expressions will only be evaluated once the variable is accessed, just like the initial assignment.
 
-Let’s look at a more interesting example. First, normal execution without a lazy variable:
+Let's look at a more interesting example. First, normal execution without a lazy variable:
 
 \begin{lstlisting}
 a = 100
@@ -185,7 +185,7 @@ res = [a myvar a] //lets create an array holding the value of a, the evaluated m
 //res == [400 22 400]
 \end{lstlisting}
 
-In the above case we see that in assigning a value to \lstinline{myvar}, we invoke the side effect of assigning a new value to a. Since this occurs as \lstinline{myvar} is initially created, before we have a chance to first access \lstinline{a}, we only see a as having the new value of \lstinline{400}. And this is reflected in the first and last elements of the \lstinline{res} array referring to the value of variable \lstinline{a}. Let’s change this with a lazy variable:
+In the above case we see that in assigning a value to \lstinline{myvar}, we invoke the side effect of assigning a new value to a. Since this occurs as \lstinline{myvar} is initially created, before we have a chance to first access \lstinline{a}, we only see a as having the new value of \lstinline{400}. And this is reflected in the first and last elements of the \lstinline{res} array referring to the value of variable \lstinline{a}. Let's change this with a lazy variable:
 
 \begin{lstlisting}
 a = 100

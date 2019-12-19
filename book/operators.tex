@@ -86,7 +86,7 @@ Compound Assignment& Addition Assign& +=& Apply addition operator to left and ri
 \end{longtable}
 }
 
-The majority of these operators operate upon primitive or boxed primitive types. The integral (or ‘numerical’) types are defined as: \lstinline{int}, \lstinline{long}, \lstinline{short}, \lstinline{char} and \lstinline{byte} and their equivalent boxed object variants: \lstinline{Integer}, \lstinline{Long}, \lstinline{Short}, \lstinline{Character} and \lstinline{Byte} respectfully.
+The majority of these operators operate upon primitive or boxed primitive types. The integral (or 'numerical') types are defined as: \lstinline{int}, \lstinline{long}, \lstinline{short}, \lstinline{char} and \lstinline{byte} and their equivalent boxed object variants: \lstinline{Integer}, \lstinline{Long}, \lstinline{Short}, \lstinline{Character} and \lstinline{Byte} respectfully.
 
 \subsection{Sizeof}
 The \lstinline{sizeof} operator is designed for working with off heap memory. It provides us an indication of the size in bytes that any object (including arrays) will consume when serialized into a byte format as par the scheme referenced within its optional qualifier. For example, when working on the gpu we can use a qualifier as follows:
@@ -499,7 +499,7 @@ c3 += 10.//compound plus assignment
 Above we see the plus and compound plus assignment operator have been overloaded for the object class: Complex. Note that operator overloading methods themselves may be overloaded with differing argument types(just like regular methods).
 
 \subsection{Operator overloading via extension functions}
-It’s possible to implement operator overloading via use of extension functions. this is documented in the \hyperref[sec:extfunAsOpOver]{Extension functions as operator overloaders} section.
+It's possible to implement operator overloading via use of extension functions. this is documented in the \hyperref[sec:extfunAsOpOver]{Extension functions as operator overloaders} section.
 
 \subsection{Overloading the assignment operator}
 \label{subsec:overloadassignmentop}
@@ -537,7 +537,7 @@ inst2  => AssignOPOverload: 22
 Overloading of the assignment operator is used to great effect with off heap memory and gpu memory interaction.
 
 \subsection{Unassign}
-Just as we can overload the assignment operator, so too can be implicitly overload the ‘unassignment operator’, consisting of a zero argument method named \lstinline{unassign} returning any non void type. This is best illustrated with an example:
+Just as we can overload the assignment operator, so too can be implicitly overload the 'unassignment operator', consisting of a zero argument method named \lstinline{unassign} returning any non void type. This is best illustrated with an example:
 \begin{lstlisting}
 class MyUnassignable{
 	myvar int
@@ -573,7 +573,7 @@ res2 => 'MyUnassignable 56'
 res3 => 'MyUnassignable 56'
 \end{lstlisting}
 
-If we wish to create a ref to a variable of type implementing the \lstinline{unassign()} method, and we wish to avoid ‘unassigning’ it then we must use an extra \lstinline{:}.
+If we wish to create a ref to a variable of type implementing the \lstinline{unassign()} method, and we wish to avoid 'unassigning' it then we must use an extra \lstinline{:}.
 
 \begin{lstlisting}
 class MyUnassignable{

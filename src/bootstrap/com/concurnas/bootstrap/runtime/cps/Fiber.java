@@ -211,6 +211,12 @@ public final class Fiber {
 			// NO PAUSE:
 			//move to caller
 			State[] stack = stateStack;
+			
+			if(d == -1) {//erroneous state
+				pc = 0;
+				return NOT_PAUSING__NO_STATE;
+			}
+			
 			State cs = curState = stack[d];
 			if (cs == null) {
 				pc = 0;

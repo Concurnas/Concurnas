@@ -22,7 +22,7 @@ obj2 = {obj1}!//obj1 &== obj2
 obj3 = obj1@//obj1 &== obj3 
 \end{lstlisting}
 
-Marking a class or trait as being shared is most useful for read only or large data structures which are used by multiple iso’s, or for classes which are not concerned with or implement their own multi threading (multi iso) support - for instance, all ref’s a implicitly shared since their implement their own multi threading support.
+Marking a class or trait as being shared is most useful for read only or large data structures which are used by multiple iso's, or for classes which are not concerned with or implement their own multi threading (multi iso) support - for instance, all ref's a implicitly shared since their implement their own multi threading support.
 
 Instances of objects the class of which is marked as shared or having a shared superclass or trait cannot be explicitly copied, the following kind of code results in a compilation error:
 
@@ -92,7 +92,7 @@ transient class AnotherTransientclass
 transient trait MyTrait
 \end{lstlisting}
 
-Marking a class as being transient will render it uncopyable between iso’s. I.e. referencing an object of a class marked as being transient in an iso which has been created outside of that iso’s scope will result in a it being null, additionally, manually copying an object using the \lstinline{@} operator will return null:
+Marking a class as being transient will render it uncopyable between iso's. I.e. referencing an object of a class marked as being transient in an iso which has been created outside of that iso's scope will result in a it being null, additionally, manually copying an object using the \lstinline{@} operator will return null:
 
 \begin{lstlisting}
 transient class  MyClass
