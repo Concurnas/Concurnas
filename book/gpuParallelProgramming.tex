@@ -5,17 +5,7 @@
 	\chapter[GPU/Parallel programming]{GPU/Parallel programming}
 	\label{ch:gpuprogramming}
 
-\begin{tikzpicture}[overlay]
-\draw[anchor=north west] (9cm,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=35pt]{\strut\makebox[6cm]{}};
-
-\draw[anchor=north west,text width=8cm] (9.2cm,10.8cm) node {\begin{footnotesize}"Time to wake up\\
-	Refill new destiny\\
-	Through this"\\
-	\begin{flushright}- The Whitest of Lies from Prototype by NeuroWulf (2005).\end{flushright}\end{footnotesize}};
-\end{tikzpicture}
-
-
-
+\doquote{9cm}{35pt}{6cm}{8cm}{9.2cm}{footnotesize}{Time to wake up\\Refill new destiny\\Through this}{The Whitest of Lies from Prototype by NeuroWulf (2005)}
 
 
 Concurnas has built in first class citizen support for programming GPUs and associated parallel computing constructs. GPU's are massively data parallel computation devices which are perfect for solving SIMD (single instruction, multiple data) and normally CPU bound problems. Compared to a single CPU core algorithm implementation, in solving a computation bound problem, it is common to be able to obtain up to a 100x speed improvement (two orders of magnitude) when using a GPU! And this is with a far reduced energy and hardware cost per gigaflop relative to CPU based computation. All modern graphics cards have a built in GPU and there exist dedicated GPU computation devices. In fact some of the world's leading supercomputers achieve their parallelization through the use of dedicated GPU hardware. With Concurnas this power is your as well.

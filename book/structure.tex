@@ -114,6 +114,21 @@
 	escapeinside={(*}{*)}
 }
 
+%----------------------------------------------------------------------------------------
+%	Quotes!
+%----------------------------------------------------------------------------------------
+
+
+\newcommand{\doquote}[8]{%#1 #2 #3 #4 #5 #6 #7 #8
+	\begin{tikzpicture}[overlay]
+	\draw[anchor=north west] (#1,11cm) node [line width=2pt,rounded corners=15pt,draw=ocre,fill=white,fill opacity=0.5,inner sep=#2]{\strut\makebox[#3]{}};
+	
+	\draw[anchor=north west,text width=#4] (#5,10.8cm) node {\begin{#6}#7\\
+		\begin{flushright}- #8.\end{flushright}\end{#6}};
+	\end{tikzpicture}
+}
+
+
 
 %----------------------------------------------------------------------------------------
 %	MARGINS
