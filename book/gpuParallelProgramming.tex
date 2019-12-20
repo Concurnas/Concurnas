@@ -938,7 +938,7 @@ The only significant change we make here in terms of execution vs a kernel with 
 In the final phase of the algorithm above we are obtaining the resultant value by summing the values within the array read from our GPU. It is possible to perform this final step on the GPU but for the purposes of clarity in this example this has been excluded.
 
 \subsection{Example Kernel using local Variables}
-Let us now revisit our matrix multiplication example examined previously and see if we can improve performance by using local memory, specifically local variables…
+Let us now revisit our matrix multiplication example examined previously and see if we can improve performance by using local memory, specifically local variables...
 
 \begin{figure}[H]
 	\centerline{\includegraphics[width=\textwidth]{images/gpu-matmult1.png}}
@@ -1156,7 +1156,7 @@ The GPU interaction related classes under \lstinline{com.concurnas.lang.gpus} (i
 In cases where multiple iso's require access to the GPUs at the same time, using an actor is advised, this permits one a fine degree of control over the GPUs available both from the perspective of pipelining of requests to them, and from the perspective of easily managing memory.
 
 \section{Notes}
-The reader who is aware of the inner workings OpenCL will no doubt find many aspects of the structure of the Concurnas implementation of GPU computing very familiar. This is deliberate. By not deviating to far away from “the way things are done” currently with the API exposed in raw OpenCL we hope to make GPU computing something which is natural to do for both OpenCL veterans, whilst simplifying the implementation details enough to make working with GPU's easy for newcomers.
+The reader who is aware of the inner workings OpenCL will no doubt find many aspects of the structure of the Concurnas implementation of GPU computing very familiar. This is deliberate. By not deviating to far away from "the way things are done" currently with the API exposed in raw OpenCL we hope to make GPU computing something which is natural to do for both OpenCL veterans, whilst simplifying the implementation details enough to make working with GPU's easy for newcomers.
 
 Additionally, in the interests portability, we have omitted the tools and techniques exposed in OpenCL from version 2.0 onwards due, mainly to lack of compatibility with NVidia drivers, which for most of the older GPUs are only OpenCL 1.2 compliant.
 

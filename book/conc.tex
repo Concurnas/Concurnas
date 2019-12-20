@@ -114,7 +114,16 @@ hello world got args: null
 D:\work>
 \end{lstlisting}
 
-Notice above that we must make use of the \lstinline{-cp} argument in order to specify the current directory as holding both our entry point class: \lstinline{hello.class} and supporting \lstinline{SayHello} class: \lstinline{hello$SayHello.class}
+Notice above that we must make use of the \lstinline{-cp} argument in order to specify the current directory as holding both our entry point class: \lstinline{hello.class} and supporting \lstinline{SayHello} class: \lstinline{hello$SayHello.class}.
+
+Note that whilst it is best practice to specify a \lstinline{-cp} argument, in the above case it may be omitted as Concurnas will automatically add the current directory to the classpath in instances where no \lstinline{-cp} argument is provided and the entry class is within the current working directory\footnote{This feature has been added so as to aid newcomers to the programming language}:
+
+\begin{lstlisting}[language=C]
+D:\work>conc hello
+hello world got args: null
+
+D:\work>
+\end{lstlisting}
 
 We can pass command line arguments to our hello world class since its main method takes a String array argument:
 \begin{lstlisting}[language=C]

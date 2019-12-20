@@ -40,7 +40,7 @@ Since marking a superclass, abstract class or trait as being shared will result 
 
 Classes may be tagged as either shared or transient but not both.
 
-Care should be taken when declaring top level global variables, at module level, with a type of shared class with subsequent reassignment at module level (both directly or indirectly via a function/method etc). Since top level module code is run on import by an isolate, this has the effect of wiping out whatever was previously stored within the variable holding a shared class type every time an isolate which uses any aspect of the module is executed…. (thus defeating the point of the shared class). Here is an example of what to watch out for:
+Care should be taken when declaring top level global variables, at module level, with a type of shared class with subsequent reassignment at module level (both directly or indirectly via a function/method etc). Since top level module code is run on import by an isolate, this has the effect of wiping out whatever was previously stored within the variable holding a shared class type every time an isolate which uses any aspect of the module is executed - thus defeating the point of the shared class. Here is an example of what to watch out for:
 
 \begin{lstlisting}
 //in module com.myorg.code.conc

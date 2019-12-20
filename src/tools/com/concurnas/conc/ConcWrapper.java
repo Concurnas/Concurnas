@@ -159,8 +159,8 @@ public class ConcWrapper {
 			boolean modules = true;
 			try {
 				double versiond = Double.parseDouble(version);
-				if (versiond < 1.8 || versiond > 13) {
-					System.err.println("WARN: Concurnas has been verified as compatible with Java versions 1.9 through 13 inclusive, version: " + version + " detected. Behavour is unknown.");
+				if (versiond < 1.8 || versiond > 13 || 11 == (int)Math.floor(versiond)) {
+					System.err.println("WARN: Concurnas has been verified as compatible with Oracle JDK and OpenJDK Java versions 1.8, 9, 10, 12 and 13, version: " + version + " detected. Behaviour is unknown.");
 				}
 				if (versiond < 1.9) {
 					modules = false;
