@@ -7,7 +7,7 @@ Concurnas is an open source programming language designed for building reliable,
 
 * **Download page** (including prerequisites) for Concurnas can be found at: [https://concurnas.com/download.html](https://concurnas.com/download.html)
 
-* **Discord: [discord.gg/jFHfsqR](https://discord.gg/jFHfsqR)**
+* **Discord:** [discord.gg/jFHfsqR](https://discord.gg/jFHfsqR)
 
 * **Reddit:**  [r/Concurnas/](https://www.reddit.com/r/Concurnas/)
 
