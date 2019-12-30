@@ -62,7 +62,7 @@ res = [x,y] for x in [1,2,3] for y in [3,1,4] if x <> y
 //res == [[[1, 3], [1, 4]], [[2, 3], [2, 1], [2, 4]], [[3, 1], [3, 4]]]
 \end{lstlisting}
 
-\textbf{Behind the scenes:} Concurnas implements for comprehensions by translating the defined expressions into  conventional /for loop/ compound statements. In the above example this is translated into:
+\textbf{Behind the scenes:} Concurnas implements for comprehensions by translating the defined expressions into  conventional \lstinline{for} loop compound statements. In the above example this is translated into:
 \begin{lstlisting}
 res = for( x in [1,2,3] ) {
 	for( y in [3,1,4] ) {
