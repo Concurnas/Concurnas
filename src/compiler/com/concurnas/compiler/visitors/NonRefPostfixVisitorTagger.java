@@ -44,7 +44,7 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 		note:: b := a++// b will still be 6 (well, 6:) because geting pointer to ref
  *
  */
-public class NonRefPostfixVisitorTagger extends AbstractErrorRaiseVisitor {
+public class NonRefPostfixVisitorTagger extends AbstractErrorRaiseVisitor implements Unskippable {
 	public NonRefPostfixVisitorTagger(String fullPathFileName) {
 		super(fullPathFileName);
 	}

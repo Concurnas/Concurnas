@@ -32,10 +32,11 @@ import com.concurnas.compiler.ast.WhileBlock;
 import com.concurnas.compiler.utils.Sevenple;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.AbstractVisitor;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.runtime.Pair;
 
 /**
- * @author Jason hacker
+ * @author Jason
  *
  */
 public class TryCatchLabelTagVisitor {
@@ -70,7 +71,7 @@ public class TryCatchLabelTagVisitor {
 	}
 	
 	
-	private static class LastLineChecker extends AbstractVisitor{
+	private static class LastLineChecker extends AbstractVisitor implements Unskippable{
 		private boolean lastThingRet = false;
 		private boolean lastThingThrow = false;
 		private Line lastLine=null;
@@ -188,7 +189,7 @@ public class TryCatchLabelTagVisitor {
 		
 	}
 	
-	public static class StartEndAllocator extends AbstractVisitor{
+	public static class StartEndAllocator extends AbstractVisitor implements Unskippable{
 		private ArrayList<Sevenple<Label, Label, ArrayList<Label>, Boolean, Boolean, Boolean, Integer>> startEndRegions;
 		private Label endLabel;
 		private Label startLabel ;
@@ -561,7 +562,7 @@ public class TryCatchLabelTagVisitor {
 	}
 	
 	
-	public static class CatchBlockAllocator extends  AbstractVisitor{
+	public static class CatchBlockAllocator extends  AbstractVisitor implements Unskippable{
 		
 		private ArrayList<StartEndHandle> excpetionHandlers = new ArrayList<StartEndHandle>();
 		private StartEndAllocator allocator = new StartEndAllocator();

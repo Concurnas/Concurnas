@@ -3,9 +3,10 @@ package com.concurnas.compiler.ast;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 
-public class AssignNew extends Assign {
+public class AssignNew extends Assign implements REPLDepGraphComponent{
 	
 	public boolean isFinal;
 	public boolean isVolatile;
@@ -138,6 +139,10 @@ public class AssignNew extends Assign {
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
 		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+		
 		if(this.astRedirect != null && !(visitor instanceof ScopeAndTypeChecker)){
 			return astRedirect.accept(visitor);
 		}
@@ -182,4 +187,31 @@ public class AssignNew extends Assign {
 		}
 		return false;
 	}
+
+	
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
+	}
+	
+	@Override
+	public Type getFuncType() {
+		return this.getTaggedType();
+	}	
 }

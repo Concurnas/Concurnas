@@ -20,7 +20,7 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
-	/*
+
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -90,7 +90,7 @@ public class REPLTests {
 	
 	@Test
 	public void testWarn() throws Exception {
-		assertEquals("|  WARN 1:0 typedef qualifier is unused in right hand side definition: z\n$0 ==> 45", repl.processInput("typedef mything<x, y, z> = x<y>; 45"));
+		assertEquals("|  WARN 1:0 typedef qualifier is unused in right hand side definition: z\n\n$0 ==> 45", repl.processInput("typedef mything<x, y, z> = x<y>; 45"));
 	}
 	
 	@Test
@@ -267,14 +267,14 @@ public class REPLTests {
 	
 	@Test
 	public void funcWithErrorAndOp() throws Exception {
-		assertEquals("|  ERROR 1:22 Unable to find method with matching name: anohter\n|  created function foo(String)\n\n|  java.lang.Error: Unresolved compilation problem\n|    at foo(line:1)\n|    at init(line:1)", repl.processInput("def foo(a String)  {a=anohter();;} foo('uh oh')"));//how complaints
+		assertEquals("|  ERROR 1:22 Unable to find method with matching name: anohter\n|  created function foo(java.lang.String)\n\n|  java.lang.Error: Unresolved compilation problem\n|    at foo(line:1)\n|    at init(line:1)", repl.processInput("def foo(a String)  {a=anohter();;} foo('uh oh')"));//how complaints
 	}
 
 	
 	@Test
 	public void funcWithErrorAndOp2() throws Exception {
-		assertEquals("|  ERROR 1:19 Expression cannot appear on its own line\n"
-				+ "|  ERROR 1:19 numerical operation cannot be performed on type java.lang.String. No overloaded 'minus' operator found for type java.lang.String with signature: '(int)'\n|  created function foo(String)\n"
+		assertEquals("|  ERROR 1:19 numerical operation cannot be performed on type java.lang.String. No overloaded 'minus' operator found for type java.lang.String with signature: '(int)'\n"
+				+ "|  created function foo(java.lang.String)\n"
 				+ "\n"
 				+ "|  java.lang.Error: Unresolved compilation problem\n"
 				+ "|    at foo(line:1)\n"
@@ -296,7 +296,6 @@ public class REPLTests {
 		assertEquals("$0 ==> 5", repl.processInput("5 if a > 5 else 2"));
 		assertEquals("", repl.processInput("5 if a > 5 else 2;"));//supress
 	}
-	*/
 	
 	
 	@Test
@@ -308,21 +307,15 @@ public class REPLTests {
 				+ "|    at init(line:1)", repl.processInput("foo('ok')"));//supress further recompilation and throws exception!
 		
 		
-		assertEquals("|  created function id(String)", repl.processInput("def id(a String) => a"));//no further complaints
+		assertEquals("|  created function id(java.lang.String)", repl.processInput("def id(a String) => a"));//no further complaints
 		assertEquals("|  java.lang.Error: Unresolved compilation problem\n"
 				+ "|    at foo(line:1)\n"
 				+ "|    at init(line:1)", repl.processInput("foo('ok')"));//throws exception!
 		
-		assertEquals("|  redefined function foo(String)", repl.processInput("def foo(a String) => a "));//correct error
+		assertEquals("|  redefined function foo(java.lang.String)", repl.processInput("def foo(a String) => a "));//correct error
 		assertEquals("$0 ==> ok", repl.processInput("foo('ok')"));//now it;s ok
 	}
-	
-	
-	
-	//fwd ref
-	
-	
-	/*
+		
 	@Test
 	public void funcCallsAnotherRedefined() throws Exception {
 		assertEquals("|  created function foo(int)", repl.processInput("def foo(a int) => a*2"));
@@ -331,8 +324,134 @@ public class REPLTests {
 		assertEquals("|  redefined function foo(int)", repl.processInput("def foo(a int) => a*3"));
 		assertEquals("$1 ==> 96", repl.processInput("bar(8)"));
 	}
-	*/
 	
+	@Test
+	public void fwdRefNotExist() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
+				   + "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2)"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
+		assertEquals("|  created function callBar()", repl.processInput("def callBar() => bar(2)"));
+		assertEquals("$0 ==> 16", repl.processInput("callBar()"));
+		assertEquals("$1 ==> 16", repl.processInput("bar(2)"));
+	}
+	
+	
+	@Test
+	public void cycles() throws Exception {
+		assertEquals("|  created function factorial(int)", repl.processInput("	def factorial(i int) int { match(i){ 0 => 1\n n => n * factorial(n-1) } }"));
+		assertEquals("$0 ==> 24", repl.processInput("factorial(4)"));
+	}
+	
+	@Test
+	public void fwdVarDepVar() throws Exception {
+		assertEquals("", repl.processInput("ab = 10;"));
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
+				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
+		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
+	}
+	
+	@Test
+	public void fwdVariableDoesNotExistYet() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
+				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 10;"));
+		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
+		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
+	}
+	
+	@Test
+	public void fwdVariableDoesNotExistYetAssignNew() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
+				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab int = 10;"));
+		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
+		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
+	}
+	
+	
+	@Test
+	public void fwdVariableDoesNotExistYetAssignMulti() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
+				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab =bb = 10;"));
+		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
+		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
+	}
+	
+	@Test
+	public void changeDepFuncType() throws Exception {//fwd ref, change types ok -> ok
+		assertEquals("|  created function foo(int)", repl.processInput("def foo(a int) => 'str' + (a*4)"));
+		assertEquals("|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2)"));
+		assertEquals("$0 ==> str16", repl.processInput("bar(2)"));
+		assertEquals("|  redefined function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => (a*4)"));
+		assertEquals("$1 ==> 16", repl.processInput("bar(2)"));
+	}
+	
+	@Test
+	public void changeDepFuncTypeFwdRef() throws Exception {//fwd ref, change types ok -> ok
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2)"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => 'str' + (a*4)"));
+		assertEquals("$0 ==> str16", repl.processInput("bar(2)"));
+		assertEquals("|  redefined function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => (a*4)"));
+		assertEquals("$1 ==> 16", repl.processInput("bar(2)"));
+	}
+	
+	@Test
+	public void changeDepFuncTypeFwdRefErrToOk() throws Exception {//fwd ref, change types err -> ok
+		assertEquals("|  ERROR 1:22 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) int => foo(a*2)"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => x='str' + (a*4);;"));//error!
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar(2)"));
+		assertEquals("|  redefined function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => (a*4)"));//now its ok
+		assertEquals("$1 ==> 16", repl.processInput("bar(2)"));
+	}
+
+	@Test
+	public void changeDepFuncTypeFwdRefOkToError() throws Exception {//fwd ref, change types ok -> err
+		assertEquals("|  ERROR 1:22 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) int => foo(a*2)"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => (a*4)"));//now its ok
+		assertEquals("$0 ==> 16", repl.processInput("bar(2)"));
+		assertEquals("|  redefined function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => x='str' + (a*4);;"));//error!
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar(2)"));
+	}
+	
+	@Test
+	public void transitiveDeps() throws Exception {//fwd ref, change types ok -> err
+		assertEquals("|  created function foo(int)\n|  created function bar(int)", repl.processInput("def foo(a int)=> bar(a*2)\ndef bar(a int) => car(a*2)"));
+		assertEquals("|  created function car(int)\n|    update modified bar(int)", repl.processInput("def car(a int) => a+100"));//updates, bar and foo
+		assertEquals("$0 ==> 108", repl.processInput("foo(2)"));
+	}
+	
+	
+	//funcref
+	//other uses of functions - see paper
+	
+	//other top level elements
+	
+	
+	//classes
+	
+	
+	//the del keyword
+		//del a var and recreate
+	//del a function
+	//del other top level elements
+	
+
+	//check isolates work
+	
+	//check a <= b + c works
+	
+	//add nice UI - windows and linux
+	
+	//tab completion
+
 	
 	
 }

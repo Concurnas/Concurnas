@@ -5477,7 +5477,7 @@ class MyClass{
 def join(ass String[]) String {
 	xxx = ""
 	for(a in ass){
-		xxx += a + "\n"
+		xxx += a + "\n"9
 	}
 	return xxx
 }

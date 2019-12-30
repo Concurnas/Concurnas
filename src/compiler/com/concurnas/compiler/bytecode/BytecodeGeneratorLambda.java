@@ -46,10 +46,11 @@ import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Utils.CurriedVararg;
 import com.concurnas.runtime.Pair;
 
-public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes {
+public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes, Unskippable {
 
 	private BytecodeGennerator bytecodeVisitor;
 

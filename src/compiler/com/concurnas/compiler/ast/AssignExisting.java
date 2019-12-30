@@ -5,11 +5,12 @@ import java.util.List;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.VectorizedRedirector;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.runtime.Pair;
 
-public class AssignExisting extends Assign implements CanBeInternallyVectorized, AutoVectorizableElements  {
+public class AssignExisting extends Assign implements CanBeInternallyVectorized, AutoVectorizableElements, REPLDepGraphComponent  {
 
 	public Expression assignee;
 	public AssignStyleEnum eq;
@@ -74,6 +75,11 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
 
+
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+		
 		if(null != vectorizedRedirect){
 			if(!(visitor instanceof VectorizedRedirector)){
 				return vectorizedRedirect.accept(visitor);
@@ -163,5 +169,37 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 	@Override
 	public boolean getCanReturnAValue(){
 		return false;
+	}
+
+	
+	
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		if(this.assignee instanceof RefName) {
+			RefName rn = (RefName)this.assignee;
+			return rn.name;
+		}
+		return null;
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return /* this.isReallyNew && */ this.assignee instanceof RefName;
+	}
+	
+	@Override
+	public Type getFuncType() {
+		return this.getTaggedType();
 	}	
 }

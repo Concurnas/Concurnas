@@ -28,10 +28,10 @@ import com.concurnas.compiler.ast.OnEvery;
 import com.concurnas.compiler.ast.PrimativeType;
 import com.concurnas.compiler.ast.PrimativeTypeEnum;
 import com.concurnas.compiler.ast.Type;
-import com.concurnas.compiler.utils.Fiveple;
 import com.concurnas.compiler.utils.Sixple;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.runtime.Pair;
 import com.concurnas.runtime.cps.IsoRegistrationSet;
 import com.concurnas.runtime.cps.IsoRegistrationSetAsync;
@@ -44,7 +44,7 @@ import com.concurnas.runtime.cps.RefStateTracker;
  * init
  * apply(notificaiton)
  */
-public class OnChangeAwaitBCGennerator extends AbstractVisitor implements Opcodes{
+public class OnChangeAwaitBCGennerator extends AbstractVisitor implements Opcodes, Unskippable{
 
 	private BytecodeGennerator bytecodeVisitor;
 	

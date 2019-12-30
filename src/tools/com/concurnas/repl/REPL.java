@@ -1,17 +1,11 @@
 package com.concurnas.repl;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -31,16 +25,21 @@ import com.concurnas.compiler.LexParseErrorCapturer;
 import com.concurnas.compiler.MainLoop;
 import com.concurnas.compiler.ModuleCompiler;
 import com.concurnas.compiler.SchedulerRunner;
+import com.concurnas.compiler.ast.AssignExisting;
+import com.concurnas.compiler.ast.AssignNew;
 import com.concurnas.compiler.ast.Block;
+import com.concurnas.compiler.ast.DuffAssign;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.FuncType;
 import com.concurnas.compiler.ast.Line;
 import com.concurnas.compiler.ast.LineHolder;
+import com.concurnas.compiler.ast.REPLDepGraphComponent;
+import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
-import com.concurnas.compiler.bytecode.BytecodeGennerator;
 import com.concurnas.compiler.bytecode.BytecodeOutputter;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.utils.Thruple;
+import com.concurnas.compiler.visitors.REPLDepGraph.REPLComponentWrapper;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.runtime.ClassPathUtils;
 import com.concurnas.runtime.ConcurnasClassLoader;
@@ -236,40 +235,62 @@ public class REPL implements Opcodes {
 	
 	LinkedHashMap<Pair<String, FuncType>, FuncDef> persistedFunctionSet = new LinkedHashMap<Pair<String, FuncType>, FuncDef>();
 	
-	private List<Thruple<FuncDef, FuncType, Boolean>> processBlockFuncs(Block blk) {
+	private Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> processBlockFuncs(Block blk) {
 		List<Thruple<FuncDef, FuncType, Boolean>> newlyDefined = new ArrayList<Thruple<FuncDef, FuncType, Boolean>>();
+		List<REPLComponentWrapper> newTLEs = new ArrayList<REPLComponentWrapper>();
 		
-		LinkedHashMap<FuncDef, FuncType> funcs = new LinkedHashMap<FuncDef, FuncType>();
+		LinkedHashMap<REPLComponentWrapper, FuncType> funcs = new LinkedHashMap<REPLComponentWrapper, FuncType>();
 		//funcs for later iterations...
 		for(LineHolder lh : blk.lines) {
 			Line lin = lh.l;
+			REPLComponentWrapper wrap = null;
 			if(lin instanceof FuncDef) {
+				wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
 				FuncDef origFD = (FuncDef)lin;
-				funcs.put(origFD, origFD.getFuncType().getErasedFuncTypeNoRet());
+				funcs.put(wrap, origFD.getFuncType().getErasedFuncTypeNoRet());
+			}
+			
+			if(lin instanceof REPLDepGraphComponent) {
+				if(null == wrap) {
+					wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
+				}
+				
+				newTLEs.add(wrap);
 			}
 		}
 		
-		for(FuncDef toAdd : funcs.keySet()) {
-			FuncType ft = funcs.get(toAdd);
+		for(REPLComponentWrapper replcom : funcs.keySet()) {
+			FuncDef toAdd = (FuncDef)replcom.comp;
+			FuncType ft = funcs.get(replcom);
 			Pair<String, FuncType> defFT = new Pair<String, FuncType>(toAdd.funcName, ft);
 			boolean isNew = true ;
 			if(persistedFunctionSet.containsKey(defFT)) {
 				//overwrite persisted version
 				//this.moduleCompiler.moduleLevelFrame.removeFuncDef(defFT.getA(), defFT.getB(), true);
-				
 				persistedFunctionSet.remove(defFT);
 				isNew=false;
 			}
 			
 			newlyDefined.add(new Thruple<FuncDef, FuncType, Boolean>(toAdd, ft, isNew));
-			
 		}
 		//now add funcs from prevous definitions unless redefined above....
 		persistedFunctionSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
 		
-		funcs.keySet().forEach(a -> persistedFunctionSet.put( new Pair<String, FuncType>(a.funcName, funcs.get(a)), a));
+		funcs.keySet().forEach(a -> persistedFunctionSet.put( new Pair<String, FuncType>(((FuncDef)a.comp).funcName, funcs.get(a)), (FuncDef)a.comp));
 		
-		return newlyDefined;
+		return new Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>>(newlyDefined, newTLEs);
+	}
+	
+	
+	
+	private void markAllRootNodesAsIterativeVisitorSkippable(Block blk) {
+		for(LineHolder lh : blk.lines) {
+			Line lin = lh.l;
+			if(lin instanceof REPLDepGraphComponent) {
+				((REPLDepGraphComponent)lin).setSkippable(true);
+			}
+		}
+		
 	}
 	
 	private static List<ErrorHolder> remoteSupressedErrors(HashSet<ErrorHolder> ers){
@@ -289,12 +310,44 @@ public class REPL implements Opcodes {
 		return ret;
 	}
 	
-	public String processInput(String input){
-		String output ="";
-		if(input ==null || input.trim().equals("")) {
-			return output;
+	private void removeTopLevelItemsFromUpdateSet(List<REPLComponentWrapper> toremove, HashSet<REPLComponentWrapper> depsUpdated) {
+		for(REPLComponentWrapper item : toremove) {
+			depsUpdated.remove(item);
 		}
 		
+		HashSet<REPLComponentWrapper> toRem = new HashSet<REPLComponentWrapper>();
+		for(REPLComponentWrapper wra : depsUpdated) {
+			REPLDepGraphComponent item = wra.comp;
+			if(item instanceof AssignExisting) {
+				if(!((AssignExisting)item).isReallyNew) {
+					toRem.add(wra);
+				}
+			}else if(item instanceof AssignNew) {
+				AssignNew an = (AssignNew)item;
+				if(an.expr instanceof Block) {
+					Block asblock = (Block)an.expr;
+					if(asblock.lines.size() == 1) {
+						LineHolder lh = asblock.getLast();
+						if(lh.l instanceof DuffAssign && ((DuffAssign)lh.l).e instanceof RefName) {
+							RefName rn = (RefName) ((DuffAssign)lh.l).e;
+							if(rn.name.equals(an.name)) {
+								toRem.add(wra);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		depsUpdated.removeAll(toRem);
+	}
+	
+	public String processInput(String input){
+		if(input ==null || input.trim().equals("")) {
+			return "";
+		}
+		
+		ArrayList<String> output = new ArrayList<String>();
 		try {
 			if(this.debugmode) {
 				BytecodeOutputter.PRINT_OPCODES=true;
@@ -309,24 +362,29 @@ public class REPL implements Opcodes {
 				MockFileWriter fw =new MockFileWriter();
 				String srcName = obtained.srcName;
 				
-				List<Thruple<FuncDef, FuncType, Boolean>> newfuncs = processBlockFuncs(obtained.block);
+				
+				Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> newStuiffAndTLEs = processBlockFuncs(obtained.block);
+				
+				List<Thruple<FuncDef, FuncType, Boolean>> newfuncs = newStuiffAndTLEs.getA();
+				List<REPLComponentWrapper> newTopLevelItemsDeclared = newStuiffAndTLEs.getB();
 				
 				this.moduleCompiler.progressCompilationREPL(obtained.block, srcName, fw);
-
+				HashSet<REPLComponentWrapper> depsUpdated = this.replState.replDepGraph.getAndResetThingsModified();
+				
 				List<ErrorHolder> warns = remoteSupressedErrors(this.moduleCompiler.warnings);
 				if(warns != null && !warns.isEmpty()) {
-					output = formatErrors(warns, "|  WARN") + "\n";
+					output.add(formatErrors(warns, "|  WARN"));
 				}
 								
 				List<ErrorHolder> ersx = remoteSupressedErrors(this.moduleCompiler.getLastErrorSet());
 				if(ersx != null && !ersx.isEmpty()) {
 					//unless all errors are within functions
-					output += formatErrors(ersx, "|  ERROR");
+					output.add(formatErrors(ersx, "|  ERROR"));
 					if(ersx.stream().noneMatch(a -> a.hasContext())){
-						return output;
+						return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 					}
-					output += "\n";
 				}
+								
 				
 				REPLExecutor instanceExecutor = getExecutor();
 				//start scheduler if not already
@@ -337,18 +395,16 @@ public class REPL implements Opcodes {
 					byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName);
 					
 					if(printBytecode || debugmode) {
-						StringBuilder pp = new StringBuilder(output);
+						StringBuilder pp = new StringBuilder();
 						pp.append("|  Expression Bytecode:");
 						pp.append(BytecodePrettyPrinter.print(rawcode, true, null, "|  "));
-						pp.append("\n");
-						output = pp.toString();
+						output.add(pp.toString());
 					}
 					if(debugmode) {
-						StringBuilder pp = new StringBuilder(output);
+						StringBuilder pp = new StringBuilder();
 						pp.append("|  Expression Bytecode (post runtime adaptation):");
 						pp.append(BytecodePrettyPrinter.print(codeRepointed, true, null, "|  "));
-						pp.append("\n");
-						output = pp.toString();
+						output.add(pp.toString());
 					}
 					
 					HashSet<String> newvars = this.moduleCompiler.replState.getNewVars();
@@ -368,7 +424,17 @@ public class REPL implements Opcodes {
 					sch.invokeScheudlerTask(exeTaObject);	
 					
 					if(!newfuncs.isEmpty()) {
-						output +=  processNewFuncsDefined(newfuncs);
+						output.add(processNewFuncsDefined(newfuncs));
+					}
+					
+					removeTopLevelItemsFromUpdateSet(newTopLevelItemsDeclared, depsUpdated);
+					
+					if(!depsUpdated.isEmpty()) {
+						//|    update modified method volume(double)
+						List<String> reduced = depsUpdated.stream().map(a -> formatTopLevelElement(a)).filter(a -> !a.contains("$")).sorted().collect(Collectors.toList());
+						if(!reduced.isEmpty()) {
+							output.add("|    update modified " + String.join(", ", reduced));
+						}
 					}
 					
 					if(!input.trim().endsWith(";")) {
@@ -377,13 +443,16 @@ public class REPL implements Opcodes {
 							String got = (String)getMethod(executorTasCls, "getResult", 0).invoke(exeTaObject);
 							
 							if(got != null && !got.trim().isEmpty()) {
+								if(!output.isEmpty()) {
+									output.add("\n");
+								}
 								
-								output += got;
+								output.add(got);
 							}
 						}
 					}
 					
-					return output.trim();
+					return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 					
 				}catch(Throwable e){
 					//TODO: format exception
@@ -397,8 +466,9 @@ public class REPL implements Opcodes {
 			StringWriter out = new StringWriter();
 		    PrintWriter writer = new PrintWriter(out);
 			e.printStackTrace(writer);
-			output += out.toString();
-			return output;
+			output.add(out.toString());			
+
+			return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 		}finally{
 			if(null != this.moduleCompiler.moduleLevelFrame) {
 				this.replState.inc();
@@ -412,13 +482,36 @@ public class REPL implements Opcodes {
 		}
 	}
 	
+	private String formatTopLevelElement(FuncDef funcDef) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(funcDef.funcName);
+		sb.append('(');
+		
+		ArrayList<Type> inputs = funcDef.getFuncType().getInputs();
+		sb.append(String.join(", ", inputs.stream().map(a -> a.toString()).collect(Collectors.toList())));
+		
+		return sb.append(")").toString();
+	}
+
+	
+	private String formatTopLevelElement(REPLComponentWrapper item) {
+		return formatTopLevelElement(item.comp);
+	}
+	
+	private String formatTopLevelElement(REPLDepGraphComponent item) {
+		if(item instanceof FuncDef) {
+			return formatTopLevelElement((FuncDef)item);
+		}else {
+			return item.getName();
+		}
+	}
+
 	private String processNewFuncsDefined(List<Thruple<FuncDef, FuncType, Boolean>> newfuncs) {
 		StringBuilder sb = new StringBuilder();
 		for(Thruple<FuncDef, FuncType, Boolean> itemx : newfuncs) {
 			FuncDef funcDef = itemx.getA();
 			FuncType ft = itemx.getB();
 			boolean isNew = itemx.getC();
-			
 			sb.append("|  ");
 			if(isNew) {
 				sb.append("created");
@@ -435,17 +528,11 @@ public class REPL implements Opcodes {
 				sb.append('.');
 			}
 			
-			sb.append(funcDef.funcName);
-			sb.append('(');
-			
-			ArrayList<Type> inputs = ft.getInputs();
-			sb.append(String.join(", ", inputs.stream().map(a -> a.toString()).collect(Collectors.toList())));
-			
-			sb.append(")\n");
+			sb.append(formatTopLevelElement(funcDef));
+			sb.append('\n');
 		}
-		sb.append("\n");
 		
-		return sb.toString();
+		return sb.toString().trim();
 	}
 
 	private static Method getMethod(Class<?> cls, String name, int args){

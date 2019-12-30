@@ -302,7 +302,15 @@ public class TheScopeFrame {
 	
 	public boolean isRequestorScopeMeOrMyChild(TheScopeFrame requestor)
 	{
-		return this == requestor;
+		if(this == requestor) {
+			if(this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+				return false;
+			}
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	
@@ -1218,6 +1226,11 @@ public class TheScopeFrame {
 			return;
 		}
 		
+		if(this.replModLevelForcedNewfuncs != null) {//we can overwrite a functioin defintion from a previous incarnation when in REPL mode
+			signature = signature.copyIgnoreReturnType();
+		}
+		
+		
 		{
 			HashSet<TypeAndLocation> choices = this.funcs.get(name);
 			if(null != choices){
@@ -1226,6 +1239,10 @@ public class TheScopeFrame {
 					/*if(ignoreGensAndRetType) {
 						tt = ((FuncType)tt).origonatingFuncDef.getFuncType().getErasedFuncTypeNoRet();
 					}*/
+					if(this.replModLevelForcedNewfuncs != null) {
+						tt = tt.copyIgnoreReturnType();
+					}
+					
 					if(tt.equals(signature)){
 						choices.remove(tal);
 						break;
@@ -1242,6 +1259,10 @@ public class TheScopeFrame {
 					/*if(ignoreGensAndRetType) {
 						tt = ((FuncType)tt).origonatingFuncDef.getFuncType().getErasedFuncTypeNoRet();
 					}*/
+					if(this.replModLevelForcedNewfuncs != null) {
+						tt = tt.copyIgnoreReturnType();
+					}
+					
 					if(tt.equals(signature)){
 						choices.remove(tal);
 						break;

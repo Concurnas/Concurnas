@@ -447,6 +447,13 @@ public class ModuleCompiler implements Comparable{
 							|| scopeTypeChecker.attemptGenTypeInference;
 					
 					
+					if(!anychagnes && isREPL) {//see if what we have added to the repl will result in changes to other areas of the graph...
+						//output true if there are things needing recalculation
+						if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
+						prepareAndSetLastVisitor(this.isREPL.replDepGraph);
+						anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST);
+					}
+					
 					int iter = 0;
 					while( anychagnes){//we carry on with the cycle until there are no more repoints to make...
 						iter++;
@@ -524,7 +531,17 @@ public class ModuleCompiler implements Comparable{
 								anychagnes=true;
 							}
 						}
+						
+						
+						
+						if(isREPL && !anychagnes) {//see if what we have added to the repl will result in changes to other areas of the graph...
+							//output true if there are things needing recalculation
+							if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
+							prepareAndSetLastVisitor(this.isREPL.replDepGraph);
+							anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST);
+						}
 					}
+					
 					
 					latestRoundOfErrors.addAll(stcErrs);
 					
@@ -541,7 +558,7 @@ public class ModuleCompiler implements Comparable{
 						step.visit(lexedAndParsedAST);
 						latestRoundOfErrors.addAll(step.getErrors());
 					}
-					//should refactor to the above, meh
+					//TODO: last thing ret is called twice?
 					prepareAndSetLastVisitor(lastThingRet);
 					lastThingRet.visit(lexedAndParsedAST);
 					if(this.profiler != null) { profiler.mark("lastThingRet"); }

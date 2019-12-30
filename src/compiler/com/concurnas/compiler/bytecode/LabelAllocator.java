@@ -34,9 +34,10 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.runtime.Pair;
 
-public class LabelAllocator extends AbstractVisitor {
+public class LabelAllocator extends AbstractVisitor implements Unskippable{
 	
 	private boolean isLastLineInBlock = false;
 	private Stack<Pair<Label, Label>> labelNeedingConsumption = new  Stack<Pair<Label, Label>>(); //[End, Start]

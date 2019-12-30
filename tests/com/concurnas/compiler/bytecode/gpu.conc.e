@@ -344,7 +344,7 @@ pass? [true, true]
 //##81. buffer size checks
 Local Work Size dimensions specified of 2 does not match kernel dimensions to be executed of 1
 local dimension of: 1093 in position: 0 must less than or equal to the max work item size of: 1024
-local dimension of: 955 in position: 0 must be evenly divisible into global dimension: 1024000
+Local Work Size dimensions specified of 2 does not match kernel dimensions to be executed of 1
 local buffers specified (of 393216 bytes) are larger than max local memory of: 49152 bytes
 Buffer size (of 51539607544 bytes) is greater than max allocation size of: 805306368 bytes true
 Number of elements in buffer must be greater than zero

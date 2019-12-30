@@ -58,11 +58,8 @@ import com.concurnas.compiler.typeAndLocation.LocationClassField;
 import com.concurnas.compiler.typeAndLocation.LocationLocalVar;
 import com.concurnas.compiler.typeAndLocation.LocationStaticField;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
-import com.concurnas.compiler.utils.EightPull;
 import com.concurnas.compiler.utils.Fiveple;
 import com.concurnas.compiler.utils.Fourple;
-import com.concurnas.compiler.utils.NinePull;
-import com.concurnas.compiler.utils.Sevenple;
 import com.concurnas.compiler.utils.Sixple;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
@@ -72,15 +69,15 @@ import com.concurnas.compiler.visitors.NestedFuncRepoint;
 import com.concurnas.compiler.visitors.RhsResolvesToRefTypeVisistor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 import com.concurnas.compiler.visitors.util.VarAtScopeLevel;
-import com.concurnas.conc.ConcWrapper;
 import com.concurnas.runtime.Pair;
 import com.concurnas.runtime.Value;
 import com.concurnas.runtimeCache.ReleaseInfo;
 
-public class BytecodeGennerator implements Visitor, Opcodes {
+public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	public static String metaMethodName = "$ConcurnasMetaVersion$";
 	
 	private final TheScopeFrame moduleScopeFrame;
@@ -2041,7 +2038,7 @@ public class BytecodeGennerator implements Visitor, Opcodes {
 	private Queue<Thruple<ClassDef, TheScopeFrame, Integer>> localClassDefs = new LinkedBlockingQueue<Thruple<ClassDef, TheScopeFrame, Integer>>();
 	private boolean outputLocalClasses = false;
 
-	private static class NestedLocalClassFinderJustClassDef extends AbstractErrorRaiseVisitor{
+	private static class NestedLocalClassFinderJustClassDef extends AbstractErrorRaiseVisitor implements Unskippable{
 		public LinkedList<ClassDef> localClasses = new LinkedList<ClassDef>();
 		protected NestedLocalClassFinderJustClassDef( ) {
 			super("");
@@ -2057,7 +2054,7 @@ public class BytecodeGennerator implements Visitor, Opcodes {
 	}
 	
 	
-	private class NestedLocalClassFinder extends AbstractErrorRaiseVisitor{
+	private class NestedLocalClassFinder extends AbstractErrorRaiseVisitor implements Unskippable{
 		//JPT: level stuff is nasty!
 		protected NestedLocalClassFinder( ) {
 			super("");

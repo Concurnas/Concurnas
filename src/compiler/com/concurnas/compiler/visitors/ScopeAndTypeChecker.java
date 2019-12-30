@@ -2488,7 +2488,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			//can only be one argument
 			FuncRefInvoke afi = (FuncRefInvoke)expr;
 			if(afi.args.asnames.size()==1 && afi.args.nameMap.isEmpty()){
-				ret.add(afi.funcRef);
+				ArrayList<Expression> rec = extractExprsFromExpression(afi.funcRef, convertToArrayDef);//e.g. [ x18  (x23-20) (x23-20)  9]
+				if(null != rec && !rec.isEmpty()) {
+					ret.addAll(rec);
+				}else {
+					ret.add(afi.funcRef);
+				}
 				ret.add(afi.args.asnames.get(0));
 			}
 		}else if(expr instanceof DotOperator) {
@@ -6824,7 +6829,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				|| (null != lhsOpOnType && lhsOpOnType.requiresGenTypeInference);
 		
 		
-		if(name.equals("addShutdownHook")) {
+		if(name.equals("bar")) {
 			int h = 9;
 		}
 		
@@ -6969,7 +6974,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(mostSpec.hasBeenVectorized != null ){
 			FuncType ft = (FuncType)tal.getType();
-			if(ft.origonatingFuncDef.isNestedFuncionDef) {
+			if(ft.origonatingFuncDef != null && ft.origonatingFuncDef.isNestedFuncionDef) {
 				funcInvoke.resolvedFuncTypeAndLocation = tal;
 			}
 			
@@ -8582,7 +8587,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			findExtFunc=false;
 		}
 		
-		if(nameola.equals("thing")) {
+		if(nameola.equals("bar")) {
 			int h=9;
 		}
 		

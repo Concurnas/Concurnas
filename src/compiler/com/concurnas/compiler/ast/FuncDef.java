@@ -6,10 +6,11 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
 import com.concurnas.compiler.ast.util.GPUKernelFuncDetails;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.runtime.Pair;
 
-public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<FuncDef>  {
+public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<FuncDef>, REPLDepGraphComponent  {
 
 	public String funcName;
 	private String origfuncName;
@@ -143,6 +144,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 		ret.origfuncName = origfuncName;
 		ret.supressErrors = supressErrors;
 		ret.isNestedFuncionDef = isNestedFuncionDef;
+		ret.canSkipIterativeCompilation = canSkipIterativeCompilation;
 	}
 
 	
@@ -176,6 +178,10 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
+		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
 		
 		if(funcDefVariants != null && !funcDefVariants.isEmpty() && !(visitor instanceof ScopeAndTypeChecker)) {
 			Object last = null;
@@ -344,5 +350,43 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 			getShouldBeDeletedOnUsusedReturnCache=hasAnnotation(ScopeAndTypeChecker.const_Annotation_DeleteOnUnusedReturn);
 		}
 		return getShouldBeDeletedOnUsusedReturnCache;
+	}
+
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		if(canSkipIterativeCompilation && !skippable) {//if adjusting to non skippable
+			//if we have already added a synthetic return statement to the end of the funcdef, then remove this since we are going to attempt to re-evaluate the return type
+			if(this.funcblock != null) {
+				LineHolder lh = this.funcblock.getLast();
+				if(null != lh & lh.l instanceof ReturnStatement) {
+					ReturnStatement asRet = (ReturnStatement)lh.l;
+					if(asRet.isSynthetic) {
+						//remove!
+						this.funcblock.lines.remove(this.funcblock.lines.size()-1);
+						if(asRet.ret != null) {//add back in the thing which the return statement pointed to
+							this.funcblock.lines.add(new LineHolder(new DuffAssign(asRet.ret)));
+						}
+					}
+				}
+			}
+		}
+		
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return funcName;
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
 	}
 }
