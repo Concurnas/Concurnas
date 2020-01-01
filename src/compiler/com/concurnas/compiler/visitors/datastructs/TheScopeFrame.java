@@ -229,8 +229,10 @@ public class TheScopeFrame {
 				this.parent.addChild(((Block)nd).getIdentity(), this.children.get(nd));
 			}
 		}
+
+		this.classesSelfRequestor = new HashMap<String, ClassDef>();
+		
 		if(!isREPL) {
-			this.classesSelfRequestor = new HashMap<String, ClassDef>();
 			this.varsSelfRequestor    = new HashMap<String, TypeAndLocation>();
 			this.consSelfRequestor   = new HashSet<FuncType>();
 		}
@@ -300,10 +302,10 @@ public class TheScopeFrame {
 		asses    = new HashSet<String>();
 	}
 	
-	public boolean isRequestorScopeMeOrMyChild(TheScopeFrame requestor)
+	public boolean isRequestorScopeMeOrMyChild(TheScopeFrame requestor, boolean isClassDef)
 	{
 		if(this == requestor) {
-			if(this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+			if(!isClassDef && this.paThisIsModule && this.replModLevelForcedNewvars != null) {
 				return false;
 			}
 			
@@ -479,7 +481,7 @@ public class TheScopeFrame {
 	{
 		HashMap<String, TypeAndLocation> vars = this.vars;
 		
-		if(isRequestorScopeMeOrMyChild(requestor))
+		if(isRequestorScopeMeOrMyChild(requestor, false))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			vars = varsSelfRequestor;
@@ -502,7 +504,7 @@ public class TheScopeFrame {
 	public HashMap<String, TypeAndLocation> getAllVars(TheScopeFrame requestor){
 		HashMap<String, TypeAndLocation> vars = this.vars;
 		
-		if(isRequestorScopeMeOrMyChild(requestor)){
+		if(isRequestorScopeMeOrMyChild(requestor, false)){
 			vars = varsSelfRequestor;
 		}
 		
@@ -623,7 +625,7 @@ public class TheScopeFrame {
 	{
 		HashMap<String, ClassDef> classes = this.classes;
 		
-		if(isRequestorScopeMeOrMyChild(requestor))//only modules have null parent
+		if(isRequestorScopeMeOrMyChild(requestor, true))//only modules have null parent
 		{//apply sequential ordering if this scope is a module
 			//so divert to special this instance only map
 			classes = this.classesSelfRequestor;
@@ -716,7 +718,7 @@ public class TheScopeFrame {
 		HashMap<String, HashSet<TypeAndLocation>> funcs = this.funcs;
 		HashMap<String, TypeAndLocation> vars = this.vars;
 		
-		if(isRequestorScopeMeOrMyChild(requestor))
+		if(isRequestorScopeMeOrMyChild(requestor, false))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			funcs = this.funcsSelfRequestor;
@@ -806,7 +808,7 @@ public class TheScopeFrame {
 	{
 		HashMap<String, HashSet<TypeAndLocation>> vars = this.funcs;
 		
-		if(isRequestorScopeMeOrMyChild(requestor))
+		if(isRequestorScopeMeOrMyChild(requestor, false))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			vars = this.funcsSelfRequestor;
@@ -1026,7 +1028,7 @@ public class TheScopeFrame {
 	////////////////////////////////////////////////////////////////////////////////////////
 	public HashSet<FuncType> getConstructor(TheScopeFrame requestor )
 	{
-		if(isRequestorScopeMeOrMyChild(requestor))
+		if(isRequestorScopeMeOrMyChild(requestor, false))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			return this.consSelfRequestor;

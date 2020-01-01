@@ -39,7 +39,7 @@ import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.bytecode.BytecodeOutputter;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.utils.Thruple;
-import com.concurnas.compiler.visitors.REPLDepGraph.REPLComponentWrapper;
+import com.concurnas.compiler.visitors.REPLDepGraphManager.REPLComponentWrapper;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.runtime.ClassPathUtils;
 import com.concurnas.runtime.ConcurnasClassLoader;
@@ -233,50 +233,51 @@ public class REPL implements Opcodes {
 	}
 	
 	
-	LinkedHashMap<Pair<String, FuncType>, FuncDef> persistedFunctionSet = new LinkedHashMap<Pair<String, FuncType>, FuncDef>();
+	LinkedHashMap<Pair<String, Type>, Line> persistedTopLevelElementSet = new LinkedHashMap<Pair<String, Type>, Line>();
 	
 	private Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> processBlockFuncs(Block blk) {
 		List<Thruple<FuncDef, FuncType, Boolean>> newlyDefined = new ArrayList<Thruple<FuncDef, FuncType, Boolean>>();
 		List<REPLComponentWrapper> newTLEs = new ArrayList<REPLComponentWrapper>();
 		
-		LinkedHashMap<REPLComponentWrapper, FuncType> funcs = new LinkedHashMap<REPLComponentWrapper, FuncType>();
+		LinkedHashMap<REPLComponentWrapper, Type> funcs = new LinkedHashMap<REPLComponentWrapper, Type>();
 		//funcs for later iterations...
 		for(LineHolder lh : blk.lines) {
 			Line lin = lh.l;
-			REPLComponentWrapper wrap = null;
-			if(lin instanceof FuncDef) {
-				wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
-				FuncDef origFD = (FuncDef)lin;
-				funcs.put(wrap, origFD.getFuncType().getErasedFuncTypeNoRet());
-			}
 			
 			if(lin instanceof REPLDepGraphComponent) {
-				if(null == wrap) {
-					wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
-				}
+				REPLComponentWrapper wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
 				
+				Type tt;
+				if(lin instanceof FuncDef) {
+					tt = ((FuncDef)lin).getFuncType().getErasedFuncTypeNoRet();
+				}else {
+					tt = ((REPLDepGraphComponent)lin).getFuncType();
+				}
+				funcs.put(wrap, tt);
 				newTLEs.add(wrap);
 			}
 		}
 		
 		for(REPLComponentWrapper replcom : funcs.keySet()) {
-			FuncDef toAdd = (FuncDef)replcom.comp;
-			FuncType ft = funcs.get(replcom);
-			Pair<String, FuncType> defFT = new Pair<String, FuncType>(toAdd.funcName, ft);
+			REPLDepGraphComponent comp = replcom.comp;
+			Type ft = funcs.get(replcom);
+			Pair<String, Type> defFT = new Pair<String, Type>(comp.getName(), ft);
 			boolean isNew = true ;
-			if(persistedFunctionSet.containsKey(defFT)) {
+			if(persistedTopLevelElementSet.containsKey(defFT)) {
 				//overwrite persisted version
 				//this.moduleCompiler.moduleLevelFrame.removeFuncDef(defFT.getA(), defFT.getB(), true);
-				persistedFunctionSet.remove(defFT);
+				persistedTopLevelElementSet.remove(defFT);
 				isNew=false;
 			}
 			
-			newlyDefined.add(new Thruple<FuncDef, FuncType, Boolean>(toAdd, ft, isNew));
+			if(replcom.comp instanceof FuncDef) {
+				newlyDefined.add(new Thruple<FuncDef, FuncType, Boolean>((FuncDef)replcom.comp, (FuncType)ft, isNew));
+			}
 		}
 		//now add funcs from prevous definitions unless redefined above....
-		persistedFunctionSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
+		persistedTopLevelElementSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
 		
-		funcs.keySet().forEach(a -> persistedFunctionSet.put( new Pair<String, FuncType>(((FuncDef)a.comp).funcName, funcs.get(a)), (FuncDef)a.comp));
+		funcs.keySet().forEach(a -> persistedTopLevelElementSet.put( new Pair<String, Type>((a.comp).getName(), funcs.get(a)), (Line)a.comp));
 		
 		return new Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>>(newlyDefined, newTLEs);
 	}
@@ -391,21 +392,24 @@ public class REPL implements Opcodes {
 				SchedulerRunner sch = getScheduler(instanceExecutor);
 				
 				try {
-					byte[] rawcode = fw.nametoCode.get(mastSrcName);
-					byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName);
+					{//repoint any other newly created instances
+						List<String> items = fw.nametoCode.keySet().stream().sorted().collect(Collectors.toList());
+						for(String name : fw.nametoCode.keySet()) {
+							if(!name.equals(mastSrcName)) {
+								byte[] rawcode = fw.nametoCode.get(name);
+								byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName, false);
+								instanceExecutor.nameToCode.put(name, codeRepointed);
+
+								printByteCode(output, name, rawcode,  codeRepointed);
+							}
+						}
+					}
 					
-					if(printBytecode || debugmode) {
-						StringBuilder pp = new StringBuilder();
-						pp.append("|  Expression Bytecode:");
-						pp.append(BytecodePrettyPrinter.print(rawcode, true, null, "|  "));
-						output.add(pp.toString());
-					}
-					if(debugmode) {
-						StringBuilder pp = new StringBuilder();
-						pp.append("|  Expression Bytecode (post runtime adaptation):");
-						pp.append(BytecodePrettyPrinter.print(codeRepointed, true, null, "|  "));
-						output.add(pp.toString());
-					}
+					
+					byte[] rawcode = fw.nametoCode.get(mastSrcName);
+					byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName, true);
+					
+					printByteCode(output, "main", rawcode,  codeRepointed);
 					
 					HashSet<String> newvars = this.moduleCompiler.replState.getNewVars();
 					if(input.trim().endsWith(";")) {
@@ -479,6 +483,21 @@ public class REPL implements Opcodes {
 			if(this.debugmode) {
 				BytecodeOutputter.PRINT_OPCODES=false;
 			}
+		}
+	}
+	
+	private void printByteCode(ArrayList<String> output, String classname, byte[] rawcode, byte[] codeRepointed) throws Exception {
+		if(printBytecode || debugmode) {
+			StringBuilder pp = new StringBuilder();
+			pp.append("|  Expression Bytecode["+classname+"]:");
+			pp.append(BytecodePrettyPrinter.print(rawcode, true, null, "|  "));
+			output.add(pp.toString());
+		}
+		if(debugmode) {
+			StringBuilder pp = new StringBuilder();
+			pp.append("|  Expression Bytecode["+classname+"] (post runtime adaptation):");
+			pp.append(BytecodePrettyPrinter.print(codeRepointed, true, null, "|  "));
+			output.add(pp.toString());
 		}
 	}
 	

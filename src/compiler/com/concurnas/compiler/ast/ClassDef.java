@@ -33,7 +33,7 @@ import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrors;
 import com.concurnas.compiler.visitors.util.VarAtScopeLevel;
 import com.concurnas.runtime.Pair;
 
-public class ClassDef extends CompoundStatement implements ClassDefI, AttachedScopeFrame, HasAnnotations {
+public class ClassDef extends CompoundStatement implements ClassDefI, AttachedScopeFrame, HasAnnotations, REPLDepGraphComponent {
 
 	public String className;
 	public String packageName = "xxx.package.xxx"; //TODO: implement package tracking
@@ -1409,5 +1409,31 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 
 	public ArrayList<ClassDef> getAllNestedClasses() {
 		return this.myScopeFrame.getAllClasses();
+	}
+
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return this.className;
+	}
+
+	@Override
+	public Type getFuncType() {
+		return new NamedType(this);
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
 	}
 }

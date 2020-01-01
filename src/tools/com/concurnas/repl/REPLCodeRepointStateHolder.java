@@ -101,10 +101,12 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 	
 	private String classNameToRedirect;
 	private String newClassName;
-	public REPLCodeRepointStateHolder(ClassVisitor cv, String classNameToRedirect, String newClassName) {
+	private boolean mapProvidedClassName;
+	public REPLCodeRepointStateHolder(ClassVisitor cv, String classNameToRedirect, String newClassName, boolean mapProvidedClassName) {
 		super(ASM7, cv);
 		this.classNameToRedirect = classNameToRedirect;
 		this.newClassName = newClassName;
+		this.mapProvidedClassName = mapProvidedClassName;
 	}
 
 
@@ -125,7 +127,7 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 	}
 	
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-		super.visit(version, access, newClassName, signature, superName, interfaces);
+		super.visit(version, access, mapProvidedClassName?newClassName:name, signature, superName, interfaces);
 	}
 
 	public void visitSource(String source, String debug) {
@@ -133,10 +135,10 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 	}
 	
 	
-	static byte[] repointToREPLStateHolder(byte[] code, String codeName, String newcodeName) {
+	static byte[] repointToREPLStateHolder(byte[] code, String codeName, String newcodeName, boolean mapProvidedClassName) {
 		ClassReader cr = new ClassReader(code);
 		ClassWriter cw = new ConcClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, null);
-		REPLCodeRepointStateHolder staticRedirector = new REPLCodeRepointStateHolder(cw, codeName, newcodeName);
+		REPLCodeRepointStateHolder staticRedirector = new REPLCodeRepointStateHolder(cw, codeName, newcodeName, mapProvidedClassName);
 		cr.accept(staticRedirector, 0);
 		return cw.toByteArray();
 	}

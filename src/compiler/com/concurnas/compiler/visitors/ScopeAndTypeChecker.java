@@ -16568,6 +16568,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				if(expr instanceof FuncDef) {
 					expr = null;
 				}
+				if(expr instanceof ClassDef) {
+					expr = null;
+				}
 				
 				if(expr != null) {
 					boolean canmap = true;

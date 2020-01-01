@@ -20,7 +20,8 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
-
+	
+	/*
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -157,7 +158,16 @@ public class REPLTests {
 		assertEquals("$0 ==> ok", repl.processInput("'ok'"));//creates tmp
 	}
 
-	
+	@Test
+	public void fwdVariableDoesNotExistYet() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
+				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 10;"));
+		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
+		assertEquals("", repl.processInput("ab = 100;"));
+		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
+	}
 	
 	@Test
 	public void errWorkflow() throws Exception {
@@ -352,24 +362,13 @@ public class REPLTests {
 	}
 	
 	@Test
-	public void fwdVariableDoesNotExistYet() throws Exception {
-		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
-				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
-		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
-		assertEquals("|    update modified bar(int)", repl.processInput("ab = 10;"));
-		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
-		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
-		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
-	}
-	
-	@Test
 	public void fwdVariableDoesNotExistYetAssignNew() throws Exception {
 		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
 				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab int = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
-		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
+		assertEquals("", repl.processInput("ab = 100;"));
 		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
 	}
 	
@@ -422,28 +421,118 @@ public class REPLTests {
 	}
 	
 	@Test
-	public void transitiveDeps() throws Exception {//fwd ref, change types ok -> err
+	public void transitiveDeps() throws Exception {
 		assertEquals("|  created function foo(int)\n|  created function bar(int)", repl.processInput("def foo(a int)=> bar(a*2)\ndef bar(a int) => car(a*2)"));
 		assertEquals("|  created function car(int)\n|    update modified bar(int)", repl.processInput("def car(a int) => a+100"));//updates, bar and foo
 		assertEquals("$0 ==> 108", repl.processInput("foo(2)"));
 	}
 	
 	
-	//funcref
-	//other uses of functions - see paper
+	@Test
+	public void normalFuncRef() throws Exception {
+		assertEquals("|  created function bar(int)",repl.processInput("def bar(a int) => a+100"));
+		assertEquals("|  created function foo(int)", repl.processInput("def foo(a int) => bar&(2*a)"));
+		assertEquals("$0 ==> 104", repl.processInput("foo(2)()"));
+	}
 	
-	//other top level elements
+	@Test
+	public void funcRefFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find method with matching name: bar\n|  created function foo(int)", repl.processInput("def foo(a int) => bar&(2*a)"));
+		assertEquals("|  created function bar(int)\n|    update modified foo(int)",repl.processInput("def bar(a int) => a+100"));//updates, bar and foo
+		assertEquals("$0 ==> 104", repl.processInput("foo(2)()"));
+	}
 	
 	
-	//classes
+	@Test
+	public void normalTypeDef() throws Exception {
+		assertEquals("", repl.processInput("typedef MyList<X> = java.util.ArrayList<X>"));
+		assertEquals("|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
+		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
+	}
+	
+	@Test
+	public void typeDefFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:22 Unable to resolve type corresponding to name: MyList\n|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
+		assertEquals("|    update modified foo(int)", repl.processInput("typedef MyList<X> = java.util.ArrayList<X>"));
+		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
+	}
+	
+	@Test
+	public void typeDefMoreThanOne() throws Exception {
+		assertEquals("", repl.processInput("typedef MyList = java.util.ArrayList<Integer>"));
+		assertEquals("|  ERROR 1:22 Unable to resolve type corresponding to name: MyList\n|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
+		assertEquals("|    update modified foo(int)", repl.processInput("typedef MyList<X> = java.util.ArrayList<X>"));
+		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
+	}
+	
+	@Test
+	public void typeDefDependsOnAnother() throws Exception {
+		assertEquals("|  WARN 1:0 typedef qualifier is unused in right hand side definition: X\n|  ERROR 1:20 Unable to resolve type corresponding to name: Thing", repl.processInput("typedef MyList<X> = Thing<X>"));
+		assertEquals("|    update modified MyList", repl.processInput("typedef Thing<X> = java.util.ArrayList<X>"));
+		assertEquals("|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
+		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
+	}
+	
+	@Test
+	public void typedefWithFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:22 Unable to resolve type corresponding to name: MyList\n|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
+		assertEquals("|    update modified foo(int)", repl.processInput("typedef MyList<X> = Thing<X>"));
+		assertEquals("|    update modified MyList, foo(int)", repl.processInput("typedef Thing<X> = java.util.ArrayList<X>"));
+		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
+	}
+	
+	@Test
+	public void classdef() throws Exception {
+		assertEquals("",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("$0 ==> Person(dave, person, 1989)", repl.processInput("new Person('dave', 'person', 1989)"));
+	}
+	*/
+	
+	@Test
+	public void classdefredef() throws Exception {
+		assertEquals("",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("v1 ==> Person(dave, person, 1989)", repl.processInput("v1 = new Person('dave', 'person', 1989)"));
+		assertEquals("",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("v2 ==> Person(dave, person, 1989)", repl.processInput("v2 = new Person('dave', 'person', 1989)"));
+		assertEquals("$0 ==> wtf", repl.processInput("v1 = v2"));
+	}
+	
+	//updatePrevSessionVars - expand on this for classes
+	
+	//redefine
+	
+	//fwd ref is a class
+	
+	//check existing things
+	
+	//func returns
+	
+	//a.b = 3 //dot operator access fields etc of class
 	
 	
-	//the del keyword
+	/*
+	 * TLE:
+	 * class, enum, trait, actor 
+	 * 
+	 * 
+	 * Dep Location:
+	 * constructor call new X
+	 * 
+	 * 
+	 */
+	
+	
+
+	//imports + usings
+	// /imports /debug /quit /exit
+	
+	
+	//the del keyword - del any top level item | deps need to break as approperiate
 		//del a var and recreate
 	//del a function
 	//del other top level elements
 	
-
+	
 	//check isolates work
 	
 	//check a <= b + c works
@@ -452,6 +541,7 @@ public class REPLTests {
 	
 	//tab completion
 
-	
+	//cntlr+c etc
+	//terminations
 	
 }
