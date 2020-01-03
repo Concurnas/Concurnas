@@ -168,6 +168,7 @@ public class TheScopeFrame {
 	public void setIsREPL() {
 		replModLevelForcedNewvars = new HashMap<String, TypeAndLocation>();
 		replModLevelForcedNewfuncs = new HashMap<String, HashSet<FuncType>>();
+		replModLevelForcedNewClasses = new HashMap<String, ClassDef>();
 		//isREPL=true;
 	}
 	
@@ -243,6 +244,7 @@ public class TheScopeFrame {
 	
 	public void updatePrevSessionVars () {
 		this.replPrevSessionVars.addAll(replModLevelForcedNewvars.keySet());
+		this.replPrevSessionClasses.putAll(replModLevelForcedNewClasses);
 		
 		for(String name : replModLevelForcedNewfuncs.keySet()) {
 			HashSet<FuncType> toAdd = replModLevelForcedNewfuncs.get(name);
@@ -252,6 +254,8 @@ public class TheScopeFrame {
 				this.replPrevSessionFuncs.put(name, new HashSet<FuncType>(toAdd));
 			}
 		}
+		
+		
 		
 	}
 	
@@ -280,8 +284,12 @@ public class TheScopeFrame {
 	////REPL ///
 	public HashMap<String, TypeAndLocation>     			replModLevelForcedNewvars   ;
 	public HashMap<String, HashSet<FuncType>>     			replModLevelForcedNewfuncs   ;
+	public HashMap<String, ClassDef>     			replModLevelForcedNewClasses   ;
+	
 	public HashSet<String> replPrevSessionVars = new HashSet<String>();
 	public HashMap<String, HashSet<FuncType>> replPrevSessionFuncs = new HashMap<String, HashSet<FuncType>>();
+	public HashMap<String, ClassDef> replPrevSessionClasses = new HashMap<String, ClassDef>();
+	
 	public HashSet<String> replAssignedthisIteration = new HashSet<String>();
 	////REPL ///
 	
@@ -302,10 +310,10 @@ public class TheScopeFrame {
 		asses    = new HashSet<String>();
 	}
 	
-	public boolean isRequestorScopeMeOrMyChild(TheScopeFrame requestor, boolean isClassDef)
+	public boolean isRequestorScopeMeOrMyChild(TheScopeFrame requestor)
 	{
 		if(this == requestor) {
-			if(!isClassDef && this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+			if( this.paThisIsModule && this.replModLevelForcedNewvars != null) {
 				return false;
 			}
 			
@@ -481,7 +489,7 @@ public class TheScopeFrame {
 	{
 		HashMap<String, TypeAndLocation> vars = this.vars;
 		
-		if(isRequestorScopeMeOrMyChild(requestor, false))
+		if(isRequestorScopeMeOrMyChild(requestor))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			vars = varsSelfRequestor;
@@ -504,7 +512,7 @@ public class TheScopeFrame {
 	public HashMap<String, TypeAndLocation> getAllVars(TheScopeFrame requestor){
 		HashMap<String, TypeAndLocation> vars = this.vars;
 		
-		if(isRequestorScopeMeOrMyChild(requestor, false)){
+		if(isRequestorScopeMeOrMyChild(requestor)){
 			vars = varsSelfRequestor;
 		}
 		
@@ -625,7 +633,7 @@ public class TheScopeFrame {
 	{
 		HashMap<String, ClassDef> classes = this.classes;
 		
-		if(isRequestorScopeMeOrMyChild(requestor, true))//only modules have null parent
+		if(isRequestorScopeMeOrMyChild(requestor))//only modules have null parent
 		{//apply sequential ordering if this scope is a module
 			//so divert to special this instance only map
 			classes = this.classesSelfRequestor;
@@ -676,9 +684,17 @@ public class TheScopeFrame {
 		return null;
 	}
 	
-	public boolean hasClassDef(TheScopeFrame requestor, String varname, boolean lookParent)
+	public boolean hasClassDef(TheScopeFrame requestor, String varname, boolean lookParent, boolean isCreation)
 	{
-		return null != getClassDef(requestor, varname, lookParent);
+		if(null == getClassDef(requestor, varname, lookParent)) {
+			return false;
+		}
+		
+		if(isCreation && this.paThisIsModule && this.replModLevelForcedNewClasses != null && replPrevSessionClasses.containsKey(varname)) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public void setClassDef(TheScopeFrame requestor, String varname, ClassDef var, int modifier)
@@ -688,6 +704,12 @@ public class TheScopeFrame {
 		if(isPersisted)
 		{
 			classesSelfRequestor.put(varname, var);
+		}
+		
+		if(this.paThisIsModule && this.replModLevelForcedNewClasses != null) {
+			
+			replModLevelForcedNewClasses.put(varname, var);
+			replPrevSessionClasses.remove(varname);
 		}
 	}
 	
@@ -718,7 +740,7 @@ public class TheScopeFrame {
 		HashMap<String, HashSet<TypeAndLocation>> funcs = this.funcs;
 		HashMap<String, TypeAndLocation> vars = this.vars;
 		
-		if(isRequestorScopeMeOrMyChild(requestor, false))
+		if(isRequestorScopeMeOrMyChild(requestor))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			funcs = this.funcsSelfRequestor;
@@ -808,7 +830,7 @@ public class TheScopeFrame {
 	{
 		HashMap<String, HashSet<TypeAndLocation>> vars = this.funcs;
 		
-		if(isRequestorScopeMeOrMyChild(requestor, false))
+		if(isRequestorScopeMeOrMyChild(requestor))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			vars = this.funcsSelfRequestor;
@@ -1028,7 +1050,7 @@ public class TheScopeFrame {
 	////////////////////////////////////////////////////////////////////////////////////////
 	public HashSet<FuncType> getConstructor(TheScopeFrame requestor )
 	{
-		if(isRequestorScopeMeOrMyChild(requestor, false))
+		if(isRequestorScopeMeOrMyChild(requestor))
 		{//apply sequential ordering if this scope is a class or module
 			//so divert to special this instance only map
 			return this.consSelfRequestor;

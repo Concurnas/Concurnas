@@ -389,4 +389,9 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 	public boolean isNewComponent() {
 		return true;
 	}
+
+	@Override
+	public boolean persistant() { 
+		return true;
+	}
 }

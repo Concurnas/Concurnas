@@ -1004,14 +1004,14 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 			//int dotpos = name.indexOf('.'); cannot do nested static classes in concurnas
 			//if(dotpos == -1)
 			//{
-				if(myScopeFrame.hasClassDef(null, name, false))
-				{
-					return myScopeFrame.getClassDef(null, name, false);
-				}
-				else if(null != this.resolvedSuperType)
-				{
-					return this.resolvedSuperType.getClassDef(name);
-				}
+			if(myScopeFrame.hasClassDef(null, name, false, false))
+			{
+				return myScopeFrame.getClassDef(null, name, false);
+			}
+			else if(null != this.resolvedSuperType)
+			{
+				return this.resolvedSuperType.getClassDef(name);
+			}
 		}
 		return null;
 	}

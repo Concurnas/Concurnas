@@ -10,4 +10,5 @@ public interface REPLDepGraphComponent {
 	public String getName();
 	public Type getFuncType();
 	public boolean isNewComponent();
+	public default boolean persistant() { return false;}
 }

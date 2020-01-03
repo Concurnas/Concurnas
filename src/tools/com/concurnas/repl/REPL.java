@@ -25,9 +25,11 @@ import com.concurnas.compiler.LexParseErrorCapturer;
 import com.concurnas.compiler.MainLoop;
 import com.concurnas.compiler.ModuleCompiler;
 import com.concurnas.compiler.SchedulerRunner;
+import com.concurnas.compiler.ast.Assign;
 import com.concurnas.compiler.ast.AssignExisting;
 import com.concurnas.compiler.ast.AssignNew;
 import com.concurnas.compiler.ast.Block;
+import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.DuffAssign;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.FuncType;
@@ -213,19 +215,15 @@ public class REPL implements Opcodes {
 	
 	private static SharedConcClassLoader sharedConcClassLoader = new SharedConcClassLoader();//one of these across all MainLoopInstances
 	
-	
-	public REPLExecutor getExecutor() {//assumes setCustomClassPath has been called etc
-		/*
-		 * Path[] cpele = null; if(mainClassLoader instanceof URLClassLoader) {
-		 * URLClassLoader asur = (URLClassLoader)mainClassLoader; URL[] urls =
-		 * asur.getURLs(); cpele = new Path[urls.length]; for(int n=0; n < urls.length;
-		 * n++) { try { cpele[n] = Paths.get(urls[n].toURI());//new
-		 * File(urls[n].toURI()).getAbsolutePath(); } catch (URISyntaxException e) {
-		 * cpele[n] = Paths.get("."); } } }
-		 */
-		
+	private REPLExecutor exec = null;
+	public REPLExecutor getExecutor() {
 		//return new REPLExecutor(new ConcurnasClassLoader(cpele, ClassPathUtils.getInstallationPath(), sharedConcClassLoader));
-		return new REPLExecutor(ClassPathUtils.getSystemClassPathAsPaths());
+		
+		if(null == exec) {
+			exec = new REPLExecutor(ClassPathUtils.getSystemClassPathAsPaths());
+		}
+		
+		return exec;
 	}
 	
 	public SchedulerRunner getScheduler(REPLExecutor replExe) throws Throwable {
@@ -235,7 +233,7 @@ public class REPL implements Opcodes {
 	
 	LinkedHashMap<Pair<String, Type>, Line> persistedTopLevelElementSet = new LinkedHashMap<Pair<String, Type>, Line>();
 	
-	private Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> processBlockFuncs(Block blk) {
+	private Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> appendPrevCode(Block blk) {
 		List<Thruple<FuncDef, FuncType, Boolean>> newlyDefined = new ArrayList<Thruple<FuncDef, FuncType, Boolean>>();
 		List<REPLComponentWrapper> newTLEs = new ArrayList<REPLComponentWrapper>();
 		
@@ -247,9 +245,15 @@ public class REPL implements Opcodes {
 			if(lin instanceof REPLDepGraphComponent) {
 				REPLComponentWrapper wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
 				
+				if(!((REPLDepGraphComponent) lin).persistant() ) {
+					continue;//skip classdef, assignmentnew assignexisting etc
+				}
+				
 				Type tt;
 				if(lin instanceof FuncDef) {
 					tt = ((FuncDef)lin).getFuncType().getErasedFuncTypeNoRet();
+				}else if(lin instanceof ClassDef){
+					tt = null;
 				}else {
 					tt = ((REPLDepGraphComponent)lin).getFuncType();
 				}
@@ -364,7 +368,7 @@ public class REPL implements Opcodes {
 				String srcName = obtained.srcName;
 				
 				
-				Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> newStuiffAndTLEs = processBlockFuncs(obtained.block);
+				Pair<List<Thruple<FuncDef, FuncType, Boolean>>, List<REPLComponentWrapper>> newStuiffAndTLEs = appendPrevCode(obtained.block);
 				
 				List<Thruple<FuncDef, FuncType, Boolean>> newfuncs = newStuiffAndTLEs.getA();
 				List<REPLComponentWrapper> newTopLevelItemsDeclared = newStuiffAndTLEs.getB();

@@ -62,4 +62,9 @@ public class TypedefStatement extends Statement implements REPLDepGraphComponent
 		return true;
 	}
 
+	@Override
+	public boolean persistant() { 
+		return true;
+	}
+	
 }

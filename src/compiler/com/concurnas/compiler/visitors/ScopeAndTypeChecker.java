@@ -13947,7 +13947,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(null != parentDF)
 		{
-			if(parentDF.hasClassDef(parentDF, className, false))
+			if(parentDF.hasClassDef(parentDF, className, false, true))
 			{
 				this.raiseError(classDef.getLine(), classDef.getColumn(), String.format("Class name has already been declared in current scope: '%s'" , classNameForErrors));
 			}
@@ -13957,7 +13957,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 			
 			//if(null != this.currentScopeFrame.getParent() && parentDF.hasClassDef(this.currentScopeFrame.getParent(), className, true))
-			if( parentDF.hasClassDef(parentDF, className, true))
+			if( parentDF.hasClassDef(parentDF, className, true, true))
 			{
 				/*boolean isNestedInParentSameName=false;
 				for(ClassDef cd : this.currentlyInClassDef){
@@ -19286,7 +19286,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 					else
 					{
-						if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true))
+						if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true, false))
 						{
 							return search.getClassDef(this.currentScopeFrame, namereftoresolve, true);
 						}
@@ -19322,7 +19322,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						if(!search.isClass())
 						{
 							//we've reached the top level
-							if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true))
+							if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true, false))
 							{
 								return search.getClassDef(this.currentScopeFrame, namereftoresolve, true);
 							}
@@ -23124,7 +23124,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 		TheScopeFrame parentDF = this.currentScopeFrame;
 		
-		if(parentDF.hasClassDef(parentDF, enumDef.enaumName, false)){
+		if(parentDF.hasClassDef(parentDF, enumDef.enaumName, false, true)){
 			this.raiseError(line, col, String.format("enum %s has already been declared in current scope" , enumDef.enaumName));
 		}
 		
@@ -23679,7 +23679,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 		TheScopeFrame parentDF = this.currentScopeFrame;
 		
-		if(parentDF.hasClassDef(parentDF, annotationDef.name, false)){
+		if(parentDF.hasClassDef(parentDF, annotationDef.name, false, true)){
 			this.raiseError(line, col, String.format("annotation %s has already been declared in current scope" , annotationDef.name));
 		}
 		

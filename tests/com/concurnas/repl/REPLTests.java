@@ -21,7 +21,6 @@ public class REPLTests {
 	
 	//////////////////////////////////////////////////////////
 	
-	/*
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -165,7 +164,7 @@ public class REPLTests {
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
-		assertEquals("", repl.processInput("ab = 100;"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
 		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
 	}
 	
@@ -368,7 +367,7 @@ public class REPLTests {
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab int = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
-		assertEquals("", repl.processInput("ab = 100;"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
 		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
 	}
 	
@@ -482,24 +481,49 @@ public class REPLTests {
 	}
 	
 	@Test
-	public void classdef() throws Exception {
-		assertEquals("",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
-		assertEquals("$0 ==> Person(dave, person, 1989)", repl.processInput("new Person('dave', 'person', 1989)"));
+	public void useNonPrimative() throws Exception {
+		assertEquals("", repl.processInput("v1 = new java.util.ArrayList<String>();"));
+		assertEquals("v1 ==> []", repl.processInput("v1"));
 	}
-	*/
+	
+	
+	
+	@Test
+	public void classdef() throws Exception {
+		assertEquals("",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("v1 ==> Person(dave, person, 1989)", repl.processInput("v1 = new Person('dave', 'person', 1989)"));
+		assertEquals("$0 ==> dave",repl.processInput("v1.name"));
+	}
+	
 	
 	@Test
 	public void classdefredef() throws Exception {
-		assertEquals("",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
 		assertEquals("v1 ==> Person(dave, person, 1989)", repl.processInput("v1 = new Person('dave', 'person', 1989)"));
+		
 		assertEquals("",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
 		assertEquals("v2 ==> Person(dave, person, 1989)", repl.processInput("v2 = new Person('dave', 'person', 1989)"));
-		assertEquals("$0 ==> wtf", repl.processInput("v1 = v2"));
+		assertEquals("$0 ==> true", repl.processInput("v1 == v2"));
+		
+		assertEquals("$1 ==> dave",repl.processInput("v1.name"));
+		assertEquals("|  ERROR 1:3 The variable name is not visible",repl.processInput("v2.name"));
 	}
+	
+	
+	//remove classdef
+	
+	
+	
+	//	this.replPrevSessionClasses.putAll(replModLevelForcedNewClasses);
+	//replModLevelForcedNewClasses
+	
+	//isRequestorScopeMeOrMyChild
 	
 	//updatePrevSessionVars - expand on this for classes
 	
 	//redefine
+	
+	
 	
 	//fwd ref is a class
 	
@@ -508,11 +532,12 @@ public class REPLTests {
 	//func returns
 	
 	//a.b = 3 //dot operator access fields etc of class
-	
+
+	//redefine a typedef -check this works
 	
 	/*
 	 * TLE:
-	 * class, enum, trait, actor 
+	 * class, enum, annotation, trait, actor 
 	 * 
 	 * 
 	 * Dep Location:
@@ -526,11 +551,15 @@ public class REPLTests {
 	//imports + usings
 	// /imports /debug /quit /exit
 	
+	//import fwd ref
+	
 	
 	//the del keyword - del any top level item | deps need to break as approperiate
 		//del a var and recreate
 	//del a function
 	//del other top level elements
+	//del Thing | where Thing is a class and also a Var
+	//remove Thing from scope etc
 	
 	
 	//check isolates work
@@ -541,6 +570,10 @@ public class REPLTests {
 	
 	//tab completion
 
+	//import class/jar to classpath - still start in repl mode
+	
+	
+	
 	//cntlr+c etc
 	//terminations
 	
