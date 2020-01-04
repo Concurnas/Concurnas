@@ -4,25 +4,32 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 
+import com.concurnas.compiler.ast.Annotation;
+import com.concurnas.compiler.ast.AnnotationDef;
 import com.concurnas.compiler.ast.AssignExisting;
 import com.concurnas.compiler.ast.AssignNew;
 import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
+import com.concurnas.compiler.ast.DotOperator;
+import com.concurnas.compiler.ast.EnumDef;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.FuncInvoke;
 import com.concurnas.compiler.ast.FuncRef;
+import com.concurnas.compiler.ast.ImpliInstance;
 import com.concurnas.compiler.ast.NamedType;
 import com.concurnas.compiler.ast.REPLDepGraphComponent;
 import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.TypedefStatement;
+import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.runtime.Pair;
 
 /*
  * maintain dependancy graph of top level elements < - (depends on) <- name, type of top level item
  */
 public class REPLDepGraphManager extends AbstractVisitor implements Unskippable {
 	private HashMap<String, HashSet<REPLDepGraphComponent>> depMap;
-	private HashMap<String, HashSet<Type>> topLevelNames;
+	private HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> topLevelNames;
 	//private ArrayList<REPLDepGraphComponent> topLevelItems;
 	
 	/*
@@ -34,23 +41,22 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	public boolean updateDepGraph(Block lexedAndParsedAST) {
 		//update graph
 		depMap = new HashMap<String, HashSet<REPLDepGraphComponent>>();
-		//topLevelItems = new ArrayList<REPLDepGraphComponent>();
-		HashMap<String, HashSet<Type>> prevtopLevelItems = new HashMap<String, HashSet<Type>>();
+		
+		HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> prevtopLevelItems = new HashMap<String, HashSet<Pair<Type, HashSet<Type>>>>();
 		if(null != topLevelNames) {
 			prevtopLevelItems.putAll(topLevelNames);
 		}
-		topLevelNames = new HashMap<String, HashSet<Type>>();
+		topLevelNames = new HashMap<String, HashSet<Pair<Type, HashSet<Type>>>>();
 		
 		super.visit(lexedAndParsedAST);
 		
 		//now check for changes: topLevelItems vs prevtopLevelItems
-		
 		HashSet<REPLDepGraphComponent> componentsToRefresh = new HashSet<REPLDepGraphComponent>();
 		for(String topLevelItem : topLevelNames.keySet()) {
 			HashSet<REPLDepGraphComponent> toAdd=null;
 			if(prevtopLevelItems.containsKey(topLevelItem)) {
-				HashSet<Type> newTypes = topLevelNames.get(topLevelItem);
-				HashSet<Type> oldTypes = prevtopLevelItems.get(topLevelItem);
+				HashSet<Pair<Type, HashSet<Type>>> newTypes = topLevelNames.get(topLevelItem);
+				HashSet<Pair<Type, HashSet<Type>>> oldTypes = prevtopLevelItems.get(topLevelItem);
 				if(!newTypes.equals(oldTypes)){//if there are changes then dependencies
 					toAdd = depMap.get(topLevelItem);
 				}
@@ -108,6 +114,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	
 	private boolean isTopLevelItem = true;
 	private HashSet<String> currentDependencies;
+	private HashSet<Type> currentTypeDependencies;
 	
 	@Override
 	public Object visit(FuncDef funcDef) {
@@ -129,6 +136,22 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 		return this.visit((REPLDepGraphComponent)typedef);
 	}
 	
+
+	@Override
+	public Object visit(ClassDef classDef) {
+		return this.visit((REPLDepGraphComponent)classDef);
+	}
+	
+	@Override
+	public Object visit(EnumDef enumDef){
+		return this.visit((REPLDepGraphComponent)enumDef);
+	}
+	
+	@Override
+	public Object visit(AnnotationDef annotDef){
+		return this.visit((REPLDepGraphComponent)annotDef);
+	}
+	
 	
 	private void visitSuperREPLGraphComp(REPLDepGraphComponent comp) {
 		if(comp instanceof FuncDef) {
@@ -139,6 +162,22 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			super.visit((AssignNew)comp);
 		}else if(comp instanceof TypedefStatement) {
 			super.visit((TypedefStatement)comp);
+		}else if(comp instanceof ClassDef) {
+			ClassDef cd = (ClassDef)comp;
+			
+			if(null != currentDependencies) {
+				currentDependencies.add(cd.superclass);
+				ClassDef sup = cd.getSuperclass();
+				if(null != sup) {
+					new NamedType(sup).accept(this);
+				}
+			}
+			
+			super.visit(cd);
+		}else if(comp instanceof EnumDef) {
+			super.visit((EnumDef)comp);
+		}else if(comp instanceof AnnotationDef) {
+			super.visit((AnnotationDef)comp);
 		}
 	}
 	
@@ -150,8 +189,18 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			isTopLevelItem = false;
 			currentDependencies = new HashSet<String>();
 			
-			visitSuperREPLGraphComp(comp);
-
+			
+			HashSet<Type> typeDependencies = null;
+			if(comp instanceof ClassDef) {
+				HashSet<Type> prevCTDeps = currentTypeDependencies;
+				currentTypeDependencies = new HashSet<Type>();
+				visitSuperREPLGraphComp(comp);
+				typeDependencies = currentTypeDependencies;
+				currentTypeDependencies=prevCTDeps;
+			}else {
+				visitSuperREPLGraphComp(comp);
+			}
+			
 			
 			if(!currentDependencies.isEmpty()) {
 				for(String dep : currentDependencies) {
@@ -167,15 +216,17 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			
 			{
 				String fname = comp.getName();
-				HashSet<Type> typesForTopLe = topLevelNames.get(fname);
+				HashSet<Pair<Type, HashSet<Type>>> typesForTopLe = topLevelNames.get(fname);
 				if(null == typesForTopLe) {
-					typesForTopLe = new HashSet<Type>();
+					typesForTopLe = new HashSet<Pair<Type, HashSet<Type>>>();
 					topLevelNames.put(fname, typesForTopLe);
 				}
 				Type tt = comp.getFuncType();
 				tt = tt == null?null:tt.getTaggedType();
 				//double call to validate whether the type returned is valid or not (e.g. on typedefs or namedTypes)
-				typesForTopLe.add(tt);
+				
+				Pair<Type, HashSet<Type>> typeAndDependantTypes = new Pair<Type, HashSet<Type>>(tt, typeDependencies);
+				typesForTopLe.add(typeAndDependantTypes);
 			}
 			
 			isTopLevelItem = prevIsTop;
@@ -204,9 +255,41 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	public Object visit(RefName refName) {
 		if(null != currentDependencies) {
 			currentDependencies.add(refName.name);
+			Type tt = refName.getTaggedType();
+			if(tt != null) {
+				tt.accept(this);
+			}
 		}
 		
 		return super.visit(refName);
+	}
+	
+	@Override
+	public Object visit(Annotation annotation){
+		
+		if(null != currentDependencies) {
+			currentDependencies.add(annotation.className);
+			Type tt = annotation.getTaggedType();
+			if(tt != null) {
+				tt.accept(this);
+			}
+		}
+		
+		return super.visit(annotation);
+	}
+	
+	@Override
+	public Object visit(ImpliInstance implInstance){
+		
+		if(null != currentDependencies) {
+			currentDependencies.add(implInstance.traitName);
+			Type tt = implInstance.getTaggedType();
+			if(tt != null) {
+				tt.accept(this);
+			}
+		}
+		
+		return super.visit(implInstance);
 	}
 	
 	@Override
@@ -227,15 +310,12 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			currentDependencies.add(fname);
 		}
 		
+		if(null != currentTypeDependencies) {
+			currentTypeDependencies.add(namedType);
+		}
+		
 		return super.visit(namedType);
 	}
-	
-	//new?
-	
-	//_.class
-	
-
-	
 	
 	@Override
 	public Object visit(Block block) {
@@ -251,19 +331,16 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	}
 	
 	
-	//+funcref
-	//namedType
-	
-	
 	@Override
-	public Object visit(ClassDef classDef) {
-		boolean prev = isTopLevelItem;
-		isTopLevelItem = false;
-		super.visit(classDef);
-		isTopLevelItem = prev;
-		
-		return null;
+	public Object visit(DotOperator dotOperator) {
+		//lastLineVisited=dotOperator.getLine();
+		Object lastThing = null;
+		for(Expression e: dotOperator.getElements(this))
+		{
+			lastThing = e.accept(this);
+		}
+		return lastThing;
 	}
+
 	
-	//top level element depends on
 }

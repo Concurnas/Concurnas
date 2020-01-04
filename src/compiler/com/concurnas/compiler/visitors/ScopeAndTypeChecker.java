@@ -13571,7 +13571,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		String whatmeExt = isTrait?"implement":"extend";
 		String whatmeExted = isTrait?"implemented":"extended";
 		
-		ClassDef superOrMixinClassDef = parentDF.getClassDef(classSF, superOrMixinClass, true);
+		ClassDef superOrMixinClassDef = parentDF.getClassDef(classSF, superOrMixinClass, true, false);
 		
 		if(null == superOrMixinClassDef){ //try to look globally...
 			superOrMixinClassDef = getImportedClassDef(superOrMixinClass);
@@ -17486,7 +17486,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		//return null;
 	}
 	
-	private final static PrimativeType const_void_thrown = new PrimativeType(PrimativeTypeEnum.VOID);
+	public final static PrimativeType const_void_thrown = new PrimativeType(PrimativeTypeEnum.VOID);
 	static{
 		const_void_thrown.thrown=true;
 	}
@@ -19288,7 +19288,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					{
 						if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true, false))
 						{
-							return search.getClassDef(this.currentScopeFrame, namereftoresolve, true);
+							return search.getClassDef(this.currentScopeFrame, namereftoresolve, true, false);
 						}
 					}
 					search = search.getParent();
@@ -19324,7 +19324,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							//we've reached the top level
 							if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true, false))
 							{
-								return search.getClassDef(this.currentScopeFrame, namereftoresolve, true);
+								return search.getClassDef(this.currentScopeFrame, namereftoresolve, true, false);
 							}
 						}
 						search = search.getParent();
@@ -21465,6 +21465,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 				}
 				
+				if(nonVoids.isEmpty()) {
+					return const_void_errored;
+				}
+				
 				retTypeOption = TypeCheckUtils.getMoreGeneric(this.ers, this, 0, 0, nonVoids, null);
 			}
 		}
@@ -22046,7 +22050,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 								if(null!= sf)
 								{
 									String lastBit = fullClsPathWanted.equals(topClsStr) ? topClsStr: fullClsPathWanted.substring(topClsStr.length()+1);
-									if(null != sf.getClassDef(null,lastBit))
+									if(null != sf.getClassDef(null,lastBit, true, false))
 									{
 										ok = true;
 										break;

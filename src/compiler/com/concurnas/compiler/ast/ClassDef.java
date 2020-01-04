@@ -25,6 +25,7 @@ import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.ErrorRaiseable;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
@@ -432,6 +433,11 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
+		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+		
 		return visitor.visit(this);
 	}
 
@@ -1006,7 +1012,7 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 			//{
 			if(myScopeFrame.hasClassDef(null, name, false, false))
 			{
-				return myScopeFrame.getClassDef(null, name, false);
+				return myScopeFrame.getClassDef(null, name, false, false);
 			}
 			else if(null != this.resolvedSuperType)
 			{
@@ -1434,6 +1440,11 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 
 	@Override
 	public boolean isNewComponent() {
+		return true;
+	}
+	
+	@Override
+	public boolean persistant() { 
 		return true;
 	}
 }

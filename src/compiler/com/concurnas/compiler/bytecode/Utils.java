@@ -1782,7 +1782,7 @@ public class Utils implements Opcodes {
 		if(null != annots){
 			boolean deprecated = false;
 			for(com.concurnas.compiler.ast.Annotation ano : annots.annotations){
-				if(ano.getTaggedType().equals(ScopeAndTypeChecker.const_Annotation_DeprecatedCls)){
+				if(ScopeAndTypeChecker.const_Annotation_DeprecatedCls.equals(ano.getTaggedType())){
 					deprecated=true;
 					break;
 				}

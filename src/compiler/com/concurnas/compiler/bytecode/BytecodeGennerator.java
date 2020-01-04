@@ -895,6 +895,11 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		ArrayList<VarAtScopeLevel> fields = currentScopeFrame.getAllVariablesAtScopeLevel(false, true, true, false);
 		for (VarAtScopeLevel field : fields) {
 			Type tt = field.getType();
+			
+			if(ScopeAndTypeChecker.const_void_thrown.equals(tt)) {
+				continue;
+			}
+			
 			fieldNameToType.put(field.getVarName(), tt);
 
 			String normalType = tt.getBytecodeType();
@@ -2176,8 +2181,11 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		
 		if(!classDef.traits.isEmpty()){
 			for(ImpliInstance ifaceHolder : classDef.traits){
-				String hh = ifaceHolder.resolvedIface.javaClassName();
-				ifaces.add(hh.substring(1, hh.length() - 1));
+				if(null != ifaceHolder.resolvedIface) {
+					String hh = ifaceHolder.resolvedIface.javaClassName();
+					ifaces.add(hh.substring(1, hh.length() - 1));
+				}
+				
 			}
 		}
 		
@@ -2202,7 +2210,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			sb.append(sup.getGenericBytecodeType());
 	
 			
-			classDef.getTraitsAsNamedType(0, 0).forEach(a -> sb.append(a.getGenericBytecodeType()));
+			classDef.getTraitsAsNamedType(0, 0).stream().filter(a -> a != null).forEach(a -> sb.append(a.getGenericBytecodeType()));
 			
 			genericSignature = sb.toString();
 		}
@@ -3465,7 +3473,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		// first line this - dont invoke fields, proces as normal
 		// first line super - need to invoke fields
 		// fist line nothing, need to invoke fields [insert artifical one]
-
+		boolean removeFirstFromFB = false;
 		if (constTyp == ConstruType.NONE) {
 			// must call super, add implicit super call
 			int line = funcDef.getLine();
@@ -3494,7 +3502,8 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			SuperConstructorInvoke sup = new SuperConstructorInvoke(line, col, args);
 			sup.resolvedFuncType = new FuncType(ttypes, Const_PRIM_VOID);
 			DuffAssign da = new DuffAssign(line, col, sup);
-			funcDef.funcblock.lines.add(0, new LineHolder(line, col, da));
+			funcDef.funcblock.lines.add(0, new LineHolder(line, col, da));//nasty, means we cannot recall this when we later recompile
+			removeFirstFromFB = true;
 		}
 
 		if (constTyp == ConstruType.SUPER || constTyp == ConstruType.NONE) {
@@ -3512,6 +3521,10 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			}
 		}
 
+		if(removeFirstFromFB) {
+			funcDef.funcblock.lines.remove(0);
+		}
+		
 		bcoutputter.visitInsn(RETURN);
 		//level--;
 		exitMethod();
@@ -9605,7 +9618,10 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		if (null != body) {
 			enterMethod(methodOrLambda.getMethodName(), inputs, returnType, methodOrLambda.isAbstract(), !vis.isInClass(), methodOrLambda.isFinal(), am, 0, annots, isOverride, methodOrLambda.methodGenricList);// TODO:
 			visitTryCatchLabels(methodOrLambda.getBody());
-			vis.varsToAddToScopeOnEntry = stripOutAnnotations(inputs);
+			if(!methodOrLambda.hasErrors) {
+				vis.varsToAddToScopeOnEntry = stripOutAnnotations(inputs);
+			}
+			
 
 			if (vis.isInClass()) {
 				body.isLocalizedLambda = true;
@@ -11057,9 +11073,19 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		}
 
 		ArrayList<Type> args = resolvesTo.defaultFuncArgs != null?resolvesTo.defaultFuncArgs: resolvesTo.getInputs();
+		if(args != null) {
+			args = new ArrayList<Type>(args);
+		}
+		
 		ArrayList<Type> argsnorm = resolvesTo.getInputs();
+		if(argsnorm != null) {
+			argsnorm = new ArrayList<Type>(argsnorm);
+		}
 		
 		List<Expression> argz = superConstructorInvoke.args.getArgumentsWNPs();
+		if(argz != null) {
+			argz = new ArrayList<Expression>(argz);
+		}
 		
 		Pair<Integer, HashMap<Integer, Type>> defpp = defaultParamPrelude(resolvesTo.defaultFuncArgs, argz, TypeCheckUtils.isActor(this.errorRaisableSupressionFromSatc, new NamedType(resolvesTo.origin)));
 		int defaultParamObjSlot = defpp.getA();
@@ -12721,6 +12747,9 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	
 	@Override
 	public AnnotationVisitor visit(Annotation annotation){
+		if(annotation.getTaggedType() == null) {
+			return null;
+		}
 		
 		AnnotationVisitor av0;
 		if(nextAV!=null){

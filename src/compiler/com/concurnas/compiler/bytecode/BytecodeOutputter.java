@@ -243,7 +243,7 @@ public class BytecodeOutputter implements Opcodes {
 		lastWriteLabel = false;
 		lastWroteRet = false;
 		if (PRINT_OPCODES) {
-			System.out.println("\ndef " + methodName + "==>");
+			System.out.println("\ndef " + methodName + sigNormalString + "==>");
 		}
 
 		//methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, "asd", "()Ljava/lang/Integer;", "<X:Ljava/lang/Integer;>()TX;", null);
@@ -648,8 +648,9 @@ public class BytecodeOutputter implements Opcodes {
 		//INVOKESPECIAL bytecodeSandbox$MyTrait.ifaceMethod ()I
 		//INVOKESTATIC bytecodeSandbox$MyTrait.thing$traitM (LbytecodeSandbox$MyTrait;)Ljava/lang/String;
 		//INVOKEINTERFACE bytecodeSandbox$MyTrait.ifaceMethod ()I
+		//INVOKESPECIAL java/lang/Object.<init> (Lrepl$$Master;Lrepl$$Master;)V
 		
-		if(opcode == INVOKEINTERFACE && owner.equals("bytecodeSandbox$MyTrait") && name.equals("ifaceMethod") ) {
+		if(opcode == INVOKESPECIAL && owner.equals("java/lang/Object") && name.equals("<init>") ) {
 			int h=9;
 		}
 		

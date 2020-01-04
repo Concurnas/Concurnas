@@ -1,10 +1,11 @@
 package com.concurnas.compiler.ast;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 
-public class EnumDef extends CompoundStatement implements HasAnnotations {
+public class EnumDef extends CompoundStatement implements HasAnnotations, REPLDepGraphComponent {
 
 	public AccessModifier accessModifier;
 	public String enaumName;
@@ -22,6 +23,11 @@ public class EnumDef extends CompoundStatement implements HasAnnotations {
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
+		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+		
 		return visitor.visit(this);
 	}
 
@@ -81,5 +87,35 @@ public class EnumDef extends CompoundStatement implements HasAnnotations {
 		}
 		return myScopeFrame;
 	}*/
+
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return this.enaumName;
+	}
+
+	@Override
+	public Type getFuncType() {
+		return new NamedType(fakeclassDef);
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
+	}
 	
+	@Override
+	public boolean persistant() { 
+		return true;
+	}
 }

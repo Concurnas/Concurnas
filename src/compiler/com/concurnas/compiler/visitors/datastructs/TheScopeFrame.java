@@ -30,11 +30,7 @@ import com.concurnas.compiler.typeAndLocation.Location;
 import com.concurnas.compiler.typeAndLocation.LocationClassField;
 import com.concurnas.compiler.typeAndLocation.LocationStaticField;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
-import com.concurnas.compiler.utils.EightPull;
 import com.concurnas.compiler.utils.ITEM_TYPE;
-import com.concurnas.compiler.utils.NinePull;
-import com.concurnas.compiler.utils.Sevenple;
-import com.concurnas.compiler.utils.Sixple;
 import com.concurnas.compiler.utils.StringUtils;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
@@ -625,15 +621,11 @@ public class TheScopeFrame {
 		return ret;
 	}
 	
-	public ClassDef getClassDef(TheScopeFrame requestor, String varname)
-	{
-		return getClassDef(requestor, varname, true);
-	}
-	public ClassDef getClassDef(TheScopeFrame requestor, String varname, boolean lookParent)
+	public ClassDef getClassDef(TheScopeFrame requestor, String varname, boolean lookParent, boolean isCreation)
 	{
 		HashMap<String, ClassDef> classes = this.classes;
 		
-		if(isRequestorScopeMeOrMyChild(requestor))//only modules have null parent
+		if (isRequestorScopeMeOrMyChild(requestor)  && isCreation)//only modules have null parent
 		{//apply sequential ordering if this scope is a module
 			//so divert to special this instance only map
 			classes = this.classesSelfRequestor;
@@ -659,7 +651,7 @@ public class TheScopeFrame {
 			}
 			else if(null != parent && lookParent)
 			{
-				return parent.getClassDef(parent, varname, true);
+				return parent.getClassDef(parent, varname, true, isCreation);
 			}
 		}
 		else
@@ -674,7 +666,7 @@ public class TheScopeFrame {
 			}
 			else if(null != parent && lookParent)
 			{
-				soFar= parent.getClassDef(parent, firstPart, true);
+				soFar= parent.getClassDef(parent, firstPart, true, isCreation);
 			}
 			if(null != soFar && (Object)soFar instanceof ClassDefJava)//only java does static nested classse
 			{
@@ -686,7 +678,7 @@ public class TheScopeFrame {
 	
 	public boolean hasClassDef(TheScopeFrame requestor, String varname, boolean lookParent, boolean isCreation)
 	{
-		if(null == getClassDef(requestor, varname, lookParent)) {
+		if(null == getClassDef(requestor, varname, lookParent, isCreation)) {
 			return false;
 		}
 		
@@ -1174,7 +1166,7 @@ public class TheScopeFrame {
 			}
 			else if (type == ITEM_TYPE.NESTED_CLASS || type == ITEM_TYPE.STATIC_CLASS)
 			{
-				return this.getClassDef(null, dottedName, false);
+				return this.getClassDef(null, dottedName, false, false);
 			}
 			else if(type == ITEM_TYPE.TYPEDEF){
 				return this.typedefs.get(dottedName);
@@ -1185,7 +1177,7 @@ public class TheScopeFrame {
 			String[] bits = dottedName.split("\\.");
 			
 			String firstBit = bits[0];
-			ClassDef cls = this.getClassDef(null, firstBit, false);
+			ClassDef cls = this.getClassDef(null, firstBit, false, false);
 			
 			if(null != cls)
 			{

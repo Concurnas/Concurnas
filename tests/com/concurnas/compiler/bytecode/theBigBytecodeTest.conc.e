@@ -969,6 +969,10 @@ true
 hi there2
 
 ~~~~~
+//##74.b forward references 2
+ok works
+
+~~~~~
 //##75. default equals implementation for lamdabs
 [true, true, true, true, true, true, true]
 Interesing[[null x75defaultequalsimplementationforlamdabs NIF$0(I)V  (Ljava/lang/Integer;)V], [null x75defaultequalsimplementationforlamdabs NIF$1(I)V  (Ljava/lang/Integer;)V]]

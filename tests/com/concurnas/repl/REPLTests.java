@@ -20,7 +20,7 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
-	
+	/*
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -495,6 +495,13 @@ public class REPLTests {
 		assertEquals("$0 ==> dave",repl.processInput("v1.name"));
 	}
 	
+	@Test
+	public void varWithRHSDepInvalid() throws Exception {
+	//no, this cannot work, tle vars dont permit fwd refs
+		assertEquals("|  ERROR 1:5 Unable to find method with matching name: thing", repl.processInput("v1 = thing()"));
+		assertEquals("|  created function thing()",repl.processInput("def thing() => 1231"));//updates, bar and foo
+		assertEquals("|  ERROR 1:0 Expression cannot appear on its own line",repl.processInput("v1"));
+	}
 	
 	@Test
 	public void classdefredef() throws Exception {
@@ -509,51 +516,147 @@ public class REPLTests {
 		assertEquals("|  ERROR 1:3 The variable name is not visible",repl.processInput("v2.name"));
 	}
 	
+	@Test
+	public void classFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to resolve type corresponding to name: Person\n|  created function make()", repl.processInput("def make() => new Person('dave', 'person', 1989)"));
+		assertEquals("|    update modified make()",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()"));
+	}
 	
-	//remove classdef
+	@Test
+	public void classFwdRefOmitNew() throws Exception {
+		assertEquals("|  ERROR 1:14 Unable to find method with matching name: Person\n|  created function make()", repl.processInput("def make() => Person('dave', 'person', 1989)"));
+		assertEquals("|    update modified make()",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()"));
+	}
 	
+	@Test
+	public void constructorRefFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:18 Unable to find reference function Type for: <init>\n|  created function make()", repl.processInput("def make() => new Person&"));
+		assertEquals("|    update modified make()",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()('dave', 'person', 1989)"));
+	}
 	
+	@Test
+	public void classDepOnAnotherFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:33 Unable to resolve type corresponding to name: Person", repl.processInput("class Maker(){ def make() => new Person('dave', 'person', 1989); }"));
+		assertEquals("|    update modified Maker",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("Maker().make()"));
+	}
 	
-	//	this.replPrevSessionClasses.putAll(replModLevelForcedNewClasses);
-	//replModLevelForcedNewClasses
+	@Test
+	public void dotOpFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:19 Unable to resolve type corresponding to name: BHolder\n|  ERROR 1:38 b cannot be resolved to a variable\n|  created function getter(java.lang.Object)",
+				repl.processInput("def getter(bholder BHolder)=> bholder.b.thing()"));
+		
+		assertEquals("|    update modified getter(BHolder)",				
+				repl.processInput("class BHolder(public b BClz)"));
+		
+		assertEquals("|    update modified BHolder, getter(BHolder)",				
+				repl.processInput("class BClz() { def thing() => 'works'}"));
+		
+		assertEquals("$0 ==> works",repl.processInput("getter(new BHolder(new BClz()))"));
+	}
 	
-	//isRequestorScopeMeOrMyChild
+	@Test
+	public void typedefRedefine() throws Exception {
+		assertEquals("", repl.processInput("typedef xx = set<String>"));
+		assertEquals("", repl.processInput("typedef xx = set<String>"));
+		assertEquals("$0 ==> []", repl.processInput("new xx()"));
+	}
 	
-	//updatePrevSessionVars - expand on this for classes
+	@Test
+	public void nestedClassCall() throws Exception {
+		assertEquals("|  ERROR 1:50 Unable to find method with matching name: dep", repl.processInput("class Master{ public class Child{ def doThing() =>dep(); } }"));
+		assertEquals("|  created function dep()\n|    update modified Master", repl.processInput("def dep() => 'ok'"));
+		assertEquals("$0 ==> ok", repl.processInput("new Master().new Child().doThing()"));
+	}
 	
-	//redefine
-	
-	
-	
-	//fwd ref is a class
-	
-	//check existing things
-	
-	//func returns
-	
-	//a.b = 3 //dot operator access fields etc of class
+	@Test
+	public void enumFwdref() throws Exception {
+		assertEquals("|  ERROR 1:15 Unable to resolve reference to variable name: MyEnum.ONE\n|  created function thing()", repl.processInput("def thing() => MyEnum.ONE"));
+		assertEquals("|    update modified thing()", repl.processInput("enum MyEnum{ONE}"));
+		assertEquals("$0 ==> ONE", repl.processInput("thing()"));
+	}
+		
+	@Test
+	public void annotFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:0 Unable to resolve type corresponding to name: Something\n|  created function thing()", repl.processInput("@Something def thing() => 123"));
+		assertEquals("|    update modified thing()", repl.processInput("annotation Something{}"));
+		assertEquals("$0 ==> 123", repl.processInput("thing()"));
+	}
 
-	//redefine a typedef -check this works
+
+	@Test
+	public void traitFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:0 MyClass cannot resolve reference to trait: MyTrait", repl.processInput("class MyClass ~ MyTrait"));
+		assertEquals("|    update modified MyClass", repl.processInput("trait MyTrait{ def thing() => 12 }"));
+		assertEquals("$0 ==> 12", repl.processInput("MyClass().thing()"));
+	}
+	
+	
+	
+	@Test
+	public void traitSuperClass() throws Exception {
+		assertEquals("|  ERROR 1:0 MyClass cannot resolve reference to superclass: SupClass", repl.processInput("class MyClass < SupClass"));
+		assertEquals("|    update modified MyClass", repl.processInput("open class SupClass { def thingSup() => 100 }"));
+		assertEquals("$0 ==> 100", repl.processInput("MyClass().thingSup()"));
+	}
+	
+	
+	*/
+
+	
+	
+	@Test
+	public void actorNormal() throws Exception {
+		assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("", repl.processInput("aa = actor MyClass()"));
+		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
+	}
+	
 	
 	/*
 	 * TLE:
-	 * class, enum, annotation, trait, actor 
 	 * 
-	 * 
-	 * Dep Location:
-	 * constructor call new X
-	 * 
+	 * default actor, typed, untyped
+	 * fwd ref: default actor, typed, untpyed
 	 * 
 	 */
 	
 	
+	//more than one dependency missing - dont double report errors - funcdef
+	//above for classdef
+	
 
 	//imports + usings
 	// /imports /debug /quit /exit
-	
 	//import fwd ref
+	//import other packages when starting repl
 	
+	//do the /imports command
+	//also: vars, classes, typedefs
 	
+	//check isolates work
+	/*
+	@Test
+	public void isoRefsNormal() throws Exception {
+		assertEquals("a ==> 3", repl.processInput("a = {1+2}!"));
+	}
+	 */
+	
+	//check a <= b + c works
+	/*	
+	
+	@Test
+	public void isoRefsNormal() throws Exception {
+		assertEquals("", repl.processInput("a := 1;"));
+		assertEquals("", repl.processInput("b := 1;"));
+		assertEquals("", repl.processInput("c <= b + b"));
+	}
+	*/
+	
+
 	//the del keyword - del any top level item | deps need to break as approperiate
 		//del a var and recreate
 	//del a function
@@ -562,9 +665,6 @@ public class REPLTests {
 	//remove Thing from scope etc
 	
 	
-	//check isolates work
-	
-	//check a <= b + c works
 	
 	//add nice UI - windows and linux
 	

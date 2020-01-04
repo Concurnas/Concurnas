@@ -48,6 +48,8 @@ import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.MockFileWriter;
 import com.concurnas.runtime.Pair;
 
+import jdk.nashorn.internal.ir.Assignment;
+
 
 //TODO: may call:
 /*if(meth == null) {
@@ -244,6 +246,8 @@ public class REPL implements Opcodes {
 			
 			if(lin instanceof REPLDepGraphComponent) {
 				REPLComponentWrapper wrap = new REPLComponentWrapper((REPLDepGraphComponent)lin);
+
+				newTLEs.add(wrap);
 				
 				if(!((REPLDepGraphComponent) lin).persistant() ) {
 					continue;//skip classdef, assignmentnew assignexisting etc
@@ -258,7 +262,6 @@ public class REPL implements Opcodes {
 					tt = ((REPLDepGraphComponent)lin).getFuncType();
 				}
 				funcs.put(wrap, tt);
-				newTLEs.add(wrap);
 			}
 		}
 		
@@ -287,16 +290,13 @@ public class REPL implements Opcodes {
 	}
 	
 	
-	
-	private void markAllRootNodesAsIterativeVisitorSkippable(Block blk) {
-		for(LineHolder lh : blk.lines) {
-			Line lin = lh.l;
-			if(lin instanceof REPLDepGraphComponent) {
-				((REPLDepGraphComponent)lin).setSkippable(true);
-			}
-		}
-		
-	}
+	/*
+	 * private void markAllRootNodesAsIterativeVisitorSkippable(Block blk) {
+	 * for(LineHolder lh : blk.lines) { Line lin = lh.l; if(lin instanceof
+	 * REPLDepGraphComponent) { ((REPLDepGraphComponent)lin).setSkippable(true); } }
+	 * 
+	 * }
+	 */
 	
 	private static List<ErrorHolder> remoteSupressedErrors(HashSet<ErrorHolder> ers){
 		ArrayList<ErrorHolder> ret = new ArrayList<ErrorHolder>();
@@ -518,15 +518,14 @@ public class REPL implements Opcodes {
 
 	
 	private String formatTopLevelElement(REPLComponentWrapper item) {
-		return formatTopLevelElement(item.comp);
+		return formatTopLevelElement(item.comp).replace("repl$.", "");
 	}
 	
 	private String formatTopLevelElement(REPLDepGraphComponent item) {
 		if(item instanceof FuncDef) {
 			return formatTopLevelElement((FuncDef)item);
-		}else {
-			return item.getName();
 		}
+		return item.getName();
 	}
 
 	private String processNewFuncsDefined(List<Thruple<FuncDef, FuncType, Boolean>> newfuncs) {
