@@ -12747,15 +12747,14 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	
 	@Override
 	public AnnotationVisitor visit(Annotation annotation){
-		if(annotation.getTaggedType() == null) {
-			return null;
-		}
-		
 		AnnotationVisitor av0;
 		if(nextAV!=null){
 			av0=nextAV;
 		}
 		else{
+			
+			if(annotation.getTaggedType() == null) { return null; }
+			
 			if(annotation.fieldVisitor != null){
 				av0 = annotation.fieldVisitor.visitAnnotation(annotation.getTaggedType().getBytecodeType(), true);
 			}

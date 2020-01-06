@@ -149,8 +149,8 @@ x32gentypeargsexpected.conc line 20:0 trait x32gentypeargsexpected.MyTrait does 
  
 ~~~~~
 //##33. no actors on traits
-x33noactorsontraits.conc line 8:0 x33noactorsontraits.MyTrait is a trait. Actors cannot act on traits.
- 
+x33noactorsontraits.conc line 8:0 Unable to resolve type corresponding to name: MyActor
+
 ~~~~~
 //##34. no init block int trait
 x34noinitblockinttrait.conc line 7:1 init blocks may not be defined within traits

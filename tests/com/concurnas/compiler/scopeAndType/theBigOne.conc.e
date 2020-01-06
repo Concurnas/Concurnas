@@ -710,7 +710,6 @@ xCONCthisconstructors.conc line 15:2 Unable to resolve reference to super constr
 
 ~~~~~
 //##6.6.2.2. Qualified Access to a protected Constructor
-x6622QualifiedAccesstoaprotectedConstructor.conc line 4:12 Unable to resolve type corresponding to name: C
 x6622QualifiedAccesstoaprotectedConstructor.conc line 24:7 x6622QualifiedAccesstoaprotectedConstructor.C.B is not a subtype of x6622QualifiedAccesstoaprotectedConstructor.C.Ca
 x6622QualifiedAccesstoaprotectedConstructor.conc line 25:25 Nested Class: x6622QualifiedAccesstoaprotectedConstructor.C.Ca cannot be directly instantiated. Can only be instantiated via reference of class: x6622QualifiedAccesstoaprotectedConstructor.C
 
@@ -3898,7 +3897,6 @@ x500wasabugnowitsfine.conc line 8:4 type int has fewer than 1 ref levels
 
 ~~~~~
 //##501. was a bug now its fine on thing non vectable
-x501wasabugnowitsfineonthingnonvectable.conc line 11:7 Unable to resolve type corresponding to name: DefaultActor$0
 x501wasabugnowitsfineonthingnonvectable.conc line 14:8 Only array and lists can be vectorized
  
 ~~~~~

@@ -75,7 +75,6 @@ return x + 7 + y + somestat + hh + jk ;
 return inner ( 12 ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -106,7 +105,6 @@ return inner2 ( 5 ) ;
 return inner ( 12 ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -175,7 +173,6 @@ return x + 7 + y + somestat + hh + jk ;
 return inner & ( 12 ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -206,7 +203,6 @@ return inner2 ( 5 ) ;
 return inner & ( 12 ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -262,7 +258,6 @@ return inner2 & ( 5 ) ;
 return inner ( 12 ) & ( ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -289,11 +284,9 @@ return x + 7 + y + somestat + hh + jk + fromouter ;
 return inner ( 12 ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -325,11 +318,9 @@ return inner2 ( 77 ) ;
 return inner ( 12 ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
