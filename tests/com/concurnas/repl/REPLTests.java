@@ -604,16 +604,57 @@ public class REPLTests {
 	}
 	
 	
+	@Test
+	public void actorNormalNonTopLevel() throws Exception {
+		assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("|  created function aa()", repl.processInput("def aa() => actor MyClass()"));
+		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
+	}
 	*/
 
 	
 	
 	@Test
 	public void actorNormal() throws Exception {
-		assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
+		/*assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
 		assertEquals("", repl.processInput("aa = actor MyClass()"));
-		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
+		assertEquals("$0 ==> 100", repl.processInput("aa.thing()"));*/
+		
+
+		this.repl = new REPL(false, true, true);
+		
+		System.err.println( repl.processInput("class MyClass { def thing() => 100 }"));
+		System.err.println( repl.processInput("aa = actor MyClass();"));
+		System.err.println( repl.processInput("aa.thing()"));
 	}
+	
+	
+	
+	
+	/*
+	@Test
+	public void actorNormal() throws Exception {
+		/*assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("", repl.processInput("aa = actor MyClass()"));
+		assertEquals("$0 ==> 100", repl.processInput("aa.thing()"));*
+
+		this.repl = new REPL(false, false, false);
+		
+		System.err.println( repl.processInput("class MyClass { def thing() => 100 }"));
+		System.err.println( repl.processInput("aa = actor MyClass();"));
+		System.err.println( repl.processInput("aa.thing()"));
+	}
+	*/
+	
+	/*
+	@Test
+	public void infloop() throws Exception {
+		this.repl = new REPL(false, false, false);
+		
+		System.err.println( repl.processInput("class MyClass { def thing() => 100 }"));
+		System.err.println( repl.processInput("aa = actor MyClass()"));
+	}
+	 */
 	
 	
 	/*
@@ -629,6 +670,9 @@ public class REPLTests {
 	//above for classdef
 	
 
+	//object providers
+	
+	
 	//imports + usings
 	// /imports /debug /quit /exit
 	//import fwd ref
@@ -672,7 +716,7 @@ public class REPLTests {
 
 	//import class/jar to classpath - still start in repl mode
 	
-	
+	//|  createed tsdf() => should be on verbose mode only? 
 	
 	//cntlr+c etc
 	//terminations

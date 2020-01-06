@@ -74,11 +74,6 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
-
-
-		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
-			return null;
-		}
 		
 		if(null != vectorizedRedirect){
 			if(!(visitor instanceof VectorizedRedirector)){
@@ -89,6 +84,12 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 		if(astOverrideOperatorOverload != null && !(visitor instanceof ScopeAndTypeChecker)){
 			return astOverrideOperatorOverload.accept(visitor);
 		}
+		
+
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+		
 		return visitor.visit(this);
 	}
 

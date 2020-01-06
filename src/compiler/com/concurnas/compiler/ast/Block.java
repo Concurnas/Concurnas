@@ -325,7 +325,14 @@ public class Block extends CompoundStatement{
 		this.loc = 0;
 		if(!this.lines.isEmpty())
 		{
-			return this.lines.get(this.loc++);
+			LineHolder lh = this.lines.get(this.loc);
+			
+			if(this.lines.size()-1 == loc){
+				lh.lastLine = true;
+			}
+			
+			this.loc++;
+			return lh;
 		}
 		return null;
 	}

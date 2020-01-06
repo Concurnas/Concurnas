@@ -444,7 +444,8 @@ public class ModuleCompiler implements Comparable{
 					boolean anychagnes = fieldAccessReport.hadMadeRepoints() || nestedFuncRepoint.hadMadeRepoints() 
 							|| returnVisitor.hadMadeRepoints() || vectorizedRedirector.hadMadeRepoints()
 							|| scopeTypeChecker.hasSharedModuleLevelVars
-							|| scopeTypeChecker.attemptGenTypeInference;
+							|| scopeTypeChecker.attemptGenTypeInference
+							|| defaultActorCreator.changeMade;
 					
 					
 					if(!anychagnes && isREPL) {//see if what we have added to the repl will result in changes to other areas of the graph...
@@ -460,7 +461,7 @@ public class ModuleCompiler implements Comparable{
 						//prepareAndSetLastVisitor(nestedFuncRepoint);
 						nestedFuncRepoint.resetRepoints();
 						//prepareAndSetLastVisitor(defaultActorCreator);
-						defaultActorCreator.resetRepoints();
+						//defaultActorCreator.resetRepoints();
 						constFolder = new ConstantFolding(fullPathName);//just make a new one easier than clearing out existing errors etc
 
 						scopeTypeChecker = new ScopeAndTypeChecker(this.ml, this, fullPathName, packageAndClassName, moduleLevelFrame, typeDirectory, !scopeTypeChecker.getErrors().isEmpty(), this.isREPL);//TODO: why do we create a new one?

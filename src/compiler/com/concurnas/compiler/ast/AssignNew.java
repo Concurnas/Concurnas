@@ -139,12 +139,12 @@ public class AssignNew extends Assign implements REPLDepGraphComponent{
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
 		
-		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
-			return null;
-		}
-		
 		if(this.astRedirect != null && !(visitor instanceof ScopeAndTypeChecker)){
 			return astRedirect.accept(visitor);
+		}
+		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
 		}
 		
 		return visitor.visit(this);

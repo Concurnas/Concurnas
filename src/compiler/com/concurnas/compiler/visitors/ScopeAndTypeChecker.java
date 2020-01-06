@@ -16542,6 +16542,22 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(lh.l instanceof Block){
 				((Block)lh.l).isDirectParentABlock = true;
 			}
+			
+			if(lh.l instanceof ClassDef && lh.lastLine) {
+				ClassDef cd = (ClassDef)lh.l;
+				if(cd.isActor) {
+					if(cd.classDefArgs==null && cd.classBlock.isEmpty()) {
+						//convert actor MyClass() => new actor MyClass()
+						int line = cd.getLine();
+						int col = cd.getColumn();
+						
+						New nexExpr = new New(line, col, new NamedType(line, col, cd.className), new FuncInvokeArgs(line, col), true);
+						lh.l = new DuffAssign(line, col, nexExpr);
+					}
+				}
+				
+			}
+			
 			Type got = (Type)lh.accept(this);
 			
 			if(!(lh.l instanceof ContinueStatement && ((ContinueStatement)lh.l).isSynthetic)){
@@ -19502,8 +19518,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	@Override
 	public Object visit(NamedType namedType) {
 		String namereftoresolve = namedType.getNamedTypeStr();
-		
-		
 		
 		ArrayList<Type> gens = namedType.getGenericTypeElements();
 				

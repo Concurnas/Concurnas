@@ -8,8 +8,6 @@ import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.LineHolder;
 import com.concurnas.compiler.ast.New;
-import com.concurnas.compiler.ast.ObjectProviderBlock;
-import com.concurnas.compiler.ast.ObjectProviderLine;
 import com.concurnas.compiler.ast.ObjectProviderLineDepToExpr;
 import com.concurnas.compiler.ast.ObjectProviderLineProvide;
 import com.concurnas.compiler.ast.Type;
@@ -34,15 +32,16 @@ public class DefaultActorGennerator extends AbstractErrorRaiseVisitor {
 	}
 	
 	public void doDefaultActorCreation(Block input){
-		super.visit(input);
+		this.visit(input);
 		
 		/*if(!toAdd.isEmpty()){
 			input.addAllClasses(toAdd);
 			toAdd.clear();
 		}*/
 	}
-	
+	public boolean changeMade = false;
 	public void resetRepoints() {
+		changeMade = false;
 	}
 	
 	private HashSet<String> alreadyAdded = new HashSet<String>();
@@ -367,7 +366,7 @@ public class DefaultActorGennerator extends AbstractErrorRaiseVisitor {
 			toAdd.get(currentBlock).add(new Pair<Integer, ClassDef>(namedConstructor.getLine(), defaultActorClass));
 			
 			alreadyAdded.add(name);
-			
+			changeMade=true;
 			namedConstructor.defaultActorName=null;//dont need to create this a second time...
 		}
 		

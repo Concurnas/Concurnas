@@ -7,6 +7,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.cps.analysis.ConcClassWriter;
 
 public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes {
@@ -137,7 +138,7 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 	
 	static byte[] repointToREPLStateHolder(byte[] code, String codeName, String newcodeName, boolean mapProvidedClassName) {
 		ClassReader cr = new ClassReader(code);
-		ClassWriter cw = new ConcClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, null);
+		ClassWriter cw = new ConcClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, new ConcurnasClassLoader().getDetector());
 		REPLCodeRepointStateHolder staticRedirector = new REPLCodeRepointStateHolder(cw, codeName, newcodeName, mapProvidedClassName);
 		cr.accept(staticRedirector, 0);
 		return cw.toByteArray();
