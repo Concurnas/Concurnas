@@ -674,32 +674,67 @@ public class REPLTests {
 		assertEquals("$0 ==> 1212", repl.processInput("new MyActor().thing()"));
 	}
 	
-	*/
-	
-	
 	@Test
 	public void normalTypedActorfwdRef() throws Exception {
-		assertEquals("", repl.processInput("actor MyActor of MyClass"));
+		assertEquals("|  ERROR 1:17 Unable to resolve type corresponding to name: MyClass", repl.processInput("actor MyActor of MyClass"));
+		assertEquals("|    update modified MyActor", repl.processInput("class MyClass{ def thing() => 1212 }"));
+		assertEquals("$0 ==> 1212", repl.processInput("new MyActor().thing()"));
+	}
+	
+		
+	@Test
+	public void normalActor() throws Exception {
 		assertEquals("", repl.processInput("class MyClass{ def thing() => 1212 }"));
+		assertEquals("", repl.processInput("actor MyActor { def thing() => new MyClass().thing() }"));
+		assertEquals("$0 ==> 1212", repl.processInput("new MyActor().thing()"));
+	}
+	
+	@Test
+	public void fwdRefActor() throws Exception {
+		assertEquals("|  ERROR 1:35 Unable to resolve type corresponding to name: MyClass", repl.processInput("actor MyActor { def thing() => new MyClass().thing() }"));
+		assertEquals("|    update modified MyActor", repl.processInput("class MyClass{ def thing() => 1212 }"));
 		assertEquals("$0 ==> 1212", repl.processInput("new MyActor().thing()"));
 	}
 	
 	
-	//only transform if things exist?
+	@Test
+	public void objProviders() throws Exception {
+		
+		
+		assertEquals("", repl.processInput("inject class AgeHolder(age Integer){ override toString() => '{age}'}"));
+		assertEquals("", repl.processInput("inject class User(name String, ah AgeHolder){ override toString() => 'User({name}, {ah})'}"));
+		assertEquals("|    update modified UserProvider", repl.processInput("provider UserProvider{ provide User;  String => 'freddie';   Integer => 22; }"));
+		assertEquals("$0 ==> User(freddie, 22)", repl.processInput("new UserProvider().User()"));
+	}
 	
+	@Test
+	public void moreThanOneDep() throws Exception {
+		assertEquals("|  ERROR 1:15 Expression cannot appear on its own line\n|  ERROR 1:15 Unable to find method with matching name: a\n|  created function toDep()", repl.processInput("def toDep() => a() + b()"));
+		assertEquals("|  created function a()\n|    update modified toDep()", repl.processInput("def a() => 100"));
+		assertEquals("|  created function b()\n|    update modified toDep()", repl.processInput("def b() => 20"));
+		assertEquals("$0 ==> 120", repl.processInput("toDep()"));
+	}
+	
+	
+	*/
 	
 	/*
-	 * TLE:
-	 * 
-	 * actors typed, untyped
-	 * fwd ref: typed, untpyed
-	 * 
-	 * 
-
-
-	//object providers normal and forward ref
-	 * 
-	 */
+	@Test
+	public void objProvidersFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:23 Provide defintion type: User not found", repl.processInput("provider UserProvider{ provide User;  String => 'freddie';   Integer => 22; }"));
+		assertEquals("", repl.processInput("inject class AgeHolder(age Integer){ override toString() => '{age}'}"));
+		assertEquals("|    update modified AgeHolder, UserProvider", repl.processInput("inject class User(name String, ah AgeHolder){ override toString() => 'User({name}, {ah})'}"));
+		assertEquals("$0 ==> User(freddie, 22)", repl.processInput("new UserProvider().User()"));
+	}
+	*/
+	
+	@Test
+	public void moreThanOneDepClass() throws Exception {
+		assertEquals("|  ERROR 1:30 Expression cannot appear on its own line\n|  ERROR 1:30 Unable to find method with matching name: a", repl.processInput("class Maker() { def make() => a() + b() } "));
+		assertEquals("|  created function a()\n|    update modified toDep()", repl.processInput("def a() => 100"));
+		assertEquals("|  created function b()\n|    update modified toDep()", repl.processInput("def b() => 20"));
+		assertEquals("$0 ==> 120", repl.processInput("Maker().make()"));
+	}	
 	
 	
 	

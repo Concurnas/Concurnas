@@ -13545,9 +13545,16 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private GenericType fromNamedTypeToGenericType(Type tt){
 		if(tt instanceof NamedType){
 			NamedType asNamed =(NamedType)tt;
-			if(!asNamed.isGeneric()){
+			if(asNamed.isGeneric()){
 				//on nice its generic use it as that
-				GenericType ret = new GenericType(asNamed.getNamedTypeStr(),0); 
+				GenericType ret = new GenericType(asNamed.getNamedTypeStr(),0);
+				
+				this.maskErrors();
+				Type asGenResolves = (Type)ret.accept(this);
+				if(this.maskedErrors() || asGenResolves == null) {
+					return null;
+				}
+				
 				ret.splicedIn = true;
 				return ret; 
 			}

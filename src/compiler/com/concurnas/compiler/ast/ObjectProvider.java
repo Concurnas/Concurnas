@@ -4,10 +4,11 @@ import java.util.ArrayList;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.runtime.Pair;
 
-public class ObjectProvider extends CompoundStatement implements HasAnnotations {
+public class ObjectProvider extends CompoundStatement implements HasAnnotations, REPLDepGraphComponent {
 	public AccessModifier accessModifier;
 	public String providerName;
 	public ClassDefArgs classDefArgs;
@@ -49,6 +50,10 @@ public class ObjectProvider extends CompoundStatement implements HasAnnotations 
 			return astRedirect.accept(visitor);
 		}
 		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+		
 		return visitor.visit(this);
 	}
 	
@@ -71,5 +76,40 @@ public class ObjectProvider extends CompoundStatement implements HasAnnotations 
 	@Override
 	public Annotations getAnnotations(){
 		return annotations;
+	}
+
+	
+	
+
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return this.providerName;
+	}
+
+	@Override
+	public Type getFuncType() {
+		//tuple of provided?
+		return null;
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
+	}
+	
+	@Override
+	public boolean persistant() { 
+		return true;
 	}
 }

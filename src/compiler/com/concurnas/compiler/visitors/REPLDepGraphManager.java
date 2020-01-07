@@ -17,6 +17,7 @@ import com.concurnas.compiler.ast.FuncInvoke;
 import com.concurnas.compiler.ast.FuncRef;
 import com.concurnas.compiler.ast.ImpliInstance;
 import com.concurnas.compiler.ast.NamedType;
+import com.concurnas.compiler.ast.ObjectProvider;
 import com.concurnas.compiler.ast.REPLDepGraphComponent;
 import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
@@ -129,6 +130,11 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	}
 	
 	@Override
+	public Object visit(ObjectProvider funcDef) {
+		return this.visit((REPLDepGraphComponent)funcDef);
+	}
+	
+	@Override
 	public Object visit(AssignExisting funcDef) {
 		return this.visit((REPLDepGraphComponent)funcDef);
 	}
@@ -181,6 +187,8 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			}
 			
 			super.visit(cd);
+		}else if(comp instanceof ObjectProvider) {
+			super.visit((ObjectProvider)comp);
 		}else if(comp instanceof EnumDef) {
 			super.visit((EnumDef)comp);
 		}else if(comp instanceof AnnotationDef) {
@@ -198,7 +206,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			
 			
 			HashSet<Type> typeDependencies = null;
-			if(comp instanceof ClassDef) {
+			if(comp instanceof ClassDef || comp instanceof ObjectProvider) {
 				HashSet<Type> prevCTDeps = currentTypeDependencies;
 				currentTypeDependencies = new HashSet<Type>();
 				visitSuperREPLGraphComp(comp);
