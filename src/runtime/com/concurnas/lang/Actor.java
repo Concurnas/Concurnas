@@ -208,6 +208,9 @@ public class Actor  implements ReifiedType  {
 	
 	protected void recieve(DefaultRef<Object> ret, Object msg){
 		Function0<?> func = (Function0)msg;
+		
+		//System.err.println("" + func);
+		
 		Object res = func.apply();
 		if(res instanceof DirectlyGettable<?>) {
 			do {

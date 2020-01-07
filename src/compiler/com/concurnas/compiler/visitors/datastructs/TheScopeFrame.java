@@ -980,6 +980,28 @@ public class TheScopeFrame {
 		
 		HashSet<TypeAndLocation> got = this.funcs.get(varname);
 		got.remove(old);
+		
+		if(this.replPrevSessionFuncs != null) {//replace ignoring return type if in repl mode
+			if(!got.isEmpty()) {
+				Type tt = newLoc.getType();
+				if(tt instanceof FuncType) {
+					FuncType wanted = ((FuncType)tt).copyIgnoreReturnType();
+					
+					HashSet<TypeAndLocation> toRemove = new HashSet<TypeAndLocation>();
+					for(TypeAndLocation tal : got) {
+						Type ttx = tal.getType();
+						if(ttx instanceof FuncType) {
+							FuncType ft = (FuncType)ttx;
+							if(wanted.equals(ft.copyIgnoreReturnType())) {
+								toRemove.add(tal);
+							}
+						}
+					}
+					got.removeAll(toRemove);
+				}
+			}
+		}
+		
 		if(isPersisted)
 		{
 			HashSet<TypeAndLocation> got2 = this.funcsSelfRequestor.get(varname);

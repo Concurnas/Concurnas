@@ -16546,7 +16546,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(lh.l instanceof ClassDef && lh.lastLine) {
 				ClassDef cd = (ClassDef)lh.l;
 				if(cd.isActor) {
-					if(cd.classDefArgs==null && cd.classBlock.isEmpty()) {
+					if(cd.classDefArgs==null && cd.classBlock.isEmpty() && !cd.istypedActor) {
 						//convert actor MyClass() => new actor MyClass()
 						int line = cd.getLine();
 						int col = cd.getColumn();

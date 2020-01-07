@@ -34,10 +34,10 @@ public abstract class TaskMaker implements Opcodes{
 		cw.visitInnerClass("com/concurnas/bootstrap/lang/Lambda$Function0", "com/concurnas/bootstrap/lang/Lambda", "Function0", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 		
 		{
-			if(null != newvars) {
+			//if(null != newvars) {
 				fv = cw.visitField(ACC_PRIVATE, "result", "Ljava/lang/String;", null, null);
 				fv.visitEnd();
-			}
+			//}
 			
 			if(hasCmdLineParams) {
 				fv = cw.visitField(ACC_PUBLIC, CMDLineParamsStr, "[Ljava/lang/String;", null, null);
@@ -118,7 +118,7 @@ public abstract class TaskMaker implements Opcodes{
 		
 		
 		
-		if(null != newvars) {
+		//if(null != newvars) {
 			{
 				mv = cw.visitMethod(ACC_PRIVATE + ACC_SYNCHRONIZED, "setResult", "(Ljava/lang/String;)V", null, null);
 				mv.visitCode();
@@ -162,7 +162,7 @@ public abstract class TaskMaker implements Opcodes{
 				mv.visitMaxs(1, 1);
 				mv.visitEnd();
 			}
-		}
+		//}
 		
 		cw.visitEnd();
 

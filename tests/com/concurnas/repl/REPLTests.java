@@ -2,6 +2,8 @@ package com.concurnas.repl;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -159,8 +161,7 @@ public class REPLTests {
 
 	@Test
 	public void fwdVariableDoesNotExistYet() throws Exception {
-		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
-				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  ERROR 1:18 Expression cannot appear on its own line\n|  ERROR 1:18 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
@@ -282,12 +283,13 @@ public class REPLTests {
 	
 	@Test
 	public void funcWithErrorAndOp2() throws Exception {
-		assertEquals("|  ERROR 1:19 numerical operation cannot be performed on type java.lang.String. No overloaded 'minus' operator found for type java.lang.String with signature: '(int)'\n"
-				+ "|  created function foo(java.lang.String)\n"
-				+ "\n"
-				+ "|  java.lang.Error: Unresolved compilation problem\n"
-				+ "|    at foo(line:1)\n"
-				+ "|    at init(line:1)",
+		assertEquals("|  ERROR 1:19 Expression cannot appear on its own line\n" + 
+				"|  ERROR 1:19 numerical operation cannot be performed on type java.lang.String. No overloaded 'minus' operator found for type java.lang.String with signature: '(int)'\n" + 
+				"|  created function foo(java.lang.String)\n" + 
+				"\n" + 
+				"|  java.lang.Error: Unresolved compilation problem\n" + 
+				"|    at foo(line:1)\n" + 
+				"|    at init(line:1)",
 						repl.processInput("def foo(a String) {a - 1}; foo('uh oh')"));//complaints
 	}
 	
@@ -354,16 +356,14 @@ public class REPLTests {
 	@Test
 	public void fwdVarDepVar() throws Exception {
 		assertEquals("", repl.processInput("ab = 10;"));
-		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
-				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  ERROR 1:18 Expression cannot appear on its own line\n|  ERROR 1:18 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
 	}
 	
 	@Test
 	public void fwdVariableDoesNotExistYetAssignNew() throws Exception {
-		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
-				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  ERROR 1:18 Expression cannot appear on its own line\n|  ERROR 1:18 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab int = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
@@ -374,8 +374,7 @@ public class REPLTests {
 	
 	@Test
 	public void fwdVariableDoesNotExistYetAssignMulti() throws Exception {
-		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n"
-				+ "|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
+		assertEquals("|  ERROR 1:18 Expression cannot appear on its own line\n|  ERROR 1:18 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab =bb = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
@@ -421,8 +420,8 @@ public class REPLTests {
 	
 	@Test
 	public void transitiveDeps() throws Exception {
-		assertEquals("|  created function foo(int)\n|  created function bar(int)", repl.processInput("def foo(a int)=> bar(a*2)\ndef bar(a int) => car(a*2)"));
-		assertEquals("|  created function car(int)\n|    update modified bar(int)", repl.processInput("def car(a int) => a+100"));//updates, bar and foo
+		assertEquals("|  ERROR 2:18 Unable to find method with matching name: car\n|  created function foo(int)\n|  created function bar(int)", repl.processInput("def foo(a int)=> bar(a*2)\ndef bar(a int) => car(a*2)"));
+		assertEquals("|  created function car(int)\n|    update modified foo(int)", repl.processInput("def car(a int) => a+100"));//updates, bar and foo
 		assertEquals("$0 ==> 108", repl.processInput("foo(2)"));
 	}
 	
@@ -467,7 +466,7 @@ public class REPLTests {
 	@Test
 	public void typeDefDependsOnAnother() throws Exception {
 		assertEquals("|  WARN 1:0 typedef qualifier is unused in right hand side definition: X\n|  ERROR 1:20 Unable to resolve type corresponding to name: Thing", repl.processInput("typedef MyList<X> = Thing<X>"));
-		assertEquals("|    update modified MyList", repl.processInput("typedef Thing<X> = java.util.ArrayList<X>"));
+		assertEquals("", repl.processInput("typedef Thing<X> = java.util.ArrayList<X>"));
 		assertEquals("|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
 		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
 	}
@@ -475,8 +474,8 @@ public class REPLTests {
 	@Test
 	public void typedefWithFwdRef() throws Exception {
 		assertEquals("|  ERROR 1:22 Unable to resolve type corresponding to name: MyList\n|  created function foo(int)",repl.processInput("def foo(a int) => new MyList<String>(a)"));//updates, bar and foo
-		assertEquals("|    update modified foo(int)", repl.processInput("typedef MyList<X> = Thing<X>"));
-		assertEquals("|    update modified MyList, foo(int)", repl.processInput("typedef Thing<X> = java.util.ArrayList<X>"));
+		assertEquals("|  WARN 1:0 typedef qualifier is unused in right hand side definition: X\n|  ERROR 1:20 Unable to resolve type corresponding to name: Thing", repl.processInput("typedef MyList<X> = Thing<X>"));
+		assertEquals("|    update modified foo(int)", repl.processInput("typedef Thing<X> = java.util.ArrayList<X>"));
 		assertEquals("$0 ==> []", repl.processInput("foo(2)"));
 	}
 	
@@ -549,7 +548,7 @@ public class REPLTests {
 		assertEquals("|  ERROR 1:19 Unable to resolve type corresponding to name: BHolder\n|  ERROR 1:38 b cannot be resolved to a variable\n|  created function getter(java.lang.Object)",
 				repl.processInput("def getter(bholder BHolder)=> bholder.b.thing()"));
 		
-		assertEquals("|    update modified getter(BHolder)",				
+		assertEquals("|  ERROR 1:23 Unable to resolve type corresponding to name: BClz",				
 				repl.processInput("class BHolder(public b BClz)"));
 		
 		assertEquals("|    update modified BHolder, getter(BHolder)",				
@@ -610,67 +609,100 @@ public class REPLTests {
 		assertEquals("|  created function aa()", repl.processInput("def aa() => actor MyClass()"));
 		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
 	}
-	*/
-
 	
+	@Test
+	public void showExceptionsProperly() throws Exception {
+		assertEquals("|  java.lang.Exception: okok\n|    at init(line:1)", repl.processInput("throw new Exception('okok');"));
+		assertEquals("", repl.processInput("a=100;"));
+	}
 	
 	@Test
 	public void actorNormal() throws Exception {
-		/*assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
-		assertEquals("", repl.processInput("aa = actor MyClass()"));
-		assertEquals("$0 ==> 100", repl.processInput("aa.thing()"));*/
-		
-
-		this.repl = new REPL(false, true, true);
-		
-		System.err.println( repl.processInput("class MyClass { def thing() => 100 }"));
-		System.err.println( repl.processInput("aa = actor MyClass();"));
-		System.err.println( repl.processInput("aa.thing()"));
+		assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("", repl.processInput("aa = actor MyClass();"));
+		assertEquals("$0 ==> 100", repl.processInput("aa.thing()"));
 	}
 	
-	
-	
-	
-	/*
 	@Test
-	public void actorNormal() throws Exception {
-		/*assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
-		assertEquals("", repl.processInput("aa = actor MyClass()"));
-		assertEquals("$0 ==> 100", repl.processInput("aa.thing()"));*
-
-		this.repl = new REPL(false, false, false);
-		
-		System.err.println( repl.processInput("class MyClass { def thing() => 100 }"));
-		System.err.println( repl.processInput("aa = actor MyClass();"));
-		System.err.println( repl.processInput("aa.thing()"));
+	public void actorUnknownClass() throws Exception {
+		assertEquals("|  ERROR 1:6 Unable to resolve type corresponding to name: sdfsdf", repl.processInput("aa= { actor sdfsdf() }"));
 	}
+	
+	
+	
+	@Test
+	public void actorNormalViaExsitingClass() throws Exception {
+		assertEquals("|  created function aa()", repl.processInput("def aa(){ actor java.util.ArrayList<String>();}"));
+		assertEquals("$0 ==> 0", repl.processInput("aa().size()"));
+	}
+
+
+	@Test
+	public void actorNormalViaFunc() throws Exception {
+		assertEquals("", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("|  created function aa()", repl.processInput("def aa(){ actor MyClass();}"));
+		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
+	}
+	
+	
+	@Test
+	public void actorFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:10 Unable to resolve type corresponding to name: MyClass\n|  created function aa()", repl.processInput("def aa(){ actor MyClass();}"));
+		assertEquals("|    update modified aa()", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
+	}
+	
+	
+	@Test
+	public void redefineActor() throws Exception {
+		assertEquals("|  ERROR 1:10 Unable to resolve type corresponding to name: MyClass\n|  created function aa()", repl.processInput("def aa(){ actor MyClass();}"));
+		assertEquals("|    update modified aa()", repl.processInput("class MyClass { def thing() => 100 }"));
+		assertEquals("|  redefined function aa()", repl.processInput("def aa(){ actor MyClass();}"));//redefine actor
+		assertEquals("$0 ==> 100", repl.processInput("aa().thing()"));
+	}
+	
+	@Test
+	public void isRefInsideFunc() throws Exception {
+		assertEquals("|  created function syz()", repl.processInput("def syz(){a = {1+2}!; a: }"));
+		assertEquals("$0 ==> 3:", repl.processInput("syz()"));
+	}
+	
+	@Test
+	public void normalTypedActor() throws Exception {
+		assertEquals("", repl.processInput("class MyClass{ def thing() => 1212 }"));
+		assertEquals("", repl.processInput("actor MyActor of MyClass"));
+		assertEquals("$0 ==> 1212", repl.processInput("new MyActor().thing()"));
+	}
+	
 	*/
 	
-	/*
+	
 	@Test
-	public void infloop() throws Exception {
-		this.repl = new REPL(false, false, false);
-		
-		System.err.println( repl.processInput("class MyClass { def thing() => 100 }"));
-		System.err.println( repl.processInput("aa = actor MyClass()"));
+	public void normalTypedActorfwdRef() throws Exception {
+		assertEquals("", repl.processInput("actor MyActor of MyClass"));
+		assertEquals("", repl.processInput("class MyClass{ def thing() => 1212 }"));
+		assertEquals("$0 ==> 1212", repl.processInput("new MyActor().thing()"));
 	}
-	 */
+	
+	
+	//only transform if things exist?
 	
 	
 	/*
 	 * TLE:
 	 * 
-	 * default actor, typed, untyped
-	 * fwd ref: default actor, typed, untpyed
+	 * actors typed, untyped
+	 * fwd ref: typed, untpyed
+	 * 
+	 * 
+
+
+	//object providers normal and forward ref
 	 * 
 	 */
 	
 	
-	//more than one dependency missing - dont double report errors - funcdef
-	//above for classdef
 	
-
-	//object providers
 	
 	
 	//imports + usings
@@ -678,16 +710,77 @@ public class REPLTests {
 	//import fwd ref
 	//import other packages when starting repl
 	
-	//do the /imports command
-	//also: vars, classes, typedefs
+	//import normal, using normal
 	
-	//check isolates work
+	//for dot op, only from start
+	
+	//redefine import (recompile deps)
+	
+	
+	
+	
+	//check top level isolates work
 	/*
 	@Test
-	public void isoRefsNormal() throws Exception {
+	public void isoRefsNormal() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
 		assertEquals("a ==> 3", repl.processInput("a = {1+2}!"));
 	}
 	 */
+	
+	
+	
+	
+	/*
+
+	
+	//do thing where we redefine entire class and redirect to new version
+	 * 
+	 //examine defs see what is changed, and update all deps in graph, then spit output set or redef and redirection
+	
+	
+	@Test
+	public void redefineDepOfClass() throws Exception {
+		assertEquals("|  ERROR 1:33 Unable to resolve type corresponding to name: Maker", repl.processInput("class MyClass{ def make() => new Maker().do() }"));
+		assertEquals("|    update modified MyClass", repl.processInput("class Maker{ def do() => 12 }"));
+		assertEquals("$0 ==> 12", repl.processInput("MyClass().make()"));
+		assertEquals("|    update modified MyClass", repl.processInput("class Maker{ def do() => 13 }"));//redefined depeneency
+		assertEquals("$1 ==> 13", repl.processInput("MyClass().make()"));
+	}
+	
+	
+	*/
+	
+	
+
+	
+	/*
+	@Test
+	public void redefineTrait() throws Exception {
+		assertEquals("|  ERROR 1:0 MyClass cannot resolve reference to trait: MyTrait", repl.processInput("class MyClass ~ MyTrait"));
+		assertEquals("|    update modified MyClass", repl.processInput("trait MyTrait{ def thing() => 12 }"));
+		assertEquals("$0 ==> 12", repl.processInput("MyClass().thing()"));
+		assertEquals("|    update modified MyClass", repl.processInput("trait MyTrait{ def thing() => 13 }"));
+		assertEquals("$0 ==> 13", repl.processInput("MyClass().thing()"));
+	}
+	*/
+	
+	//redefine top level actor, deps
+	//redefine object provider
+	
+
+
+	
+	//more than one dependency missing - dont double report errors - funcdef
+	//above for classdef
+	
+
+	
+
+	
+	//do the /imports command and others
+	//also: vars, classes, typedefs
+	
+
 	
 	//check a <= b + c works
 	/*	
@@ -700,6 +793,11 @@ public class REPLTests {
 	}
 	*/
 	
+	
+
+	//add nice UI - windows and linux
+	
+	
 
 	//the del keyword - del any top level item | deps need to break as approperiate
 		//del a var and recreate
@@ -709,8 +807,6 @@ public class REPLTests {
 	//remove Thing from scope etc
 	
 	
-	
-	//add nice UI - windows and linux
 	
 	//tab completion
 

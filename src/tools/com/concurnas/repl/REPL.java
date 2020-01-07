@@ -218,6 +218,7 @@ public class REPL implements Opcodes {
 	private static SharedConcClassLoader sharedConcClassLoader = new SharedConcClassLoader();//one of these across all MainLoopInstances
 	
 	private REPLExecutor exec = null;
+	private SchedulerRunner sr = null;
 	public REPLExecutor getExecutor() {
 		//return new REPLExecutor(new ConcurnasClassLoader(cpele, ClassPathUtils.getInstallationPath(), sharedConcClassLoader));
 		
@@ -228,8 +229,11 @@ public class REPL implements Opcodes {
 		return exec;
 	}
 	
-	public SchedulerRunner getScheduler(REPLExecutor replExe) throws Throwable {
-		return new SchedulerRunner(replExe, "REPLExe");
+	public SchedulerRunner getScheduler() throws Throwable {
+		if(null == sr) {
+			sr = new SchedulerRunner(exec, "REPLExe");
+		}
+		return sr;
 	}
 	
 	
@@ -393,7 +397,7 @@ public class REPL implements Opcodes {
 				
 				REPLExecutor instanceExecutor = getExecutor();
 				//start scheduler if not already
-				SchedulerRunner sch = getScheduler(instanceExecutor);
+				SchedulerRunner sch = getScheduler();
 				
 				try {
 					{//repoint any other newly created instances
@@ -445,8 +449,8 @@ public class REPL implements Opcodes {
 						}
 					}
 					
-					if(!input.trim().endsWith(";")) {
-						if(newvars != null) {
+					//if(!input.trim().endsWith(";")) {
+						//if(newvars != null) {
 							
 							String got = (String)getMethod(executorTasCls, "getResult", 0).invoke(exeTaObject);
 							
@@ -457,8 +461,8 @@ public class REPL implements Opcodes {
 								
 								output.add(got);
 							}
-						}
-					}
+						//}
+					//}
 					
 					return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 					
@@ -466,7 +470,7 @@ public class REPL implements Opcodes {
 					//TODO: format exception
 					throw e;
 				}finally {
-					sch.stop();
+					//sch.stop();
 				}
 			}
 		}catch(Throwable e) {

@@ -65,6 +65,11 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
 			
 			mv.visitMethodInsn(INVOKESPECIAL, invokerclassName, "setResult", "(Ljava/lang/String;)V", false);
+		}else {
+			mv.visitLabel(new Label());
+			mv.visitVarInsn(ALOAD, 0);
+			mv.visitLdcInsn("");
+			mv.visitMethodInsn(INVOKESPECIAL, invokerclassName, "setResult", "(Ljava/lang/String;)V", false);
 		}
 		mv.visitLabel(end);
 		Label toRet = new Label();

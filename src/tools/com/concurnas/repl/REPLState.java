@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.concurnas.compiler.ast.ClassDefJava;
+import com.concurnas.compiler.ast.REPLDepGraphComponent;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
 import com.concurnas.compiler.visitors.REPLDepGraphManager;
 import com.concurnas.runtime.Pair;
@@ -20,7 +21,8 @@ public class REPLState {
 		public HashMap<Pair<String, Integer>, TypeDefTypeProvider> toptypeDef = new HashMap<Pair<String, Integer>, TypeDefTypeProvider>();
 	}
 	
-	public REPLDepGraphManager replDepGraph = new REPLDepGraphManager();
+	public REPLDepGraphManager replDepGraph = new REPLDepGraphManager(this);
+	public HashSet<REPLDepGraphComponent> topLevelItemsToSkip = new HashSet<REPLDepGraphComponent>();//ignore these in later compilation cycles
 	
 	public REPLTopLevelImports tliCache=new REPLTopLevelImports();
 	

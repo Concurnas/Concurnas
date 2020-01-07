@@ -360,6 +360,12 @@ public class DefaultActorGennerator extends AbstractErrorRaiseVisitor {
 				defaultActorClass.isActorOfClassRef = namedConstructor.actorOfClassRef;//.copyTypeSpecific();
 			}
 			
+			
+			/*
+			 * PrintSourceVisitor visitor = new PrintSourceTestVisitorIndent(); try{
+			 * visitor.visit(defaultActorClass); } catch (Exception e) { throw e; }
+			 */
+			
 			if(!toAdd.containsKey(currentBlock)){
 				toAdd.put(currentBlock, new ArrayList<Pair<Integer, ClassDef>>());
 			}

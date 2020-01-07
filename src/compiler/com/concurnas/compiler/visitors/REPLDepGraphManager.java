@@ -22,6 +22,7 @@ import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.TypedefStatement;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.repl.REPLState;
 import com.concurnas.runtime.Pair;
 
 /*
@@ -31,7 +32,12 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	private HashMap<String, HashSet<REPLDepGraphComponent>> depMap;
 	private HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> topLevelNames;
 	//private ArrayList<REPLDepGraphComponent> topLevelItems;
+	private REPLState replState;
 	
+	public REPLDepGraphManager(REPLState replState) {
+		this.replState = replState;
+	}
+
 	/*
 	 * create dependency map
 	 * trigger recalc for all dependnecies of top level items which have changed on the graph. 'changed':
@@ -71,6 +77,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 		
 		if(!componentsToRefresh.isEmpty()) {
 			componentsToRefresh.forEach(a -> a.setSkippable(false));
+			componentsToRefresh.forEach(a -> this.replState.topLevelItemsToSkip.remove(a));
 			
 			itemsModifiedThisSession.addAll(componentsToRefresh);
 			return true;
@@ -232,7 +239,8 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			isTopLevelItem = prevIsTop;
 			currentDependencies = prevCDeps;
 			
-			comp.setSkippable(true);	
+			this.replState.topLevelItemsToSkip.add(comp);
+			
 		}else {
 			visitSuperREPLGraphComp(comp);
 		}
