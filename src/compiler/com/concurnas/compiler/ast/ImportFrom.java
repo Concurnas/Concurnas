@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import com.concurnas.compiler.visitors.Visitor;
 
-public class ImportFrom extends ImportStatement {
+public class ImportFrom extends ImportStatement implements REPLTopLevelComponent {
 
 	public String from;
 	public ArrayList<ImportAsName> froms = new ArrayList<ImportAsName>();
@@ -26,5 +26,17 @@ public class ImportFrom extends ImportStatement {
 	@Override
 	public Node copyTypeSpecific() {
 		return this;
+	}
+	
+	
+	@Override
+	public ArrayList<String> getNames() {
+		ArrayList<String> ret = new ArrayList<String>();
+		
+		for(ImportAsName iasname : this.froms){
+			ret.add(iasname.asName);
+		}
+		
+		return ret;
 	}
 }

@@ -2379,7 +2379,6 @@ x198returnafuncrefincorrectly.conc line 6:22 Expected to invoke a function refer
 ~~~~~
 //##199 funcref one void but not all
 x199funcrefonevoidbutnotall.conc line 5:7 All method types must either return something or void
-x199funcrefonevoidbutnotall.conc line 5:70 Expression cannot appear on its own line
 x199funcrefonevoidbutnotall.conc line 5:72 b cannot be resolved to a variable
 x199funcrefonevoidbutnotall.conc line 7:22 Expected to invoke a function reference
  
@@ -2572,7 +2571,6 @@ x237bugfixonunknowntype.conc line 4:17 Unable to resolve type corresponding to n
 ~~~~~
 //##238. check local method binding count for both func invoke and references
 x238checklocalmethodbindingcountforbothfuncinvokeandreferences.conc line 10:11 Unable to find method with matching name: getX
-x238checklocalmethodbindingcountforbothfuncinvokeandreferences.conc line 11:1 Expression cannot appear on its own line
 x238checklocalmethodbindingcountforbothfuncinvokeandreferences.conc line 17:11 Unable to find reference function Type for: getX
 x238checklocalmethodbindingcountforbothfuncinvokeandreferences.conc line 24:7 Invalid type void
  
@@ -2589,7 +2587,6 @@ x240moregenericerrorsasparabove.conc line 9:4 Unable to find reference function 
 ~~~~~
 //##241. more local binding errors
 x241morelocalbindingerrors.conc line 13:11 Unable to find method with matching name: getMe
-x241morelocalbindingerrors.conc line 14:1 Expression cannot appear on its own line
 x241morelocalbindingerrors.conc line 20:11 Unable to find reference function Type for: getMe
 x241morelocalbindingerrors.conc line 27:7 Invalid type void
  
@@ -3244,7 +3241,6 @@ x363minorbug.conc line 14:7 Unable to find method with matching name: lefunc
 //##364. ambigious with default params
 x364ambigiouswithdefaultparams.conc line 5:0 Method myFunc with matching argument definition exists already in current Scope when default arguments are ignored
 x364ambigiouswithdefaultparams.conc line 7:0 Method myFunc with matching argument definition exists already in current Scope
-x364ambigiouswithdefaultparams.conc line 12:9 Ambiguous method detected 'myFunc'. More than one direct match made
  
 ~~~~~
 //##365. ambigious with default params constr
@@ -3736,7 +3732,8 @@ x467extensionfunctionsonlycalledonextendee.conc line 19:1 Unable to find method 
 ~~~~~
 //##468. arg clash on ext func duplicate
 x468argclashonextfuncduplicate.conc line 16:0 Method myFunc with matching argument definition exists already in current Scope
- 
+x468argclashonextfuncduplicate.conc line 22:5 Unable to find method with matching name: myFunc
+
 ~~~~~
 //##469. bit shift operations only on integral types
 x469bitshiftoperationsonlyonintegraltypes.conc line 10:15 bit shift operation cannot be performed on type boolean

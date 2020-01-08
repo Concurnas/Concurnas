@@ -3,10 +3,11 @@ package com.concurnas.compiler.ast;
 import java.util.ArrayList;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 
-public class AnnotationDef extends CompoundStatement implements HasAnnotations, REPLDepGraphComponent {
+public class AnnotationDef extends CompoundStatement implements HasAnnotations, REPLTopLevelComponent {
 
 	public ArrayList<AnnotationDefArg> annotationDefArgs;
 	public Annotations annotations;
@@ -40,8 +41,14 @@ public class AnnotationDef extends CompoundStatement implements HasAnnotations, 
 		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
 			return null;
 		}
-		
-		return visitor.visit(this);
+
+		if(visitor instanceof ScopeAndTypeChecker) {
+			this.hasErrors = false;
+		}
+		visitor.pushErrorContext(this);
+		Object ret = visitor.visit(this);
+		visitor.popErrorContext();
+		return ret;
 	}
 
 	@Override
@@ -104,5 +111,26 @@ public class AnnotationDef extends CompoundStatement implements HasAnnotations, 
 	@Override
 	public boolean persistant() { 
 		return true;
+	}
+	
+
+	public boolean hasErrors = false;
+	@Override
+	public void setErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+	@Override
+	public boolean getErrors() {
+		return hasErrors;
+	}
+	
+	private boolean supressErrors = false;
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
 	}
 }

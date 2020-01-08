@@ -1,11 +1,12 @@
 package com.concurnas.compiler.ast;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 
-public class EnumDef extends CompoundStatement implements HasAnnotations, REPLDepGraphComponent {
+public class EnumDef extends CompoundStatement implements HasAnnotations, REPLTopLevelComponent {
 
 	public AccessModifier accessModifier;
 	public String enaumName;
@@ -27,8 +28,14 @@ public class EnumDef extends CompoundStatement implements HasAnnotations, REPLDe
 		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
 			return null;
 		}
-		
-		return visitor.visit(this);
+
+		if(visitor instanceof ScopeAndTypeChecker) {
+			hasErrors = false;
+		}
+		visitor.pushErrorContext(this);
+		Object ret = visitor.visit(this);
+		visitor.popErrorContext();
+		return ret;
 	}
 
 	@Override
@@ -117,5 +124,25 @@ public class EnumDef extends CompoundStatement implements HasAnnotations, REPLDe
 	@Override
 	public boolean persistant() { 
 		return true;
+	}
+
+	public boolean hasErrors = false;
+	@Override
+	public void setErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+	@Override
+	public boolean getErrors() {
+		return hasErrors;
+	}
+	
+	private boolean supressErrors = false;
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
 	}
 }

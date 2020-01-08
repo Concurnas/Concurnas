@@ -268,9 +268,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		public final String somthing;
 		public final Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker;
 		public final WarningVariant wv;
-		public final FuncDef context;
+		public final ArrayList<REPLTopLevelComponent> context;
 		
-		public CapMaskedErrs(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv, FuncDef context){
+		public CapMaskedErrs(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv, ArrayList<REPLTopLevelComponent> context){
 			this.line= line;
 			this.column= column;
 			this.somthing= somthing;
@@ -342,12 +342,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 	}
 	
-	protected Stack<FuncDef> errorLocation = new Stack<FuncDef>();
-	public void pushErrorContext(FuncDef xxx) {
-		errorLocation.push(xxx);
+	protected ArrayList<REPLTopLevelComponent> errorLocation = new ArrayList<REPLTopLevelComponent>();
+	public void pushErrorContext(REPLTopLevelComponent xxx) {
+		errorLocation.add(xxx);
 	}
-	public FuncDef popErrorContext(){
-		return errorLocation.pop();
+	public REPLTopLevelComponent popErrorContext(){
+		return errorLocation.remove(errorLocation.size()-1);
 	}
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
@@ -368,7 +368,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			{
 				if(!currentLineToErr.containsKey(line))
 				{//add if one has not already been assigned
-					currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, somthing, wv, ignorecurrentContext?null:errorLocation.isEmpty()?null:errorLocation.peek()) );
+					currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, somthing, wv, (ignorecurrentContext || wv != null)?null: Utils.tagErrorChain(errorLocation) ) );
 				}
 			}
 		}
@@ -380,7 +380,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 			
 			if(captureMaskedErrors.peek() != null){
-				captureMaskedErrors.peek().add(new CapMaskedErrs(ignorecurrentContext, line, column, somthing, thingsOnLineTracker, wv, (null == wv || errorLocation.isEmpty())?null:errorLocation.peek()));
+				captureMaskedErrors.peek().add(new CapMaskedErrs(ignorecurrentContext, line, column, somthing, thingsOnLineTracker, wv, (null == wv || errorLocation.isEmpty())?null:Utils.tagErrorChain(errorLocation)));
 			}
 		}
 	}
@@ -5439,7 +5439,16 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 				}
 			}else {
-				this.raiseError(line, col, String.format("Cannot import all assets from: %s as it cannot be resolved to a path" , nameSoFar));
+				Package foo = Package.getPackage(nameSoFar);
+				
+				if(null == foo) {
+					this.raiseError(line, col, String.format("Cannot import all assets from: %s as it cannot be resolved to a path" , nameSoFar));
+				}else {//ok foo represents an imported package
+					
+				}
+				
+				
+				
 			}
 		}
 		
@@ -5502,7 +5511,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return hasUsingBeenRegistered(shortname, false);
 	}
 	
-	private <X> boolean hasThingBeenRegistered(Stack<Map<String/*ref anme*/, X> > thing, String shortname, boolean onlyCheckCurrentLevel) {
+	private <X> boolean hasThingBeenRegistered(Stack<Map<String/*ref name*/, X> > thing, String shortname, boolean onlyCheckCurrentLevel) {
 		if(shortname == null){
 			return false;
 		}
@@ -13545,16 +13554,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private GenericType fromNamedTypeToGenericType(Type tt){
 		if(tt instanceof NamedType){
 			NamedType asNamed =(NamedType)tt;
-			if(asNamed.isGeneric()){
-				//on nice its generic use it as that
+			
+			if(!asNamed.isGeneric() && isREPL == null){
+				//try it as a generic param - ignore this when in REPL mode as may be satisfied later
 				GenericType ret = new GenericType(asNamed.getNamedTypeStr(),0);
-				
-				this.maskErrors();
-				Type asGenResolves = (Type)ret.accept(this);
-				if(this.maskedErrors() || asGenResolves == null) {
-					return null;
-				}
-				
 				ret.splicedIn = true;
 				return ret; 
 			}
@@ -17074,12 +17077,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		Type type = new PrimativeType(PrimativeTypeEnum.DOUBLE);
 		varDouble.setTaggedType(type);
 		return type; 
-	}
-
-	@Override
-	public Object visit(UsingStatement usingStatement) {
-		return null; //TODO: remove this
-
 	}
 
 	@Override

@@ -157,16 +157,16 @@ class: [@AnnotOneArg(name = ok cls) @NullStatus(nullable = [])]
 //##35. Inherited annotion works without effort
 fields: []
 methods:[$ConcurnasMetaVersion$: [], clone: [], copy: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], equals: [@NullStatus(nullable = [])], fromBinary: [@Uninterruptible], getGlobalDependancies$: [], hashCode: [@NullStatus(nullable = [])], init: [], init: [], metaBinary: [@Uninterruptible], toBinary: [@Uninterruptible], toBoolean: [], toString: []]
-cons: [[ ; ], [], [], [], [ ;  ; ], [ ;  ;  ; ], [ ;  ; ], [ ; ]]
-con itself: [[], [], [@NullStatus(nullable = [])], [@NullStatus(nullable = [])], [], [], [], []]
+cons: [[], [], [ ; ], [], [ ; ], [ ;  ; ], [ ;  ; ], [ ;  ;  ; ]]
+con itself: [[], [@NullStatus(nullable = [])], [], [@NullStatus(nullable = [])], [], [], [], []]
 class: [@InheritedOne(value = hi) @NullStatus(nullable = [])]
 
 ~~~~~
 //##36. custom annotations
 fields: []
 methods:[$ConcurnasMetaVersion$: [], clone: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], equals: [@NullStatus(nullable = [])], fromBinary: [@Uninterruptible], getGlobalDependancies$: [], hashCode: [@NullStatus(nullable = [])], metaBinary: [@Uninterruptible], toBinary: [@Uninterruptible], toBoolean: [], toString: []]
-cons: [[ ; ], [], [], [ ; ], [ ;  ; ], []]
-con itself: [[], [], [@NullStatus(nullable = [])], [], [], [@NullStatus(nullable = [])]]
+cons: [[], [], [ ; ], [], [ ; ], [ ;  ; ]]
+con itself: [[], [@NullStatus(nullable = [])], [], [@NullStatus(nullable = [])], [], []]
 class: [@MYAnnotation($ConcurnasMetaVersion$ = Concurnas, a = hi, b = 8, c = ok, ff = [1 2 3], getGlobalDependancies$ = []) @NullStatus(nullable = []) @ConcImmutable]
 
 ~~~~~
@@ -283,4 +283,4 @@ class [Z
 
 ~~~~~
 //##64. fiber is a visible parameter 
-[[ ;  ;  ;  ; ], [ ; ], [ ; ], [], [ ;  ; ], [ ;  ; ], [@AnnotOneArg(name = hi) ;  ; ]]
+[[@AnnotOneArg(name = hi) ;  ; ], [ ;  ;  ;  ; ], [ ; ], [ ; ], [], [ ;  ; ], [ ;  ; ]]

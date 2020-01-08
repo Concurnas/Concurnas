@@ -10,7 +10,7 @@ import com.concurnas.compiler.visitors.VectorizedRedirector;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.runtime.Pair;
 
-public class AssignExisting extends Assign implements CanBeInternallyVectorized, AutoVectorizableElements, REPLDepGraphComponent  {
+public class AssignExisting extends Assign implements CanBeInternallyVectorized, AutoVectorizableElements, REPLTopLevelComponent  {
 
 	public Expression assignee;
 	public AssignStyleEnum eq;
@@ -89,8 +89,14 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
 			return null;
 		}
-		
-		return visitor.visit(this);
+
+		if(visitor instanceof ScopeAndTypeChecker) {
+			this.hasErrors = false;
+		}
+		visitor.pushErrorContext(this);
+		Object ret = visitor.visit(this);
+		visitor.popErrorContext();
+		return ret;
 	}
 
 	@Override
@@ -202,5 +208,26 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 	@Override
 	public Type getFuncType() {
 		return this.getTaggedType();
-	}	
+	}
+	
+
+	public boolean hasErrors = false;
+	@Override
+	public void setErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+	@Override
+	public boolean getErrors() {
+		return hasErrors;
+	}
+	
+	private boolean supressErrors = false;
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
+	}
 }

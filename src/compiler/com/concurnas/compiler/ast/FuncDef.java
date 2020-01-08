@@ -10,7 +10,7 @@ import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.runtime.Pair;
 
-public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<FuncDef>, REPLDepGraphComponent  {
+public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<FuncDef>, REPLTopLevelComponent  {
 
 	public String funcName;
 	private String origfuncName;
@@ -199,7 +199,8 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 			return visitor.visit(this);
 		}else {
 			if(visitor instanceof ScopeAndTypeChecker) {
-				this.hasErrors = false;
+				
+				super.hasErrors = false;
 			}
 			visitor.pushErrorContext(this);
 			Object ret = visitor.visit(this);
@@ -358,23 +359,27 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 		return canSkipIterativeCompilation;
 	}
 
-	@Override
-	public void setSkippable(boolean skippable) {
-		if(canSkipIterativeCompilation && !skippable) {//if adjusting to non skippable
-			//if we have already added a synthetic return statement to the end of the funcdef, then remove this since we are going to attempt to re-evaluate the return type
-			if(this.funcblock != null) {
-				LineHolder lh = this.funcblock.getLast();
-				if(null != lh & lh.l instanceof ReturnStatement) {
-					ReturnStatement asRet = (ReturnStatement)lh.l;
-					if(asRet.isSynthetic) {
-						//remove!
-						this.funcblock.lines.remove(this.funcblock.lines.size()-1);
-						if(asRet.ret != null) {//add back in the thing which the return statement pointed to
-							this.funcblock.lines.add(new LineHolder(new DuffAssign(asRet.ret)));
-						}
+	private void resetLastLineIfImplicitReturn() {
+		//if we have already added a synthetic return statement to the end of the funcdef, then remove this since we are going to attempt to re-evaluate the return type
+		if(this.funcblock != null) {
+			LineHolder lh = this.funcblock.getLast();
+			if(null != lh & lh.l instanceof ReturnStatement) {
+				ReturnStatement asRet = (ReturnStatement)lh.l;
+				if(asRet.isSynthetic) {
+					//remove!
+					this.funcblock.lines.remove(this.funcblock.lines.size()-1);
+					if(asRet.ret != null) {//add back in the thing which the return statement pointed to
+						this.funcblock.lines.add(new LineHolder(new DuffAssign(asRet.ret)));
 					}
 				}
 			}
+		}
+	}
+	
+	@Override
+	public void setSkippable(boolean skippable) {
+		if(canSkipIterativeCompilation && !skippable) {//if adjusting to non skippable
+			resetLastLineIfImplicitReturn();
 		}
 		
 		canSkipIterativeCompilation = skippable;
@@ -393,5 +398,24 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 	@Override
 	public boolean persistant() { 
 		return true;
+	}
+
+	@Override
+	public void setErrors(boolean errors) {
+		super.hasErrors = errors;
+	}
+	@Override
+	public boolean getErrors() {
+		return super.hasErrors;
+	}
+
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
 	}
 }

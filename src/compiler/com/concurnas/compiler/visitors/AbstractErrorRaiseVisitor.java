@@ -1,5 +1,6 @@
 package com.concurnas.compiler.visitors;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Stack;
@@ -7,6 +8,7 @@ import java.util.Stack;
 import com.concurnas.compiler.ErrorHolder;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.LineHolder;
+import com.concurnas.compiler.ast.REPLTopLevelComponent;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.interfaces.Expression;
 
@@ -15,12 +17,12 @@ public class AbstractErrorRaiseVisitor extends AbstractVisitor {
 	private final LinkedHashSet<ErrorHolder> errors = new LinkedHashSet<ErrorHolder>();
 	protected final String fullPathFileName;
 	
-	protected Stack<FuncDef> errorLocation = new Stack<FuncDef>();
-	public void pushErrorContext(FuncDef xxx) {
-		errorLocation.push(xxx);
+	protected ArrayList<REPLTopLevelComponent> errorLocation = new ArrayList<REPLTopLevelComponent>();
+	public void pushErrorContext(REPLTopLevelComponent xxx) {
+		errorLocation.add(xxx);
 	}
-	public FuncDef popErrorContext(){
-		return errorLocation.pop();
+	public REPLTopLevelComponent popErrorContext(){
+		return errorLocation.remove(errorLocation.size()-1);
 	}
 	
 	
@@ -81,7 +83,7 @@ public class AbstractErrorRaiseVisitor extends AbstractVisitor {
 		{
 			if(!currentLineToErr.containsKey(line))
 			{//add if one has not already been assigned
-				currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, error, null, errorLocation.isEmpty()?null:errorLocation.peek()  ) );
+				currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, error, null, Utils.tagErrorChain(errorLocation)  ) );
 			}
 		}
 		

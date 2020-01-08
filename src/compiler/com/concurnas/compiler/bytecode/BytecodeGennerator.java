@@ -106,8 +106,8 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		this.typeDirectory = typeDirectory;
 	}
 
-	public void pushErrorContext(FuncDef xxx) {}
-	public FuncDef popErrorContext() {return null;}
+	public void pushErrorContext(REPLTopLevelComponent xxx) {}
+	public REPLTopLevelComponent popErrorContext() {return null;}
 	
 	public LinkedHashMap<String, byte[]> toByteArray() {
 		return nameToBytecode;
@@ -2580,12 +2580,6 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		// but firist you need interfaces, and first you need mixins
 		// TODO Auto-generated method stub - need to have interfaces before we
 		// can do this
-		return null;
-	}
-
-	@Override
-	public Object visit(UsingStatement usingStatement) {
-		// TODO Auto-generated method stub --custom langs?
 		return null;
 	}
 

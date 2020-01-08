@@ -151,7 +151,6 @@ x27contbreaknotoutside.conc line 15:3 break cannot be used outside of a loop, on
 ~~~~~
 //##28. implicit returns must be universal
 x28implicitreturnsmustbeuniversal.conc line 11:2 Expression cannot appear on its own line
-x28implicitreturnsmustbeuniversal.conc line 15:0 Expression cannot appear on its own line
 x28implicitreturnsmustbeuniversal.conc line 19:2 Expression cannot appear on its own line
 x28implicitreturnsmustbeuniversal.conc line 25:4 Invalid type void
  

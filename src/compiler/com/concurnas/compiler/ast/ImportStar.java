@@ -2,7 +2,7 @@ package com.concurnas.compiler.ast;
 
 import com.concurnas.compiler.visitors.Visitor;
 
-public class ImportStar extends ImportStatement {
+public class ImportStar extends ImportStatement implements REPLTopLevelComponent{
 
 	public String from;
 

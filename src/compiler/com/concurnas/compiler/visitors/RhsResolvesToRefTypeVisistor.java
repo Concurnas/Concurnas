@@ -21,8 +21,8 @@ import com.concurnas.compiler.visitors.util.MactchCase;
 //not sure if this is a good idea
 public class RhsResolvesToRefTypeVisistor implements Visitor {
 
-	public void pushErrorContext(FuncDef xxx) {}
-	public FuncDef popErrorContext() {return null;}
+	public void pushErrorContext(REPLTopLevelComponent xxx) {}
+	public REPLTopLevelComponent popErrorContext() {return null;}
 	
 	private AssignExisting theAss;
 	
@@ -396,11 +396,6 @@ public class RhsResolvesToRefTypeVisistor implements Visitor {
 
 	@Override
 	public Object visit(VarDouble varDouble) {
-		return false;
-	}
-
-	@Override
-	public Object visit(UsingStatement usingStatement) {
 		return false;
 	}
 

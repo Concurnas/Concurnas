@@ -34,7 +34,7 @@ import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrors;
 import com.concurnas.compiler.visitors.util.VarAtScopeLevel;
 import com.concurnas.runtime.Pair;
 
-public class ClassDef extends CompoundStatement implements ClassDefI, AttachedScopeFrame, HasAnnotations, REPLDepGraphComponent {
+public class ClassDef extends CompoundStatement implements ClassDefI, AttachedScopeFrame, HasAnnotations, REPLTopLevelComponent {
 
 	public String className;
 	public String packageName = "xxx.package.xxx"; //TODO: implement package tracking
@@ -437,8 +437,14 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
 			return null;
 		}
-		
-		return visitor.visit(this);
+
+		if(visitor instanceof ScopeAndTypeChecker) {
+			this.hasErrors = false;
+		}
+		visitor.pushErrorContext(this);
+		Object ret = visitor.visit(this);
+		visitor.popErrorContext();
+		return ret;
 	}
 
 	@Override
@@ -1446,5 +1452,26 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 	@Override
 	public boolean persistant() { 
 		return true;
+	}
+	
+
+	public boolean hasErrors = false;
+	@Override
+	public void setErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+	@Override
+	public boolean getErrors() {
+		return hasErrors;
+	}
+	
+	private boolean supressErrors = false;
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
 	}
 }

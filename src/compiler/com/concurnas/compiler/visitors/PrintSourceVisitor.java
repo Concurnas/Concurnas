@@ -44,8 +44,8 @@ public class PrintSourceVisitor implements Visitor {
 		}
 	}
 	
-	public void pushErrorContext(FuncDef xxx) {}
-	public FuncDef popErrorContext() {return null;}
+	public void pushErrorContext(REPLTopLevelComponent xxx) {}
+	public REPLTopLevelComponent popErrorContext() {return null;}
 	
 	@Override
 	public Object visit(ArrayDefComplex arrayDefComplex){
@@ -2475,20 +2475,6 @@ public class PrintSourceVisitor implements Visitor {
 		return null;
 	}
 	
-	@Override
-	public Object visit(UsingStatement usingStatement) {
-		//visitList.add("UsingStatement");
-		this.addItem("using");
-		boolean d = false;
-		for(DottedAsName dan : usingStatement.asnames)
-		{
-			dan.accept(this);
-			this.addItemNoPreString(",");
-			d=true;
-		}
-		if(d) popLastItem();
-		return null;
-	}
 
 	@Override
 	public Object visit(VarChar varString) {
