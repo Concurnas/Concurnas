@@ -4478,3 +4478,7 @@ x608errorsconcerninggpuconstants2.conc line 17:1 GPU constant variable: hh may o
 x609constantlikevalnoreassign.conc line 6:1 GPU constant variable: tstdsf may only be defined at top level
 x609constantlikevalnoreassign.conc line 10:1 Variable sdf has been decalred as constant and cannot be reassigned
 x609constantlikevalnoreassign.conc line 14:1 Variable sdf has been decalred as constant and cannot be reassigned
+
+~~~~~
+//##610. import star scopes
+bytecodeSandbox.conc line 8:8 Unable to resolve type corresponding to name: ArrayList

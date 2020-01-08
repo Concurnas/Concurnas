@@ -777,14 +777,13 @@ public class REPLTests {
 		assertEquals("", repl.processInput("import java.util.ArrayList"));
 		assertEquals("$0 ==> []", repl.processInput("new ArrayList<String>()"));
 	}
+	
 	@Test
 	public void importImportFwdRef() throws Exception {
 		assertEquals("|  ERROR 1:19 Unable to resolve type corresponding to name: ArrayList\n|  created function thing()", repl.processInput("def thing() => new ArrayList<String>()"));
 		assertEquals("|    update modified thing()", repl.processInput("import java.util.ArrayList"));
 		assertEquals("$0 ==> []", repl.processInput("thing()"));
 	}
-	*/
-	
 	
 	@Test
 	public void normalImportStar() throws Exception {
@@ -792,27 +791,58 @@ public class REPLTests {
 		assertEquals("$0 ==> []", repl.processInput("new ArrayList<String>()"));
 	}
 	
-	/*
+
 	@Test
 	public void normalImportStarRedef() throws Exception {
 		assertEquals("", repl.processInput("import java.util.*"));
 		assertEquals("", repl.processInput("import java.util.*"));
 		assertEquals("$0 ==> []", repl.processInput("new ArrayList<String>()"));
 	}
+	
 	@Test
 	public void importStarFwdRef() throws Exception {
 		assertEquals("|  ERROR 1:19 Unable to resolve type corresponding to name: ArrayList\n|  created function thing()", repl.processInput("def thing() => new ArrayList<String>()"));
 		assertEquals("|    update modified thing()", repl.processInput("import java.util.*"));
 		assertEquals("$0 ==> []", repl.processInput("thing()"));
 	}
+	
 	*/
+	
+	@Test
+	public void normalImportStarStaticImports() throws Exception {
+		assertEquals("", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
+		assertEquals("$0 ==> []", repl.processInput("[anInteger afunction()]"));
+	}
+	
+
+	/*
+	@Test
+	public void normalImportStarRedefStaticImports() throws Exception {
+		assertEquals("", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
+		assertEquals("", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
+		assertEquals("$0 ==> []", repl.processInput("[anInteger afunction()]"));
+	}
+	
+	@Test
+	public void importStarFwdRefStaticImports() throws Exception {
+		assertEquals("|  ERROR 1:19 Unable to resolve type corresponding to name: ArrayList\n|  created function thing()", repl.processInput("def thing() => [anInteger afunction()]"));
+		assertEquals("|    update modified thing()", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
+		assertEquals("$0 ==> []", repl.processInput("thing()"));
+	}
+	*/
+	
+	
+	/*
+	
+
+	def thing() => "ok" + 
+	 */
 	
 	
 	//import star fwd ref
 	
 	//for dot op, only from start
 	
-	//redefine import (recompile deps)
 	
 	
 	
@@ -826,6 +856,36 @@ public class REPLTests {
 	 */
 	
 	
+
+	
+	//check a <= b + c works
+	/*	
+	
+	@Test
+	public void isoRefsNormal() throws Exception {
+		assertEquals("", repl.processInput("a := 1;"));
+		assertEquals("", repl.processInput("b := 1;"));
+		assertEquals("", repl.processInput("c <= b + b"));
+	}
+	*/
+	
+	
+
+	//the del keyword - del any top level item | deps need to break as approperiate
+		//del a var and recreate
+	//del a function
+	//del other top level elements
+	//del Thing | where Thing is a class and also a Var
+	//remove Thing from scope etc
+	
+
+	//do the /imports command and others
+	//also: vars, classes, typedefs
+	
+	//|  createed tsdf() => should be on verbose mode only? 
+	
+
+	//add nice UI - windows and linux
 	
 	
 	/*
@@ -868,50 +928,22 @@ public class REPLTests {
 
 
 	
-	//more than one dependency missing - dont double report errors - funcdef
-	//above for classdef
 	
 
 	
 
 	
-	//do the /imports command and others
-	//also: vars, classes, typedefs
-	
 
-	
-	//check a <= b + c works
-	/*	
-	
-	@Test
-	public void isoRefsNormal() throws Exception {
-		assertEquals("", repl.processInput("a := 1;"));
-		assertEquals("", repl.processInput("b := 1;"));
-		assertEquals("", repl.processInput("c <= b + b"));
-	}
-	*/
 	
 	
 
-	//add nice UI - windows and linux
-	
-	
-
-	//the del keyword - del any top level item | deps need to break as approperiate
-		//del a var and recreate
-	//del a function
-	//del other top level elements
-	//del Thing | where Thing is a class and also a Var
-	//remove Thing from scope etc
-	
 	
 	
 	//tab completion
 
 	//import class/jar to classpath - still start in repl mode
 	
-	//|  createed tsdf() => should be on verbose mode only? 
-	
+
 	//cntlr+c etc
 	//terminations
 	

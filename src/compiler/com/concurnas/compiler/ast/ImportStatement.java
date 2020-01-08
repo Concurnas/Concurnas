@@ -52,5 +52,4 @@ public abstract class ImportStatement extends Statement implements REPLTopLevelC
 	public Type getFuncType() {
 		return null;
 	}
-	
 }

@@ -843,3 +843,12 @@ fine
 ~~~~~
 //##209. bug on tuplederef within for loop
 [[4, 5, 6], [1, 2, 3]]
+
+~~~~~
+//##210. import star class
+ok[]
+
+~~~~~
+//##211. import star static assets
+ok[12 112]
+

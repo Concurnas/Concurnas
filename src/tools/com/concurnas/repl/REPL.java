@@ -428,7 +428,10 @@ public class REPL implements Opcodes {
 					sch.invokeScheudlerTask(exeTaObject);	
 					
 					if(!newfuncs.isEmpty()) {
-						output.add(processNewFuncsDefined(newfuncs));
+						String toAdd = processNewFuncsDefined(newfuncs);
+						if(!toAdd.equals("")) {
+							output.add(toAdd);
+						}
 					}
 					
 					removeTopLevelItemsFromUpdateSet(newTopLevelItemsDeclared, depsUpdated);
@@ -522,30 +525,33 @@ public class REPL implements Opcodes {
 	private String processNewFuncsDefined(List<Pair<REPLTopLevelComponent, Boolean>> newfuncs) {
 		StringBuilder sb = new StringBuilder();
 		for(Pair<REPLTopLevelComponent, Boolean> itemx : newfuncs) {
-			boolean isNew = itemx.getB();
-			
 			REPLTopLevelComponent comp = itemx.getA();
-			sb.append("|  ");
-			if(isNew) {
-				sb.append("created ");
-				comp.setSupressErrors(true);
-			}else {
-				sb.append("redefined ");
-			}
+			boolean isNew = itemx.getB();
+			String formattedName = formatTopLevelElement(comp);
 			
-			if(comp instanceof FuncDef) {
-				FuncDef funcDef = (FuncDef)comp;
-				if(funcDef.extFunOn == null) {
-					sb.append("function ");
+			if(null != formattedName) {
+				sb.append("|  ");
+				if(isNew) {
+					sb.append("created ");
+					comp.setSupressErrors(true);
 				}else {
-					sb.append("extension function ");
-					sb.append(funcDef.extFunOn.toString());
-					sb.append('.');
+					sb.append("redefined ");
 				}
+				
+				if(comp instanceof FuncDef) {
+					FuncDef funcDef = (FuncDef)comp;
+					if(funcDef.extFunOn == null) {
+						sb.append("function ");
+					}else {
+						sb.append("extension function ");
+						sb.append(funcDef.extFunOn.toString());
+						sb.append('.');
+					}
+				}
+				
+				sb.append(formattedName);
+				sb.append('\n');
 			}
-			
-			sb.append(formatTopLevelElement(comp));
-			sb.append('\n');
 		}
 		
 		return sb.toString().trim();

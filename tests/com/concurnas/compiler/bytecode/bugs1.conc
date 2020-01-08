@@ -3960,3 +3960,19 @@ def doings(){
 	
 	"" + [res1, res2]
 }
+
+~~~~~
+//##210. import star class
+from java.util import *
+
+def doings(){
+	"ok" + new ArrayList<String>()
+}
+
+~~~~~
+//##211. import star static assets
+from com.concurnas.lang.precompiled.ImportStar import *
+
+def doings(){
+	"ok" + [anInteger afunction()]
+}

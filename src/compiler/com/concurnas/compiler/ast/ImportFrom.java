@@ -28,7 +28,6 @@ public class ImportFrom extends ImportStatement implements REPLTopLevelComponent
 		return this;
 	}
 	
-	
 	@Override
 	public ArrayList<String> getNames() {
 		ArrayList<String> ret = new ArrayList<String>();

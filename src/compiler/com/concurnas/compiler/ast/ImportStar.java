@@ -1,8 +1,10 @@
 package com.concurnas.compiler.ast;
 
+import java.util.ArrayList;
+
 import com.concurnas.compiler.visitors.Visitor;
 
-public class ImportStar extends ImportStatement implements REPLTopLevelComponent{
+public class ImportStar extends ImportStatement{
 
 	public String from;
 
@@ -20,4 +22,13 @@ public class ImportStar extends ImportStatement implements REPLTopLevelComponent
 	public Node copyTypeSpecific() {
 		return this;
 	}
+	
+	/*
+	 * public ArrayList<String> getNames(){ ArrayList<String> ret = new
+	 * ArrayList<String>(); ret.add(from + ".*"); return ret; }
+	 */
+	
+
+	@Override
+	public boolean persistant() { return true;}
 }

@@ -9,6 +9,7 @@ import com.concurnas.compiler.ast.ClassDefJava;
 import com.concurnas.compiler.ast.REPLTopLevelComponent;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
 import com.concurnas.compiler.visitors.REPLDepGraphManager;
+import com.concurnas.compiler.visitors.util.ImportStarUtil.PackageOrClass;
 import com.concurnas.runtime.Pair;
 
 public class REPLState {
@@ -19,6 +20,7 @@ public class REPLState {
 		public Set<String> toprawImports = new HashSet<String>();
 		public Set<String> toprawUsings = new HashSet<String>();
 		public HashMap<Pair<String, Integer>, TypeDefTypeProvider> toptypeDef = new HashMap<Pair<String, Integer>, TypeDefTypeProvider>();
+		public HashSet<PackageOrClass> topImportStar = new HashSet<PackageOrClass>();
 	}
 	
 	public REPLDepGraphManager replDepGraph = new REPLDepGraphManager(this);

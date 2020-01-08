@@ -15912,3 +15912,12 @@ def doings(){
 	"ok"
 }
 
+~~~~~
+//##610. import star scopes
+def doings(){
+	from java.util import *
+	"ok" + new ArrayList<String>()//ok
+}
+
+x = new ArrayList<String>()//complain still
+

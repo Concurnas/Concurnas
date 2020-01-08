@@ -26,6 +26,7 @@ import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.TypedefStatement;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.util.ImportStarUtil;
 import com.concurnas.repl.REPLState;
 import com.concurnas.runtime.Pair;
 
@@ -37,6 +38,10 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	private HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> topLevelNames;
 	//private ArrayList<REPLDepGraphComponent> topLevelItems;
 	private REPLState replState;
+	
+
+	private HashSet<ImportStarUtil.PackageOrClass> prevtopLevelImportStar = new HashSet<ImportStarUtil.PackageOrClass>();
+	private HashSet<ImportStarUtil.PackageOrClass> topLevelImportStar;
 	
 	public REPLDepGraphManager(REPLState replState) {
 		this.replState = replState;
@@ -51,6 +56,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	public boolean updateDepGraph(Block lexedAndParsedAST) {
 		//update graph
 		depMap = new HashMap<String, HashSet<REPLTopLevelComponent>>();
+		topLevelImportStar = new HashSet<ImportStarUtil.PackageOrClass>();
 		
 		HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> prevtopLevelItems = new HashMap<String, HashSet<Pair<Type, HashSet<Type>>>>();
 		if(null != topLevelNames) {
@@ -77,6 +83,25 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			if(null != toAdd) {
 				componentsToRefresh.addAll(toAdd);
 			}
+		}
+		
+		if(!topLevelImportStar.isEmpty()) {
+			//only process new items since last iteration
+			HashSet<ImportStarUtil.PackageOrClass> toproc = new HashSet<ImportStarUtil.PackageOrClass>(topLevelImportStar);
+			toproc.removeAll(prevtopLevelImportStar);
+			
+			for(ImportStarUtil.PackageOrClass inst : toproc) {
+				//see if any dependencies from any non-already-included dependencies can be satisfied by this instance, if so tag them for inclusion
+				for(String dep : depMap.keySet()) {
+					if(!dep.contains(".")) {
+						if(null != inst.getResource(dep)) {
+							componentsToRefresh.addAll(depMap.get(dep));
+						}
+					}
+				}
+			}
+			
+			prevtopLevelImportStar = topLevelImportStar;
 		}
 		
 		if(!componentsToRefresh.isEmpty()) {
@@ -177,9 +202,31 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	public Object visit(ImportImport annotDef){
 		return this.visit((REPLTopLevelComponent)annotDef);
 	}
+	
+	
 	@Override
-	public Object visit(ImportStar annotDef){
-		return this.visit((REPLTopLevelComponent)annotDef);
+	public Object visit(ImportStar importStar){
+		if(isTopLevelItem) {//copy paste yuck
+			String nameSoFar = importStar.from;
+			boolean isPackage = Package.getPackage(nameSoFar) != null;
+			
+			Class<?> isClass = null;
+			try {
+				isClass = Class.forName(nameSoFar);
+			}catch(ClassNotFoundException cnf) {
+				
+			}
+			
+			if(isPackage) {
+				topLevelImportStar.add(new ImportStarUtil.PackageIS(nameSoFar));
+			}
+			
+			if(null != isClass) {
+				topLevelImportStar.add(new ImportStarUtil.ClassIS(isClass));
+			}
+		}
+		
+		return null;
 	}
 	
 	

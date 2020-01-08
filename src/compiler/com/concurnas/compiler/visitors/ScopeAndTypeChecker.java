@@ -91,6 +91,8 @@ import com.concurnas.compiler.visitors.util.CastCheck;
 import com.concurnas.compiler.visitors.util.ConstArg;
 import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrors;
 import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrorsAndLogProblem;
+import com.concurnas.compiler.visitors.util.ImportStarUtil;
+import com.concurnas.compiler.visitors.util.ImportStarUtil.PackageOrClass;
 import com.concurnas.compiler.visitors.util.LanguageExtensionRunner;
 import com.concurnas.compiler.visitors.util.MactchCase;
 import com.concurnas.compiler.visitors.util.MiscUtils;
@@ -5439,19 +5441,28 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 				}
 			}else {
-				Package foo = Package.getPackage(nameSoFar);
+				boolean isPackage = Package.getPackage(nameSoFar) != null;
 				
-				if(null == foo) {
-					this.raiseError(line, col, String.format("Cannot import all assets from: %s as it cannot be resolved to a path" , nameSoFar));
-				}else {//ok foo represents an imported package
+				Class<?> isClass = null;
+				try {
+					isClass = Class.forName(nameSoFar);
+				}catch(ClassNotFoundException cnf) {
 					
 				}
 				
+				if(isPackage) {
+					this.importStar.peek().add(new ImportStarUtil.PackageIS(nameSoFar));
+				}
 				
+				if(null != isClass) {
+					this.importStar.peek().add(new ImportStarUtil.ClassIS(isClass));
+				}
 				
+				if(!isPackage && null == isClass) {
+					this.raiseError(line, col, String.format("Cannot import all assets from: %s as it cannot be resolved to a path" , nameSoFar));
+				}
 			}
 		}
-		
 		
 		return null;
 	}
@@ -5460,6 +5471,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	
 	private Stack<Map<String, String> > scopedshortNameToLongNameaa = UncallableMethods.cloneAutoImports();  //bootstrap from the auto imported stuff
+	private Stack<HashSet<PackageOrClass>> importStar = new Stack<HashSet<PackageOrClass>>();  //bootstrap from the auto imported stuff
 	private Stack<Map<String, ClassDefJava> > scopedshortNameToLongNameaaUsing = new Stack<Map<String, ClassDefJava> >();
 	private HashMap<String, ClassDefJava> precompiledBytecodeExistsCache = new HashMap<String, ClassDefJava>();
 	private Stack<Set<String> > rawImports = new Stack<Set<String>>();  
@@ -5469,6 +5481,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private void enterScopedNameMapREPL() {
 		REPLTopLevelImports topL = this.isREPL.tliCache;
 			scopedshortNameToLongNameaa.add(new HashMap<String, String>(topL.topshortNameToLong));
+			importStar.add(new HashSet<PackageOrClass>());
 			scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>(topL.topshortNameToLongUsing));
 			rawImports.add(new HashSet<String>(topL.toprawImports));
 			rawUsings.add(new HashSet<String>(topL.toprawUsings));
@@ -5478,6 +5491,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private void enterScopedNameMap()
 	{
 		scopedshortNameToLongNameaa.add(new HashMap<String, String>());
+		importStar.add(new HashSet<PackageOrClass>());
 		scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>());
 		rawImports.add(new HashSet<String>());
 		rawUsings.add(new HashSet<String>());
@@ -5488,6 +5502,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void leaveScopedNameMapREPL() {
 		replLastTopLevelImports.topshortNameToLong = scopedshortNameToLongNameaa.pop();
+		replLastTopLevelImports.topImportStar = importStar.pop();
 		replLastTopLevelImports.topshortNameToLongUsing = scopedshortNameToLongNameaaUsing.pop();
 		replLastTopLevelImports.toprawImports = rawImports.pop();
 		replLastTopLevelImports.toprawUsings = rawUsings.pop();
@@ -5497,6 +5512,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private void leaveScopedNameMap()
 	{
 		scopedshortNameToLongNameaa.pop();
+		importStar.pop();
 		scopedshortNameToLongNameaaUsing.pop();
 		rawImports.pop();
 		rawUsings.pop();
@@ -5511,7 +5527,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return hasUsingBeenRegistered(shortname, false);
 	}
 	
-	private <X> boolean hasThingBeenRegistered(Stack<Map<String/*ref name*/, X> > thing, String shortname, boolean onlyCheckCurrentLevel) {
+	private <X> boolean hasThingBeenRegistered(Stack<Map<String/*ref name*/, X> > thing, boolean alsoCheckStarImport, String shortname, boolean onlyCheckCurrentLevel) {
 		if(shortname == null){
 			return false;
 		}
@@ -5527,24 +5543,50 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				break; //so false
 			}
 		}
+		
+		if(alsoCheckStarImport) {
+			for(int pos = importStar.size()-1; pos >=0; pos--){
+				HashSet<PackageOrClass> pocs = importStar.get(pos);
+				for(PackageOrClass poc : pocs) {
+					if(poc.getResource(shortname) != null) {
+						return true;
+					}
+				}
+				
+				if(onlyCheckCurrentLevel){
+					break; //so false
+				}
+			}
+		}
+		
+		
 		return false;
 	}
 	
 	private boolean hasImportBeenRegistered(String shortname, boolean onlyCheckCurrentLevel) {
-		return hasThingBeenRegistered(scopedshortNameToLongNameaa, shortname, onlyCheckCurrentLevel);
+		return hasThingBeenRegistered(scopedshortNameToLongNameaa, true, shortname, onlyCheckCurrentLevel);
 	}
 	
 	private boolean hasUsingBeenRegistered(String shortname, boolean onlyCheckCurrentLevel) {
-		return hasThingBeenRegistered(scopedshortNameToLongNameaaUsing, shortname, onlyCheckCurrentLevel);
+		return hasThingBeenRegistered(scopedshortNameToLongNameaaUsing, false, shortname, onlyCheckCurrentLevel);
 	}
 	
-	public String getImportBeenRegistered(String shortname)
-	{
+	public String getImportBeenRegistered(String shortname){
 		for(int pos = scopedshortNameToLongNameaa.size()-1; pos >=0; pos--){
 			Map<String/*ref anme*/, String> level = scopedshortNameToLongNameaa.get(pos);
 			
 			if(level.containsKey(shortname)){
 				return  level.get(shortname);
+			}
+		}
+
+		for(int pos = importStar.size()-1; pos >=0; pos--){
+			HashSet<PackageOrClass> pocs = importStar.get(pos);
+			for(PackageOrClass poc : pocs) {
+				String haz = poc.getResource(shortname);
+				if(haz != null) {
+					return haz;
+				}
 			}
 		}
 		
