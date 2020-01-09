@@ -1,6 +1,6 @@
 package com.concurnas.conc;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -12,11 +12,11 @@ public abstract class TaskMaker implements Opcodes{
 
 	protected String classBeingTested;
 	protected String invokerclassName;
-	protected HashSet<String> newvars;
+	protected Set<String> newvars;
 	protected boolean hasCmdLineParams;
 	public static final String CMDLineParamsStr = "cmdLineParams";
 
-	public TaskMaker(String invokerclassName, String classBeingTested, HashSet<String> newvars, boolean hasCmdLineParams){
+	public TaskMaker(String invokerclassName, String classBeingTested, Set<String> newvars, boolean hasCmdLineParams){
 		this.invokerclassName = invokerclassName;
 		this.classBeingTested = classBeingTested;
 		this.newvars = newvars;

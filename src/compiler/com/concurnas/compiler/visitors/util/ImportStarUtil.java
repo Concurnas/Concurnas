@@ -69,7 +69,7 @@ public class ImportStarUtil {
 
 		@Override
 		public boolean equals(Object an) {
-			if(an instanceof PackageIS) {
+			if(an instanceof ClassIS) {
 				ClassIS cis = (ClassIS)an;
 				return cis.cls.equals(this.cls);
 			}

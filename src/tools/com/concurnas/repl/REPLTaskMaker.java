@@ -1,7 +1,7 @@
 package com.concurnas.repl;
 
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -13,7 +13,7 @@ import com.concurnas.conc.TaskMaker;
 public class REPLTaskMaker extends TaskMaker implements Opcodes{
 
 
-	public REPLTaskMaker(String invokerclassName, String classBeingTested, HashSet<String> newvars){
+	public REPLTaskMaker(String invokerclassName, String classBeingTested, Set<String> newvars){
 		super(invokerclassName, classBeingTested, newvars, false);
 	}
 		

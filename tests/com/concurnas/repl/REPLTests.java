@@ -65,7 +65,8 @@ public class REPLTests {
 	
 	@Test
 	public void createTwoVars() throws Exception {
-		assertEquals("x ==> 10\ny ==> 30", repl.processInput("x = 10; y = 30"));
+		assertEquals("y ==> 30", repl.processInput("x = 10; y = 30"));
+		assertEquals("x ==> 10", repl.processInput("x"));
 	}
 	
 	@Test
@@ -123,7 +124,7 @@ public class REPLTests {
 	
 	@Test
 	public void varsPrintInOrder() throws Exception {
-		assertEquals("a ==> 2\nf ==> 9\nz ==> 9", repl.processInput("z=9; f=9; a=2"));
+		assertEquals("a ==> 2", repl.processInput("z=9; f=9; a=2"));
 	}
 	
 
@@ -497,11 +498,10 @@ public class REPLTests {
 	}
 	
 	@Test
-	public void varWithRHSDepInvalid() throws Exception {
-	//no, this cannot work, tle vars dont permit fwd refs
+	public void varFwdRef() throws Exception {
 		assertEquals("|  ERROR 1:5 Unable to find method with matching name: thing", repl.processInput("v1 = thing()"));
 		assertEquals("|  created function thing()",repl.processInput("def thing() => 1231"));//updates, bar and foo
-		assertEquals("|  ERROR 1:0 Expression cannot appear on its own line",repl.processInput("v1"));
+		assertEquals("v1 ==> []",repl.processInput("v1"));
 	}
 	
 	@Test
@@ -806,71 +806,103 @@ public class REPLTests {
 		assertEquals("$0 ==> []", repl.processInput("thing()"));
 	}
 	
-	*/
-	
 	@Test
 	public void normalImportStarStaticImports() throws Exception {
 		assertEquals("", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
-		assertEquals("$0 ==> []", repl.processInput("[anInteger afunction()]"));
+		assertEquals("$0 ==> [12 112]", repl.processInput("[anInteger afunction()]"));
 	}
 	
 
-	/*
 	@Test
 	public void normalImportStarRedefStaticImports() throws Exception {
 		assertEquals("", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
 		assertEquals("", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
-		assertEquals("$0 ==> []", repl.processInput("[anInteger afunction()]"));
+		assertEquals("$0 ==> [12 112]", repl.processInput("[anInteger afunction()]"));
 	}
 	
 	@Test
 	public void importStarFwdRefStaticImports() throws Exception {
-		assertEquals("|  ERROR 1:19 Unable to resolve type corresponding to name: ArrayList\n|  created function thing()", repl.processInput("def thing() => [anInteger afunction()]"));
+		assertEquals("|  ERROR 1:16 anInteger cannot be resolved to a variable\n|  created function thing()", repl.processInput("def thing() => [anInteger afunction()]"));
 		assertEquals("|    update modified thing()", repl.processInput("from com.concurnas.lang.precompiled.ImportStar import *"));
-		assertEquals("$0 ==> []", repl.processInput("thing()"));
+		assertEquals("$0 ==> [12 112]", repl.processInput("thing()"));
+	}
+	
+	
+	
+	
+	@Test
+	public void isoNewRef() throws Exception {
+		assertEquals("a ==> 3:", repl.processInput("a int:= {1+2}!"));
+		assertEquals("a ==> 3:", repl.processInput("a"));
+		assertEquals("b ==> 3:", repl.processInput("b int:= {10+2}!; b"));
+		assertEquals("", repl.processInput("c int:= {100+2}!;"));
+		assertEquals("", repl.processInput("d1 int:= {100+2}!; d2 = 99;"));
+		assertEquals("a ==> 3:", repl.processInput("c int:= {100+2}!; a"));
+		assertEquals("z1 ==> 33\nz2 ==> 33", repl.processInput("z1=z2=33"));
+	}
+	
+	@Test
+	public void isoNewRef2() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
+		assertEquals("a ==> 3:", repl.processInput("a int:= {1+2}!; a"));
+		assertEquals("b ==> 3:", repl.processInput("b int:= {1+2}!"));
+		assertEquals("$0 ==> 3", repl.processInput("a:get()"));
+		assertEquals("$1 ==> 3", repl.processInput("c int:= {1+2}!; c:get()"));
+	}
+	
+	*/
+	
+	/*
+	@Test
+	public void isoNewRefExisting() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
+		assertEquals("b ==> 3:", repl.processInput("b = {1+2}!"));
+		assertEquals("a ==> 3:", repl.processInput("a = {1+2}!; a"));
+		assertEquals("$0 ==> 3", repl.processInput("a:get()"));
+		assertEquals("$1 ==> 3", repl.processInput("c = {1+2}!; c:get()"));
 	}
 	*/
 	
 	
-	/*
-	
-
-	def thing() => "ok" + 
-	 */
 	
 	
-	//import star fwd ref
-	
-	//for dot op, only from start
-	
-	
-	
-	
-	
-	//check top level isolates work
-	/*
 	@Test
-	public void isoRefsNormal() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
-		assertEquals("a ==> 3", repl.processInput("a = {1+2}!"));
+	public void isoNewRefExisting() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
+		//assertEquals("a ==> 3", repl.processInput("a = {1+2}!"));
+
+		this.repl = new REPL(false, true, false);
+		
+		System.err.println( repl.processInput("a = {1+2}!"));
 	}
-	 */
+	
+	
+	
 	
 	
 
 	
 	//check a <= b + c works
-	/*	
-	
+	/*
 	@Test
-	public void isoRefsNormal() throws Exception {
+	public void onchangeInFunc() throws Exception {
 		assertEquals("", repl.processInput("a := 1;"));
 		assertEquals("", repl.processInput("b := 1;"));
-		assertEquals("", repl.processInput("c <= b + b"));
-	}
+		assertEquals("|  created function thing()", repl.processInput("def thing() {c <= a + b; c:}"));
+		assertEquals("c ==> 2:", repl.processInput("c = thing()"));
+		assertEquals("c ==> 2:", repl.processInput("a = 10"));
+		assertEquals("c ==> 11:", repl.processInput("c"));
+	}	
+	
+	@Test
+	public void onChangeTopLevel() throws Exception {
+		assertEquals("", repl.processInput("a := 1;"));
+		assertEquals("", repl.processInput("b := 1;"));
+		assertEquals("", repl.processInput("c <= a+b"));
+	}	
 	*/
 	
 	
-
+	
+	//do del last
+	
 	//the del keyword - del any top level item | deps need to break as approperiate
 		//del a var and recreate
 	//del a function

@@ -606,7 +606,8 @@ public class BytecodeOutputter implements Opcodes {
 		// GETSTATIC bytecodeSandbox flipper Lcom/concurnas/runtime/ref/Local;
 		// PUTFIELD bytecodeSandbox$SubMyClass f Ljava/lang/String;
 		//GETFIELD bytecodeSandbox$bytecodeSandbox$$onChange0$SO.lastVal$n1 : Ljava/lang/Integer;
-		if (dowhat == GETFIELD && fullModuleAndClassName.equals("bytecodeSandbox$bytecodeSandbox$$onChange0$SO") && name.equals("a$n1")) {
+		//GETSTATIC repl$.a : Lcom/concurnas/runtime/ref/Local;
+		if (dowhat == GETSTATIC && fullModuleAndClassName.equals("repl$") && name.equals("a")) {
 			int g = 9;
 		}
 

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,9 @@ import com.concurnas.compiler.LexParseErrorCapturer;
 import com.concurnas.compiler.MainLoop;
 import com.concurnas.compiler.ModuleCompiler;
 import com.concurnas.compiler.SchedulerRunner;
+import com.concurnas.compiler.ast.Assign;
 import com.concurnas.compiler.ast.AssignExisting;
+import com.concurnas.compiler.ast.AssignMulti;
 import com.concurnas.compiler.ast.AssignNew;
 import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
@@ -36,6 +39,7 @@ import com.concurnas.compiler.ast.Line;
 import com.concurnas.compiler.ast.LineHolder;
 import com.concurnas.compiler.ast.REPLTopLevelComponent;
 import com.concurnas.compiler.ast.RefName;
+import com.concurnas.compiler.ast.Statement;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.bytecode.BytecodeOutputter;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
@@ -343,6 +347,40 @@ public class REPL implements Opcodes {
 		depsUpdated.removeAll(toRem);
 	}
 	
+	private void processAssignments(Statement inst, ArrayList<String> ret) {
+		if(inst instanceof AssignNew) {
+			AssignNew ae = (AssignNew)inst;
+			ret.add(ae.name);
+		}else if(inst instanceof AssignExisting) {
+			AssignExisting ae = (AssignExisting)inst;
+			if(ae.assignee instanceof RefName) {
+				ret.add(((RefName)ae.assignee).name);
+			}
+		}else if(inst instanceof AssignMulti) {
+			AssignMulti am = (AssignMulti)inst;
+			am.assignments.forEach(a -> processAssignments(a, ret));
+		}
+	}
+	
+	private ArrayList<String> removeLastLineIfJustRefName(Block blk) {
+		LineHolder lhLast = blk.lines.get(blk.lines.size()-1);
+		
+		ArrayList<String> ret = new ArrayList<String>(1);
+		
+		if(lhLast.l instanceof DuffAssign) {
+			DuffAssign da = (DuffAssign)lhLast.l;
+			if(da.e instanceof RefName) {//remove it in this case
+				blk.lines.remove(blk.lines.size()-1);
+				ret.add(((RefName)da.e).name);
+				return ret;
+			}
+		}else if(lhLast.l instanceof Assign || lhLast.l instanceof AssignMulti) {
+			processAssignments((Statement)lhLast.l, ret);
+		}
+		
+		return ret.isEmpty()?null:ret;
+	}
+	
 	public String processInput(String input){
 		if(input ==null || input.trim().equals("")) {
 			return "";
@@ -363,6 +401,7 @@ public class REPL implements Opcodes {
 				MockFileWriter fw =new MockFileWriter();
 				String srcName = obtained.srcName;
 				
+				ArrayList<String> varToShow = removeLastLineIfJustRefName(obtained.block);
 				
 				Pair<List<Pair<REPLTopLevelComponent, Boolean>>, List<REPLComponentWrapper>> newStuiffAndTLEs = appendPrevCode(obtained.block);
 				
@@ -411,10 +450,27 @@ public class REPL implements Opcodes {
 					
 					printByteCode(output, "main", rawcode,  codeRepointed);
 					
-					HashSet<String> newvars = this.moduleCompiler.replState.getNewVars();
-					if(input.trim().endsWith(";")) {
-						newvars = null;
+					/*
+					 * HashSet<String> newvars = this.moduleCompiler.replState.getNewVars();
+					 * if(input.trim().endsWith(";")) { newvars = null; }else if(varToShow != null)
+					 * { newvars.add(varToShow); }
+					 */
+					
+					Set<String> newvars = null;
+					if(!input.trim().endsWith(";")){
+						if(varToShow != null) {
+							newvars = new HashSet<String>();
+							newvars.addAll(varToShow);
+						}else {
+							newvars = this.moduleCompiler.replState.getNewVars();
+							if(newvars.stream().anyMatch(a -> a.contains("$"))) {
+								newvars = newvars.stream().filter(a -> a.contains("$")).collect(Collectors.toSet());
+							}
+						}
 					}
+					
+					
+					
 					
 					String invokerclassName = srcName + "$EXE";
 					byte[] executor =  new REPLTaskMaker(invokerclassName, srcName, newvars).gennerate();
