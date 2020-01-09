@@ -3748,8 +3748,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 		}
 
-		//assignExisting.isReallyNew = false;
-		
 		tagFieldLevelBlock(assignExisting.expr);
 		
 		Type lhs = null;
@@ -3877,7 +3875,11 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				Utils.inferAnonLambda(this, (Node)assignExisting.expr, lhs);
 			}
 
-			assignExisting.isReallyNew = false;//reset this in case it was set below
+			if(this.isREPL == null) {
+				assignExisting.isReallyNew = false;//reset this in case it was set below
+			}
+			
+			
 			if(null == lhs || lhs==const_void_thrown)
 			{//it's new! but the type has not been stated
 				if(!assignExisting.eq.isEquals())

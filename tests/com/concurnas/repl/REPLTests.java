@@ -379,7 +379,7 @@ public class REPLTests {
 	public void fwdVariableDoesNotExistYetAssignMulti() throws Exception {
 		assertEquals("|  ERROR 1:18 Unable to find method with matching name: foo\n|  created function bar(int)", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
-		assertEquals("|    update modified bar(int)", repl.processInput("ab =bb = 10;"));
+		assertEquals("|    update modified ab, bar(int), bb", repl.processInput("ab =bb = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
 		assertEquals("|    update modified bar(int)", repl.processInput("ab = 100;"));
 		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
@@ -838,7 +838,7 @@ public class REPLTests {
 		assertEquals("", repl.processInput("c int:= {100+2}!;"));
 		assertEquals("", repl.processInput("d1 int:= {100+2}!; d2 = 99;"));
 		assertEquals("a ==> 3:", repl.processInput("c int:= {100+2}!; a"));
-		assertEquals("z1 ==> 33\nz2 ==> 33", repl.processInput("z1=z2=33"));
+		assertEquals("|    update modified z1, z2\n\nz1 ==> 33\nz2 ==> 33", repl.processInput("z1=z2=33"));
 	}
 	
 	@Test
@@ -849,9 +849,6 @@ public class REPLTests {
 		assertEquals("$1 ==> 3", repl.processInput("c int:= {1+2}!; c:get()"));
 	}
 	
-	*/
-	
-	/*
 	@Test
 	public void isoNewRefExisting() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
 		assertEquals("b ==> 3:", repl.processInput("b = {1+2}!"));
@@ -864,23 +861,11 @@ public class REPLTests {
 	
 	
 	
-	@Test
-	public void isoNewRefExisting() throws Exception {//needs special logic for when top level var is of ref type - neds to be created?
-		//assertEquals("a ==> 3", repl.processInput("a = {1+2}!"));
-
-		this.repl = new REPL(false, true, false);
-		
-		System.err.println( repl.processInput("a = {1+2}!"));
-	}
-	
-	
-	
-	
 	
 
 	
 	//check a <= b + c works
-	/*
+	
 	@Test
 	public void onchangeInFunc() throws Exception {
 		assertEquals("", repl.processInput("a := 1;"));
@@ -891,6 +876,7 @@ public class REPLTests {
 		assertEquals("c ==> 11:", repl.processInput("c"));
 	}	
 	
+	/*
 	@Test
 	public void onChangeTopLevel() throws Exception {
 		assertEquals("", repl.processInput("a := 1;"));
