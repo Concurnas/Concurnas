@@ -70,8 +70,8 @@ public class REPL implements Opcodes {
 	private REPLState replState;
 	private static final String mastSrcName = "repl$";
 	private boolean warnAsError = false;
-	private boolean printBytecode = false;
-	private boolean debugmode = false;
+	public boolean printBytecode = false;
+	public boolean debugmode = false;
 	
 	public REPL(boolean warnAsError, boolean printBytecode, boolean debugmode) throws Exception {
 		this.mainLoop = new MainLoop(".", new DirectFileLoader(), true, false, null, false);
@@ -308,6 +308,14 @@ public class REPL implements Opcodes {
 			if(er.getAnyContextHavingErrSupression()) {
 				continue;//skip
 			}
+			
+			REPLTopLevelComponent  replCtxt = er.getHeadContext();
+			if(null != replCtxt) {
+				String prefix = formatTopLevelElement(replCtxt);
+				if(!prefix.contains("$")) {
+					er = er.copyWithErPrefix(prefix);
+				}
+			}
 			ret.add(er);
 		}
 		
@@ -417,6 +425,9 @@ public class REPL implements Opcodes {
 				}
 								
 				List<ErrorHolder> ersx = remoteSupressedErrors(this.moduleCompiler.getLastErrorSet());
+				
+				this.replState.topLevelItemsToSkip.forEach(a -> a.comp.setSupressErrors(true));//we only need these errors reported once
+				
 				if(ersx != null && !ersx.isEmpty()) {
 					//unless all errors are within functions
 					output.add(formatErrors(ersx, "|  ERROR"));
@@ -555,7 +566,7 @@ public class REPL implements Opcodes {
 		}
 	}
 	
-	private String formatTopLevelElement(FuncDef funcDef) {
+	private static String formatTopLevelElement(FuncDef funcDef) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(funcDef.funcName);
 		sb.append('(');
@@ -567,18 +578,18 @@ public class REPL implements Opcodes {
 	}
 
 	
-	private String formatTopLevelElement(REPLComponentWrapper item) {
+	private static String formatTopLevelElement(REPLComponentWrapper item) {
 		return formatTopLevelElement(item.comp).replace("repl$.", "");
 	}
 	
-	private String formatTopLevelElement(REPLTopLevelComponent item) {
+	private static String formatTopLevelElement(REPLTopLevelComponent item) {
 		if(item instanceof FuncDef) {
 			return formatTopLevelElement((FuncDef)item);
 		}
 		return item.getName();
 	}
 
-	private String processNewFuncsDefined(List<Pair<REPLTopLevelComponent, Boolean>> newfuncs) {
+	private static String processNewFuncsDefined(List<Pair<REPLTopLevelComponent, Boolean>> newfuncs) {
 		StringBuilder sb = new StringBuilder();
 		for(Pair<REPLTopLevelComponent, Boolean> itemx : newfuncs) {
 			REPLTopLevelComponent comp = itemx.getA();

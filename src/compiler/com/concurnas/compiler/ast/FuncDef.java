@@ -199,7 +199,6 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 			return visitor.visit(this);
 		}else {
 			if(visitor instanceof ScopeAndTypeChecker) {
-				
 				super.hasErrors = false;
 			}
 			visitor.pushErrorContext(this);

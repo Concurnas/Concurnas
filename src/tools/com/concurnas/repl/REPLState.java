@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.concurnas.compiler.ast.ClassDefJava;
-import com.concurnas.compiler.ast.REPLTopLevelComponent;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
 import com.concurnas.compiler.visitors.REPLDepGraphManager;
+import com.concurnas.compiler.visitors.REPLDepGraphManager.REPLComponentWrapper;
 import com.concurnas.compiler.visitors.util.ImportStarUtil.PackageOrClass;
 import com.concurnas.runtime.Pair;
 
@@ -24,14 +24,17 @@ public class REPLState {
 	}
 	
 	public REPLDepGraphManager replDepGraph = new REPLDepGraphManager(this);
-	public HashSet<REPLTopLevelComponent> topLevelItemsToSkip = new HashSet<REPLTopLevelComponent>();//ignore these in later compilation cycles
+	public HashSet<REPLComponentWrapper> topLevelItemsToSkip = new HashSet<REPLComponentWrapper>();//ignore these in later compilation cycles
 	
 	public REPLTopLevelImports tliCache=new REPLTopLevelImports();
 	
 	public long tmpVarcnt= 0;
 	
 	private boolean shouldIncTmpVarcnt=false;
+	public int replIteration = 0;
+	
 	public void inc() {
+		replIteration++;
 		if(shouldIncTmpVarcnt) {
 			tmpVarcnt++;
 			shouldIncTmpVarcnt=false;

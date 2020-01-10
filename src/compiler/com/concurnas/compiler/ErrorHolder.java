@@ -31,6 +31,10 @@ public class ErrorHolder implements Comparable<ErrorHolder> {
 	public ErrorHolder(String filename, int line, int column, String message){
 		this(filename, line, column, message, null, null);
 	}
+	
+	public ErrorHolder copyWithErPrefix(String prefix) {
+		return new ErrorHolder(filename, line, column, "in " + prefix + " - " + message);
+	}
 
 	public String getFilename() {
 		return filename;
@@ -62,6 +66,10 @@ public class ErrorHolder implements Comparable<ErrorHolder> {
 	
 	public boolean getAnyContextHavingErrSupression(){
 		return this.context != null && this.context.stream().anyMatch(a -> a.getSupressErrors());
+	}
+	
+	public REPLTopLevelComponent getHeadContext() {
+		return this.context == null || this.context.isEmpty()?null:this.context.get(0);
 	}
 	
 	@Override

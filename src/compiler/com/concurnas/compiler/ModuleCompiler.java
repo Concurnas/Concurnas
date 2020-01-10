@@ -581,7 +581,9 @@ public class ModuleCompiler implements Comparable{
 					{//dont bother with compilation if u cannot even get the semantics right...
 						
 						if(isREPL) {
-							this.isREPL.topLevelItemsToSkip.forEach(a -> a.setSkippable(true));
+							this.isREPL.topLevelItemsToSkip.forEach(a -> {
+								a.comp.setSkippable(true);
+							});
 						}
 						
 						

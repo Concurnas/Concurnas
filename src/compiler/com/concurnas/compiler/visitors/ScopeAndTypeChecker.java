@@ -354,7 +354,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "Variable a has already been defined in current scope";
+		String err = "java.lang.Integer: is not a subtype of java.lang.Integer";
 		if(somthing.contains(err) && maskErrors.isEmpty()/* && line == 1660*/ ){
 			int h=999;
 		}
@@ -9086,27 +9086,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(!lambdaNameToClassName.containsKey(lazyLambdaName)){
 			//modulename$$Lambda0
 			//com/mycomp/modulename$$Lambda0
-			
-			//TODO: with defualt actors being gennerated at runtime, in the following needed?
-			/*String cls = "";
-			if(!this.currentlyInClassDef.isEmpty()){
-				for(ClassDef cd : this.currentlyInClassDef){
-					cls += cd.getPrettyName();
-				}
-				cls = this.currentlyInClassDef.peek().getPrettyName().replace(".", "");
-			}
-			else{
-				cls = this.justPackageName;
-			}
-			
-			String fullname = cls + "$$Lambda" +  localLambdaCount++;
-			String filename = this.justPackageName.replace('.', '/') + "$" +  (fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')): fullname);
-					
-			ret = new Tuple<String, String>(filename, fullname );
-			*/
-			
-			
-			ret = createLambdaDetsObject("$$Lambda" +  localLambdaCount++);
+			ret = createLambdaDetsObject("$$Lambda" +  localLambdaCount++ + getREPLIteration());
 			lambdaNameToClassName.put(lazyLambdaName, ret);
 		}
 		else{
@@ -9115,46 +9095,17 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return ret;
 	}
 	
+	
+	private String getREPLIteration() {
+		if(null != this.isREPL) {
+			return "repl"+this.isREPL.replIteration;
+		}else {
+			return "";
+		}
+	}
 
 	private boolean withinOnChange = false; 
 
-/*	private boolean isWithinAwait = false;
-	
-	private static class AwaitContentsEchcker extends AbstractVisitor{
-		private ScopeAndTypeChecker satc;
-
-		public AwaitContentsEchcker(ScopeAndTypeChecker satc) {
-			this.satc = satc;
-		}
-		
-		@Override
-		public Object visit(Await await){
-			satc.raiseError(await.getLine(), await.getColumn(), "await may not be nested within await");
-			return null;
-		}
-		@Override
-		public Object visit(OnChange await){
-			satc.raiseError(await.getLine(), await.getColumn(), "onchange may not be nested within await");
-			return null;
-			
-		}
-		@Override
-		public Object visit(OnEvery await){
-			satc.raiseError(await.getLine(), await.getColumn(), "every may not be nested within await");
-			return null;
-		}
-		
-		@Override
-		public Object visit(AsyncBlock await){
-			satc.raiseError(await.getLine(), await.getColumn(), "! may not be nested within await");
-			return null;
-		}
-		
-		public Object checkRootAwait(Await await){
-			return super.visit((OnChange)await);
-		}
-	}
-	*/
 	@Override
 	public Object visit(Await await) {
 		if(null == await.body){//make a fake one resolving to true
@@ -9540,13 +9491,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		
 		if(null == asyncBodyBlock.onChangeDets){
-			String fullname = this.justPackageName + "$$AsyncBlock" + localLambdaCount;
+			String fullname = this.justPackageName + "$$AsyncBlock" + localLambdaCount + getREPLIteration();
 			String filename = fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')): fullname;
 			asyncBodyBlock.onChangeDets = new Pair<String, String> (fullname, filename);
 			
-			asyncBodyBlock.applyMethodName = "$$AsyncBlock" + (localLambdaCount) + "$apply";
-			asyncBodyBlock.initMethodName = "$$AsyncBlock" + (localLambdaCount) + "$init";
-			asyncBodyBlock.cleanupMethodName = "$$AsyncBlock" + (localLambdaCount) + "$cleanup";
+			asyncBodyBlock.applyMethodName = "$$AsyncBlock" + (localLambdaCount)+ getREPLIteration() + "$apply";
+			asyncBodyBlock.initMethodName = "$$AsyncBlock" + (localLambdaCount)+ getREPLIteration() + "$init";
+			asyncBodyBlock.cleanupMethodName = "$$AsyncBlock" + (localLambdaCount)+ getREPLIteration() + "$cleanup";
 		}
 		localLambdaCount++;
 		
@@ -9823,12 +9774,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		addVarsAndMethodsOnEntryTocurrentScope(onChange.getLine(), onChange.getColumn());
 		
 		if(null == onChange.onChangeDets){
-			Pair<String, String> lamDets = createLambdaDetsObject("$$onChange" + localLambdaCount++);
+			Pair<String, String> lamDets = createLambdaDetsObject("$$onChange" + localLambdaCount++ + getREPLIteration());
 			
 			onChange.onChangeDets = lamDets;
-			onChange.applyMethodName = "$$onChange" + (localLambdaCount-1) + "$apply";
-			onChange.initMethodName = "$$onChange" + (localLambdaCount-1) + "$init";
-			onChange.cleanupMethodName = "$$onChange" + (localLambdaCount-1) + "$cleanup";
+			onChange.applyMethodName = "$$onChange" + (localLambdaCount-1)+ getREPLIteration() + "$apply";
+			onChange.initMethodName = "$$onChange" + (localLambdaCount-1)+ getREPLIteration() + "$init";
+			onChange.cleanupMethodName = "$$onChange" + (localLambdaCount-1)+ getREPLIteration() + "$cleanup";
 			//System.err.println("assign lambda dets to: " + asyncBlock);
 		}
 		else{
@@ -10073,15 +10024,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		if(null == asyncBlock.lamDets){
-			///String fullname = this.justPackageName.replace('.', '/') + "$$Lambda" + localLambdaCount++;
-			//System.err.println("fullname: " + fullname);
-			//String filename = fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')+1): fullname;
-			
-			/*String fullname = "$$Lambda" + localLambdaCount++;
-			//System.err.println("fullname: " + fullname);
-			String filename = this.justPackageName.replace('.', '/') +"$" + fullname;
-			Tuple<String, String> lamDets = new Tuple<String, String> (filename, fullname);*/
-			Pair<String, String> lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++);
+			Pair<String, String> lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++ + getREPLIteration());
 			asyncBlock.lamDets = lamDets;
 			
 			//System.err.println("assign lambda dets to: " + asyncBlock);
@@ -10304,16 +10247,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		Pair<String, String> lamDets;
 		if(lambdaDef.lamDets==null){
 			//if not passsed from an asyncblock... create one
-			/*String fullname = this.justPackageName + "$$Lambda" + localLambdaCount++;
-			fullname = fullname.replace('.', '/');
-			//System.err.println("fullname lam: " +  fullname  + ":" + fakeFuncRef.getLine());
-			String filename = fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')+1): fullname;
-			lamDets = new Tuple<String, String> (fullname, filename);*/
-			
-			lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++);
-			
+			lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++ + getREPLIteration());
 			lambdaDef.lamDets = lamDets;
-			//System.err.println("assign lambda dets to [lam]: " + lambdaDef);
 		}
 		else{
 			lamDets = lambdaDef.lamDets;

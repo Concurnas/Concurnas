@@ -43,6 +43,8 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	private HashSet<ImportStarUtil.PackageOrClass> prevtopLevelImportStar = new HashSet<ImportStarUtil.PackageOrClass>();
 	private HashSet<ImportStarUtil.PackageOrClass> topLevelImportStar;
 	
+	HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> prevtopLevelItems = new HashMap<String, HashSet<Pair<Type, HashSet<Type>>>>();
+	
 	public REPLDepGraphManager(REPLState replState) {
 		this.replState = replState;
 	}
@@ -58,7 +60,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 		depMap = new HashMap<String, HashSet<REPLTopLevelComponent>>();
 		topLevelImportStar = new HashSet<ImportStarUtil.PackageOrClass>();
 		
-		HashMap<String, HashSet<Pair<Type, HashSet<Type>>>> prevtopLevelItems = new HashMap<String, HashSet<Pair<Type, HashSet<Type>>>>();
+		
 		if(null != topLevelNames) {
 			prevtopLevelItems.putAll(topLevelNames);
 		}
@@ -105,8 +107,15 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 		}
 		
 		if(!componentsToRefresh.isEmpty()) {
-			componentsToRefresh.forEach(a -> a.setSkippable(false));
-			componentsToRefresh.forEach(a -> this.replState.topLevelItemsToSkip.remove(a));
+			componentsToRefresh.forEach(a -> {
+				if(!a.getErrors()) {
+					a.setSupressErrors(false);//no errors before, so check for them again
+				}
+				if(a.canSkip()) {
+					a.setSkippable(false);
+					this.replState.topLevelItemsToSkip.remove(new REPLComponentWrapper(a));
+				}
+			});
 			
 			itemsModifiedThisSession.addAll(componentsToRefresh);
 			return true;
@@ -311,7 +320,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			isTopLevelItem = prevIsTop;
 			currentDependencies = prevCDeps;
 			
-			this.replState.topLevelItemsToSkip.add(comp);
+			this.replState.topLevelItemsToSkip.add(new REPLComponentWrapper(comp));
 			
 		}else {
 			visitSuperREPLGraphComp(comp);
