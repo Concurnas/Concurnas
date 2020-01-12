@@ -954,19 +954,30 @@ public class REPLTests {
 		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
 		assertEquals("", repl.processInput("del thing"));
 		assertEquals("", repl.processInput("thing()"));
+	
+		//remove func from inclusion set so not included later
+		
+		
+		//del more than one function in a single sweep
+		
+		//+variable and also a function at same time
 	}
 	
-
+	//redef func after deleted
+	
+	
 	
 	//normal del above
 	//del: funcs, classes
 	//del: enum, annotation, object provider, typedef
-	//del others
 	
 	
+
+	//test:
+	//c = 100; def foo() => c; 
+	//del c | foo is now broken
 	
 	
-	//do del last
 	
 	//the del keyword - del any top level item | deps need to break as approperiate
 		//del a var and recreate
@@ -975,9 +986,6 @@ public class REPLTests {
 	//del Thing | where Thing is a class and also a Var
 	//remove Thing from scope etc
 	
-	//test:
-	//c = 100; def foo() => c; 
-	//del c | foo is now broken
 	
 	
 	

@@ -25037,7 +25037,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					if(null != asRef.resolvesTo){
 						Location loc = asRef.resolvesTo.getLocation();
 						if(null != loc && !(loc instanceof LocationLocalVar)){
-							if(this.isREPL != null) {
+							if(this.isREPL != null && loc instanceof LocationStaticField && this.currentScopeFrame.paThisIsModule) {
 								//remove variable
 								this.currentScopeFrame.removeVariable(asRef.name);
 							}else {
@@ -25048,7 +25048,25 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							this.currentScopeFrame.removeVariable(asRef.name);
 						}
 					}else {
-						
+						if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {
+							Node astRed = asRef.astRedirect;
+							if(astRed instanceof FuncRef) {
+								FuncRef fr = (FuncRef)astRed;
+								if(null != fr.typeOperatedOn) {
+									Location loc = fr.typeOperatedOn.getLocation();
+									if(loc instanceof StaticFuncLocation) {
+
+										this.currentScopeFrame.removeFuncDef(asRef.name, null);
+										return null;
+									}
+								}
+								
+							}
+							
+
+							this.raiseError(ee.getLine(), ee.getColumn(), String.format("Cannot delete %s", asRef.name));
+							return null;
+						}
 						
 						this.raiseError(ee.getLine(), ee.getColumn(), String.format("%s resolves to something other than a local variable", asRef.name));
 					}

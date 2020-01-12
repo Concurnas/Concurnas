@@ -1300,9 +1300,6 @@ public class TheScopeFrame {
 			if(null != choices){
 				for(TypeAndLocation tal : choices){
 					Type tt = tal.getType();
-					/*if(ignoreGensAndRetType) {
-						tt = ((FuncType)tt).origonatingFuncDef.getFuncType().getErasedFuncTypeNoRet();
-					}*/
 					if(this.replModLevelForcedNewfuncs != null) {
 						tt = tt.copyIgnoreReturnType();
 					}
