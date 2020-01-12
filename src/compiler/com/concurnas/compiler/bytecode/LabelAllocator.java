@@ -514,7 +514,11 @@ public class LabelAllocator extends AbstractVisitor implements Unskippable{
 	private IdentityHashMap<FuncDef, LinkedList<FuncDef>> toCheckOnExit = new IdentityHashMap<FuncDef, LinkedList<FuncDef>>(); //id cos somehow nested methods can have same signature sometimes, weird...
 	
 	private void addToCheckOnExit(FuncDef toCheck){
-		toCheckOnExit.get(currentFD.peek()).add(toCheck);
+		if(currentFD.isEmpty()) {
+			this.visit(toCheck);
+		}else {
+			toCheckOnExit.get(currentFD.peek()).add(toCheck);
+		}
 	}
 	
 	@Override

@@ -2,8 +2,6 @@ package com.concurnas.repl;
 
 import static org.junit.Assert.*;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +11,7 @@ public class REPLTests {
 	private REPL repl;
 	@Before
 	public void before() throws Exception {
+		REPLRuntimeState.reset();
 		this.repl = new REPL(false, false, false);
 	}
 	
@@ -22,7 +21,6 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
-	
 	/*
 	@Test
 	public void createVar()  {
@@ -125,7 +123,7 @@ public class REPLTests {
 	
 	@Test
 	public void varsPrintInOrder() throws Exception {
-		assertEquals("a ==> 2", repl.processInput("z=9; f=9; a=2"));
+		assertEquals("av ==> 2", repl.processInput("z=9; f=9; av=2"));
 	}
 	
 
@@ -374,7 +372,7 @@ public class REPLTests {
 	public void fwdVariableDoesNotExistYetAssignMulti() throws Exception {
 		assertEquals("|  ERROR 1:18 in bar(int) - Unable to find method with matching name: foo", repl.processInput("def bar(a int) => foo(a*2) + ab"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => a*4"));
-		assertEquals("|    update modified ab, bar(int), bb", repl.processInput("ab =bb = 10;"));
+		assertEquals("|    update modified bar(int)", repl.processInput("ab =bb = 10;"));
 		assertEquals("$0 ==> 26", repl.processInput("bar(2)"));
 		assertEquals("", repl.processInput("ab = 100;"));
 		assertEquals("$1 ==> 116", repl.processInput("bar(2)"));
@@ -494,7 +492,7 @@ public class REPLTests {
 	public void varFwdRef() throws Exception {
 		assertEquals("|  ERROR 1:5 in v1 - Unable to find method with matching name: thing", repl.processInput("v1 = thing()"));
 		assertEquals("|  created function thing()",repl.processInput("def thing() => 1231"));//updates, bar and foo
-		assertEquals("v1 ==> []",repl.processInput("v1"));
+		assertEquals("|  ERROR variable v1 does not exist",repl.processInput("v1"));
 	}
 	
 	@Test
@@ -827,11 +825,11 @@ public class REPLTests {
 	public void isoNewRef() throws Exception {
 		assertEquals("a ==> 3:", repl.processInput("a int:= {1+2}!"));
 		assertEquals("a ==> 3:", repl.processInput("a"));
-		assertEquals("b ==> 3:", repl.processInput("b int:= {10+2}!; b"));
+		assertEquals("b ==> 12:", repl.processInput("b int:= {10+2}!; b"));
 		assertEquals("", repl.processInput("c int:= {100+2}!;"));
 		assertEquals("", repl.processInput("d1 int:= {100+2}!; d2 = 99;"));
 		assertEquals("a ==> 3:", repl.processInput("c int:= {100+2}!; a"));
-		assertEquals("|    update modified z1, z2\n\nz1 ==> 33\nz2 ==> 33", repl.processInput("z1=z2=33"));
+		assertEquals("z1 ==> 33\nz2 ==> 33", repl.processInput("z1=z2=33"));
 	}
 	
 	@Test
@@ -905,29 +903,15 @@ public class REPLTests {
 		assertEquals("a ==> 10:", repl.processInput("a = 10; waiter(a:, 10); a"));
 	}
 	
-	
-	*/
-
-	/*
-	@Test
-	public void awaitInTopLevel() throws Exception {
-		assertEquals("", repl.processInput("a int:= 1;"));
-		assertEquals("", repl.processInput("a = 10; await(a; a == 10)"));
-		assertEquals("a ==> 10:", repl.processInput("a"));
-	}
-	*/
-	
 	@Test
 	public void awaitInTopLevel() throws Exception {
 		assertEquals("", repl.processInput("a int:= 1;"));
 		assertEquals("", repl.processInput("await(a; a == 1)"));
 		assertEquals("a ==> 1:", repl.processInput("a"));
-		//assertEquals("", repl.processInput("{a = 10}!; await(a; a == 10)"));
-		//assertEquals("a ==> 10:", repl.processInput("a"));
+		assertEquals("", repl.processInput("{a = 10}!; await(a; a == 10)"));
+		assertEquals("a ==> 10:", repl.processInput("a"));
 	}
 	
-	
-	/*
 	@Test
 	public void onchangeInFunc() throws Exception {
 		assertEquals("", repl.processInput("a := 1;"));
@@ -938,43 +922,48 @@ public class REPLTests {
 		assertEquals("d ==> 2:", repl.processInput("d"));
 		assertEquals("d2 ==> 2:", repl.processInput("d2 int: = thing()"));
 		assertEquals("|  created function waiter(java.lang.Integer:, int)\n\na ==> 9:", repl.processInput("def waiter(x int:, n int) {  await(x; x == n) }; a = 9; waiter(a, 9); a"));
-		//assertEquals("a ==> 11", repl.processInput("a = 11; await(a; a == 11); a"));//shouldnt update def unless err before
-	}
-	*/
-	
-	
-	
-	
-	/*@Test
-	public void onchangeInFunc() throws Exception {
-		assertEquals("", repl.processInput("a := 1;"));
-		assertEquals("", repl.processInput("b := 1;"));
-		assertEquals("|  created function thing()", repl.processInput("def thing() {c <= a + b; c:}"));
-		assertEquals("x ==> 2", repl.processInput("x = thing()"));
-		assertEquals("d ==> 2:", repl.processInput("d := thing()"));
-		assertEquals("d ==> 2:", repl.processInput("d"));
-		assertEquals("d2 ==> 2:", repl.processInput("d2 int: = thing()"));
-		
-		assertEquals("d ==> 10:", repl.processInput("def waiter(x int:, n int) {  await(x; x == n) }; a = 9; waiter(d, 10); d"));
-		
-		assertEquals("d ==> 11", repl.processInput("a = 10; await(d; d == 11); d"));//shouldnt update def unless err before
+		assertEquals("d ==> 12:", repl.processInput("a = 11; await(d; d == 12); d"));//shouldnt update def unless err before
 	}
 	
-	
-	/*
 	@Test
 	public void onChangeTopLevel() throws Exception {
 		assertEquals("", repl.processInput("a := 1;"));
 		assertEquals("", repl.processInput("b := 1;"));
-		assertEquals("", repl.processInput("c <= a+b"));
-		//TODO: add await at top level
-		//now do an async update {a = 10}! and await result
+		assertEquals("c ==> 2:", repl.processInput("c <= a+b"));
+		assertEquals("c ==> 101:", repl.processInput("{a = 100}!; await(c; c == 101); c"));
 	}	
+	
+	@Test
+	public void delTopLevelVar() throws Exception {
+		assertEquals("a ==> 1\nb ==> 1", repl.processInput("a=b=1"));
+		assertEquals("|  ERROR 2:3 in c - a cannot be resolved to a variable", repl.processInput("del a;\n c=a"));//no
+		assertEquals("|  ERROR variable b does not exist", repl.processInput("del b;\n b"));//no
+		assertEquals("|  ERROR variable b does not exist", repl.processInput("b"));//no
+		assertEquals("|  ERROR variable bjk does not exist", repl.processInput("bjk"));//no
+
+		assertEquals("", repl.processInput("a=10;\ndel a;"));
+		assertEquals("a ==> hi", repl.processInput("a='hi'"));
+		
+		assertEquals("a ==> hi", repl.processInput("a"));
+	}
 	*/
 	
 	
+	@Test
+	public void delFunc() throws Exception {
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
+		assertEquals("", repl.processInput("del thing"));
+		assertEquals("", repl.processInput("thing()"));
+	}
+	
 
-
+	
+	//normal del above
+	//del: funcs, classes
+	//del: enum, annotation, object provider, typedef
+	//del others
+	
+	
 	
 	
 	//do del last

@@ -43,6 +43,44 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 			Iterator<String> itr = newvars.stream().sorted().iterator();
 			while(itr.hasNext()) {
 				String var = itr.next();
+
+				mv.visitLabel(new Label());
+				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+				mv.visitLdcInsn(var);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "containsKey", "(Ljava/lang/Object;)Z", false);
+				Label onmissing = new Label();
+				mv.visitJumpInsn(IFEQ, onmissing);
+				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(var + " ==> ");
+				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false);
+				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+				mv.visitLdcInsn(var);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
+				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				if(n++ < sz-1) {
+					mv.visitLdcInsn("\n");
+					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				}
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+				Label after = new Label();
+				mv.visitJumpInsn(GOTO, after);
+				mv.visitLabel(onmissing);
+				
+				String errMsg = "|  ERROR variable "+var+" does not exist";
+				if(n++ < sz-1) {
+					errMsg += "\n";
+				}
+				mv.visitLdcInsn(errMsg);
+				mv.visitLabel(after);
+				
+
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				
+				
+				
+				/*
 				mv.visitLabel(new Label());
 				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
 				mv.visitInsn(DUP);
@@ -58,10 +96,9 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				if(n++ < sz-1) {
 					mv.visitLdcInsn("\n");
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				}
-				
+				}*/
 			}
-
+			
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
 			
 			mv.visitMethodInsn(INVOKESPECIAL, invokerclassName, "setResult", "(Ljava/lang/String;)V", false);
@@ -100,5 +137,9 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 		mv.visitInsn(ARETURN);
 		mv.visitEnd();
 		
+	}
+	
+	private void sdfsdf() {
+		String xxx = REPLRuntimeState.vars.containsKey("myVar")?"myVar ==> " + REPLRuntimeState.vars.get("myVar"):"|  ERROR variable myVar does not exist";
 	}
 }

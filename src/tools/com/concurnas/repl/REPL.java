@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -50,21 +51,9 @@ import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.MockFileWriter;
 import com.concurnas.runtime.Pair;
 
-
-//TODO: may call:
-/*if(meth == null) {
-		mv.visitMethodInsn(INVOKESTATIC, classBeingTested, BytecodeGennerator.metaMethodName, "()Ljava/lang/String;", false);
-		mv.visitInsn(POP);
-	}
-	
-instead of special method
-			
-*/
-
 public class REPL implements Opcodes {
 	
 	private MainLoop mainLoop;
-	//private TheScopeFrame theScopeFrame;
 	private ModuleCompiler moduleCompiler;
 	private ClassLoader mainClassLoader = Thread.currentThread().getContextClassLoader();
 	private REPLState replState;
@@ -153,6 +142,7 @@ public class REPL implements Opcodes {
 	
 	public void terminate() {
 		//stop main loop if spawned any threads
+		REPLRuntimeState.reset();
 		this.mainLoop.stop();
 		//System.exit(0);
 	}
@@ -247,6 +237,13 @@ public class REPL implements Opcodes {
 		//funcs for later iterations...
 		for(LineHolder lh : blk.lines) {
 			Line lin = lh.l;
+			
+			if(lin instanceof AssignMulti) {
+				AssignMulti am = (AssignMulti)lin;
+				for(Assign ass : am.assignments) {
+					newTLEs.add(new REPLComponentWrapper((REPLTopLevelComponent)ass));
+				}
+			}
 			
 			if(lin instanceof REPLTopLevelComponent) {
 				REPLComponentWrapper wrap = new REPLComponentWrapper((REPLTopLevelComponent)lin);
@@ -480,8 +477,10 @@ public class REPL implements Opcodes {
 						}
 					}
 					
-					
-					
+					for(String varToRemove : this.moduleCompiler.moduleLevelFrame.replNameToRemoveAtEndOfSessionVARS) {
+						//newvars.remove(varToRemove);
+						REPLRuntimeState.vars.remove(varToRemove);
+					}
 					
 					String invokerclassName = srcName + "$EXE";
 					byte[] executor =  new REPLTaskMaker(invokerclassName, srcName, newvars).gennerate();
@@ -543,6 +542,7 @@ public class REPL implements Opcodes {
 				this.replState.inc();
 				this.replState.tliCache = this.moduleCompiler.replLastTopLevelImports;
 				this.moduleCompiler.moduleLevelFrame.updatePrevSessionVars();
+				this.moduleCompiler.moduleLevelFrame.cleanUpAtEndOfREPLCycle();
 			}
 			
 			if(this.debugmode) {

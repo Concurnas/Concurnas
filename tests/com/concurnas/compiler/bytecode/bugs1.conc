@@ -3976,3 +3976,38 @@ from com.concurnas.lang.precompiled.ImportStar import *
 def doings(){
 	"ok" + [anInteger afunction()]
 }
+
+~~~~~
+//##212. onchange was not utilizing existing return value ref
+a = 1:
+b = 2:
+
+ccc <= a + b;
+
+def doings(){
+	"ok" + ccc
+}
+
+~~~~~
+//##213. top level every and await
+a = 1:
+b = 2:
+
+ccc <= a + b;
+
+a=100; 
+
+await(ccc; ccc == 102)
+
+def doings(){
+	"ok" + ccc
+}
+
+~~~~~
+//##214. top level del on func
+def thing() => 12
+del thing
+
+def doings(){
+	"ok"
+}

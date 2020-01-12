@@ -6,5 +6,100 @@
 	
 	Concurnas offers a lightweight tool for programming and executing with Concurnas code. The standard Concurnas runtime distribution can be run in either non-interactive or interactive Read-Evaluate-Print Loop (REPL) mode via the command line tool: \lstinline{conc}. Here we shall examine this REPL mode. The Concurnas REPL is a handy tool for learning about Concurnas and trying out ideas in a scriptable manner. It evaluates declarations, statements, and expressions as they are entered and immediately shows the results in an interactive fashion.	
 	
-	Coming soon!
+	\section{Running the Concurnas REPL}
+	The Concurnas REPL is included as standard as part of the Concurnas distribution. We can start it using the same command as we use for executing compiled code in a non-interactive manner: \lstinline{conc} which can be found under: \lstinline{conc-home}. If this tool has not been added to the path, the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
+	
+	We use the \lstinline{conc} command without an entry-point class or jar reference in order to start \lstinline{conc} in REPL mode:
+	
+	\begin{lstlisting}[language=C]
+	C:\concurnas-1.13.1>conc
+	\end{lstlisting}
+	
+	Here is an example of the sort of output we expect to see when \lstinline{conc} is up and running:
+	
+	\begin{lstlisting}[language=C]
+	Welcome to Concurnas 1.13.108 (Java HotSpot(TM) 64-Bit Server VM, Java 11.0.5).
+	Currently running in REPL mode...
+	
+	conc> 
+	\end{lstlisting}
+	
+	A full list of command line options for \lstinline{conc} is found under the \hyperref[sec:cmdlineparams]{Command line options} section.
+	
+	\subsection{Closing the Concurnas REPL}
+	The ordinary way to exit the Concurnas REPL, is by entering the \lstinline{/exit} command:
+	
+	\begin{lstlisting}[language=C]
+	conc> /exit
+	\end{lstlisting}
+	
+	%TODO: TERMINATIONS: Additionally the Concurnas REPL programs can be exitted
+	
+	\section{Syntactical elements}
+	The Concurnas REPL recognises the all elements of Concurnas syntax including: variable declarations and assignments, functions, extension functions, class (including actors and traits) definitions, type providers, imports, typedefs, usings and expressions.
+	
+	Elements of Concurnas code entered into \lstinline{conc} are immediately compiled and executed. Feedback about that compilation process in terms of warnings and/or errors is shown and if there are no unrecoverable errors execution of the input code will take place and the results presented.
+	
+	%Additional feedback can be obtained by starting conc in verbose mode:
+	
+	Let us now input some code to assign a value to a variable:
+	
+	\begin{lstlisting}[language=C]
+	conc> myvar = 99
+	myvar ==> 99
+	\end{lstlisting}
+	
+	We see above that the variable \lstinline{myvar} has been assigned the value \lstinline{99}. \lstinline{conc} will output all top level variables assigned in a provided expression after compilation and execution.
+	
+	If a provided expression returns a value but does not assign that result to a variable, a scratch variable will be created:
+	
+	\begin{lstlisting}[language=C]
+	conc> 10*10
+	$0 ==> 100
+	\end{lstlisting}
+	
+	The scratch variable may be referenced in subsequent expressions for evaluation:
+	\begin{lstlisting}[language=C]
+	conc> res = $s0
+	res ==> 100
+	\end{lstlisting}
+	
+	In order to suppress the printing and creation of scratch variables, the input expression need only be terminated with a semi colon: \lstinline{;}. For example:
+	
+	\begin{lstlisting}[language=C]
+	conc> def timesTwo(a int) => a*2
+	conc> timesTwo(2);
+	conc> 
+	\end{lstlisting}
+	
+	%; to not show variables
+	
+	\subsection{The continuation prompt}
+	
+	
+	
+	%TODO: Ctrl+Enter
+	
+	
+	\subsection{Errors and warnings}
+	
+	
+	\subsection{Redefining definitions}
+	
+	
+	\subsection{Forward references}
+	
+	\subsection{Exceptions}
+	
+	\subsection{Tab Completion}
+	
+	\section{Commands}
+	
+	
+	
+	\section{Adding the REPL to the path}
+	It is recommended that the \lstinline{<installDir>/bin} be added to the system path in order to permit the Concurnas REPL via \lstinline{conc} to be run from any directory. Check your operating system documentation for details of how to do this.
+	
+	
+	
 \end{document}

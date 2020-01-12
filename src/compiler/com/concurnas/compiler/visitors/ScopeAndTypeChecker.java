@@ -354,7 +354,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "java.lang.Integer: is not a subtype of java.lang.Integer";
+		String err = "int is not a subtype of java.lang.String";
 		if(somthing.contains(err) && maskErrors.isEmpty()/* && line == 1660*/ ){
 			int h=999;
 		}
@@ -19660,7 +19660,11 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 	public Object visit(NamedType namedType, boolean ignoreGenericTypeCheck) {
 		String namereftoresolve = namedType.getNamedTypeStr();
-			
+		
+		if(namereftoresolve.contains("onChange0$SO")){
+			int h=9;
+		}
+		
 		NamedType upperBound = namedType.getOrigonalGenericTypeUpperBound();
 		if(null != upperBound){
 			upperBound.accept(this);
@@ -19754,7 +19758,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							return namedType;
 						}
 					}
-					
 					
 					this.raiseError(namedType.getLine(), namedType.getColumn(), "Unable to resolve type corresponding to name: " + namereftoresolve);
 					return null;//must return null else everything breaks lol
@@ -20922,13 +20925,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					funcDef.annotations.annotations.add((Annotation)const_InjectAnnotation.copy());
 				}
 			}
-			
-			/*if(!this.currentlyInClassDef.isEmpty()) {
-				ClassDef cd = this.currentlyInClassDef.peek();
-				if(cd.isLocalClass || cd.isAnonClass) {
-					this.raiseError(funcDef.getLine(), funcDef.getColumn(), "local and anonymous classes may not have methods marked with inject");
-				}
-			}*/
 		}
 		
 		if(funcDef.annotations!= null){
@@ -25029,6 +25025,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			Type opon = (Type)ee.accept(this);
 			if(!TypeCheckUtils.isValidType(opon)){
+				
+				
 				this.raiseError(ee.getLine(), ee.getColumn(), String.format("Invalid type %s", opon) );
 			}
 			else{
@@ -25039,11 +25037,20 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					if(null != asRef.resolvesTo){
 						Location loc = asRef.resolvesTo.getLocation();
 						if(null != loc && !(loc instanceof LocationLocalVar)){
-							this.raiseError(ee.getLine(), ee.getColumn(), "Only local variables can be deleted");
+							if(this.isREPL != null) {
+								//remove variable
+								this.currentScopeFrame.removeVariable(asRef.name);
+							}else {
+								this.raiseError(ee.getLine(), ee.getColumn(), "Only local variables can be deleted");
+							}
 						}else{
 							deleteStatement.operatesOn = DSOpOn.LOCALVAR;
 							this.currentScopeFrame.removeVariable(asRef.name);
 						}
+					}else {
+						
+						
+						this.raiseError(ee.getLine(), ee.getColumn(), String.format("%s resolves to something other than a local variable", asRef.name));
 					}
 				}
 				else if( rhsResovlesToExpr instanceof ArrayRef ){

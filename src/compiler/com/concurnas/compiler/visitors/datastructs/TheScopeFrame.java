@@ -165,6 +165,7 @@ public class TheScopeFrame {
 		replModLevelForcedNewvars = new HashMap<String, TypeAndLocation>();
 		replModLevelForcedNewfuncs = new HashMap<String, HashSet<FuncType>>();
 		replModLevelForcedNewClasses = new HashMap<String, ClassDef>();
+		replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
 		//isREPL=true;
 	}
 	
@@ -251,8 +252,6 @@ public class TheScopeFrame {
 			}
 		}
 		
-		
-		
 	}
 	
 	public TheScopeFrame leaveScopeREPL(boolean isREPL)
@@ -281,6 +280,11 @@ public class TheScopeFrame {
 	public HashMap<String, TypeAndLocation>     			replModLevelForcedNewvars   ;
 	public HashMap<String, HashSet<FuncType>>     			replModLevelForcedNewfuncs   ;
 	public HashMap<String, ClassDef>     			replModLevelForcedNewClasses   ;
+	
+	//del
+	public HashSet<String>  replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
+	//
+	
 	
 	public HashSet<String> replPrevSessionVars = new HashSet<String>();
 	public HashMap<String, HashSet<FuncType>> replPrevSessionFuncs = new HashMap<String, HashSet<FuncType>>();
@@ -493,6 +497,11 @@ public class TheScopeFrame {
 		
 		if(vars.containsKey(varname))
 		{
+			
+			if(this.replNameToRemoveAtEndOfSessionVARS != null && replNameToRemoveAtEndOfSessionVARS.contains(varname)) {
+				return new Pair<TypeAndLocation, Boolean>(null, this.isClass);//nope
+			}
+			
 			return new Pair<TypeAndLocation, Boolean>(vars.get(varname), this.isClass); 
 		}
 		else if(null != parent && lookParent)
@@ -549,6 +558,8 @@ public class TheScopeFrame {
 			vars.put(varname + "$n"+level, var);
 			
 			if(this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+				replNameToRemoveAtEndOfSessionVARS.remove(varname);
+				
 				replModLevelForcedNewvars.put(varname, var);
 				if(isAssignNew) {
 					replPrevSessionVars.remove(varname);
@@ -586,6 +597,7 @@ public class TheScopeFrame {
 	
 	public void setVariable(String varname) {
 		replAssignedthisIteration.add(varname);
+		replNameToRemoveAtEndOfSessionVARS.remove(varname);
 	}
 	
 	public void setVariableAssigned(String varname){
@@ -641,18 +653,26 @@ public class TheScopeFrame {
 		
 		if(dotpos == -1 || startsWithpack)
 		{
+			ArrayList<String> varTry = new ArrayList<String>();
+			varTry.add(varname);
+			
 			if(startsWithpack){
 				varname = varname.substring(moduleName.length()+1);
+				varTry.add(varname);
 			}
 			
-			if(classes.containsKey(varname))
-			{
-				return classes.get(varname);
+			for(String vntry : varTry) {
+				if(classes.containsKey(vntry))
+				{
+					return classes.get(vntry);
+				}
+				else if(null != parent && lookParent)
+				{
+					return parent.getClassDef(parent, vntry, true, isCreation);
+				}
 			}
-			else if(null != parent && lookParent)
-			{
-				return parent.getClassDef(parent, varname, true, isCreation);
-			}
+			
+			
 		}
 		else
 		{//uh oh, we need to drill into the class heirarchy (and we only need to do this with classes)
@@ -1244,7 +1264,13 @@ public class TheScopeFrame {
 
 	public void removeVariable(String name){
 		if(this.vars.containsKey(name)){
-			this.vars.remove(name);
+			
+			if(this.replModLevelForcedNewvars == null) {
+				this.vars.remove(name);
+			}else if(null != this.replNameToRemoveAtEndOfSessionVARS){
+				this.replNameToRemoveAtEndOfSessionVARS.add(name);
+			}
+			
 			this.varsSelfRequestor.remove(name);
 		}else{
 			parent.removeVariable(name);
@@ -1353,5 +1379,16 @@ public class TheScopeFrame {
 		}
 		
 		return ret;
+	}
+
+	public void cleanUpAtEndOfREPLCycle() {
+		for(String name : replNameToRemoveAtEndOfSessionVARS) {
+			this.vars.remove(name);
+		}
+		
+		/*
+		 this.funcs.remove(name);
+		this.classes.remove(name);
+		 */
 	}
 }

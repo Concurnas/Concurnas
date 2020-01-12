@@ -607,7 +607,8 @@ public class BytecodeOutputter implements Opcodes {
 		// PUTFIELD bytecodeSandbox$SubMyClass f Ljava/lang/String;
 		//GETFIELD bytecodeSandbox$bytecodeSandbox$$onChange0$SO.lastVal$n1 : Ljava/lang/Integer;
 		//GETSTATIC repl$.a : Lcom/concurnas/runtime/ref/Local;
-		if (dowhat == GETSTATIC && fullModuleAndClassName.equals("repl$") && name.equals("a")) {
+		//PUTSTATIC bytecodeSandbox.a : Lcom/concurnas/runtime/ref/Local;
+		if (dowhat == PUTSTATIC && fullModuleAndClassName.equals("bytecodeSandbox") && name.equals("a")) {
 			int g = 9;
 		}
 
@@ -650,8 +651,9 @@ public class BytecodeOutputter implements Opcodes {
 		//INVOKESTATIC bytecodeSandbox$MyTrait.thing$traitM (LbytecodeSandbox$MyTrait;)Ljava/lang/String;
 		//INVOKEINTERFACE bytecodeSandbox$MyTrait.ifaceMethod ()I
 		//INVOKESPECIAL java/lang/Object.<init> (Lrepl$$Master;Lrepl$$Master;)V
-		
-		if(opcode == INVOKESPECIAL && owner.equals("java/lang/Object") && name.equals("<init>") ) {
+		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
+
+		if(opcode == PUTSTATIC && owner.equals("bytecodeSandbox") && name.equals("a") ) {
 			int h=9;
 		}
 		

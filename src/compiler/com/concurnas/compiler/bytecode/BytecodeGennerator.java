@@ -1028,7 +1028,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				// make new ref only if from is not ref
 				Utils.createRef(bcoutputter, storeAs, slot, doStore, extraRefDup, createOuuterLevelOnly);
 			} else {
-				storeLocalVaraible(name, null, storeAs, overriteLHSRef/*, null*/);
+				storeLocalVaraible(true, name, null, storeAs, overriteLHSRef/*, null*/);
 			}
 		}
 
@@ -1159,7 +1159,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			if (doStore && isRef) {
 				Location loc = isClassLevel ? new LocationClassField(getFullModuleAndClassName(), type) : new LocationStaticField(getFullModuleAndClassName(), type);
 
-				storeLocalVaraible(name, loc, type, rhsType, isInclInitCreator/*, null*/);
+				storeLocalVaraible(assignNew.isReallyNew, name, loc, type, rhsType, isInclInitCreator/*, null*/);
 			} else {
 				
 				if(isClassLevel && this.currentClassDefObj.peek().isTrait) {
@@ -1347,7 +1347,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 
 					if (isLHSRef) {
 						Location loca = isClassLevel ? new LocationClassField(getFullModuleAndClassName(), expectedType) : new LocationStaticField(getFullModuleAndClassName(), expectedType);
-						storeLocalVaraible(name, loca, expectedType, got, gotIsRef/*, null*/);
+						storeLocalVaraible(assignExisting.isReallyNew, name, loca, expectedType, got, gotIsRef/*, null*/);
 					} else {
 						
 						if(isClassLevel && this.currentClassDefObj.peek().isTrait) {
@@ -1443,7 +1443,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 							tryingToPassType = Utils.unref(bcoutputter, tryingToPassType, this);
 						}
 						
-						storeLocalVaraible(name, refNameresolvesTo, tryingToPassType, TypeCheckUtils.hasRefLevelsAndIsLocked(tryingToPassType)/*, assigneeRefNAme.isMapGetter*/);
+						storeLocalVaraible(assignExisting.isReallyNew, name, refNameresolvesTo, tryingToPassType, TypeCheckUtils.hasRefLevelsAndIsLocked(tryingToPassType)/*, assigneeRefNAme.isMapGetter*/);
 						
 					} else {// if(assignExisting.refCnt >=
 							// TypeCheckUtils.getRefLevels(tryingToPassType)){
@@ -1462,7 +1462,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 
 						boolean overwriteLHSRef = lhsResolvesRefLevels >= setTo;
 
-						storeLocalVaraible(name, refNameresolvesTo, tryingToPassType, overwriteLHSRef/*, assigneeRefNAme.isMapGetter*/);
+						storeLocalVaraible(assignExisting.isReallyNew, name, refNameresolvesTo, tryingToPassType, overwriteLHSRef/*, assigneeRefNAme.isMapGetter*/);
 					}
 				} else {
 					TypeAndLocation tal = assigneeRefNAme.resolvesTo;
@@ -1611,7 +1611,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 						Utils.box(bcoutputter, (PrimativeType) typeAsPrim);
 					}
 
-					storeLocalVaraible(name, refNameresolvesTo, loadedType/*, null*/);
+					storeLocalVaraible(assignExisting.isReallyNew, name, refNameresolvesTo, loadedType/*, null*/);
 				}
 			}
 		} else if (terminatal instanceof ArrayRef) {
@@ -2946,45 +2946,19 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	// }
 	//
 
-	private void storeLocalVaraible(String name, TypeAndLocation resovlesTo, Type passedType/*, Tuple<NamedType, String> fieldOnMap*/) {
-		storeLocalVaraible(name, resovlesTo, passedType, false/*, fieldOnMap*/);
+	private void storeLocalVaraible(boolean isreallyNew, String name, TypeAndLocation resovlesTo, Type passedType) {
+		storeLocalVaraible(isreallyNew, name, resovlesTo, passedType, false);
 	}
 
-	private void storeLocalVaraible(String name, TypeAndLocation resovlesTo, Type passedType, boolean overwriteLHSRef/*,  Tuple<NamedType, String> fieldOnMap*/) {
+	private void storeLocalVaraible(boolean isreallyNew, String name, TypeAndLocation resovlesTo, Type passedType, boolean overwriteLHSRef) {
 		Location loc = resovlesTo == null ? null : resovlesTo.getLocation();
 
 		Type typeStoredTo = resovlesTo == null ? null : resovlesTo.getType();
 
-		if (null != loc && overwriteLHSRef) {
-			AccessModifier acc = loc.getAccessModifier();
-			if (acc == AccessModifier.PRIVATE || acc == AccessModifier.PRIVATE) {
-				if (!this.currentClassDefObj.isEmpty()) {
-					String currentClassName = this.currentClassDefObj.peek().bcFullName();
-
-					// dont overwrite ref with a new one
-
-					/*
-					 * if(loc instanceof LocationStaticField){
-					 * if(!((LocationStaticField
-					 * )loc).owner.equals(currentClassName)){//private static
-					 * field therefore dont set ref overwriteLHSRef=false; } }
-					 * else if(loc instanceof LocationClassField){
-					 * if(!((LocationClassField
-					 * )loc).owner.equals(currentClassName)){//private static
-					 * field therefore dont set ref overwriteLHSRef=false; } }
-					 */
-				}
-			}
-		}
-
-		storeLocalVaraible(name, loc, typeStoredTo, passedType, overwriteLHSRef/*, fieldOnMap*/);
+		storeLocalVaraible(isreallyNew, name, loc, typeStoredTo, passedType, overwriteLHSRef);
 	}
 
-	private void storeLocalVaraible(String name, Location loc, Type typeStoredTo, Type passedType/*,  Tuple<NamedType, String> fieldOnMap*/) {
-		storeLocalVaraible(name, loc, typeStoredTo, passedType, false/*, fieldOnMap*/);
-	}
-
-	private void storeLocalVaraible(String name, Location loc, Type typeStoredTo, Type passedType, boolean overwriteLHSRef/*,  Tuple<NamedType, String> fieldOnMap*/) {
+	private void storeLocalVaraible(boolean isreallyNew, String name, Location loc, Type typeStoredTo, Type passedType, boolean overwriteLHSRef) {
 		boolean isRef = (typeStoredTo == null ? false : isRef(typeStoredTo));
 
 		int storeLevels = TypeCheckUtils.getRefLevels(typeStoredTo);
@@ -2992,22 +2966,13 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 
 		int levelsNeedToExtractToFromStoreLocation = storeLevels - passedLevls;
 
-		// if(!overwriteLHSRef){
-		// passedType = Utils.unref(mv, passedType, this);
-		// }
+		boolean isAtModuleLevelInClinitCreator = isInclInitCreator && isreallyNew;//only do this for new variables
 
 		if (null == loc || loc instanceof LocationLocalVar) {
 			Pair<Type, Integer> already = getLocalVar(name);
 			Type expectedType = already.getA();
 			int space = already.getB();
 
-			/*if (isRef && !overwriteLHSRef) {
-				Utils.applyLoad(mv, expectedType, space);
-				Utils.genericSswap(mv, expectedType, passedType);
-			} else if (isRef && levelsNeedToExtractToFromStoreLocation > 0) {
-				Utils.applyLoad(mv, expectedType, space);
-				Utils.genericSswap(mv, expectedType, passedType);
-			}*/
 
 			if (isRef && (!overwriteLHSRef || levelsNeedToExtractToFromStoreLocation > 0 ) ) {
 				Utils.applyLoad(bcoutputter, expectedType, space);
@@ -3032,7 +2997,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			LocationStaticField locStatic = (LocationStaticField) loc;
 			Type ret = locStatic.type;
 
-			if (isRef && !overwriteLHSRef && !isInclInitCreator) {
+			if (isRef && !overwriteLHSRef && !isAtModuleLevelInClinitCreator) {
 				// TODO: what if it's a ref? and going via init creator
 				// do u need an accessor for this?
 				Pair<String, String> accAndName = loc == null ? null : loc.getPrivateStaticAccessorRedirectFuncGetter();
@@ -3047,7 +3012,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				}
 
 				Utils.genericSswap(bcoutputter, ret, passedType);
-			} else if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isInclInitCreator) {
+			} else if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isAtModuleLevelInClinitCreator) {
 				if(shouldPopFromStackOnStaticCall()) {
 					bcoutputter.visitInsn(POP);//clean stack for static calls
 				}
@@ -3057,19 +3022,19 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			}
 
 			if (!ret.equals(passedType)) {
-				Utils.applyCastImplicit(bcoutputter, passedType, ret, this, !isInclInitCreator);
+				Utils.applyCastImplicit(bcoutputter, passedType, ret, this, !isAtModuleLevelInClinitCreator);
 			}
 
 			Thruple<String, String, Type> accAndName = loc == null ? null : loc.getPrivateStaticAccessorRedirectFuncSetter();
 
-			if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isInclInitCreator) {
+			if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isAtModuleLevelInClinitCreator) {
 
 			} else {
-				if (!isRef || (isRef && overwriteLHSRef) || isInclInitCreator) {// dont
+				if (!isRef || (isRef && overwriteLHSRef) || isAtModuleLevelInClinitCreator) {// dont
 																				// store
 																				// if
 																				// ref
-					if (null != accAndName && !isInclInitCreator) {// cursed to
+					if (null != accAndName && !isAtModuleLevelInClinitCreator) {// cursed to
 																	// access
 																	// via
 																	// accessor
@@ -3087,7 +3052,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			// boolean useTheGetterOnly = storeLevels==passedLevls; //this.d2a1
 			// :: = xxx (where xxx == (2!)!)
 
-			if (isRef && !overwriteLHSRef && !isInclInitCreator) {
+			if (isRef && !overwriteLHSRef && !isAtModuleLevelInClinitCreator) {
 				Utils.genericSswap(bcoutputter, passedType, locClassField.ownerType);
 
 				Pair<String, String> getterola = locClassField.getPrivateStaticAccessorRedirectFuncGetter();
@@ -3098,26 +3063,26 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				}
 
 				Utils.genericSswap(bcoutputter, locClassField.ownerType, passedType);
-			} else if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isInclInitCreator) {
+			} else if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isAtModuleLevelInClinitCreator) {
 				Utils.genericSswap(bcoutputter, passedType, ret);
 				bcoutputter.visitFieldInsn(GETFIELD, locClassField.getOwner(), name, typeStoredTo.getBytecodeType());
 				Utils.genericSswap(bcoutputter, ret, passedType);
 			}
 
 			if (!typeStoredTo.equals(passedType)) {
-				Utils.applyCastImplicit(bcoutputter, passedType, typeStoredTo, this, !isInclInitCreator);
+				Utils.applyCastImplicit(bcoutputter, passedType, typeStoredTo, this, !isAtModuleLevelInClinitCreator);
 			}
 
 			Thruple<String, String, Type> accAndName = loc == null ? null : loc.getPrivateStaticAccessorRedirectFuncSetter();
 
-			if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isInclInitCreator) {
+			if (isRef && levelsNeedToExtractToFromStoreLocation > 0 && !isAtModuleLevelInClinitCreator) {
 
 			} else {
-				if ((!isRef) || (isRef && overwriteLHSRef) || isInclInitCreator) {// dont
+				if ((!isRef) || (isRef && overwriteLHSRef) || isAtModuleLevelInClinitCreator) {// dont
 																					// store
 																					// if
 																					// ref
-					if (null != accAndName && !isInclInitCreator) {// cursed to
+					if (null != accAndName && !isAtModuleLevelInClinitCreator) {// cursed to
 																	// access
 																	// via
 																	// accessor
@@ -7776,7 +7741,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				RefName eeeRN = (RefName) eee;
 				TypeAndLocation lat = eeeRN.resolvesTo;
 				String name = eeeRN.name;
-				storeLocalVaraible(name, lat, type/*, null*/);
+				storeLocalVaraible(false, name, lat, type/*, null*/);
 			} else {
 				bcoutputter.visitMethodInsn(INVOKEVIRTUAL, "com/concurnas/runtime/ref/Local", "set", "(Ljava/lang/Object;)V");
 			}
@@ -8061,7 +8026,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				RefName eeeRN = (RefName) eee;
 				TypeAndLocation lat = eeeRN.resolvesTo;
 				String name = eeeRN.name;
-				storeLocalVaraible(name, lat, type/*, null*/);
+				storeLocalVaraible(false, name, lat, type/*, null*/);
 				// Utils.applyStore(mv, type,
 				// this.getLocalVar(((RefName)eee).name).getB());
 			}
@@ -9633,7 +9598,10 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				this.bcoutputter.visitMethodInsn(INVOKESPECIAL, "java/lang/Error", "<init>", "(Ljava/lang/String;)V", false);
 				this.bcoutputter.visitInsn(ATHROW);
 			}else {
+				boolean previiic=isInclInitCreator;
+				isInclInitCreator=false;
 				body.accept(vis);
+				isInclInitCreator = previiic;
 			}
 			
 			
@@ -12295,7 +12263,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				bcoutputter.visitVarInsn(ALOAD, rextractVarsFromSO);
 				bcoutputter.visitFieldInsn(GETFIELD, soname, name, tt.getBytecodeType());
 				
-				storeLocalVaraible(name, tal, tt, TypeCheckUtils.getRefLevels(tt) > 0/*, null*/);
+				storeLocalVaraible(false, name, tal, tt, TypeCheckUtils.getRefLevels(tt) > 0/*, null*/);
 			}
 
 		}

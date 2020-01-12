@@ -8,4 +8,7 @@ public class REPLRuntimeState {
 	@Shared
 	public static ConcurrentHashMap<String, Object> vars = new ConcurrentHashMap<String, Object>();
 	
+	public static void reset() {
+		vars = new ConcurrentHashMap<String, Object>();
+	}
 }
