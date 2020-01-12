@@ -166,6 +166,7 @@ public class TheScopeFrame {
 		replModLevelForcedNewfuncs = new HashMap<String, HashSet<FuncType>>();
 		replModLevelForcedNewClasses = new HashMap<String, ClassDef>();
 		replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
+		replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
 		//isREPL=true;
 	}
 	
@@ -283,6 +284,7 @@ public class TheScopeFrame {
 	
 	//del
 	public HashSet<String>  replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
+	public HashSet<String>  replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
 	//
 	
 	
@@ -759,21 +761,7 @@ public class TheScopeFrame {
 			vars = varsSelfRequestor;
 		}
 		
-		if(vars.containsKey(varname)){
-			TypeAndLocation tal = vars.get(varname);
-			
-			/*Type typ = tal.getType();
-			Type conv = TypeCheckUtils.convertTypeToFuncType(typ);
-			if(conv != typ) {
-				tal = new TypeAndLocation(conv, tal.getLocation());
-			}*/
-			
-			HashSet<TypeAndLocation> ret = new HashSet<TypeAndLocation>();
-			ret.add(tal);
-			return new Pair<Pair<Boolean, HashSet<TypeAndLocation>>, Boolean>(new Pair<Boolean, HashSet<TypeAndLocation>>(false, ret), this.isClass);
-		}
-		else if(funcs.containsKey(varname))
-		{
+		if(funcs.containsKey(varname)){//priortize functions first, then vars
 			HashSet<TypeAndLocation> items = funcs.get(varname);
 			HashSet<TypeAndLocation> filtered = new HashSet<TypeAndLocation>();
 			
@@ -790,11 +778,6 @@ public class TheScopeFrame {
 					if(got instanceof FuncType && ((FuncType)got).extFuncOn ){
 						continue;
 					}
-					/*Type gotc = TypeCheckUtils.convertTypeToFuncType(got);
-					if(gotc != got) {
-						tal = new TypeAndLocation(gotc, tal.getLocation());
-					}
-					*/
 					filtered.add(tal);
 				}
 			}
@@ -804,6 +787,12 @@ public class TheScopeFrame {
 			}
 			
 			return new Pair<Pair<Boolean, HashSet<TypeAndLocation>>, Boolean>(new Pair<Boolean, HashSet<TypeAndLocation>>(true, filtered), this.isClass);
+		}else if(vars.containsKey(varname)){
+			TypeAndLocation tal = vars.get(varname);
+			
+			HashSet<TypeAndLocation> ret = new HashSet<TypeAndLocation>();
+			ret.add(tal);
+			return new Pair<Pair<Boolean, HashSet<TypeAndLocation>>, Boolean>(new Pair<Boolean, HashSet<TypeAndLocation>>(false, ret), this.isClass);
 		}
 		else if(null != parent && lookParent)
 		{
@@ -1272,7 +1261,7 @@ public class TheScopeFrame {
 			}
 			
 			this.varsSelfRequestor.remove(name);
-		}else{
+		}else if(this.replModLevelForcedNewvars == null){
 			parent.removeVariable(name);
 		}
 		
@@ -1290,43 +1279,59 @@ public class TheScopeFrame {
 			return;
 		}
 		
-		if(this.replModLevelForcedNewfuncs != null) {//we can overwrite a functioin defintion from a previous incarnation when in REPL mode
+		boolean removeAllAtModLevel = signature == null;
+		
+		if(!removeAllAtModLevel && this.replModLevelForcedNewfuncs != null) {//we can overwrite a functioin defintion from a previous incarnation when in REPL mode
 			signature = signature.copyIgnoreReturnType();
 		}
 		
 		
 		{
-			HashSet<TypeAndLocation> choices = this.funcs.get(name);
-			if(null != choices){
-				for(TypeAndLocation tal : choices){
-					Type tt = tal.getType();
-					if(this.replModLevelForcedNewfuncs != null) {
-						tt = tt.copyIgnoreReturnType();
-					}
-					
-					if(tt.equals(signature)){
-						choices.remove(tal);
-						break;
+			if(removeAllAtModLevel) {
+				if(null != this.replNameToRemoveAtEndOfSessionFUNCS){
+					this.replNameToRemoveAtEndOfSessionFUNCS.add(name);
+				}
+			}else {
+				HashSet<TypeAndLocation> choices = this.funcs.get(name);
+				if(null != choices){
+					for(TypeAndLocation tal : choices){
+						Type tt = tal.getType();
+						if(this.replModLevelForcedNewfuncs != null) {
+							tt = tt.copyIgnoreReturnType();
+						}
+						
+						if(tt.equals(signature)){
+							choices.remove(tal);
+							if(choices.isEmpty()) {
+								this.funcs.remove(name);
+							}
+							break;
+						}
 					}
 				}
 			}
 		}
 		
 		{//JPT: optimization here, if above is null then return? which one, one cannot be null without the other hmm, i forget which is more strict
-			HashSet<TypeAndLocation> choices = this.funcsSelfRequestor.get(name);
-			if(null != choices){
-				for(TypeAndLocation tal : choices){
-					Type tt = tal.getType();
-					/*if(ignoreGensAndRetType) {
-						tt = ((FuncType)tt).origonatingFuncDef.getFuncType().getErasedFuncTypeNoRet();
-					}*/
-					if(this.replModLevelForcedNewfuncs != null) {
-						tt = tt.copyIgnoreReturnType();
-					}
-					
-					if(tt.equals(signature)){
-						choices.remove(tal);
-						break;
+			if(removeAllAtModLevel) {
+				this.funcsSelfRequestor.remove(name);
+			}else {
+				HashSet<TypeAndLocation> choices = this.funcsSelfRequestor.get(name);
+				if(null != choices){
+					for(TypeAndLocation tal : choices){
+						
+						Type tt = tal.getType();
+						if(this.replModLevelForcedNewfuncs != null) {
+							tt = tt.copyIgnoreReturnType();
+						}
+						
+						if(tt.equals(signature)){
+							choices.remove(tal);
+							if(choices.isEmpty()) {
+								this.funcsSelfRequestor.remove(name);
+							}
+							break;
+						}
 					}
 				}
 			}
@@ -1378,9 +1383,20 @@ public class TheScopeFrame {
 		return ret;
 	}
 
+	public HashSet<String> getAllItemsDeleted(){
+		HashSet<String> ret = new HashSet<String>();
+		ret.addAll(replNameToRemoveAtEndOfSessionVARS);
+		ret.addAll(replNameToRemoveAtEndOfSessionFUNCS);
+		return ret;
+	}
+	
 	public void cleanUpAtEndOfREPLCycle() {
 		for(String name : replNameToRemoveAtEndOfSessionVARS) {
 			this.vars.remove(name);
+		}
+		
+		for(String name : replNameToRemoveAtEndOfSessionFUNCS) {
+			this.funcs.remove(name);
 		}
 		
 		/*

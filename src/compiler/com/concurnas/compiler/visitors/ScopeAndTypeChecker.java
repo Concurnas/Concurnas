@@ -354,7 +354,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "int is not a subtype of java.lang.String";
+		String err = "thing cannot be resolved to a variable";
 		if(somthing.contains(err) && maskErrors.isEmpty()/* && line == 1660*/ ){
 			int h=999;
 		}
@@ -25014,6 +25014,11 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		//a.b.c[12] <- ArrayRef
 	}
 	
+	private void removeFromAllModCats(String varname) {
+		this.currentScopeFrame.removeFuncDef(varname, null);
+		this.currentScopeFrame.removeVariable(varname);
+	}
+	
 	@Override
 	public Object visit(DeleteStatement deleteStatement){
 		for(Expression ee : deleteStatement.exprs) {
@@ -25022,11 +25027,33 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				ArrayRef ar = (ArrayRef)rhsResovlesToExpr;
 				ar.arrayLevelElements.getLastArrayRefElement().liToMap = LISTorMAPType.REMOVE;
 			}
+
+			Type opon;
 			
-			Type opon = (Type)ee.accept(this);
+			if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {
+				//if in top level repl mode...
+				this.maskErrors(true);
+				opon = (Type)ee.accept(this);
+				ArrayList<CapMaskedErrs> errs = this.getmaskedErrors();
+				if(!errs.isEmpty()) {
+					//see if we can delete any top level elements with this name
+					if(ee instanceof RefName) {
+						RefName asrn = (RefName)ee;
+						if(this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, asrn.name, false, true, false)) {
+							removeFromAllModCats(asrn.name);
+							return null;
+						}
+					}
+					
+					//cannot process...
+					this.applyMaskedErrors(errs);
+					return null;
+				}
+			}else {
+				opon = (Type)ee.accept(this);
+			}
+			
 			if(!TypeCheckUtils.isValidType(opon)){
-				
-				
 				this.raiseError(ee.getLine(), ee.getColumn(), String.format("Invalid type %s", opon) );
 			}
 			else{
@@ -25039,7 +25066,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						if(null != loc && !(loc instanceof LocationLocalVar)){
 							if(this.isREPL != null && loc instanceof LocationStaticField && this.currentScopeFrame.paThisIsModule) {
 								//remove variable
-								this.currentScopeFrame.removeVariable(asRef.name);
+								removeFromAllModCats(asRef.name);
 							}else {
 								this.raiseError(ee.getLine(), ee.getColumn(), "Only local variables can be deleted");
 							}
@@ -25055,8 +25082,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 								if(null != fr.typeOperatedOn) {
 									Location loc = fr.typeOperatedOn.getLocation();
 									if(loc instanceof StaticFuncLocation) {
-
-										this.currentScopeFrame.removeFuncDef(asRef.name, null);
+										removeFromAllModCats(asRef.name);
 										return null;
 									}
 								}

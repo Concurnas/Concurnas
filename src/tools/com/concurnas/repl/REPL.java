@@ -227,8 +227,9 @@ public class REPL implements Opcodes {
 	}
 	
 	
-	LinkedHashMap<Pair<String, Type>, Line> persistedTopLevelElementSet = new LinkedHashMap<Pair<String, Type>, Line>();
-	
+	private LinkedHashMap<Pair<String, Type>, Line> persistedTopLevelElementSet = new LinkedHashMap<Pair<String, Type>, Line>();
+	private HashMap<String, HashSet<Pair<String, Type>>> persistedTLENameToPair = new HashMap<String, HashSet<Pair<String, Type>>>();
+		
 	private Pair<List<Pair<REPLTopLevelComponent, Boolean>>, List<REPLComponentWrapper>> appendPrevCode(Block blk) {
 		List<Pair<REPLTopLevelComponent, Boolean>> newlyDefined = new ArrayList<Pair<REPLTopLevelComponent, Boolean>>();
 		List<REPLComponentWrapper> newTLEs = new ArrayList<REPLComponentWrapper>();
@@ -285,7 +286,25 @@ public class REPL implements Opcodes {
 		//now add funcs from prevous definitions unless redefined above....
 		persistedTopLevelElementSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
 		
-		funcs.keySet().forEach(a -> persistedTopLevelElementSet.put( new Pair<String, Type>((a.comp).getName(), funcs.get(a)), (Line)a.comp));
+		funcs.keySet().forEach(a -> {
+			String name = (a.comp).getName();
+			Pair<String, Type> key = new Pair<String, Type>(name, funcs.get(a));
+			
+			persistedTopLevelElementSet.put( key , (Line)a.comp);
+			
+			{
+				HashSet<Pair<String, Type>> holder;
+				if(!persistedTLENameToPair.containsKey(name)) {
+					holder = new HashSet<Pair<String, Type>>();
+					persistedTLENameToPair.put(name, holder);
+				}else {
+					holder = persistedTLENameToPair.get(name);
+				}
+				holder.add(key);
+			}
+			
+			
+		});
 		
 		//ensure all imports are specified first...
 		if(blk.lines.stream().anyMatch(a -> a.l instanceof ImportStatement)) {
@@ -543,6 +562,15 @@ public class REPL implements Opcodes {
 				this.replState.tliCache = this.moduleCompiler.replLastTopLevelImports;
 				this.moduleCompiler.moduleLevelFrame.updatePrevSessionVars();
 				this.moduleCompiler.moduleLevelFrame.cleanUpAtEndOfREPLCycle();
+				
+				for(String name : this.moduleCompiler.moduleLevelFrame.getAllItemsDeleted()) {
+					HashSet<Pair<String, Type>> tlaToRemove = persistedTLENameToPair.remove(name);
+					if(null != tlaToRemove) {
+						for(Pair<String, Type> item : tlaToRemove) {
+							this.persistedTopLevelElementSet.remove(item);
+						}
+					}
+				}
 			}
 			
 			if(this.debugmode) {

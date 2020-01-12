@@ -946,24 +946,70 @@ public class REPLTests {
 		
 		assertEquals("a ==> hi", repl.processInput("a"));
 	}
-	*/
-	
 	
 	@Test
 	public void delFunc() throws Exception {
 		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
 		assertEquals("", repl.processInput("del thing"));
-		assertEquals("", repl.processInput("thing()"));
-	
-		//remove func from inclusion set so not included later
-		
-		
-		//del more than one function in a single sweep
-		
-		//+variable and also a function at same time
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing()"));
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 50"));
+		assertEquals("$0 ==> 50", repl.processInput("thing()"));
 	}
 	
-	//redef func after deleted
+	@Test
+	public void delManyFuncs() throws Exception {
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
+		assertEquals("|  created function thing(int)", repl.processInput("def thing(a int) => 12 + a"));
+		assertEquals("$0 ==> 12", repl.processInput("thing()"));
+		assertEquals("$1 ==> 24", repl.processInput("thing(12)"));
+		assertEquals("", repl.processInput("del thing"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing()"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing(12)"));
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 50"));
+		assertEquals("$2 ==> 50", repl.processInput("thing()"));
+	}
+	
+	@Test
+	public void delManyFuncAndVar() throws Exception {
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
+		assertEquals("|  created function thing(int)", repl.processInput("def thing(a int) => 12 + a"));
+		assertEquals("", repl.processInput("thing = 99;"));
+		assertEquals("$0 ==> 12", repl.processInput("thing()"));
+		assertEquals("$1 ==> 24", repl.processInput("thing(12)"));
+		assertEquals("thing ==> 99", repl.processInput("thing"));
+		assertEquals("", repl.processInput("del thing"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing()"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing(12)"));
+		assertEquals("|  ERROR variable thing does not exist", repl.processInput("thing"));
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 50"));
+		assertEquals("", repl.processInput("thing = 89;"));
+		assertEquals("$2 ==> 50", repl.processInput("thing()"));
+		assertEquals("thing ==> 89", repl.processInput("thing"));
+	}
+	*/
+	
+	@Test
+	public void delFuncDefRedefSameSession() throws Exception {
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
+		assertEquals("|  created function thing(int)", repl.processInput("def thing(a int) => 12 + a"));
+		assertEquals("", repl.processInput("thing = 99;"));
+		assertEquals("$0 ==> 12", repl.processInput("thing()"));
+		assertEquals("$1 ==> 24", repl.processInput("thing(12)"));
+		assertEquals("thing ==> 99", repl.processInput("thing"));
+		assertEquals("", repl.processInput("del thing"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing()"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing(12)"));
+		assertEquals("|  ERROR variable thing does not exist", repl.processInput("thing"));
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 50"));
+		assertEquals("", repl.processInput("thing = 89;"));
+		assertEquals("$2 ==> 50", repl.processInput("thing()"));
+		assertEquals("thing ==> 89", repl.processInput("thing"));
+	}
+	
+	
+	//redef func in same session, def x(); del x, def x(); x()
+	
+	
 	
 	
 	
@@ -975,7 +1021,7 @@ public class REPLTests {
 
 	//test:
 	//c = 100; def foo() => c; 
-	//del c | foo is now broken
+	//del c | foo is now broken where c any aformentioned thing
 	
 	
 	
@@ -1005,6 +1051,8 @@ public class REPLTests {
 	}
 	 */
 	
+	
+	//later: removed myfunc
 	
 	/*
 
