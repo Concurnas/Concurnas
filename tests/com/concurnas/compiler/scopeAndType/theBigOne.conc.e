@@ -836,7 +836,7 @@ xCONCabstractclasses3.conc line 46:0 Class 'xCONCabstractclasses3.ChildGenericUn
  
 ~~~~~
 //##CONC override function (inc abstr)
-xCONCoverridefunction(incabstr).conc line 6:0 Method: def doings() void which has been declared as overriden can only be defined within a subclass
+xCONCoverridefunction(incabstr).conc line 6:0 Function: def doings() void which has been declared as overriden can only be defined within a subclass
 xCONCoverridefunction(incabstr).conc line 10:1 In order for the method 'def doings() void' of class: 'xCONCoverridefunction(incabstr).NaugtySup' to be overriden it must be defined in superclass: java.lang.Object
 xCONCoverridefunction(incabstr).conc line 16:1 Method: 'def equals(java.lang.Object) boolean' of class: 'java.lang.Object' should be explicitly overriden in subclass: xCONCoverridefunction(incabstr).BadExtendObjectAbstr. Use the override keyword
 xCONCoverridefunction(incabstr).conc line 21:1 Method: 'def equals(java.lang.Object) boolean' of class: 'java.lang.Object' should be explicitly overriden in subclass: xCONCoverridefunction(incabstr).BadExtendObjectDefined. Use the override keyword
@@ -1783,7 +1783,7 @@ x100arraymoan.conc line 5:10 Array index operation can only be performed on obje
  
 ~~~~~
 //##101. no escaping from the erasure rules you sneeky git
-x101noescapingfromtheerasurerulesyousneekygit.conc line 8:0 Method x with matching argument definition exists already in current Scope
+x101noescapingfromtheerasurerulesyousneekygit.conc line 8:0 Function x with matching argument definition exists already in current Scope
  
 ~~~~~
 //##102. sealed classes by default
@@ -3066,7 +3066,7 @@ x329annotationfieldsvalidationchecksofformattings.conc line 9:1 Annotation field
  
 ~~~~~
 //##330. annotations cannot have methods or init
-x330annotationscannothavemethodsorinit.conc line 6:1 method: notallowedhere cannot be defined within annotation
+x330annotationscannothavemethodsorinit.conc line 6:1 Method: notallowedhere cannot be defined within annotation
 x330annotationscannothavemethodsorinit.conc line 7:1 init block may only be declared within classes or enums having declaration level parameters
  
 ~~~~~
@@ -3239,8 +3239,8 @@ x363minorbug.conc line 14:7 Unable to find method with matching name: lefunc
  
 ~~~~~
 //##364. ambigious with default params
-x364ambigiouswithdefaultparams.conc line 5:0 Method myFunc with matching argument definition exists already in current Scope when default arguments are ignored
-x364ambigiouswithdefaultparams.conc line 7:0 Method myFunc with matching argument definition exists already in current Scope
+x364ambigiouswithdefaultparams.conc line 5:0 Function myFunc with matching argument definition exists already in current Scope when default arguments are ignored
+x364ambigiouswithdefaultparams.conc line 7:0 Function myFunc with matching argument definition exists already in current Scope
  
 ~~~~~
 //##365. ambigious with default params constr
@@ -3731,7 +3731,7 @@ x467extensionfunctionsonlycalledonextendee.conc line 19:1 Unable to find method 
  
 ~~~~~
 //##468. arg clash on ext func duplicate
-x468argclashonextfuncduplicate.conc line 16:0 Method myFunc with matching argument definition exists already in current Scope
+x468argclashonextfuncduplicate.conc line 16:0 Function myFunc with matching argument definition exists already in current Scope
 x468argclashonextfuncduplicate.conc line 22:5 Unable to find method with matching name: myFunc
 
 ~~~~~
@@ -3780,7 +3780,6 @@ x475unabletointepretreturnbestmatchsofar.conc line 13:13 Unable to interpret ent
  
 ~~~~~
 //##476. no valid interp
-x476novalidinterp.conc line 9:9 No valid interpretation of expression list available
 
  
 ~~~~~
@@ -4035,14 +4034,14 @@ x528whatcanbetaggedasastubfunction.conc line 21:0 gpudef stub functions or kerne
  
 ~~~~~
 //##529. gpu kernel ambiguity
-x529gpukernelambiguity.conc line 10:0 Method myfunc1 with matching argument definition exists already in current Scope
-x529gpukernelambiguity.conc line 14:0 Method myfunc1 with matching argument definition exists already in current Scope
-x529gpukernelambiguity.conc line 18:0 Method myfunc1 with matching argument definition exists already in current Scope
+x529gpukernelambiguity.conc line 10:0 Function myfunc1 with matching argument definition exists already in current Scope
+x529gpukernelambiguity.conc line 14:0 Function myfunc1 with matching argument definition exists already in current Scope
+x529gpukernelambiguity.conc line 18:0 Function myfunc1 with matching argument definition exists already in current Scope
  
 ~~~~~
 //##530. gpu kerenel type erasure
 x530gpukereneltypeerasure.conc line 23:1 Type mismatch: cannot convert from long to int
-x530gpukereneltypeerasure.conc line 26:0 Method myFunc with matching argument definition exists already in current Scope - generic types are erased at runtime
+x530gpukereneltypeerasure.conc line 26:0 Function myFunc with matching argument definition exists already in current Scope - generic types are erased at runtime
  
 ~~~~~
 //##531. was a bug now its fine
@@ -4482,3 +4481,7 @@ x609constantlikevalnoreassign.conc line 14:1 Variable sdf has been decalred as c
 ~~~~~
 //##610. import star scopes
 x610importstarscopes.conc line 8:8 Unable to resolve type corresponding to name: ArrayList
+
+~~~~~
+//##611. top level del on func
+x214topleveldelonfunc.conc line 3:4 thing resolves to something other than a local variable

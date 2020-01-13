@@ -860,6 +860,3 @@ ok3
 //##213. top level every and await
 ok102
 
-~~~~~
-//##214. top level del on func
-bytecodeSandbox.conc line 2:4 thing resolves to something other than a local variable

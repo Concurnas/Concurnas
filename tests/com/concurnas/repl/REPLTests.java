@@ -294,7 +294,7 @@ public class REPLTests {
 	public void basicFuncsDefs() throws Exception {
 		assertEquals("|  created function plus(int, int)", repl.processInput("def plus(a int, b int) int => return a + b"));
 		assertEquals("|  redefined function plus(int, int)", repl.processInput("def plus(a int, b int) int => return a + b"));//redef
-		assertEquals("|  ERROR 1:42 Method plus with matching argument definition exists already in current Scope", repl.processInput("def plus(a int, b int) int {return a + b} def plus(a int, b int) int {return a + b}"));//redef x2 no!
+		assertEquals("|  ERROR 1:42 Function plus with matching argument definition exists already in current Scope", repl.processInput("def plus(a int, b int) int {return a + b} def plus(a int, b int) int {return a + b}"));//redef x2 no!
 	}
 	
 
@@ -986,29 +986,60 @@ public class REPLTests {
 		assertEquals("$2 ==> 50", repl.processInput("thing()"));
 		assertEquals("thing ==> 89", repl.processInput("thing"));
 	}
-	*/
 	
 	@Test
 	public void delFuncDefRedefSameSession() throws Exception {
-		assertEquals("|  created function thing()", repl.processInput("def thing() => 12"));
-		assertEquals("|  created function thing(int)", repl.processInput("def thing(a int) => 12 + a"));
-		assertEquals("", repl.processInput("thing = 99;"));
-		assertEquals("$0 ==> 12", repl.processInput("thing()"));
-		assertEquals("$1 ==> 24", repl.processInput("thing(12)"));
-		assertEquals("thing ==> 99", repl.processInput("thing"));
-		assertEquals("", repl.processInput("del thing"));
-		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing()"));
-		assertEquals("|  ERROR 1:0 Unable to find method with matching name: thing", repl.processInput("thing(12)"));
-		assertEquals("|  ERROR variable thing does not exist", repl.processInput("thing"));
-		assertEquals("|  created function thing()", repl.processInput("def thing() => 50"));
-		assertEquals("", repl.processInput("thing = 89;"));
-		assertEquals("$2 ==> 50", repl.processInput("thing()"));
-		assertEquals("thing ==> 89", repl.processInput("thing"));
+		//redef here would be very elaborate
+		assertEquals("|  ERROR 2:8 Function x with matching argument definition exists already in current Scope", repl.processInput("def x() => 12;\n del x; def x()=> 13;\n x()"));
 	}
 	
+	@Test
+	public void delClassAndFuncSameName() throws Exception {
+		assertEquals("|  created Person", repl.processInput("class Person(~name String, lastname String = 'smith', yob int){ override toString() => 'Person({name}, {lastname}, {yob})'}"));//updates, bar and foo
+		assertEquals("|  created function Person()\n|    update modified Person", repl.processInput("def Person() => 13"));//updates, bar and foo
+		assertEquals("p1 ==> Person(dave, smith, 23)", repl.processInput("p1 = new Person('dave', 23)"));
+		assertEquals("p2 ==> 13", repl.processInput("p2 = Person()"));
+		assertEquals("", repl.processInput("del Person"));
+		assertEquals("|  ERROR 1:9 in p3 - Unable to resolve type corresponding to name: Person", repl.processInput("p3 = new Person('dave', 23)"));
+		assertEquals("|  ERROR 1:5 in p4 - Unable to find method with matching name: repl$.Person", repl.processInput("p4 = Person()"));
+	}
 	
-	//redef func in same session, def x(); del x, def x(); x()
+	@Test
+	public void delClass() throws Exception {
+		assertEquals("|  created Person", repl.processInput("class Person(~name String, lastname String = 'smith', yob int){ override toString() => 'Person({name}, {lastname}, {yob})'}"));//updates, bar and foo
+		assertEquals("p1 ==> Person(dave, smith, 23)", repl.processInput("p1 = Person('dave', 23)"));
+		assertEquals("", repl.processInput("del Person"));
+		assertEquals("|  ERROR 1:5 in p2 - Unable to find method with matching name: repl$.Person", repl.processInput("p2 = Person('dave', 23)"));
+		
+		//and redefine
+		assertEquals("|  created Person", repl.processInput("class Person(~name String, lastname String = 'smith', yob int){ override toString() => 'PersonNew({name}, {lastname}, {yob})'}"));//updates, bar and foo
+		assertEquals("p3 ==> Person(dave, smith, 23)", repl.processInput("p3 = Person('dave', 23)"));//ERROR should be new def: PersonNew
+	}
 	
+	@Test
+	public void delEnum() throws Exception {
+		assertEquals("|  created Color", repl.processInput("enum Color{BLUE, GREEN}"));
+		assertEquals("$0 ==> GREEN", repl.processInput("Color.GREEN"));
+		assertEquals("", repl.processInput("del Color"));
+		assertEquals("|  ERROR 1:0 Expression cannot appear on its own line\n|  ERROR 1:0 Unable to resolve reference to variable name: repl$.Color.GREEN", repl.processInput("Color.GREEN"));
+	}
+	
+	*/
+	
+	
+	
+	@Test
+	public void delEnumAndVar() throws Exception {
+		assertEquals("|  created Color", repl.processInput("enum Color{BLUE, GREEN}"));
+		assertEquals("|  created function Color()", repl.processInput("def Color() => 78"));
+		assertEquals("$0 ==> GREEN", repl.processInput("Color.GREEN"));
+		assertEquals("$1 ==> 78", repl.processInput("Color()"));
+		assertEquals("", repl.processInput("del Color"));
+		assertEquals("|  ERROR 1:0 Expression cannot appear on its own line\n|  ERROR 1:0 Unable to resolve reference to variable name: repl$.Color.GREEN", repl.processInput("Color.GREEN"));
+		assertEquals("e name: repl$.Color.GREEN", repl.processInput("Color()"));
+	}
+	
+	//del enum and var with same name
 	
 	
 	

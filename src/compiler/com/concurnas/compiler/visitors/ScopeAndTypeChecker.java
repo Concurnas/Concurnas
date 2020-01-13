@@ -20818,6 +20818,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 	}
 	
+	public String methodOrFunction() {
+		return this.currentScopeFrame.paThisIsModule?"Function":"Method";
+	}
+	
 	public Object visitReal(FuncDef funcDef) {
 		
 		FuncType oldFuncType = funcDef.getFuncType();
@@ -20827,7 +20831,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		this.maskErrors(true);
 		
 		if(this.currentScopeFrame.isAnnotation){
-			this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("method: %s cannot be defined within annotation", funcDef.funcName));
+			this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s: %s cannot be defined within annotation", methodOrFunction(), funcDef.funcName));
 		}
 		
 		if(this.currentScopeFrame.isClass()){
@@ -21041,14 +21045,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		else if(ExisitsAlready.TRUE == existAlready){
 			if(!funcDef.funcName.contains("$")){//exlcude synthetics like: $$onChange1$apply, this way omchange can be created inside function argument, or other places where they get double visisted in the same pass
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope", methodOrFunction(), funcDef.funcName));
 			}
 		}
 		else if(ExisitsAlready.TRUE_IMPLICIT == existAlready){
-			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists implicitly already in current Scope", funcDef.funcName));
+			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists implicitly already in current Scope", methodOrFunction(), funcDef.funcName));
 		}
 		else if(ExisitsAlready.TRUE_GT_ERASED == existAlready){
-			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope - generic types are erased at runtime", funcDef.funcName));
+			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope - generic types are erased at runtime", methodOrFunction(), funcDef.funcName));
 		}
 		else
 		{
@@ -21056,13 +21060,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			ExisitsAlready existAlreadyMinSet = this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, funcDef.funcName, funcDef.getFuncType(), false, funcDef.isAutoGennerated, true, true, true);
 			
 			if(ExisitsAlready.TRUE == existAlreadyMinSet){
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope when default arguments are ignored", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope when default arguments are ignored", methodOrFunction(), funcDef.funcName));
 			}
 			else if(ExisitsAlready.TRUE_IMPLICIT == existAlreadyMinSet){
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists implicitly already in current Scope when default arguments are ignored", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists implicitly already in current Scope when default arguments are ignored", methodOrFunction(), funcDef.funcName));
 			}
 			else if(ExisitsAlready.TRUE_GT_ERASED == existAlreadyMinSet){
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope - generic types are erased at runtime when default arguments are ignored", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope - generic types are erased at runtime when default arguments are ignored", methodOrFunction(), funcDef.funcName));
 			}
 			
 			
@@ -21088,7 +21092,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			boolean blacklist = false;//why is it called a black list?
 			if(isOverride && superClass == null)
 			{
-				this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("Method: %s which has been declared as overriden can only be defined within a subclass", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName)));
+				this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s: %s which has been declared as overriden can only be defined within a subclass", methodOrFunction(), String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName)));
 			}
 			else
 			{
@@ -25017,6 +25021,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private void removeFromAllModCats(String varname) {
 		this.currentScopeFrame.removeFuncDef(varname, null);
 		this.currentScopeFrame.removeVariable(varname);
+		this.currentScopeFrame.removeClassDef(varname);
 	}
 	
 	@Override
@@ -25038,9 +25043,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				if(!errs.isEmpty()) {
 					//see if we can delete any top level elements with this name
 					if(ee instanceof RefName) {
-						RefName asrn = (RefName)ee;
-						if(this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, asrn.name, false, true, false)) {
-							removeFromAllModCats(asrn.name);
+						String varname = ((RefName)ee).name;
+						if(this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, varname, false, true, false) || this.currentScopeFrame.replNameToRemoveAtEndOfSessionFUNCS.contains(varname)) {
+							removeFromAllModCats(varname);
+							return null;
+						}
+						if(this.currentScopeFrame.hasClassDef(this.currentScopeFrame, varname, false, false) || this.currentScopeFrame.replNameToRemoveAtEndOfSessionCLASSES.contains(varname)) {
+							removeFromAllModCats(varname);
 							return null;
 						}
 					}
@@ -26277,7 +26286,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				objectProvider.astRedirect = null;
 				//return null;
 			}else {
-				this.currentScopeFrame.removeClassDef(this.currentScopeFrame, objectProvider.astRedirect.getClassName());
+				this.currentScopeFrame.removeClassDef(objectProvider.astRedirect.getClassName());
 			}
 		}
 		

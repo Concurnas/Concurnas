@@ -578,7 +578,7 @@ public class ModuleCompiler implements Comparable{
 					ErrorRaiseable erSup = scopeTypeChecker.getErrorRaiseableSupression();
 					
 					if(errorsPermitCompilation(latestRoundOfErrors))
-					{//dont bother with compilation if u cannot even get the semantics right...
+					{//comple if other aspects above correct
 						
 						if(isREPL) {
 							this.isREPL.topLevelItemsToSkip.forEach(a -> {

@@ -285,6 +285,7 @@ public class TheScopeFrame {
 	//del
 	public HashSet<String>  replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
 	public HashSet<String>  replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
+	public HashSet<String>  replNameToRemoveAtEndOfSessionCLASSES = new HashSet<String>();
 	//
 	
 	
@@ -727,7 +728,7 @@ public class TheScopeFrame {
 		}
 	}
 	
-	public void removeClassDef(TheScopeFrame requestor, String varname) {
+	public void removeClassDef(String varname) {
 		classes.remove(varname);
 		if(isPersisted)
 		{
@@ -964,17 +965,14 @@ public class TheScopeFrame {
 							ret = ExisitsAlready.TRUE_GT_ERASED;
 						}
 						
-						if(ret != null) {
-							
-							//fix here, also from create/replacer
-							if(isCreation && this.paThisIsModule && this.replModLevelForcedNewfuncs != null) {
-								if(replPrevSessionFuncs.containsKey(varname) && replPrevSessionFuncs.get(varname).contains(sigCheck.getErasedFuncTypeNoRet())) {
-									return ExisitsAlready.FALSE;
-								}
-								
+						//fix here, also from create/replacer
+						if(isCreation && this.paThisIsModule && this.replModLevelForcedNewfuncs != null) {
+							if(replPrevSessionFuncs.containsKey(varname) && replPrevSessionFuncs.get(varname).contains(sigCheck.getErasedFuncTypeNoRet())) {
+								ret=null;
 							}
-							
-							
+						}
+						
+						if(ret != null) {
 							return ret;
 						}
 						
@@ -1014,7 +1012,9 @@ public class TheScopeFrame {
 		if(isPersisted)
 		{
 			HashSet<TypeAndLocation> got2 = this.funcsSelfRequestor.get(varname);
-			got2.remove(old);
+			if(null != got2) {
+				got2.remove(old);
+			}
 		}
 		
 		setFuncDef(requestor, varname, newLoc, modifier);
@@ -1387,6 +1387,7 @@ public class TheScopeFrame {
 		HashSet<String> ret = new HashSet<String>();
 		ret.addAll(replNameToRemoveAtEndOfSessionVARS);
 		ret.addAll(replNameToRemoveAtEndOfSessionFUNCS);
+		ret.addAll(replNameToRemoveAtEndOfSessionCLASSES);
 		return ret;
 	}
 	
@@ -1397,6 +1398,10 @@ public class TheScopeFrame {
 		
 		for(String name : replNameToRemoveAtEndOfSessionFUNCS) {
 			this.funcs.remove(name);
+		}
+		
+		for(String name : replNameToRemoveAtEndOfSessionCLASSES) {
+			this.classes.remove(name);
 		}
 		
 		/*

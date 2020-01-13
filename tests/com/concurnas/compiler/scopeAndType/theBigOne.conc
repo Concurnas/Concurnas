@@ -15921,3 +15921,11 @@ def doings(){
 
 x = new ArrayList<String>()//complain still
 
+~~~~~
+//##611. top level del on func
+def thing() => 12
+del thing
+
+def doings(){
+	"ok"
+}

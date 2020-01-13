@@ -4002,12 +4002,3 @@ await(ccc; ccc == 102)
 def doings(){
 	"ok" + ccc
 }
-
-~~~~~
-//##214. top level del on func
-def thing() => 12
-del thing
-
-def doings(){
-	"ok"
-}
