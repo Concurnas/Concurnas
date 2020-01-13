@@ -167,6 +167,7 @@ public class TheScopeFrame {
 		replModLevelForcedNewClasses = new HashMap<String, ClassDef>();
 		replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
 		replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
+		replNameToRemoveAtEndOfSessionTYPEDEF = new HashSet<String>();
 		//isREPL=true;
 	}
 	
@@ -286,6 +287,7 @@ public class TheScopeFrame {
 	public HashSet<String>  replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
 	public HashSet<String>  replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
 	public HashSet<String>  replNameToRemoveAtEndOfSessionCLASSES = new HashSet<String>();
+	public HashSet<String>  replNameToRemoveAtEndOfSessionTYPEDEF = new HashSet<String>();
 	//
 	
 	
@@ -447,6 +449,10 @@ public class TheScopeFrame {
 	
 	public TypeDefTypeProvider getTypeDef(String name){
 		if(typedefs.containsKey(name)){
+			if(this.paThisIsModule && this.replModLevelForcedNewvars != null && replNameToRemoveAtEndOfSessionTYPEDEF.contains(name)) {
+				return null;
+			}
+			
 			return typedefs.get(name);
 		}
 		else if(parent != null){
@@ -460,6 +466,11 @@ public class TheScopeFrame {
 	}
 	
 	public void setTypeDef(String key, TypeDefTypeProvider value){
+		
+		if(this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+			replNameToRemoveAtEndOfSessionTYPEDEF.remove(key);
+		}
+		
 		typedefs.put(key, value);
 	}
 	
@@ -1388,6 +1399,7 @@ public class TheScopeFrame {
 		ret.addAll(replNameToRemoveAtEndOfSessionVARS);
 		ret.addAll(replNameToRemoveAtEndOfSessionFUNCS);
 		ret.addAll(replNameToRemoveAtEndOfSessionCLASSES);
+		ret.addAll(replNameToRemoveAtEndOfSessionTYPEDEF);
 		return ret;
 	}
 	
@@ -1403,10 +1415,10 @@ public class TheScopeFrame {
 		for(String name : replNameToRemoveAtEndOfSessionCLASSES) {
 			this.classes.remove(name);
 		}
-		
-		/*
-		 this.funcs.remove(name);
-		this.classes.remove(name);
-		 */
+	}
+
+	public void removeTypeDefREPL(String varname) {
+		this.replNameToRemoveAtEndOfSessionTYPEDEF.add(varname);
+		this.typedefs.remove(varname);
 	}
 }

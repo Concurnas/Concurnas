@@ -21,6 +21,7 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
+	
 	/*
 	@Test
 	public void createVar()  {
@@ -1024,10 +1025,6 @@ public class REPLTests {
 		assertEquals("|  ERROR 1:0 Expression cannot appear on its own line\n|  ERROR 1:0 Unable to resolve reference to variable name: repl$.Color.GREEN", repl.processInput("Color.GREEN"));
 	}
 	
-	*/
-	
-	
-	
 	@Test
 	public void delEnumAndVar() throws Exception {
 		assertEquals("|  created Color", repl.processInput("enum Color{BLUE, GREEN}"));
@@ -1036,54 +1033,82 @@ public class REPLTests {
 		assertEquals("$1 ==> 78", repl.processInput("Color()"));
 		assertEquals("", repl.processInput("del Color"));
 		assertEquals("|  ERROR 1:0 Expression cannot appear on its own line\n|  ERROR 1:0 Unable to resolve reference to variable name: repl$.Color.GREEN", repl.processInput("Color.GREEN"));
-		assertEquals("e name: repl$.Color.GREEN", repl.processInput("Color()"));
+		assertEquals("|  ERROR 1:0 Unable to find method with matching name: repl$.Color", repl.processInput("Color()"));
 	}
 	
-	//del enum and var with same name
+	@Test
+	public void delAnnotation() throws Exception {
+		assertEquals("|  created MyAnnot", repl.processInput("annotation MyAnnot"));
+		assertEquals("|  created function thing()", repl.processInput("@MyAnnot def thing() => 12"));
+		assertEquals("", repl.processInput("del MyAnnot"));
+		assertEquals("|  ERROR 1:0 in thing2() - Unable to resolve type corresponding to name: MyAnnot", repl.processInput("@MyAnnot def thing2() => 12"));
+	}
+	
+	@Test
+	public void delObjProvider() throws Exception {
+		assertEquals("|  created AgeHolder", repl.processInput("inject class AgeHolder(age Integer){ override toString() => '{age}'}"));
+		assertEquals("|  created User", repl.processInput("inject class User(name String, ah AgeHolder){ override toString() => 'User({name}, {ah})'}"));
+		assertEquals("|  created UserProvider\n|    update modified UserProvider", repl.processInput("provider UserProvider{ provide User;  String => 'freddie';   Integer => 22; }"));
+		assertEquals("$0 ==> User(freddie, 22)", repl.processInput("new UserProvider().User()"));
+		assertEquals("", repl.processInput("del UserProvider"));
+		assertEquals("|  ERROR 1:4 Unable to resolve type corresponding to name: UserProvider", repl.processInput("new UserProvider().User()"));
+	}
 	
 	
-	
-	
-	//normal del above
-	//del: funcs, classes
-	//del: enum, annotation, object provider, typedef
-	
-	
+	@Test
+	public void delTypeDef() throws Exception {
+		assertEquals("|  created MyList", repl.processInput("typedef MyList<X> = java.util.ArrayList<X>"));
+		assertEquals("$0 ==> []",repl.processInput("new MyList<String>(12)"));
+		assertEquals("",repl.processInput("del MyList"));
+		assertEquals("|  ERROR 1:4 Unable to resolve type corresponding to name: MyList",repl.processInput("new MyList<String>(12)"));
 
+		//back to normal...
+		assertEquals("|  created MyList", repl.processInput("typedef MyList<X> = java.util.ArrayList<X>"));
+		assertEquals("$1 ==> []",repl.processInput("new MyList<String>(12)"));
+	}
+	*/
+	
+	
+	@Test
+	public void delTypeDef() throws Exception {
+		assertEquals("|  ERROR 1:13 in bar() - Unable to find method with matching name: thing", repl.processInput("def bar() => thing()"));
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
+		assertEquals("|  created function thing()\n|    update modified bar()", repl.processInput("def thing() => 12"));
+		assertEquals("$0 ==> 12", repl.processInput("bar()"));
+		assertEquals("|  ERROR 1:13 in bar() - Unable to find method with matching name: thing", repl.processInput("del thing"));
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
+	}
+	
 	//test:
 	//c = 100; def foo() => c; 
 	//del c | foo is now broken where c any aformentioned thing
 	
-	
-	
-	//the del keyword - del any top level item | deps need to break as approperiate
-		//del a var and recreate
-	//del a function
-	//del other top level elements
-	//del Thing | where Thing is a class and also a Var
-	//remove Thing from scope etc
-	
-	
-	
-	
-	//do the /imports command and others
-	//also: vars, classes, typedefs
-	
-	//|  createed tsdf() => should be on verbose mode only? 
-	
 
-	//add nice UI - windows and linux
+	//later: |  removed function thing()
 	
-	//handle this:
+	//commands:
 	/*
-	@Test
-	public void frozenRef() throws Exception {
-		assertEquals("", repl.processInput("a int:"));
-	}
+	 *vars
+	 *classes
+	 *defs
+	 *imports
+	 *restart
+	 *exit
+	 *debug
+	 *verbose
 	 */
 	
+	//add nice UI - windows and linux
 	
-	//later: removed myfunc
+
+	//|  createed tsdf() => should be on verbose mode only? 
+	
+	//write docs for book
+	//fix documentation
+	
+	//getting started plan
+	
+	
 	
 	/*
 
@@ -1121,27 +1146,16 @@ public class REPLTests {
 	
 	//redefine top level actor, deps
 	//redefine object provider
-	
-
-
+	//redefine class after it has been removed
 	
 	
-
 	
-
-	
-
-	
-	
-
-	
-	
-	//tab completion
 
 	//import class/jar to classpath - still start in repl mode
-	
-
 	//cntlr+c etc
 	//terminations
+
 	
+
+	//tab completion
 }

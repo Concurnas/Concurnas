@@ -570,6 +570,11 @@ public class REPL implements Opcodes {
 							this.persistedTopLevelElementSet.remove(item);
 						}
 					}
+					
+					{
+						List<Pair<String, Integer>> toRemove = replState.tliCache.toptypeDef.keySet().stream().filter(a -> a.getA().equals(name)).collect(Collectors.toList());
+						toRemove.forEach(a -> replState.tliCache.toptypeDef.remove(a));
+					}
 				}
 			}
 			

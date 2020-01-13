@@ -5482,12 +5482,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void enterScopedNameMapREPL() {
 		REPLTopLevelImports topL = this.isREPL.tliCache;
-			scopedshortNameToLongNameaa.add(new HashMap<String, String>(topL.topshortNameToLong));
-			importStar.add(new HashSet<PackageOrClass>());
-			scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>(topL.topshortNameToLongUsing));
-			rawImports.add(new HashSet<String>(topL.toprawImports));
-			rawUsings.add(new HashSet<String>(topL.toprawUsings));
-			typedefsAtThisLevel.add(new HashMap<Pair<String, Integer>, TypeDefTypeProvider>(topL.toptypeDef));
+		scopedshortNameToLongNameaa.add(new HashMap<String, String>(topL.topshortNameToLong));
+		importStar.add(new HashSet<PackageOrClass>());
+		scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>(topL.topshortNameToLongUsing));
+		rawImports.add(new HashSet<String>(topL.toprawImports));
+		rawUsings.add(new HashSet<String>(topL.toprawUsings));
+		typedefsAtThisLevel.add(new HashMap<Pair<String, Integer>, TypeDefTypeProvider>(topL.toptypeDef));
 	}
 	
 	private void enterScopedNameMap()
@@ -23871,6 +23871,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				tp.add(got, generics, typedefStatement.accessModifier, loc, name);
 				typedefsAtThisLevel.peek().put(key, tp);
+				
+				if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {
+					this.currentScopeFrame.replNameToRemoveAtEndOfSessionTYPEDEF.remove(name);
+				}
 			}
 		}
 		
@@ -25022,6 +25026,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		this.currentScopeFrame.removeFuncDef(varname, null);
 		this.currentScopeFrame.removeVariable(varname);
 		this.currentScopeFrame.removeClassDef(varname);
+		this.currentScopeFrame.removeTypeDefREPL(varname);
 	}
 	
 	@Override
@@ -25049,6 +25054,20 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							return null;
 						}
 						if(this.currentScopeFrame.hasClassDef(this.currentScopeFrame, varname, false, false) || this.currentScopeFrame.replNameToRemoveAtEndOfSessionCLASSES.contains(varname)) {
+							removeFromAllModCats(varname);
+							return null;
+						}
+						
+						if(!typedefsAtThisLevel.isEmpty()) {
+							HashMap<Pair<String, Integer>, TypeDefTypeProvider> topLeveltds = typedefsAtThisLevel.peek();
+							
+							if(topLeveltds.keySet().stream().anyMatch(a -> a.getA().equals(varname)) ) {
+								removeFromAllModCats(varname);
+								return null;
+							}
+						}
+						
+						if(this.currentScopeFrame.replNameToRemoveAtEndOfSessionTYPEDEF.contains(varname)) {
 							removeFromAllModCats(varname);
 							return null;
 						}
