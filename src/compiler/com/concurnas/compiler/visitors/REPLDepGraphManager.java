@@ -26,6 +26,7 @@ import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.TypedefStatement;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 import com.concurnas.compiler.visitors.util.ImportStarUtil;
 import com.concurnas.repl.REPLState;
 import com.concurnas.runtime.Pair;
@@ -49,13 +50,18 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 		this.replState = replState;
 	}
 
+	private HashSet<String> prevDeletedItems = new HashSet<String>();
+	public void reset() {
+		prevDeletedItems = new HashSet<String>();
+	}
+	
 	/*
 	 * create dependency map
 	 * trigger recalc for all dependnecies of top level items which have changed on the graph. 'changed':
 	 * + newly defined
 	 * + changed signature since last iteration
 	 */
-	public boolean updateDepGraph(Block lexedAndParsedAST) {
+	public boolean updateDepGraph(Block lexedAndParsedAST, TheScopeFrame scopeFrame) {
 		//update graph
 		depMap = new HashMap<String, HashSet<REPLTopLevelComponent>>();
 		topLevelImportStar = new HashSet<ImportStarUtil.PackageOrClass>();
@@ -87,6 +93,22 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			}
 		}
 		
+		/*{//handle deleted items:
+			HashSet<String> delItems = new HashSet<String>(scopeFrame.getAllItemsDeleted());
+			delItems.removeAll(prevDeletedItems);//remove previous onces otherwise we have inf loop
+			
+			for(String deled : delItems) {
+				HashSet<REPLTopLevelComponent> toAdd = depMap.get(deled);
+				if(null != toAdd) {
+					componentsToRefresh.addAll(toAdd);
+				}
+			}
+			
+			prevDeletedItems = new HashSet<String>(prevDeletedItems);
+			prevDeletedItems.addAll(delItems);
+		}*/
+		
+		
 		if(!topLevelImportStar.isEmpty()) {
 			//only process new items since last iteration
 			HashSet<ImportStarUtil.PackageOrClass> toproc = new HashSet<ImportStarUtil.PackageOrClass>(topLevelImportStar);
@@ -95,7 +117,7 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 			for(ImportStarUtil.PackageOrClass inst : toproc) {
 				//see if any dependencies from any non-already-included dependencies can be satisfied by this instance, if so tag them for inclusion
 				for(String dep : depMap.keySet()) {
-					if(!dep.contains(".")) {
+					if(null != dep && !dep.contains(".")) {
 						if(null != inst.getResource(dep)) {
 							componentsToRefresh.addAll(depMap.get(dep));
 						}
@@ -430,6 +452,4 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 		}
 		return lastThing;
 	}
-
-	
 }

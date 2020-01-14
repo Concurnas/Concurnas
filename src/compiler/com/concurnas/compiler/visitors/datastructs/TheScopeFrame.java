@@ -1421,4 +1421,15 @@ public class TheScopeFrame {
 		this.replNameToRemoveAtEndOfSessionTYPEDEF.add(varname);
 		this.typedefs.remove(varname);
 	}
+
+	public void delREPLTolLevelElement(String toRemove) {
+		this.replPrevSessionClasses.remove(toRemove);
+		this.replPrevSessionFuncs.remove(toRemove);
+		this.replPrevSessionVars.remove(toRemove);
+		
+		this.replNameToRemoveAtEndOfSessionCLASSES.add(toRemove);
+		this.replNameToRemoveAtEndOfSessionFUNCS.add(toRemove);
+		this.replNameToRemoveAtEndOfSessionTYPEDEF.add(toRemove);
+		this.replNameToRemoveAtEndOfSessionVARS.add(toRemove);
+	}
 }

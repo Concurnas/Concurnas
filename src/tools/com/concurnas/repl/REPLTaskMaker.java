@@ -59,7 +59,7 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
 				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				if(n++ < sz-1) {
+				if(n++ < sz) {
 					mv.visitLdcInsn("\n");
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
 				}
@@ -69,7 +69,7 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				mv.visitLabel(onmissing);
 				
 				String errMsg = "|  ERROR variable "+var+" does not exist";
-				if(n++ < sz-1) {
+				if(n++ < sz) {
 					errMsg += "\n";
 				}
 				mv.visitLdcInsn(errMsg);

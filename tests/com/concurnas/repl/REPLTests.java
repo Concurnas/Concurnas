@@ -12,7 +12,7 @@ public class REPLTests {
 	@Before
 	public void before() throws Exception {
 		REPLRuntimeState.reset();
-		this.repl = new REPL(false, false, false);
+		this.repl = new REPL(false, false, false, true);
 	}
 	
 	@After
@@ -1066,50 +1066,69 @@ public class REPLTests {
 		assertEquals("|  created MyList", repl.processInput("typedef MyList<X> = java.util.ArrayList<X>"));
 		assertEquals("$1 ==> []",repl.processInput("new MyList<String>(12)"));
 	}
-	*/
-	
 	
 	@Test
-	public void delTypeDef() throws Exception {
+	public void delDepGraph() throws Exception {
 		assertEquals("|  ERROR 1:13 in bar() - Unable to find method with matching name: thing", repl.processInput("def bar() => thing()"));
 		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
 		assertEquals("|  created function thing()\n|    update modified bar()", repl.processInput("def thing() => 12"));
 		assertEquals("$0 ==> 12", repl.processInput("bar()"));
-		assertEquals("|  ERROR 1:13 in bar() - Unable to find method with matching name: thing", repl.processInput("del thing"));
-		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
+		assertEquals("", repl.processInput("del thing"));
+		assertEquals("|  java.lang.NoSuchMethodError: 'int repl$5$Globals$.thing(com.concurnas.bootstrap.runtime.cps.Fiber)'\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
 	}
 	
-	//test:
-	//c = 100; def foo() => c; 
-	//del c | foo is now broken where c any aformentioned thing
+	@Test
+	public void delInvalidate() throws Exception {
+		assertEquals("|  created function thing()\n|  created function bar()", repl.processInput("def thing() => 12\ndef bar() => thing()\ndel thing"));
+		assertEquals("|  java.lang.NoSuchMethodError: 'int repl$1$Globals$.thing(com.concurnas.bootstrap.runtime.cps.Fiber)'\n|    at bar(line:2)\n|    at init(line:1)", repl.processInput("bar()"));
+	}
 	
-
-	//later: |  removed function thing()
+	@Test
+	public void testCmds() throws Exception {
+		assertEquals("a ==> 100\nb ==> 100\nc ==> 100", repl.processInput("a=b=c=100"));
+		assertEquals("|  created function thing()", repl.processInput("def thing() => 23"));
+		assertEquals("|  created function thing(int)", repl.processInput("def thing(a int) => 23 + a"));
+		assertEquals("|  created function thing(int, int)", repl.processInput("def thing(a int, b int) => 23 + a + b"));
+		assertEquals("|  created function thing(int, java.lang.String)", repl.processInput("def thing(a int, b String) => 23 + a + b"));
+		assertEquals("|  created Fella", repl.processInput("class Fella<X>(name String, an X)"));
+		assertEquals("|  created Person", repl.processInput("class Person(name String, age int)"));
+		assertEquals("|  created StringFello", repl.processInput("typedef StringFello = Fella<String>"));
+		assertEquals("", repl.processInput("from java.util import List, ArrayList"));
+		assertEquals("", repl.processInput("from java.util import *"));
+		
+		assertEquals("a\nb\nc", repl.cmdHandler("vars"));
+		assertEquals("thing() int\nthing(int) int\nthing(int, int) int\nthing(int, java.lang.String) java.lang.String", repl.cmdHandler("defs"));
+		assertEquals("Fella\nPerson", repl.cmdHandler("classes"));
+		assertEquals("StringFello", repl.cmdHandler("typedefs"));
+		assertEquals("java.util.ArrayList\njava.util.List\njava.util.*", repl.cmdHandler("imports"));
+	}
 	
-	//commands:
-	/*
-	 *vars
-	 *classes
-	 *defs
-	 *imports
-	 *restart
-	 *exit
-	 *debug
-	 *verbose
-	 */
+	*/
+	
+	
+	@Test
+	public void verboseModeOnOff() throws Exception {
+		assertEquals("|  created function thing1()", repl.processInput("def thing1() => 99"));
+		assertEquals("|  Verbose mode: off", repl.cmdHandler("verbose"));
+		assertEquals("", repl.processInput("def thing2() => 99"));
+		assertEquals("|  Verbose mode: on", repl.cmdHandler("verbose"));
+		assertEquals("|  created function thing3()", repl.processInput("def thing3() => 99"));
+	}
+	
 	
 	//add nice UI - windows and linux
 	
-
-	//|  createed tsdf() => should be on verbose mode only? 
+	
+	
 	
 	//write docs for book
-	//fix documentation
+	//fix documentation on website
+	
 	
 	//getting started plan
 	
 	
-	
+	//LATER: redefine classes
 	/*
 
 	
@@ -1148,13 +1167,8 @@ public class REPLTests {
 	//redefine object provider
 	//redefine class after it has been removed
 	
-	
-	
 
-	//import class/jar to classpath - still start in repl mode
-	//cntlr+c etc
-	//terminations
-
+	//later: |  removed function thing()
 	
 
 	//tab completion

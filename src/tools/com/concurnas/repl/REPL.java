@@ -6,12 +6,13 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.DuffAssign;
 import com.concurnas.compiler.ast.FuncDef;
+import com.concurnas.compiler.ast.FuncType;
 import com.concurnas.compiler.ast.ImportStatement;
 import com.concurnas.compiler.ast.Line;
 import com.concurnas.compiler.ast.LineHolder;
@@ -43,6 +45,7 @@ import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Statement;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.bytecode.BytecodeOutputter;
+import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.visitors.REPLDepGraphManager.REPLComponentWrapper;
 import com.concurnas.compiler.visitors.Utils;
@@ -61,8 +64,35 @@ public class REPL implements Opcodes {
 	private boolean warnAsError = false;
 	public boolean printBytecode = false;
 	public boolean debugmode = false;
+	public boolean verbose = false;
 	
-	public REPL(boolean warnAsError, boolean printBytecode, boolean debugmode) throws Exception {
+	public static final String cmdHelp = "|  Type a Concurnas language expression, statement, or declaration.\r\n" + 
+			"|  Or type one of the following commands:\r\n" + 
+			"|  /help \r\n" + 
+			"|    to show this message" + 
+			"|  /restart \r\n" + 
+			"|    to restart the REPL with clear state" + 
+			"|  /exit \r\n" + 
+			"|    to close the REPL" + 
+			"|  /verbose \r\n" + 
+			"|    to turn verbose mode on/off" + 
+			"|  /bc \r\n" + 
+			"|    to turn bytecode listing on/off" + 
+			"|  /imports \r\n" + 
+			"|    to show all imports" + 
+			"|  /usings \r\n" + 
+			"|    to show all usings" + 
+			"|  /vars \r\n" + 
+			"|    to show all defined variables" + 
+			"|  /defs \r\n" + 
+			"|    to show all defined functions" + 
+			"|  /classes \r\n" + 
+			"|    to show all defined classes"+
+			"|  /typedefs \r\n" + 
+			"|    to show all typedefs\n";
+	;
+	
+	public REPL(boolean warnAsError, boolean printBytecode, boolean debugmode, boolean verbose) throws Exception {
 		this.mainLoop = new MainLoop(".", new DirectFileLoader(), true, false, null, false);
 		boolean VERBOSE_ERRORS=true;
 		boolean VERBOSE_OUTPUT=false;
@@ -72,6 +102,7 @@ public class REPL implements Opcodes {
 		this.warnAsError = false;
 		this.printBytecode = printBytecode || this.debugmode;
 		this.debugmode = debugmode;
+		this.verbose = verbose;
 	}
 	
 	
@@ -91,8 +122,113 @@ public class REPL implements Opcodes {
 		
 	}
 	
+	private String toggleBC() {
+		this.printBytecode = !this.printBytecode;
+		return String.format("|  Show bytecode: %s", this.printBytecode?"on":"off");
+	}
 	
-	private static AtomicLong iteration = new AtomicLong();
+	private String toggleVerbose() {
+		this.verbose = !this.verbose;
+		return String.format("|  Verbose mode: %s", this.verbose?"on":"off");
+	}
+	
+	private String showImports() {
+		if(null != this.replState.tliCache) {
+			ArrayList<String> ret = new ArrayList<String>();
+			for(String name : this.replState.tliCache.toprawImports) {
+				String longName = this.replState.tliCache.topshortNameToLong.get(name);
+				if(longName != null) {
+					ret.add(longName);
+				}
+			}
+			Collections.sort(ret);
+			this.replState.tliCache.topImportStar.forEach(a -> ret.add(a.toString()));
+			return String.join("\n", ret);
+		}
+		return "\n";
+	}
+	
+	
+	private String showUsings() {
+		if(null != this.replState.tliCache) {
+			ArrayList<String> ret = new ArrayList<String>();
+			for(String name : this.replState.tliCache.toprawUsings) {
+				ClassDef longName = this.replState.tliCache.topshortNameToLongUsing.get(name);
+				if(longName != null) {
+					ret.add(longName.toString());
+				}
+			}
+			
+			this.replState.tliCache.topImportStar.forEach(a -> ret.add(a.toString()));
+			
+			
+			return String.join("\n", ret);
+		}
+		return "\n";
+	}
+	
+	private String showVars() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllVars(null).keySet().stream().filter(a -> !a.contains("$")).sorted().collect(Collectors.toList()));
+		}
+		return "\n";
+	}
+	
+	private String showDefs() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			Map<String, HashSet<TypeAndLocation>> funcs = this.moduleCompiler.moduleLevelFrame.getAllFunctions();
+			ArrayList<String> ret = new ArrayList<String>();
+			
+			for(String funcName : funcs.keySet()) {
+				HashSet<TypeAndLocation> items = funcs.get(funcName);
+				for(TypeAndLocation tal : items) {
+					Type tt = tal.getType();
+					if(tt instanceof FuncType) {
+						FuncType ft = (FuncType)tt;
+						ret.add(formatTopLevelElement(ft.origonatingFuncDef, true));
+					}
+				}
+			}
+			Collections.sort(ret);
+			return String.join("\n", ret);
+		}
+		return "\n";
+	}
+	
+	private String showClasses() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllClasses().stream().map(a -> a.getName()).sorted().collect(Collectors.toList()));
+		}
+		return "\n";
+	}
+	
+	private String showTypedefs() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllTypeDefAtCurrentLevel().keySet().stream().sorted().collect(Collectors.toList()));
+		}
+		return "\n";
+	}
+	
+	public String cmdHandler(String cmd) {
+		//starts with /
+		String what = cmd.trim();
+		switch(what) {
+			case "help": return cmdHelp;
+			case "restart": return null;
+			case "exit": System.exit(0); return null;
+			case "debug": return toggleBC();
+			case "verbose": return toggleVerbose();
+			case "imports": return showImports();
+			case "usings": return showUsings();
+			case "vars": return showVars();
+			case "defs": return showDefs();
+			case "classes": return showClasses();
+			case "typedefs": return showTypedefs();
+		}
+		return String.format("|  Unknown command: %s\n\n%s", what, cmdHelp);
+	}
+	
+	private AtomicLong iteration = new AtomicLong();
 	
 	private static class ParseState{
 		public Block block;
@@ -234,6 +370,8 @@ public class REPL implements Opcodes {
 		List<Pair<REPLTopLevelComponent, Boolean>> newlyDefined = new ArrayList<Pair<REPLTopLevelComponent, Boolean>>();
 		List<REPLComponentWrapper> newTLEs = new ArrayList<REPLComponentWrapper>();
 		
+		//HashSet<Pair<String, Type>> toRemoveFromPersistedTopLevel = new HashSet<Pair<String, Type>>();
+		
 		LinkedHashMap<REPLComponentWrapper, Type> funcs = new LinkedHashMap<REPLComponentWrapper, Type>();
 		//funcs for later iterations...
 		for(LineHolder lh : blk.lines) {
@@ -265,7 +403,31 @@ public class REPL implements Opcodes {
 				}
 				funcs.put(wrap, tt);
 			}
+			
+			/*if(lin instanceof DeleteStatement) {//prre-emptively remove all things referenced by del
+				DeleteStatement asDel = (DeleteStatement)lin;
+				for(Expression del : asDel.exprs) {
+					if(del instanceof RefName) {
+						String toRemove = ((RefName)del).name;
+						
+						if(null != this.moduleCompiler.moduleLevelFrame) {
+							this.moduleCompiler.moduleLevelFrame.delREPLTolLevelElement(toRemove);
+						}
+						
+						for(Pair<String, Type> item : persistedTopLevelElementSet.keySet()) {
+							if(item.getA().equals(toRemove)) {
+								toRemoveFromPersistedTopLevel.add(item);
+							}
+						}
+					}
+				}
+			}*/
 		}
+		
+		/*if(!toRemoveFromPersistedTopLevel.isEmpty()) {
+			toRemoveFromPersistedTopLevel.forEach(a -> persistedTopLevelElementSet.remove(a));
+		}*/
+		
 		
 		for(REPLComponentWrapper replcom : funcs.keySet()) {
 			REPLTopLevelComponent comp = replcom.comp;
@@ -512,7 +674,7 @@ public class REPL implements Opcodes {
 					Object exeTaObject = executorTasCls.newInstance();
 					sch.invokeScheudlerTask(exeTaObject);	
 					
-					if(!newfuncs.isEmpty()) {
+					if(!newfuncs.isEmpty() && this.verbose) {
 						String toAdd = processNewFuncsDefined(newfuncs);
 						if(!toAdd.equals("")) {
 							output.add(toAdd);
@@ -521,7 +683,7 @@ public class REPL implements Opcodes {
 					
 					removeTopLevelItemsFromUpdateSet(newTopLevelItemsDeclared, depsUpdated);
 					
-					if(!depsUpdated.isEmpty()) {
+					if(!depsUpdated.isEmpty() && this.verbose) {
 						//|    update modified method volume(double)
 						List<String> reduced = depsUpdated.stream().map(a -> formatTopLevelElement(a)).filter(a -> !a.contains("$")).sorted().collect(Collectors.toList());
 						if(!reduced.isEmpty()) {
@@ -600,6 +762,10 @@ public class REPL implements Opcodes {
 	}
 	
 	private static String formatTopLevelElement(FuncDef funcDef) {
+		return formatTopLevelElement(funcDef, false);
+	}
+	
+	private static String formatTopLevelElement(FuncDef funcDef, boolean retType) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(funcDef.funcName);
 		sb.append('(');
@@ -607,7 +773,12 @@ public class REPL implements Opcodes {
 		ArrayList<Type> inputs = funcDef.getFuncType().getInputs();
 		sb.append(String.join(", ", inputs.stream().map(a -> a.toString()).collect(Collectors.toList())));
 		
-		return sb.append(")").toString();
+		sb.append(")");
+		if(retType) {
+			sb.append(" " + funcDef.retType.toString());
+		}
+		
+		return sb.toString();
 	}
 
 	

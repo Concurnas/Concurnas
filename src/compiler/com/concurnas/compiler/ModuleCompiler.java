@@ -458,12 +458,18 @@ public class ModuleCompiler implements Comparable{
 							|| defaultActorCreator.changeMade;
 					
 					
-					if(!anychagnes && isREPL) {//see if what we have added to the repl will result in changes to other areas of the graph...
-						//output true if there are things needing recalculation
-						if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
-						prepareAndSetLastVisitor(this.isREPL.replDepGraph);
-						anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST);
+					if(isREPL) {
+						this.isREPL.replDepGraph.reset();
+						
+						if(!anychagnes) {//see if what we have added to the repl will result in changes to other areas of the graph...
+							//output true if there are things needing recalculation
+							if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
+							prepareAndSetLastVisitor(this.isREPL.replDepGraph);
+							anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST, this.moduleLevelFrame);
+						}
 					}
+					
+					
 					
 					int iter = 0;
 					while( anychagnes){//we carry on with the cycle until there are no more repoints to make...
@@ -549,7 +555,7 @@ public class ModuleCompiler implements Comparable{
 							//output true if there are things needing recalculation
 							if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
 							prepareAndSetLastVisitor(this.isREPL.replDepGraph);
-							anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST);
+							anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST, moduleLevelFrame);
 						}
 					}
 					

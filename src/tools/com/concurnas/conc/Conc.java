@@ -245,7 +245,7 @@ public class Conc {
 				System.out.println(String.format("Welcome to Concurnas %s (%s, Java %s).", concVersion, vmname, version));
 				System.out.println("Currently running in REPL mode...\n");
 				
-				new REPL(validconcObject.werror, validconcObject.bytecode, false).replLoop();
+				new REPL(validconcObject.werror, validconcObject.bytecode, false, false).replLoop();
 			}else {
 				ConcurnasClassLoader concClassLoader = validconcObject.concClassLoader;
 				

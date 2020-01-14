@@ -8,6 +8,7 @@ public class ImportStarUtil {
 		public abstract String getResource(String shortname);
 		public abstract int hashCode();//so it can be stored in a hashmap
 		public abstract boolean equals(Object an);//so it can be stored in a hashmap
+		public abstract String toString();
 	}
 	
 	public static class PackageIS extends PackageOrClass{
@@ -27,6 +28,11 @@ public class ImportStarUtil {
 			}
 			
 			return fullClassName;
+		}
+		
+		@Override
+		public String toString() {
+			return this.path + ".*";
 		}
 
 		@Override
@@ -60,6 +66,11 @@ public class ImportStarUtil {
 			}
 			
 			return null;
+		}
+		
+		@Override
+		public String toString() {
+			return cls.toString()+".*";
 		}
 
 		@Override
