@@ -159,9 +159,7 @@ public class ConcWrapper {
 			boolean modules = true;
 			try {
 				double versiond = Double.parseDouble(version);
-				if (versiond < 1.8 || versiond > 13 || 11 == (int)Math.floor(versiond)) {
-					System.err.println("WARN: Concurnas has been verified as compatible with Oracle JDK and OpenJDK Java versions 1.8, 9, 10, 12 and 13, version: " + version + " detected. Behaviour is unknown.");
-				}
+				
 				if (versiond < 1.9) {
 					modules = false;
 				}
@@ -219,6 +217,13 @@ public class ConcWrapper {
 				}
 				n++;
 			}
+			
+			try {//just show warning on initial cache
+				double versiond = Double.parseDouble(version);
+				if (versiond < 1.8 || versiond > 13 || 11 == (int)Math.floor(versiond)) {
+					System.err.println("WARN: Concurnas has been verified as compatible with Oracle JDK and OpenJDK Java versions 1.8, 9, 10, 12 and 13, version: " + version + " detected. Behaviour is unknown.");
+				}
+			}catch(Exception ohwell) {}
 
 			PathandVMArgs pathAndVMArgs = performCache(rootRtCacheDir, rtVersion, modules);
 			bootstrapcp = pathAndVMArgs.args;

@@ -29,8 +29,12 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 		}
 		
 		public void unboxToRequiredType(String desc){
-			if( desc.startsWith("L") || desc.startsWith("[")){//object or array - do nothing
+			if( desc.startsWith("L") ){//object or array - do nothing
 				mv.visitTypeInsn(CHECKCAST, desc.substring(1, desc.length()-1));
+				return;
+			}
+			else if( desc.startsWith("[")){//object or array - do nothing
+				mv.visitTypeInsn(CHECKCAST, desc);
 				return;
 			}
 			else{

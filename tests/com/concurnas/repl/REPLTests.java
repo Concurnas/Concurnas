@@ -21,8 +21,8 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
-	
 	/*
+	
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -1074,13 +1074,14 @@ public class REPLTests {
 		assertEquals("|  created function thing()\n|    update modified bar()", repl.processInput("def thing() => 12"));
 		assertEquals("$0 ==> 12", repl.processInput("bar()"));
 		assertEquals("", repl.processInput("del thing"));
-		assertEquals("|  java.lang.NoSuchMethodError: 'int repl$5$Globals$.thing(com.concurnas.bootstrap.runtime.cps.Fiber)'\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
+		assertTrue(repl.processInput("bar()").contains("java.lang.NoSuchMethodError"));
 	}
 	
 	@Test
 	public void delInvalidate() throws Exception {
 		assertEquals("|  created function thing()\n|  created function bar()", repl.processInput("def thing() => 12\ndef bar() => thing()\ndel thing"));
-		assertEquals("|  java.lang.NoSuchMethodError: 'int repl$1$Globals$.thing(com.concurnas.bootstrap.runtime.cps.Fiber)'\n|    at bar(line:2)\n|    at init(line:1)", repl.processInput("bar()"));
+		//assertEquals("|  java.lang.NoSuchMethodError: 'int repl$1$Globals$.thing(com.concurnas.bootstrap.runtime.cps.Fiber)'\n|    at bar(line:2)\n|    at init(line:1)", repl.processInput("bar()"));
+		assertTrue(repl.processInput("bar()").contains("java.lang.NoSuchMethodError"));
 	}
 	
 	@Test
@@ -1102,21 +1103,63 @@ public class REPLTests {
 		assertEquals("StringFello", repl.cmdHandler("typedefs"));
 		assertEquals("java.util.ArrayList\njava.util.List\njava.util.*", repl.cmdHandler("imports"));
 	}
-	
-	*/
-	
-	
+
 	@Test
 	public void verboseModeOnOff() throws Exception {
 		assertEquals("|  created function thing1()", repl.processInput("def thing1() => 99"));
-		assertEquals("|  Verbose mode: off", repl.cmdHandler("verbose"));
+		assertEquals("|  Set verbose mode: off", repl.cmdHandler("verbose"));
 		assertEquals("", repl.processInput("def thing2() => 99"));
-		assertEquals("|  Verbose mode: on", repl.cmdHandler("verbose"));
+		assertEquals("|  Set verbose mode: on", repl.cmdHandler("verbose"));
 		assertEquals("|  created function thing3()", repl.processInput("def thing3() => 99"));
 	}
 	
 	
-	//add nice UI - windows and linux
+	
+	@Test
+	public void matrixOp() throws Exception {
+		assertEquals("a ==> [1 2 ; 3 4]", repl.processInput("a = [1 2; 3 4]"));
+		assertEquals("$0 ==> [11 12 ; 13 14]", repl.processInput("a + 10"));
+	}
+
+	
+	@Test
+	public void listComp() throws Exception {
+		assertEquals("p ==> [1 2 3 4 1 2 3 1 5 6 7 8 9]", repl.processInput("p=[1 2 3 4 1 2 3 1 5 6 7 8 9]"));
+		assertEquals("$0 ==> [3, 3, 6, 9]", repl.processInput("x for x in p if x mod 3 == 0"));
+	}
+	
+	
+	@Test
+	public void isoAlone() throws Exception {
+		assertEquals("$0 ==> hi:", repl.processInput("{'hi'}!"));
+	}
+	
+	@Test
+	public void doesNothing() throws Exception {
+		assertEquals("|  created function sdf()", repl.processInput("def sdf() { x = 99; }"));//prev definition shouldnt pollute later defs
+		assertEquals("", repl.processInput("sdf()"));//should be ok
+	}
+	
+	*/
+	
+	
+	
+	
+	@Test
+	public void infGenGetsCleared() throws Exception {
+		assertEquals("hi:", repl.processInput("ar3 = list();"));//prev definition shouldnt pollute later defs
+		assertEquals("ar3 ==> [8]", repl.processInput("ar3 = list(); ar3.add(8); ar3"));//should be ok
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	//gradlew build -x test -x runLibCompile -x runInstaller -x makeReleaseZip
+	//java -cp Concurnas-1.13.110.jar;Concurnas-rt-1.13.110.jar com.concurnas.repl.TryREPL
 	
 	
 	
@@ -1126,6 +1169,16 @@ public class REPLTests {
 	
 	
 	//getting started plan
+	
+	/*TODO:
+	 * REPL2:
+	 * fix lambda rep for lambda - just show type in toString ( plus generics)
+	 * highlighting
+	 * redefine classes as par below
+	 * later: |  removed function thing()
+	 * tab completion
+	 * 
+	 */
 	
 	
 	//LATER: redefine classes
@@ -1166,10 +1219,4 @@ public class REPLTests {
 	//redefine top level actor, deps
 	//redefine object provider
 	//redefine class after it has been removed
-	
-
-	//later: |  removed function thing()
-	
-
-	//tab completion
 }

@@ -38,8 +38,8 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 			mv.visitInsn(DUP);
 			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
 			
-			int n=0;
-			int sz = newvars.size();
+			//int n=0;
+			//int sz = newvars.size();
 			Iterator<String> itr = newvars.stream().sorted().iterator();
 			while(itr.hasNext()) {
 				String var = itr.next();
@@ -59,44 +59,23 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
 				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				if(n++ < sz) {
+				//if(n++ < sz) {
 					mv.visitLdcInsn("\n");
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				}
+				//}
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
 				Label after = new Label();
 				mv.visitJumpInsn(GOTO, after);
 				mv.visitLabel(onmissing);
 				
 				String errMsg = "|  ERROR variable "+var+" does not exist";
-				if(n++ < sz) {
+				//if(n++ < sz) {
 					errMsg += "\n";
-				}
+				//}
 				mv.visitLdcInsn(errMsg);
 				mv.visitLabel(after);
 				
-
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				
-				
-				
-				/*
-				mv.visitLabel(new Label());
-				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
-				mv.visitInsn(DUP);
-				mv.visitLdcInsn(var + " ==> ");
-				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false);
-				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
-				mv.visitLdcInsn(var);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
-				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				if(n++ < sz-1) {
-					mv.visitLdcInsn("\n");
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				}*/
 			}
 			
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);

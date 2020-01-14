@@ -62,7 +62,6 @@ There can be zero to many options specified on a call to \lstinline{conc}:
 \begin{itemize}
 	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline{;} under Windows, and \lstinline{:} under Linux. Elements may consist of directories, \lstinline{.class} file references or \lstinline{.jar} file references.
 	\item \textbf{-s}: Server mode. When running in non interactive mode (i.e an entry point is provided) Concurnas will not terminate the process upon the entry point main method (or alternative) completing execution.
-	\item \textbf{-werror}: Treat warnings as errors. This option is applicable when running in REPL mode. Normally, warnings do not prevent compilation, setting this tag will treat warnings as errors, thus preventing compilation if warnings are generated for the input provided.
 	\item \textbf{-bc}: Print bytecode. This option is applicable when running in REPL mode. Print the bytecode generated from the provided input.
 	\item \textbf{-J}: JVM argument. Prefix jvm arguments with -J in order to pass them to the underlying JVM. e.g. \lstinline{-J-Xms2G -J-Xmx5G}.
 	\item \textbf{-D}: System property. Prefix system properties with -D in order to pass them to the underlying JVM. e.g. \lstinline{-Dcom.mycompany.mysetting=108}.

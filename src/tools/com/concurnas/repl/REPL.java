@@ -69,27 +69,26 @@ public class REPL implements Opcodes {
 	public static final String cmdHelp = "|  Type a Concurnas language expression, statement, or declaration.\r\n" + 
 			"|  Or type one of the following commands:\r\n" + 
 			"|  /help \r\n" + 
-			"|    to show this message" + 
-			"|  /restart \r\n" + 
-			"|    to restart the REPL with clear state" + 
+			"|      to show this message\n" + 
 			"|  /exit \r\n" + 
-			"|    to close the REPL" + 
+			"|      to close the REPL\n" + 
 			"|  /verbose \r\n" + 
-			"|    to turn verbose mode on/off" + 
+			"|      to turn verbose mode on/off\n" + 
 			"|  /bc \r\n" + 
-			"|    to turn bytecode listing on/off" + 
+			"|      to turn bytecode listing on/off\n" + 
 			"|  /imports \r\n" + 
-			"|    to show all imports" + 
+			"|      to show all imports\n" + 
 			"|  /usings \r\n" + 
-			"|    to show all usings" + 
+			"|      to show all usings\n" + 
 			"|  /vars \r\n" + 
-			"|    to show all defined variables" + 
+			"|      to show all defined variables\n" + 
 			"|  /defs \r\n" + 
-			"|    to show all defined functions" + 
+			"|      to show all defined functions\n" + 
 			"|  /classes \r\n" + 
-			"|    to show all defined classes"+
+			"|      to show all defined classes\n"+
 			"|  /typedefs \r\n" + 
-			"|    to show all typedefs\n";
+			"|      to show all typedefs\n"+
+			"|  To exit use command /exit or press Ctrl+D";
 	;
 	
 	public REPL(boolean warnAsError, boolean printBytecode, boolean debugmode, boolean verbose) throws Exception {
@@ -105,31 +104,14 @@ public class REPL implements Opcodes {
 		this.verbose = verbose;
 	}
 	
-	
-	public void replLoop() {
-		//\exit, help, ctrl-d
-		//up
-		
-		System.out.println("conc>");
-		
-		System.out.println(processInput("a = 3"));
-		System.out.println(processInput("a += 3"));
-		System.out.println(processInput("a += 3"));
-		System.out.println(processInput("a "));
-		System.out.println(processInput("10**2 "));
-		System.out.println(processInput("5 if a > 5 else 2"));
-		//bug above for you...
-		
-	}
-	
 	private String toggleBC() {
 		this.printBytecode = !this.printBytecode;
-		return String.format("|  Show bytecode: %s", this.printBytecode?"on":"off");
+		return String.format("|  Set show bytecode: %s", this.printBytecode?"on":"off");
 	}
 	
 	private String toggleVerbose() {
 		this.verbose = !this.verbose;
-		return String.format("|  Verbose mode: %s", this.verbose?"on":"off");
+		return String.format("|  Set verbose mode: %s", this.verbose?"on":"off");
 	}
 	
 	private String showImports() {
@@ -214,9 +196,8 @@ public class REPL implements Opcodes {
 		String what = cmd.trim();
 		switch(what) {
 			case "help": return cmdHelp;
-			case "restart": return null;
-			case "exit": System.exit(0); return null;
-			case "debug": return toggleBC();
+			case "exit": System.out.println("|  Bye!"); System.exit(0); return null;
+			case "bc": return toggleBC();
 			case "verbose": return toggleVerbose();
 			case "imports": return showImports();
 			case "usings": return showUsings();
@@ -280,7 +261,6 @@ public class REPL implements Opcodes {
 		//stop main loop if spawned any threads
 		REPLRuntimeState.reset();
 		this.mainLoop.stop();
-		//System.exit(0);
 	}
 	
 	public List<String> tabComplete(String input) {
