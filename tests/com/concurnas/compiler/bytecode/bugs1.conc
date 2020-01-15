@@ -4002,3 +4002,17 @@ await(ccc; ccc == 102)
 def doings(){
 	"ok" + ccc
 }
+
+~~~~~
+//##214. const folding bugfix
+
+def doings(){//folding constants
+	div = 3/2.//this was incorrect before
+	mul = 3*2.
+	mo = 3 mod 2
+	plus1 = 2 + 3.
+	plus2 = 2. + 3
+	eq1 = 2 == 2.
+	eq2 = 2. == 2
+	"" + (div, mul, mo, plus1, plus2, eq1, eq2)
+}

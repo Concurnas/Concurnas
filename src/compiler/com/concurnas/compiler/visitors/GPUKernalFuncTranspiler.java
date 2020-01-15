@@ -118,7 +118,7 @@ public class GPUKernalFuncTranspiler implements Visitor {
 	// above should be mixin...
 	
 	
-	private static class GPUFuncDefScanner extends AbstractVisitor{
+	private static class GPUFuncDefScanner extends AbstractVisitor implements Unskippable{
 		private GPUKernalFuncTranspiler transpilerToApply;
 		private TheScopeFrame moduleScopeFrame;
 

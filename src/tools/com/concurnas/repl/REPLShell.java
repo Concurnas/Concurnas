@@ -60,7 +60,7 @@ public class REPLShell {
 	                //.highlighter(highlighter)
 	                .variable(LineReader.SECONDARY_PROMPT_PATTERN, "%P   > ")
 	                .variable(LineReader.INDENTATION, 2)
-	                .option(Option.INSERT_BRACKET, true)
+	                //.option(Option.INSERT_BRACKET, true)
 	                .option(Option.EMPTY_WORD_OPTIONS, false)
 	                .build();
 	        

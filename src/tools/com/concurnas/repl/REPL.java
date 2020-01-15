@@ -151,7 +151,7 @@ public class REPL implements Opcodes {
 	
 	private String showVars() {
 		if(null != this.moduleCompiler.moduleLevelFrame) {
-			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllVars(null).keySet().stream().filter(a -> !a.contains("$")).sorted().collect(Collectors.toList()));
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllVars(null).keySet().stream().filter(a -> !a.contains("$") || (a.startsWith("$") && a.lastIndexOf("$")==0)   ).sorted().collect(Collectors.toList()));
 		}
 		return "\n";
 	}
@@ -481,6 +481,28 @@ public class REPL implements Opcodes {
 		return ret;
 	}
 	
+	private void removeAssignmentFromUpdateSet(HashSet<REPLComponentWrapper> toRem, REPLTopLevelComponent item, REPLComponentWrapper wra) {
+		if(item instanceof AssignExisting) {
+			if(((AssignExisting)item).isReallyNew) {
+				toRem.add(wra);
+			}
+		}else if(item instanceof AssignNew) {
+			AssignNew an = (AssignNew)item;
+			if(an.expr instanceof Block) {
+				Block asblock = (Block)an.expr;
+				if(asblock.lines.size() == 1) {
+					LineHolder lh = asblock.getLast();
+					if(lh.l instanceof DuffAssign && ((DuffAssign)lh.l).e instanceof RefName) {
+						RefName rn = (RefName) ((DuffAssign)lh.l).e;
+						if(rn.name.equals(an.name)) {
+							toRem.add(wra);
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	private void removeTopLevelItemsFromUpdateSet(List<REPLComponentWrapper> toremove, HashSet<REPLComponentWrapper> depsUpdated) {
 		for(REPLComponentWrapper item : toremove) {
 			depsUpdated.remove(item);
@@ -490,24 +512,14 @@ public class REPL implements Opcodes {
 		for(REPLComponentWrapper wra : depsUpdated) {
 			REPLTopLevelComponent item = wra.comp;
 			if(item instanceof AssignExisting) {
-				if(!((AssignExisting)item).isReallyNew) {
-					toRem.add(wra);
-				}
+				removeAssignmentFromUpdateSet(toRem, item, wra);
 			}else if(item instanceof AssignNew) {
-				AssignNew an = (AssignNew)item;
-				if(an.expr instanceof Block) {
-					Block asblock = (Block)an.expr;
-					if(asblock.lines.size() == 1) {
-						LineHolder lh = asblock.getLast();
-						if(lh.l instanceof DuffAssign && ((DuffAssign)lh.l).e instanceof RefName) {
-							RefName rn = (RefName) ((DuffAssign)lh.l).e;
-							if(rn.name.equals(an.name)) {
-								toRem.add(wra);
-							}
-						}
-					}
-				}
-			}
+				removeAssignmentFromUpdateSet(toRem, item, wra);
+			} /*
+				 * else if(item instanceof AssignTupleDeref) { AssignTupleDeref atd =
+				 * (AssignTupleDeref)item; atd.lhss.forEach(a ->
+				 * removeAssignmentFromUpdateSet(toRem, (REPLTopLevelComponent)a, wra)); }
+				 */
 		}
 		
 		depsUpdated.removeAll(toRem);
@@ -590,6 +602,9 @@ public class REPL implements Opcodes {
 					//unless all errors are within functions
 					output.add(formatErrors(ersx, "|  ERROR"));
 					if(ersx.stream().noneMatch(a -> a.hasContext())){
+						//remove any erronous top level variables from scopeFrame
+						tidyScopeFrameDirtyVars(obtained.block);
+						
 						return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 					}
 				}
@@ -726,6 +741,27 @@ public class REPL implements Opcodes {
 		}
 	}
 	
+	private void tidyScopeFrameDirtyVars(REPLTopLevelComponent tla) {
+		if(tla.getErrors()) {
+			if(null != this.moduleCompiler.moduleLevelFrame) {
+				this.moduleCompiler.moduleLevelFrame.removeVariable(tla.getName());
+			}
+		}
+	}
+	
+	private void tidyScopeFrameDirtyVars(Block block) {
+		for(LineHolder lh : block.lines) {
+			if(lh.l instanceof AssignExisting || lh.l instanceof AssignNew) {
+				tidyScopeFrameDirtyVars((REPLTopLevelComponent)lh.l);
+			}else if(lh.l instanceof AssignMulti) {
+				for(Assign ass : ((AssignMulti)lh.l).assignments) {
+					tidyScopeFrameDirtyVars((REPLTopLevelComponent)ass);
+				}
+			}
+		}
+		
+	}
+
 	private void printByteCode(ArrayList<String> output, String classname, byte[] rawcode, byte[] codeRepointed) throws Exception {
 		if(printBytecode || debugmode) {
 			StringBuilder pp = new StringBuilder();

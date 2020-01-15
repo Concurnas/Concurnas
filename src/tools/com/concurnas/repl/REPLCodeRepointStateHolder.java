@@ -6,6 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.cps.analysis.ConcClassWriter;
@@ -101,6 +102,15 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 			mv.visitMethodInsn(opcode, owner, name, desc, itf);
 		}
 		
+		  public void visitLdcInsn(Object value) {
+			  if(value instanceof Type) {
+				  String cn = ((Type)value).getClassName();
+				  if(classNameToRedirect.equals(cn)) {
+					  value = Type.getObjectType(newClassName);//Type.get.getType(newClassName);
+				  }
+			  }
+		      mv.visitLdcInsn(value);
+		  }
 		
 	}
 	

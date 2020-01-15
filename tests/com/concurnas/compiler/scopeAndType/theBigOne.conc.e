@@ -4484,4 +4484,4 @@ x610importstarscopes.conc line 8:8 Unable to resolve type corresponding to name:
 
 ~~~~~
 //##611. top level del on func
-x214topleveldelonfunc.conc line 3:4 thing resolves to something other than a local variable
+x611topleveldelonfunc.conc line 4:4 thing resolves to something other than a local variable

@@ -21,7 +21,6 @@ public class REPLTests {
 	}
 	
 	//////////////////////////////////////////////////////////
-	/*
 	
 	@Test
 	public void createVar()  {
@@ -313,13 +312,13 @@ public class REPLTests {
 		repl.processInput("def foo(a String) => a - 1");
 		assertEquals("|  java.lang.Error: Unresolved compilation problem\n"
 				+ "|    at foo(line:1)\n"
-				+ "|    at init(line:1)", repl.processInput("foo('ok')"));//supress further recompilation and throws exception!
+				+ "|    at line:1", repl.processInput("foo('ok')"));//supress further recompilation and throws exception!
 		
 		
 		assertEquals("|  created function id(java.lang.String)", repl.processInput("def id(a String) => a"));//no further complaints
 		assertEquals("|  java.lang.Error: Unresolved compilation problem\n"
 				+ "|    at foo(line:1)\n"
-				+ "|    at init(line:1)", repl.processInput("foo('ok')"));//throws exception!
+				+ "|    at line:1", repl.processInput("foo('ok')"));//throws exception!
 		
 		assertEquals("|  redefined function foo(java.lang.String)", repl.processInput("def foo(a String) => a "));//correct error
 		assertEquals("$0 ==> ok", repl.processInput("foo('ok')"));//now it;s ok
@@ -401,7 +400,7 @@ public class REPLTests {
 	public void changeDepFuncTypeFwdRefErrToOk() throws Exception {//fwd ref, change types err -> ok
 		assertEquals("|  ERROR 1:22 in bar(int) - Unable to find method with matching name: foo", repl.processInput("def bar(a int) int => foo(a*2)"));
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => x='str' + (a*4);;"));//error!
-		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar(2)"));
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at line:1", repl.processInput("bar(2)"));
 		assertEquals("|  redefined function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => (a*4)"));//now its ok
 		assertEquals("$1 ==> 16", repl.processInput("bar(2)"));
 	}
@@ -412,7 +411,7 @@ public class REPLTests {
 		assertEquals("|  created function foo(int)\n|    update modified bar(int)", repl.processInput("def foo(a int) => (a*4)"));//now its ok
 		assertEquals("$0 ==> 16", repl.processInput("bar(2)"));
 		assertEquals("|  ERROR 1:22 in bar(int) - Return statement in method must return type of int", repl.processInput("def foo(a int) => x='str' + (a*4);;"));//error!
-		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar(2)"));
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at line:1", repl.processInput("bar(2)"));
 	}
 	
 	@Test
@@ -606,7 +605,8 @@ public class REPLTests {
 	
 	@Test
 	public void showExceptionsProperly() throws Exception {
-		assertEquals("|  java.lang.Exception: okok\n|    at init(line:1)", repl.processInput("throw new Exception('okok');"));
+		assertEquals("|  java.lang.Exception: okok\n" + 
+				"|    at line:1", repl.processInput("throw new Exception('okok');"));
 		assertEquals("", repl.processInput("a=100;"));
 	}
 	
@@ -863,7 +863,7 @@ public class REPLTests {
 		assertEquals("$0 ==> 44", repl.processInput("thing()"));
 		assertEquals("|  ERROR 2:15 in thing() - numerical operation cannot be performed on type java.lang.String. No overloaded 'mul' operator found for type java.lang.String with signature: '(int)'", 
 				repl.processInput("def dee() => '22'"));//broken, show err on thing
-		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at thing(line:2)\n|    at init(line:1)", repl.processInput("thing()"));//broken, as expected
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at thing(line:2)\n|    at line:1", repl.processInput("thing()"));//broken, as expected
 	}
 	
 	
@@ -876,7 +876,7 @@ public class REPLTests {
 				repl.processInput("def thing() => dee() * 2"));//show error
 		assertEquals("|  redefined function dee()", 
 				repl.processInput("def dee() => '22'"));//dont show error again! ( still broken)
-		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at thing(line:1)\n|    at init(line:1)", repl.processInput("thing()"));//broken, as expected
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at thing(line:1)\n|    at line:1", repl.processInput("thing()"));//broken, as expected
 	}
 	
 	
@@ -1070,7 +1070,7 @@ public class REPLTests {
 	@Test
 	public void delDepGraph() throws Exception {
 		assertEquals("|  ERROR 1:13 in bar() - Unable to find method with matching name: thing", repl.processInput("def bar() => thing()"));
-		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at init(line:1)", repl.processInput("bar()"));
+		assertEquals("|  java.lang.Error: Unresolved compilation problem\n|    at bar(line:1)\n|    at line:1", repl.processInput("bar()"));
 		assertEquals("|  created function thing()\n|    update modified bar()", repl.processInput("def thing() => 12"));
 		assertEquals("$0 ==> 12", repl.processInput("bar()"));
 		assertEquals("", repl.processInput("del thing"));
@@ -1140,83 +1140,109 @@ public class REPLTests {
 		assertEquals("", repl.processInput("sdf()"));//should be ok
 	}
 	
-	*/
-	
-	
-	
 	
 	@Test
 	public void infGenGetsCleared() throws Exception {
-		assertEquals("hi:", repl.processInput("ar3 = list();"));//prev definition shouldnt pollute later defs
-		assertEquals("ar3 ==> [8]", repl.processInput("ar3 = list(); ar3.add(8); ar3"));//should be ok
+		assertEquals("|  ERROR 1:6 in ar3 - Generic parameter count of: 0 does not equal: 1 - generic type parameters must be defined", repl.processInput("ar3 = list();"));//prev definition shouldnt pollute later defs
+		assertEquals("ar3 ==> [8]", repl.processInput(" ar3 = list(); ar3.add(8); ar3"));//should be ok
 	}
 	
+	@Test
+	public void fwdRefTupleDeref() throws Exception {
+		assertEquals("|  ERROR 1:13 in foo() - a cannot be resolved to a variable", repl.processInput("def foo() => a+b"));
+		assertEquals("|    update modified foo()\n\na ==> 1\nb ==> 2", repl.processInput("(a, b) = (1, 2)"));
+		assertEquals("", repl.processInput("(a, b) = (1, 2);"));
+		assertEquals("$0 ==> 3", repl.processInput("foo()"));
+	}
 	
+	@Test
+	public void delTupleDecomp() throws Exception {
+		assertEquals("", repl.processInput("(a, b) = (1,2);"));
+		assertEquals("", repl.processInput("del a"));
+		assertEquals("|  ERROR variable a does not exist", repl.processInput("a"));
+		assertEquals("b ==> 2", repl.processInput("b"));
+		assertEquals("a ==> 91\nb ==> 29", repl.processInput("(a, b) = (91,29)"));
+	}
 	
-	
-	
-	
-	
-	
-	//gradlew build -x test -x runLibCompile -x runInstaller -x makeReleaseZip
-	//java -cp Concurnas-1.13.110.jar;Concurnas-rt-1.13.110.jar com.concurnas.repl.TryREPL
-	
-	
-	
-	
-	//write docs for book
-	//fix documentation on website
-	
-	
-	//getting started plan
-	
-	/*TODO:
-	 * REPL2:
-	 * fix lambda rep for lambda - just show type in toString ( plus generics)
-	 * highlighting
-	 * redefine classes as par below
-	 * later: |  removed function thing()
-	 * tab completion
-	 * 
-	 */
-	
-	
-	//LATER: redefine classes
-	/*
-
-	
-	//do thing where we redefine entire class and redirect to new version
-	 * 
-	 //examine defs see what is changed, and update all deps in graph, then spit output set or redef and redirection
+	@Test
+	public void tuplederefAssign() throws Exception {
+		assertEquals("a ==> 1\nb ==> 2", repl.processInput("(a, b) = (1, 2)"));
+	}
 	
 	
 	@Test
-	public void redefineDepOfClass() throws Exception {
-		assertEquals("|  ERROR 1:33 Unable to resolve type corresponding to name: Maker", repl.processInput("class MyClass{ def make() => new Maker().do() }"));
-		assertEquals("|    update modified MyClass", repl.processInput("class Maker{ def do() => 12 }"));
-		assertEquals("$0 ==> 12", repl.processInput("MyClass().make()"));
-		assertEquals("|    update modified MyClass", repl.processInput("class Maker{ def do() => 13 }"));//redefined depeneency
-		assertEquals("$1 ==> 13", repl.processInput("MyClass().make()"));
+	public void varlisting() throws Exception {
+		assertEquals("$0 ==> 12", repl.processInput("12"));
+		assertEquals("v ==> 12", repl.processInput("v=12"));
+		assertEquals("$0\nv", repl.cmdHandler("vars"));
 	}
 	
-	
-	*/
-	
-	
-
-	
-	/*
 	@Test
-	public void redefineTrait() throws Exception {
-		assertEquals("|  ERROR 1:0 MyClass cannot resolve reference to trait: MyTrait", repl.processInput("class MyClass ~ MyTrait"));
-		assertEquals("|    update modified MyClass", repl.processInput("trait MyTrait{ def thing() => 12 }"));
-		assertEquals("$0 ==> 12", repl.processInput("MyClass().thing()"));
-		assertEquals("|    update modified MyClass", repl.processInput("trait MyTrait{ def thing() => 13 }"));
-		assertEquals("$0 ==> 13", repl.processInput("MyClass().thing()"));
+	public void gpukernel() throws Exception {
+		String gpuKernel = "gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {\r\n" + 
+				"	    globalRow = get_global_id(0) // Row ID of C (0..M)\r\n" + 
+				"	    globalCol = get_global_id(1) // Col ID of C (0..N)\r\n" + 
+				"	 \r\n" + 
+				"	    // Compute a single element (loop over K)\r\n" + 
+				"	    acc = 0.0f;\r\n" + 
+				"	    for (k=0; k<K; k++) {\r\n" + 
+				"			acc += A[k*M + globalRow] * B[globalCol*K + k]\r\n" + 
+				"	    }\r\n" + 
+				"	    // Store the result\r\n" + 
+				"	    C[globalCol*M + globalRow] = acc;\r\n" + 
+				"	}";
+		
+		assertEquals("|  created function matMult(int, int, int, float[2], float[2], float[2])", repl.processInput(gpuKernel));
+		
+		
+		String dgroup ="def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {\r\n" + 
+				"	if(not gpuDev){//no gpu return first cpu\r\n" + 
+				"		cpuDev[0]\r\n" + 
+				"	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize\r\n" + 
+				"		for(grp in gpuDev){\r\n" + 
+				"			if('Intel' not in grp.platformName){\r\n" + 
+				"				return grp\r\n" + 
+				"			}\r\n" + 
+				"		}\r\n" + 
+				"		gpuDev[0]//intel device then...\r\n" + 
+				"	}\r\n" + 
+				"}";
+		assertEquals("|  created function chooseGPUDeviceGroup(com.concurnas.lang.gpus$DeviceGroup[], com.concurnas.lang.gpus$DeviceGroup[])", repl.processInput(dgroup));
+		
+		
+		String doings = "def doings(){\r\n" + 
+				"	gps = gpus.GPU()\r\n" + 
+				"	cpus = gps.getCPUDevices()\r\n" + 
+				"	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)\r\n" + 
+				"	device = deviceGrp.devices[0]\r\n" + 
+				"	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)\r\n" + 
+				"	inGPU2 = device.makeOffHeapArrayIn(float[2].class, 2, 2)\r\n" + 
+				"	result = device.makeOffHeapArrayOut(float[2].class, 2, 2)\r\n" + 
+				"	\r\n" + 
+				"	x = [ 1.f 2 ; 3.f 4]\r\n" + 
+				"	\r\n" + 
+				"	c1 := inGPU1.writeToBuffer(x)\r\n" + 
+				"	c2 := inGPU2.writeToBuffer(x)\r\n" + 
+				"	\r\n" + 
+				"	inst = matMult(2, 2, 2, inGPU1, inGPU2, result)\r\n" + 
+				"	compute := device.exe(inst, [2 2], c1, c2)//rest param detault\r\n" + 
+				"	//remove null\r\n" + 
+				"	\r\n" + 
+				"	ret = result.readFromBuffer(compute)\r\n" + 
+				"	\r\n" + 
+				"	del inGPU1, inGPU2, result\r\n" + 
+				"	del c1, c2, compute\r\n" + 
+				"	del deviceGrp, device\r\n" + 
+				"	del inst\r\n" + 
+				"	\r\n" + 
+				"	\r\n" + 
+				"	'nice: ' + ret\r\n" + 
+				"}";
+		assertEquals("|  created function doings()", repl.processInput(doings));
+		assertEquals("$0 ==> nice: [7.0 10.0 ; 15.0 22.0]", repl.processInput("doings()"));
 	}
-	*/
 	
-	//redefine top level actor, deps
-	//redefine object provider
-	//redefine class after it has been removed
+	
+	
+	
 }

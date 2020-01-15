@@ -6,8 +6,10 @@ import java.util.Objects;
 
 import com.concurnas.compiler.ast.Annotation;
 import com.concurnas.compiler.ast.AnnotationDef;
+import com.concurnas.compiler.ast.Assign;
 import com.concurnas.compiler.ast.AssignExisting;
 import com.concurnas.compiler.ast.AssignNew;
+import com.concurnas.compiler.ast.AssignTupleDeref;
 import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.DotOperator;
@@ -202,6 +204,12 @@ public class REPLDepGraphManager extends AbstractVisitor implements Unskippable 
 	public Object visit(AssignNew funcDef) {
 		return this.visit((REPLTopLevelComponent)funcDef);
 	}
+	
+	/*
+	 * @Override public Object visit(AssignTupleDeref funcDef) { for(Assign assign :
+	 * funcDef.lhss) { this.visit((REPLTopLevelComponent)assign); } return null; }
+	 */
+	
 	
 	@Override
 	public Object visit(TypedefStatement typedef) {
