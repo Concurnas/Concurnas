@@ -70,7 +70,6 @@ return x + 7 + y + somestat + hh + jk ;
 return NIF$0 ( 12 , x , hh ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -99,7 +98,6 @@ return NIF$0 ( 5 , x , y , hh , gg ) ;
 return NIF$1 ( 12 , gg , x , hh ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -164,7 +162,6 @@ return x + 7 + y + somestat + hh + jk ;
 return NIF$0 & ( 12 , x , hh ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -193,7 +190,6 @@ return NIF$0 ( 5 , x , y , hh , gg ) ;
 return NIF$1 & ( 12 , gg , x , hh ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -245,7 +241,6 @@ return NIF$0 & ( 5 , x , y , hh , gg ) ;
 return NIF$1 ( 12 , gg , x , hh ) & ( ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -305,11 +300,9 @@ return x + 7 + y + somestat + hh + jk + fromouter ;
 return NIF$0 ( 12 , x , hh ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -339,11 +332,9 @@ return NIF$0 ( 5 , x , y , hh ) ;
 return NIF$1 ( 12 , x , hh ) ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -378,7 +369,6 @@ public def doings ( ) java.lang.String {
 return "  " + mc1 ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -413,7 +403,6 @@ public def doings ( ) java.lang.String {
 return "  " + mc1 ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -428,7 +417,6 @@ return new x13nestedfunctioninsiderhsoffieldassignmentwithdeps.MyClass ( ) . doi
 public def lafunc ( var f java.lang.String ) NIC$1 {
 private class NIC$1 ( protected a java.lang.String ) {
 public this ( var a java.lang.String ) {
-super ( ) ;
 this \. a = a ;
 }
 protected a java.lang.String ;

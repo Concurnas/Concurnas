@@ -217,6 +217,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 			
 			return defineClassSupportingEtc(name, allitems.requested);
 		}catch(Throwable thr) {
+			thr.printStackTrace();
 			throw new RuntimeException("Failure during definition of class: " + name , thr);
 		}
 	}

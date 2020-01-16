@@ -1,6 +1,6 @@
 package com.concurnas.conc;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -12,11 +12,11 @@ public abstract class TaskMaker implements Opcodes{
 
 	protected String classBeingTested;
 	protected String invokerclassName;
-	protected HashSet<String> newvars;
+	protected Set<String> newvars;
 	protected boolean hasCmdLineParams;
 	public static final String CMDLineParamsStr = "cmdLineParams";
 
-	public TaskMaker(String invokerclassName, String classBeingTested, HashSet<String> newvars, boolean hasCmdLineParams){
+	public TaskMaker(String invokerclassName, String classBeingTested, Set<String> newvars, boolean hasCmdLineParams){
 		this.invokerclassName = invokerclassName;
 		this.classBeingTested = classBeingTested;
 		this.newvars = newvars;
@@ -34,10 +34,10 @@ public abstract class TaskMaker implements Opcodes{
 		cw.visitInnerClass("com/concurnas/bootstrap/lang/Lambda$Function0", "com/concurnas/bootstrap/lang/Lambda", "Function0", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 		
 		{
-			if(null != newvars) {
+			//if(null != newvars) {
 				fv = cw.visitField(ACC_PRIVATE, "result", "Ljava/lang/String;", null, null);
 				fv.visitEnd();
-			}
+			//}
 			
 			if(hasCmdLineParams) {
 				fv = cw.visitField(ACC_PUBLIC, CMDLineParamsStr, "[Ljava/lang/String;", null, null);
@@ -118,7 +118,7 @@ public abstract class TaskMaker implements Opcodes{
 		
 		
 		
-		if(null != newvars) {
+		//if(null != newvars) {
 			{
 				mv = cw.visitMethod(ACC_PRIVATE + ACC_SYNCHRONIZED, "setResult", "(Ljava/lang/String;)V", null, null);
 				mv.visitCode();
@@ -162,7 +162,7 @@ public abstract class TaskMaker implements Opcodes{
 				mv.visitMaxs(1, 1);
 				mv.visitEnd();
 			}
-		}
+		//}
 		
 		cw.visitEnd();
 

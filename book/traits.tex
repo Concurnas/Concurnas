@@ -62,7 +62,7 @@ fido = new Dog()
 fido.eat()//eat returns: "animal is eating sausages"
 \end{lstlisting}
 
-The following code is perfectly valid since an object of Dog class is composed of the \lstinline{Animal} trait:
+The following code is perfectly valid since an object of \lstinline{Dog} class is composed of the \lstinline{Animal} trait:
 \begin{lstlisting}
 def animalFoo(animal Animal) => animal.eat()
 
@@ -72,7 +72,7 @@ animalFoo(fido)
 //returns: "animal is eating sausages"
 \end{lstlisting}
 
-We can use traits as types. Hence, we are able to use /is/ and /as/ with them:
+We can use traits as types. Hence, we are able to use \lstinline{is} and \lstinline{as} with them:
 \begin{lstlisting}
 something Object = new Dog()
 

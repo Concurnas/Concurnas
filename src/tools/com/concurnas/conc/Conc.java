@@ -27,6 +27,7 @@ import com.concurnas.compiler.DirectFileLoader;
 import com.concurnas.compiler.FileLoader;
 import com.concurnas.compiler.SchedulerRunner;
 import com.concurnas.repl.REPL;
+import com.concurnas.repl.REPLShell;
 import com.concurnas.runtime.ClassPathUtils;
 //warpper:
 //take arguments
@@ -52,11 +53,6 @@ public class Conc {
 			+ "   Server mode. When running in non interactive mode (i.e an entry point is provided)\r\n"
 			+ "   Concurnas will not terminate the process upon the entry point main method (or \r\n"
 			+ "   alternative) completing execution. \r\n"
-			+ "-werror: \r\n"
-			+ "   Treat warnings as errors. This option is applicable when running in REPL mode.\r\n"
-			+ "   Normally, warnings do not prevent compilation, setting this tag will\r\n"
-			+ "   treat warnings as errors, thus preventing compilation if warnings\r\n"
-			+ "   are generated for the input provided.\r\n"
 			+ "-bc: \r\n"
 			+ "   Print bytecode. This option is applicable when running in REPL mode.\r\n"
 			+ "   Print the bytecode generated from the provided input.\r\n"
@@ -175,11 +171,10 @@ public class Conc {
 			}
 			
 			
-			if(errors.validconcObject.entryClass == null) {
-				//disable REPL for current release cycle
-				returnCode=1;
-				return genericErrorMsg;
-			}
+			/*
+			 * if(errors.validconcObject.entryClass == null) { //disable REPL for current
+			 * release cycle returnCode=1; return genericErrorMsg; }
+			 */
 			
 			//no errors proceed to execution
 			return doMainLoop(errors.validconcObject);
@@ -242,10 +237,13 @@ public class Conc {
 					version = System.getProperty("java.specification.version");
 				}
 				
-				System.out.println(String.format("Welcome to Concurnas %s (%s, Java %s).", concVersion, vmname, version));
-				System.out.println("Currently running in REPL mode...\n");
+				System.out.println(String.format("|  Welcome to Concurnas %s (%s, Java %s).", concVersion, vmname, version));
+				System.out.println("|  Currently running in REPL mode...");
+				System.out.println("|  For help type: /help\n");
 				
-				new REPL(validconcObject.werror, validconcObject.bytecode, false).replLoop();
+				
+				returnCode = REPLShell.replLoop(validconcObject.bytecode, false);
+				return "";
 			}else {
 				ConcurnasClassLoader concClassLoader = validconcObject.concClassLoader;
 				

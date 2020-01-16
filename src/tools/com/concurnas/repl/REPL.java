@@ -1,14 +1,9 @@
 package com.concurnas.repl;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +11,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -31,46 +28,70 @@ import com.concurnas.compiler.LexParseErrorCapturer;
 import com.concurnas.compiler.MainLoop;
 import com.concurnas.compiler.ModuleCompiler;
 import com.concurnas.compiler.SchedulerRunner;
+import com.concurnas.compiler.ast.Assign;
+import com.concurnas.compiler.ast.AssignExisting;
+import com.concurnas.compiler.ast.AssignMulti;
+import com.concurnas.compiler.ast.AssignNew;
 import com.concurnas.compiler.ast.Block;
+import com.concurnas.compiler.ast.ClassDef;
+import com.concurnas.compiler.ast.DuffAssign;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.FuncType;
+import com.concurnas.compiler.ast.ImportStatement;
 import com.concurnas.compiler.ast.Line;
 import com.concurnas.compiler.ast.LineHolder;
+import com.concurnas.compiler.ast.REPLTopLevelComponent;
+import com.concurnas.compiler.ast.RefName;
+import com.concurnas.compiler.ast.Statement;
 import com.concurnas.compiler.ast.Type;
-import com.concurnas.compiler.bytecode.BytecodeGennerator;
 import com.concurnas.compiler.bytecode.BytecodeOutputter;
+import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
-import com.concurnas.compiler.utils.Thruple;
+import com.concurnas.compiler.visitors.REPLDepGraphManager.REPLComponentWrapper;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.runtime.ClassPathUtils;
 import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.MockFileWriter;
 import com.concurnas.runtime.Pair;
 
-
-//TODO: may call:
-/*if(meth == null) {
-		mv.visitMethodInsn(INVOKESTATIC, classBeingTested, BytecodeGennerator.metaMethodName, "()Ljava/lang/String;", false);
-		mv.visitInsn(POP);
-	}
-	
-instead of special method
-			
-*/
-
 public class REPL implements Opcodes {
 	
 	private MainLoop mainLoop;
-	//private TheScopeFrame theScopeFrame;
 	private ModuleCompiler moduleCompiler;
 	private ClassLoader mainClassLoader = Thread.currentThread().getContextClassLoader();
 	private REPLState replState;
 	private static final String mastSrcName = "repl$";
 	private boolean warnAsError = false;
-	private boolean printBytecode = false;
-	private boolean debugmode = false;
+	public boolean printBytecode = false;
+	public boolean debugmode = false;
+	public boolean verbose = false;
 	
-	public REPL(boolean warnAsError, boolean printBytecode, boolean debugmode) throws Exception {
+	public static final String cmdHelp = "|  Type a Concurnas language expression, statement, or declaration.\r\n" + 
+			"|  Or type one of the following commands:\r\n" + 
+			"|  /help \r\n" + 
+			"|      to show this message\n" + 
+			"|  /exit \r\n" + 
+			"|      to close the REPL\n" + 
+			"|  /verbose \r\n" + 
+			"|      to turn verbose mode on/off\n" + 
+			"|  /bc \r\n" + 
+			"|      to turn bytecode listing on/off\n" + 
+			"|  /imports \r\n" + 
+			"|      to show all imports\n" + 
+			"|  /usings \r\n" + 
+			"|      to show all usings\n" + 
+			"|  /vars \r\n" + 
+			"|      to show all defined variables\n" + 
+			"|  /defs \r\n" + 
+			"|      to show all defined functions\n" + 
+			"|  /classes \r\n" + 
+			"|      to show all defined classes\n"+
+			"|  /typedefs \r\n" + 
+			"|      to show all typedefs\n"+
+			"|  To exit use command /exit or press Ctrl+D";
+	;
+	
+	public REPL(boolean warnAsError, boolean printBytecode, boolean debugmode, boolean verbose) throws Exception {
 		this.mainLoop = new MainLoop(".", new DirectFileLoader(), true, false, null, false);
 		boolean VERBOSE_ERRORS=true;
 		boolean VERBOSE_OUTPUT=false;
@@ -80,27 +101,115 @@ public class REPL implements Opcodes {
 		this.warnAsError = false;
 		this.printBytecode = printBytecode || this.debugmode;
 		this.debugmode = debugmode;
+		this.verbose = verbose;
+	}
+	
+	private String toggleBC() {
+		this.printBytecode = !this.printBytecode;
+		return String.format("|  Set show bytecode: %s", this.printBytecode?"on":"off");
+	}
+	
+	private String toggleVerbose() {
+		this.verbose = !this.verbose;
+		return String.format("|  Set verbose mode: %s", this.verbose?"on":"off");
+	}
+	
+	private String showImports() {
+		if(null != this.replState.tliCache) {
+			ArrayList<String> ret = new ArrayList<String>();
+			for(String name : this.replState.tliCache.toprawImports) {
+				String longName = this.replState.tliCache.topshortNameToLong.get(name);
+				if(longName != null) {
+					ret.add(longName);
+				}
+			}
+			Collections.sort(ret);
+			this.replState.tliCache.topImportStar.forEach(a -> ret.add(a.toString()));
+			return String.join("\n", ret);
+		}
+		return "\n";
 	}
 	
 	
-	public void replLoop() {
-		//\exit, help, ctrl-d
-		//up
-		
-		System.out.println("conc>");
-		
-		System.out.println(processInput("a = 3"));
-		System.out.println(processInput("a += 3"));
-		System.out.println(processInput("a += 3"));
-		System.out.println(processInput("a "));
-		System.out.println(processInput("10**2 "));
-		System.out.println(processInput("5 if a > 5 else 2"));
-		//bug above for you...
-		
+	private String showUsings() {
+		if(null != this.replState.tliCache) {
+			ArrayList<String> ret = new ArrayList<String>();
+			for(String name : this.replState.tliCache.toprawUsings) {
+				ClassDef longName = this.replState.tliCache.topshortNameToLongUsing.get(name);
+				if(longName != null) {
+					ret.add(longName.toString());
+				}
+			}
+			
+			this.replState.tliCache.topImportStar.forEach(a -> ret.add(a.toString()));
+			
+			
+			return String.join("\n", ret);
+		}
+		return "\n";
 	}
 	
+	private String showVars() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllVars(null).keySet().stream().filter(a -> !a.contains("$") || (a.startsWith("$") && a.lastIndexOf("$")==0)   ).sorted().collect(Collectors.toList()));
+		}
+		return "\n";
+	}
 	
-	private static AtomicLong iteration = new AtomicLong();
+	private String showDefs() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			Map<String, HashSet<TypeAndLocation>> funcs = this.moduleCompiler.moduleLevelFrame.getAllFunctions();
+			ArrayList<String> ret = new ArrayList<String>();
+			
+			for(String funcName : funcs.keySet()) {
+				HashSet<TypeAndLocation> items = funcs.get(funcName);
+				for(TypeAndLocation tal : items) {
+					Type tt = tal.getType();
+					if(tt instanceof FuncType) {
+						FuncType ft = (FuncType)tt;
+						ret.add(formatTopLevelElement(ft.origonatingFuncDef, true));
+					}
+				}
+			}
+			Collections.sort(ret);
+			return String.join("\n", ret);
+		}
+		return "\n";
+	}
+	
+	private String showClasses() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllClasses().stream().map(a -> a.getName()).sorted().collect(Collectors.toList()));
+		}
+		return "\n";
+	}
+	
+	private String showTypedefs() {
+		if(null != this.moduleCompiler.moduleLevelFrame) {
+			return String.join("\n", this.moduleCompiler.moduleLevelFrame.getAllTypeDefAtCurrentLevel().keySet().stream().sorted().collect(Collectors.toList()));
+		}
+		return "\n";
+	}
+	
+	public String cmdHandler(String cmd) {
+		//starts with /
+		String what = cmd.trim();
+		switch(what) {
+			case "help": return cmdHelp;
+			case "exit": System.out.println("|  Bye!"); System.exit(0); return null;
+			case "bc": return toggleBC();
+			case "verbose": return toggleVerbose();
+			case "imports": return showImports();
+			case "usings": return showUsings();
+			case "vars": return showVars();
+			case "defs": return showDefs();
+			case "classes": return showClasses();
+			case "typedefs": return showTypedefs();
+		}
+		return String.format("|  Unknown command: %s\n\n%s", what, cmdHelp);
+	}
+	
+	private AtomicLong iteration = new AtomicLong();
 	
 	private static class ParseState{
 		public Block block;
@@ -150,8 +259,8 @@ public class REPL implements Opcodes {
 	
 	public void terminate() {
 		//stop main loop if spawned any threads
+		REPLRuntimeState.reset();
 		this.mainLoop.stop();
-		//System.exit(0);
 	}
 	
 	public List<String> tabComplete(String input) {
@@ -214,72 +323,155 @@ public class REPL implements Opcodes {
 	
 	private static SharedConcClassLoader sharedConcClassLoader = new SharedConcClassLoader();//one of these across all MainLoopInstances
 	
-	
-	public REPLExecutor getExecutor() {//assumes setCustomClassPath has been called etc
-		/*
-		 * Path[] cpele = null; if(mainClassLoader instanceof URLClassLoader) {
-		 * URLClassLoader asur = (URLClassLoader)mainClassLoader; URL[] urls =
-		 * asur.getURLs(); cpele = new Path[urls.length]; for(int n=0; n < urls.length;
-		 * n++) { try { cpele[n] = Paths.get(urls[n].toURI());//new
-		 * File(urls[n].toURI()).getAbsolutePath(); } catch (URISyntaxException e) {
-		 * cpele[n] = Paths.get("."); } } }
-		 */
-		
+	private REPLExecutor exec = null;
+	private SchedulerRunner sr = null;
+	public REPLExecutor getExecutor() {
 		//return new REPLExecutor(new ConcurnasClassLoader(cpele, ClassPathUtils.getInstallationPath(), sharedConcClassLoader));
-		return new REPLExecutor(ClassPathUtils.getSystemClassPathAsPaths());
-	}
-	
-	public SchedulerRunner getScheduler(REPLExecutor replExe) throws Throwable {
-		return new SchedulerRunner(replExe, "REPLExe");
-	}
-	
-	
-	LinkedHashMap<Pair<String, FuncType>, FuncDef> persistedFunctionSet = new LinkedHashMap<Pair<String, FuncType>, FuncDef>();
-	
-	private List<Thruple<FuncDef, FuncType, Boolean>> processBlockFuncs(Block blk) {
-		List<Thruple<FuncDef, FuncType, Boolean>> newlyDefined = new ArrayList<Thruple<FuncDef, FuncType, Boolean>>();
 		
-		LinkedHashMap<FuncDef, FuncType> funcs = new LinkedHashMap<FuncDef, FuncType>();
+		if(null == exec) {
+			exec = new REPLExecutor(ClassPathUtils.getSystemClassPathAsPaths());
+		}
+		
+		return exec;
+	}
+	
+	public SchedulerRunner getScheduler() throws Throwable {
+		if(null == sr) {
+			sr = new SchedulerRunner(exec, "REPLExe");
+		}
+		return sr;
+	}
+	
+	
+	private LinkedHashMap<Pair<String, Type>, Line> persistedTopLevelElementSet = new LinkedHashMap<Pair<String, Type>, Line>();
+	private HashMap<String, HashSet<Pair<String, Type>>> persistedTLENameToPair = new HashMap<String, HashSet<Pair<String, Type>>>();
+		
+	private Pair<List<Pair<REPLTopLevelComponent, Boolean>>, List<REPLComponentWrapper>> appendPrevCode(Block blk) {
+		List<Pair<REPLTopLevelComponent, Boolean>> newlyDefined = new ArrayList<Pair<REPLTopLevelComponent, Boolean>>();
+		List<REPLComponentWrapper> newTLEs = new ArrayList<REPLComponentWrapper>();
+		
+		//HashSet<Pair<String, Type>> toRemoveFromPersistedTopLevel = new HashSet<Pair<String, Type>>();
+		
+		LinkedHashMap<REPLComponentWrapper, Type> funcs = new LinkedHashMap<REPLComponentWrapper, Type>();
 		//funcs for later iterations...
 		for(LineHolder lh : blk.lines) {
 			Line lin = lh.l;
-			if(lin instanceof FuncDef) {
-				FuncDef origFD = (FuncDef)lin;
-				funcs.put(origFD, origFD.getFuncType().getErasedFuncTypeNoRet());
+			
+			if(lin instanceof AssignMulti) {
+				AssignMulti am = (AssignMulti)lin;
+				for(Assign ass : am.assignments) {
+					newTLEs.add(new REPLComponentWrapper((REPLTopLevelComponent)ass));
+				}
 			}
+			
+			if(lin instanceof REPLTopLevelComponent) {
+				REPLComponentWrapper wrap = new REPLComponentWrapper((REPLTopLevelComponent)lin);
+
+				newTLEs.add(wrap);
+				
+				if(!((REPLTopLevelComponent) lin).persistant() ) {
+					continue;//skip classdef, assignmentnew assignexisting etc
+				}
+				
+				Type tt;
+				if(lin instanceof FuncDef) {
+					tt = ((FuncDef)lin).getFuncType().getErasedFuncTypeNoRet();
+				}else if(lin instanceof ClassDef){
+					tt = null;
+				}else {
+					tt = ((REPLTopLevelComponent)lin).getFuncType();
+				}
+				funcs.put(wrap, tt);
+			}
+			
+			/*if(lin instanceof DeleteStatement) {//prre-emptively remove all things referenced by del
+				DeleteStatement asDel = (DeleteStatement)lin;
+				for(Expression del : asDel.exprs) {
+					if(del instanceof RefName) {
+						String toRemove = ((RefName)del).name;
+						
+						if(null != this.moduleCompiler.moduleLevelFrame) {
+							this.moduleCompiler.moduleLevelFrame.delREPLTolLevelElement(toRemove);
+						}
+						
+						for(Pair<String, Type> item : persistedTopLevelElementSet.keySet()) {
+							if(item.getA().equals(toRemove)) {
+								toRemoveFromPersistedTopLevel.add(item);
+							}
+						}
+					}
+				}
+			}*/
 		}
 		
-		for(FuncDef toAdd : funcs.keySet()) {
-			FuncType ft = funcs.get(toAdd);
-			Pair<String, FuncType> defFT = new Pair<String, FuncType>(toAdd.funcName, ft);
+		/*if(!toRemoveFromPersistedTopLevel.isEmpty()) {
+			toRemoveFromPersistedTopLevel.forEach(a -> persistedTopLevelElementSet.remove(a));
+		}*/
+		
+		
+		for(REPLComponentWrapper replcom : funcs.keySet()) {
+			REPLTopLevelComponent comp = replcom.comp;
+			Type ft = funcs.get(replcom);
+			Pair<String, Type> defFT = new Pair<String, Type>(comp.getName(), ft);
 			boolean isNew = true ;
-			if(persistedFunctionSet.containsKey(defFT)) {
+			if(persistedTopLevelElementSet.containsKey(defFT)) {
 				//overwrite persisted version
 				//this.moduleCompiler.moduleLevelFrame.removeFuncDef(defFT.getA(), defFT.getB(), true);
-				
-				persistedFunctionSet.remove(defFT);
+				persistedTopLevelElementSet.remove(defFT);
 				isNew=false;
 			}
 			
-			newlyDefined.add(new Thruple<FuncDef, FuncType, Boolean>(toAdd, ft, isNew));
-			
+			//if(replcom.comp instanceof FuncDef) {
+				newlyDefined.add(new Pair<REPLTopLevelComponent, Boolean>(replcom.comp, isNew));
+			//}
 		}
 		//now add funcs from prevous definitions unless redefined above....
-		persistedFunctionSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
+		persistedTopLevelElementSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
 		
-		funcs.keySet().forEach(a -> persistedFunctionSet.put( new Pair<String, FuncType>(a.funcName, funcs.get(a)), a));
+		funcs.keySet().forEach(a -> {
+			String name = (a.comp).getName();
+			Pair<String, Type> key = new Pair<String, Type>(name, funcs.get(a));
+			
+			persistedTopLevelElementSet.put( key , (Line)a.comp);
+			
+			{
+				HashSet<Pair<String, Type>> holder;
+				if(!persistedTLENameToPair.containsKey(name)) {
+					holder = new HashSet<Pair<String, Type>>();
+					persistedTLENameToPair.put(name, holder);
+				}else {
+					holder = persistedTLENameToPair.get(name);
+				}
+				holder.add(key);
+			}
+			
+			
+		});
 		
-		return newlyDefined;
+		//ensure all imports are specified first...
+		if(blk.lines.stream().anyMatch(a -> a.l instanceof ImportStatement)) {
+			List<LineHolder> reordered = blk.lines.stream().filter(a -> a.l instanceof ImportStatement).collect(Collectors.toList());
+			blk.lines.stream().filter(a -> !(a.l instanceof ImportStatement)).forEach(a -> reordered.add(a));
+			blk.lines = new ArrayList<LineHolder>(reordered);
+		}
+		
+		
+		return new Pair<List<Pair<REPLTopLevelComponent, Boolean>>, List<REPLComponentWrapper>>(newlyDefined, newTLEs);
 	}
 	
 	private static List<ErrorHolder> remoteSupressedErrors(HashSet<ErrorHolder> ers){
 		ArrayList<ErrorHolder> ret = new ArrayList<ErrorHolder>();
 		
 		for(ErrorHolder er : ers) {
-			FuncDef ctx = er.getContext();
-			if(ctx != null) {
-				if(ctx.supressErrors) {
-					continue;//skip
+			if(er.getAnyContextHavingErrSupression()) {
+				continue;//skip
+			}
+			
+			REPLTopLevelComponent  replCtxt = er.getHeadContext();
+			if(null != replCtxt) {
+				String prefix = formatTopLevelElement(replCtxt);
+				if(null != prefix && !prefix.contains("$")) {
+					er = er.copyWithErPrefix(prefix);
 				}
 			}
 			ret.add(er);
@@ -289,12 +481,90 @@ public class REPL implements Opcodes {
 		return ret;
 	}
 	
-	public String processInput(String input){
-		String output ="";
-		if(input ==null || input.trim().equals("")) {
-			return output;
+	private void removeAssignmentFromUpdateSet(HashSet<REPLComponentWrapper> toRem, REPLTopLevelComponent item, REPLComponentWrapper wra) {
+		if(item instanceof AssignExisting) {
+			if(((AssignExisting)item).isReallyNew) {
+				toRem.add(wra);
+			}
+		}else if(item instanceof AssignNew) {
+			AssignNew an = (AssignNew)item;
+			if(an.expr instanceof Block) {
+				Block asblock = (Block)an.expr;
+				if(asblock.lines.size() == 1) {
+					LineHolder lh = asblock.getLast();
+					if(lh.l instanceof DuffAssign && ((DuffAssign)lh.l).e instanceof RefName) {
+						RefName rn = (RefName) ((DuffAssign)lh.l).e;
+						if(rn.name.equals(an.name)) {
+							toRem.add(wra);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void removeTopLevelItemsFromUpdateSet(List<REPLComponentWrapper> toremove, HashSet<REPLComponentWrapper> depsUpdated) {
+		for(REPLComponentWrapper item : toremove) {
+			depsUpdated.remove(item);
 		}
 		
+		HashSet<REPLComponentWrapper> toRem = new HashSet<REPLComponentWrapper>();
+		for(REPLComponentWrapper wra : depsUpdated) {
+			REPLTopLevelComponent item = wra.comp;
+			if(item instanceof AssignExisting) {
+				removeAssignmentFromUpdateSet(toRem, item, wra);
+			}else if(item instanceof AssignNew) {
+				removeAssignmentFromUpdateSet(toRem, item, wra);
+			} /*
+				 * else if(item instanceof AssignTupleDeref) { AssignTupleDeref atd =
+				 * (AssignTupleDeref)item; atd.lhss.forEach(a ->
+				 * removeAssignmentFromUpdateSet(toRem, (REPLTopLevelComponent)a, wra)); }
+				 */
+		}
+		
+		depsUpdated.removeAll(toRem);
+	}
+	
+	private void processAssignments(Statement inst, ArrayList<String> ret) {
+		if(inst instanceof AssignNew) {
+			AssignNew ae = (AssignNew)inst;
+			ret.add(ae.name);
+		}else if(inst instanceof AssignExisting) {
+			AssignExisting ae = (AssignExisting)inst;
+			if(ae.assignee instanceof RefName) {
+				ret.add(((RefName)ae.assignee).name);
+			}
+		}else if(inst instanceof AssignMulti) {
+			AssignMulti am = (AssignMulti)inst;
+			am.assignments.forEach(a -> processAssignments(a, ret));
+		}
+	}
+	
+	private ArrayList<String> removeLastLineIfJustRefName(Block blk) {
+		LineHolder lhLast = blk.lines.get(blk.lines.size()-1);
+		
+		ArrayList<String> ret = new ArrayList<String>(1);
+		
+		if(lhLast.l instanceof DuffAssign) {
+			DuffAssign da = (DuffAssign)lhLast.l;
+			if(da.e instanceof RefName) {//remove it in this case
+				blk.lines.remove(blk.lines.size()-1);
+				ret.add(((RefName)da.e).name);
+				return ret;
+			}
+		}else if(lhLast.l instanceof Assign || lhLast.l instanceof AssignMulti) {
+			processAssignments((Statement)lhLast.l, ret);
+		}
+		
+		return ret.isEmpty()?null:ret;
+	}
+	
+	public String processInput(String input){
+		if(input ==null || input.trim().equals("")) {
+			return "";
+		}
+		
+		ArrayList<String> output = new ArrayList<String>();
 		try {
 			if(this.debugmode) {
 				BytecodeOutputter.PRINT_OPCODES=true;
@@ -309,51 +579,83 @@ public class REPL implements Opcodes {
 				MockFileWriter fw =new MockFileWriter();
 				String srcName = obtained.srcName;
 				
-				List<Thruple<FuncDef, FuncType, Boolean>> newfuncs = processBlockFuncs(obtained.block);
+				ArrayList<String> varToShow = removeLastLineIfJustRefName(obtained.block);
+				
+				Pair<List<Pair<REPLTopLevelComponent, Boolean>>, List<REPLComponentWrapper>> newStuiffAndTLEs = appendPrevCode(obtained.block);
+				
+				List<Pair<REPLTopLevelComponent, Boolean>> newfuncs = newStuiffAndTLEs.getA();
+				List<REPLComponentWrapper> newTopLevelItemsDeclared = newStuiffAndTLEs.getB();
 				
 				this.moduleCompiler.progressCompilationREPL(obtained.block, srcName, fw);
-
+				HashSet<REPLComponentWrapper> depsUpdated = this.replState.replDepGraph.getAndResetThingsModified();
+				
 				List<ErrorHolder> warns = remoteSupressedErrors(this.moduleCompiler.warnings);
 				if(warns != null && !warns.isEmpty()) {
-					output = formatErrors(warns, "|  WARN") + "\n";
+					output.add(formatErrors(warns, "|  WARN"));
 				}
 								
 				List<ErrorHolder> ersx = remoteSupressedErrors(this.moduleCompiler.getLastErrorSet());
+				
+				this.replState.topLevelItemsToSkip.forEach(a -> a.comp.setSupressErrors(true));//we only need these errors reported once
+				
 				if(ersx != null && !ersx.isEmpty()) {
 					//unless all errors are within functions
-					output += formatErrors(ersx, "|  ERROR");
+					output.add(formatErrors(ersx, "|  ERROR"));
 					if(ersx.stream().noneMatch(a -> a.hasContext())){
-						return output;
+						//remove any erronous top level variables from scopeFrame
+						tidyScopeFrameDirtyVars(obtained.block);
+						
+						return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 					}
-					output += "\n";
 				}
+								
 				
 				REPLExecutor instanceExecutor = getExecutor();
 				//start scheduler if not already
-				SchedulerRunner sch = getScheduler(instanceExecutor);
+				SchedulerRunner sch = getScheduler();
 				
 				try {
+					{//repoint any other newly created instances
+						List<String> items = fw.nametoCode.keySet().stream().sorted().collect(Collectors.toList());
+						for(String name : fw.nametoCode.keySet()) {
+							if(!name.equals(mastSrcName)) {
+								byte[] rawcode = fw.nametoCode.get(name);
+								byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName, false);
+								instanceExecutor.nameToCode.put(name, codeRepointed);
+
+								printByteCode(output, name, rawcode,  codeRepointed);
+							}
+						}
+					}
+					
+					
 					byte[] rawcode = fw.nametoCode.get(mastSrcName);
-					byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName);
+					byte[] codeRepointed = REPLCodeRepointStateHolder.repointToREPLStateHolder(rawcode, mastSrcName, srcName, true);
 					
-					if(printBytecode || debugmode) {
-						StringBuilder pp = new StringBuilder(output);
-						pp.append("|  Expression Bytecode:");
-						pp.append(BytecodePrettyPrinter.print(rawcode, true, null, "|  "));
-						pp.append("\n");
-						output = pp.toString();
-					}
-					if(debugmode) {
-						StringBuilder pp = new StringBuilder(output);
-						pp.append("|  Expression Bytecode (post runtime adaptation):");
-						pp.append(BytecodePrettyPrinter.print(codeRepointed, true, null, "|  "));
-						pp.append("\n");
-						output = pp.toString();
+					printByteCode(output, "main", rawcode,  codeRepointed);
+					
+					/*
+					 * HashSet<String> newvars = this.moduleCompiler.replState.getNewVars();
+					 * if(input.trim().endsWith(";")) { newvars = null; }else if(varToShow != null)
+					 * { newvars.add(varToShow); }
+					 */
+					
+					Set<String> newvars = null;
+					if(!input.trim().endsWith(";")){
+						if(varToShow != null) {
+							newvars = new HashSet<String>();
+							newvars.addAll(varToShow);
+						}else {
+							newvars = this.moduleCompiler.replState.getNewVars();
+							if(newvars.stream().anyMatch(a -> a.contains("$"))) {
+								newvars = newvars.stream().filter(a -> a.contains("$")).collect(Collectors.toSet());
+							}
+						}
 					}
 					
-					HashSet<String> newvars = this.moduleCompiler.replState.getNewVars();
-					if(input.trim().endsWith(";")) {
-						newvars = null;
+					for(String varToRemove : this.moduleCompiler.moduleLevelFrame.replNameToRemoveAtEndOfSessionVARS) {
+						//newvars.remove(varToRemove);
+						REPLRuntimeState.vars.remove(varToRemove);
 					}
 					
 					String invokerclassName = srcName + "$EXE";
@@ -367,29 +669,40 @@ public class REPL implements Opcodes {
 					Object exeTaObject = executorTasCls.newInstance();
 					sch.invokeScheudlerTask(exeTaObject);	
 					
-					if(!newfuncs.isEmpty()) {
-						output +=  processNewFuncsDefined(newfuncs);
-					}
-					
-					if(!input.trim().endsWith(";")) {
-						if(newvars != null) {
-							
-							String got = (String)getMethod(executorTasCls, "getResult", 0).invoke(exeTaObject);
-							
-							if(got != null && !got.trim().isEmpty()) {
-								
-								output += got;
-							}
+					if(!newfuncs.isEmpty() && this.verbose) {
+						String toAdd = processNewFuncsDefined(newfuncs);
+						if(!toAdd.equals("")) {
+							output.add(toAdd);
 						}
 					}
 					
-					return output.trim();
+					removeTopLevelItemsFromUpdateSet(newTopLevelItemsDeclared, depsUpdated);
+					
+					if(!depsUpdated.isEmpty() && this.verbose) {
+						//|    update modified method volume(double)
+						List<String> reduced = depsUpdated.stream().map(a -> formatTopLevelElement(a)).filter(a -> !a.contains("$")).sorted().collect(Collectors.toList());
+						if(!reduced.isEmpty()) {
+							output.add("|    update modified " + String.join(", ", reduced));
+						}
+					}
+					
+					String got = (String)getMethod(executorTasCls, "getResult", 0).invoke(exeTaObject);
+					
+					if(got != null && !got.trim().isEmpty()) {
+						if(!output.isEmpty()) {
+							output.add("\n");
+						}
+						
+						output.add(got);
+					}
+			
+					return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 					
 				}catch(Throwable e){
 					//TODO: format exception
 					throw e;
 				}finally {
-					sch.stop();
+					//sch.stop();
 				}
 			}
 		}catch(Throwable e) {
@@ -397,13 +710,29 @@ public class REPL implements Opcodes {
 			StringWriter out = new StringWriter();
 		    PrintWriter writer = new PrintWriter(out);
 			e.printStackTrace(writer);
-			output += out.toString();
-			return output;
+			output.add(out.toString());			
+
+			return String.join("\n", output.stream().map(a -> a.trim()).collect(Collectors.toList()) );
 		}finally{
 			if(null != this.moduleCompiler.moduleLevelFrame) {
 				this.replState.inc();
 				this.replState.tliCache = this.moduleCompiler.replLastTopLevelImports;
 				this.moduleCompiler.moduleLevelFrame.updatePrevSessionVars();
+				this.moduleCompiler.moduleLevelFrame.cleanUpAtEndOfREPLCycle();
+				
+				for(String name : this.moduleCompiler.moduleLevelFrame.getAllItemsDeleted()) {
+					HashSet<Pair<String, Type>> tlaToRemove = persistedTLENameToPair.remove(name);
+					if(null != tlaToRemove) {
+						for(Pair<String, Type> item : tlaToRemove) {
+							this.persistedTopLevelElementSet.remove(item);
+						}
+					}
+					
+					{
+						List<Pair<String, Integer>> toRemove = replState.tliCache.toptypeDef.keySet().stream().filter(a -> a.getA().equals(name)).collect(Collectors.toList());
+						toRemove.forEach(a -> replState.tliCache.toptypeDef.remove(a));
+					}
+				}
 			}
 			
 			if(this.debugmode) {
@@ -412,40 +741,118 @@ public class REPL implements Opcodes {
 		}
 	}
 	
-	private String processNewFuncsDefined(List<Thruple<FuncDef, FuncType, Boolean>> newfuncs) {
-		StringBuilder sb = new StringBuilder();
-		for(Thruple<FuncDef, FuncType, Boolean> itemx : newfuncs) {
-			FuncDef funcDef = itemx.getA();
-			FuncType ft = itemx.getB();
-			boolean isNew = itemx.getC();
+	private void tidyScopeFrameDirtyVars(REPLTopLevelComponent tla) {
+		if(tla.getErrors()) {
 			
-			sb.append("|  ");
-			if(isNew) {
-				sb.append("created");
-				funcDef.supressErrors = true;
-			}else {
-				sb.append("redefined");
+			if(tla instanceof AssignExisting) {
+				if(!((AssignExisting)tla).isReallyNew) {
+					return;//skip if not new, dont remove previous var
+				}
+			}else if(tla instanceof AssignNew) {
+				if(!((AssignNew)tla).isReallyNew) {
+					return;//skip if not new, dont remove previous var
+				}
 			}
 			
-			if(funcDef.extFunOn == null) {
-				sb.append(" function ");
-			}else {
-				sb.append(" extension function ");
-				sb.append(funcDef.extFunOn.toString());
-				sb.append('.');
+			if(null != this.moduleCompiler.moduleLevelFrame) {
+				this.moduleCompiler.moduleLevelFrame.removeVariable(tla.getName());
 			}
-			
-			sb.append(funcDef.funcName);
-			sb.append('(');
-			
-			ArrayList<Type> inputs = ft.getInputs();
-			sb.append(String.join(", ", inputs.stream().map(a -> a.toString()).collect(Collectors.toList())));
-			
-			sb.append(")\n");
 		}
-		sb.append("\n");
+	}
+	
+	private void tidyScopeFrameDirtyVars(Block block) {
+		for(LineHolder lh : block.lines) {
+			if(lh.l instanceof AssignExisting || lh.l instanceof AssignNew) {
+				tidyScopeFrameDirtyVars((REPLTopLevelComponent)lh.l);
+			}else if(lh.l instanceof AssignMulti) {
+				for(Assign ass : ((AssignMulti)lh.l).assignments) {
+					tidyScopeFrameDirtyVars((REPLTopLevelComponent)ass);
+				}
+			}
+		}
+		
+	}
+
+	private void printByteCode(ArrayList<String> output, String classname, byte[] rawcode, byte[] codeRepointed) throws Exception {
+		if(printBytecode || debugmode) {
+			StringBuilder pp = new StringBuilder();
+			pp.append("|  Expression Bytecode["+classname+"]:");
+			pp.append(BytecodePrettyPrinter.print(rawcode, true, null, "|  "));
+			output.add(pp.toString());
+		}
+		if(debugmode) {
+			StringBuilder pp = new StringBuilder();
+			pp.append("|  Expression Bytecode["+classname+"] (post runtime adaptation):");
+			pp.append(BytecodePrettyPrinter.print(codeRepointed, true, null, "|  "));
+			output.add(pp.toString());
+		}
+	}
+	
+	private static String formatTopLevelElement(FuncDef funcDef) {
+		return formatTopLevelElement(funcDef, false);
+	}
+	
+	private static String formatTopLevelElement(FuncDef funcDef, boolean retType) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(funcDef.funcName);
+		sb.append('(');
+		
+		ArrayList<Type> inputs = funcDef.getFuncType().getInputs();
+		sb.append(String.join(", ", inputs.stream().map(a -> a.toString()).collect(Collectors.toList())));
+		
+		sb.append(")");
+		if(retType) {
+			sb.append(" " + funcDef.retType.toString());
+		}
 		
 		return sb.toString();
+	}
+
+	
+	private static String formatTopLevelElement(REPLComponentWrapper item) {
+		return formatTopLevelElement(item.comp).replace("repl$.", "");
+	}
+	
+	private static String formatTopLevelElement(REPLTopLevelComponent item) {
+		if(item instanceof FuncDef) {
+			return formatTopLevelElement((FuncDef)item);
+		}
+		return item.getName();
+	}
+
+	private static String processNewFuncsDefined(List<Pair<REPLTopLevelComponent, Boolean>> newfuncs) {
+		StringBuilder sb = new StringBuilder();
+		for(Pair<REPLTopLevelComponent, Boolean> itemx : newfuncs) {
+			REPLTopLevelComponent comp = itemx.getA();
+			boolean isNew = itemx.getB();
+			String formattedName = formatTopLevelElement(comp);
+			
+			if(null != formattedName) {
+				sb.append("|  ");
+				if(isNew) {
+					sb.append("created ");
+					comp.setSupressErrors(true);
+				}else {
+					sb.append("redefined ");
+				}
+				
+				if(comp instanceof FuncDef) {
+					FuncDef funcDef = (FuncDef)comp;
+					if(funcDef.extFunOn == null) {
+						sb.append("function ");
+					}else {
+						sb.append("extension function ");
+						sb.append(funcDef.extFunOn.toString());
+						sb.append('.');
+					}
+				}
+				
+				sb.append(formattedName);
+				sb.append('\n');
+			}
+		}
+		
+		return sb.toString().trim();
 	}
 
 	private static Method getMethod(Class<?> cls, String name, int args){

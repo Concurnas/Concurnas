@@ -19,6 +19,7 @@ import com.concurnas.compiler.ast.Annotations;
 import com.concurnas.compiler.ast.AsyncBlock;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.ClassDefJava;
+import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.FuncParam;
 import com.concurnas.compiler.ast.FuncRef;
 import com.concurnas.compiler.ast.FuncRefArgs;
@@ -46,10 +47,11 @@ import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Utils.CurriedVararg;
 import com.concurnas.runtime.Pair;
 
-public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes {
+public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes, Unskippable {
 
 	private BytecodeGennerator bytecodeVisitor;
 
@@ -1594,8 +1596,17 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes 
 	
 	@Override
 	public Object visit(LambdaDef lambdaDef) {
-		visit(lambdaDef.fakeFuncRef, lambdaDef.implementSAM);
+		if(!lambdaDef.hasErrors) {
+			visit(lambdaDef.fakeFuncRef, lambdaDef.implementSAM);
+		}
 		return super.visit(lambdaDef);
+	}
+	@Override
+	public Object visit(FuncDef fd) {
+		if(fd.hasErrors) {
+			return null;
+		}
+		return super.visit(fd);
 	}
 
 

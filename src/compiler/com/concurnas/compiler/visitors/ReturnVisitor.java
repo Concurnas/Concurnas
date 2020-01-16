@@ -283,7 +283,13 @@ public class ReturnVisitor extends AbstractErrorRaiseVisitor {
 	
 	
 	private Expression extractLastThing(Block body){
-		Line line = body.getLast().l;
+		LineHolder lh = body.getLast();
+		
+		if(null == lh) {
+			return null;
+		}
+		
+		Line line = lh.l;
 		if(line instanceof DuffAssign){
 			return ((DuffAssign)line).e;
 		}
@@ -349,14 +355,28 @@ public class ReturnVisitor extends AbstractErrorRaiseVisitor {
 					if(!isLastStatementReturn(body, true, false))
 					{
 						hadMadeRepoints=true;
-						body.postpend(new LineHolder(line, col, new ReturnStatement(line, col, null, true)));
+						
+						Expression lastOne = extractLastThing(body);
+						if(null != lastOne && !lastOne.getCanBeOnItsOwnLine()){
+							hadMadeRepoints=true;
+							line= lastOne.getLine();
+							col = lastOne.getColumn();
+							body.popLast();
+							body.postpend(new LineHolder(line, col, new ReturnStatement(line, col, lastOne, true)));
+						}else {
+							body.postpend(new LineHolder(line, col, new ReturnStatement(line, col, null, true)));
+						}
 					}
 				}
 			}else if(null != retType && TypeCheckUtils.isVoidPrimativePure(retType)) {//sync return xyz when invalid to do so, reverse damage above:
 				if(isLastStatementReturn(body, true, true)) {
-					body.postpend(new LineHolder(new DuffAssign(line, col, ( (ReturnStatement)body.popLast().l).ret)));
-					hadMadeRepoints=true;
-					body.postpend(new LineHolder(line, col, new ReturnStatement(line, col, null, true)));
+					
+					ReturnStatement rn = (ReturnStatement)body.getLast().l;
+					if(rn.ret.getCanBeOnItsOwnLine()) {
+						body.postpend(new LineHolder(new DuffAssign(line, col, ( (ReturnStatement)body.popLast().l).ret)));
+						hadMadeRepoints=true;
+						body.postpend(new LineHolder(line, col, new ReturnStatement(line, col, null, true)));
+					}
 				}
 			}
 			

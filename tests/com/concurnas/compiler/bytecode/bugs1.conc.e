@@ -843,3 +843,23 @@ fine
 ~~~~~
 //##209. bug on tuplederef within for loop
 [[4, 5, 6], [1, 2, 3]]
+
+~~~~~
+//##210. import star class
+ok[]
+
+~~~~~
+//##211. import star static assets
+ok[12 112]
+
+~~~~~
+//##212. onchange was not utilizing existing return value ref
+ok3
+
+~~~~~
+//##213. top level every and await
+ok102
+
+~~~~~
+//##214. const folding bugfix
+(1.5, 6.0, 1, 5.0, 5.0, true, true)

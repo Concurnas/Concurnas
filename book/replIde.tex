@@ -4,10 +4,251 @@
 	\chapter[The Concurnas REPL]{The Concurnas REPL}
 	\label{ch:repl}
 
-Concurnas offers a lightweight tool for programming and executing with Concurnas code. The standard Concurnas runtime distribution can be run in either non-interactive or interactive Read-Evaluate-Print Loop (REPL) mode via the command line tool: \lstinline{conc}. Here we shall examine this REPL mode. The Concurnas REPL is a handy tool for learning about Concurnas and trying out ideas in a scriptable manner. It evaluates declarations, statements, and expressions as they are entered and immediately shows the results in an interactive fashion.	
+Concurnas offers a lightweight tool for programming and executing with Concurnas code. The standard Concurnas runtime distribution can be run in either non-interactive or interactive Read-Evaluate-Print Loop (REPL) mode via the command line tool: \lstinline[language=None]{conc}. Here we shall examine this REPL mode. The Concurnas REPL is a handy tool for learning about Concurnas and trying out ideas in a scriptable manner. It evaluates declarations, statements, and expressions as they are entered and immediately shows the results in an interactive fashion.	
 
-Coming soon!
+\section{Running the Concurnas REPL}
+The Concurnas REPL is included as standard as part of the Concurnas distribution. We can start it using the same command as we use for executing compiled code in a non-interactive manner: \lstinline[language=None]{conc} which can be found under: \lstinline[language=None]{conc-home}. If this tool has not been added to the path, the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
+
+We use the \lstinline[language=None]{conc} command without an entry-point class or jar reference in order to start \lstinline[language=None]{conc} in REPL mode:
+
+\begin{lstlisting}[language=None]
+C:\concurnas-1.13.1>conc
+\end{lstlisting}
+
+Here is an example of the sort of output we expect to see when \lstinline[language=None]{conc} is up and running:
+
+\begin{lstlisting}[language=None]
+|  Welcome to Concurnas 1.14.015 (Java HotSpot(TM) 64-Bit Server VM, Java 11.0.5).
+|  Currently running in REPL mode...
+|  For help type: /help
+
+conc> 
+\end{lstlisting}
+
+A full list of command line options for \lstinline[language=None]{conc} is found under the \hyperref[sec:cmdlineparams]{Command line options} section.
+
+\subsection{Closing the Concurnas REPL}
+The ordinary way to exit the Concurnas REPL, is by entering the \lstinline[language=None]{/exit} command or by pressing Ctrl+D:
+
+\begin{lstlisting}[language=None]
+conc> /exit
+\end{lstlisting}
 
 
+\section{Syntactical elements}
+The Concurnas REPL recognises the all elements of Concurnas syntax including: variable declarations and assignments, functions, extension functions, class (including actors and traits) definitions, type providers, imports, typedefs, usings and expressions.
 
+Elements of Concurnas code entered into \lstinline[language=None]{conc} are immediately compiled and executed. Feedback about that compilation process in terms of warnings and/or errors is shown and if there are no unrecoverable errors execution of the input code will take place and the results presented.
+	
+Let us now input some code to assign a value to a variable:
+
+\begin{lstlisting}[language=None]
+conc> myvar = 99
+myvar ==> 99
+\end{lstlisting}
+
+We see above that the variable \lstinline[language=None]{myvar} has been assigned the value \lstinline[language=None]{99}. \lstinline[language=None]{conc} will output all top level variables assigned in a provided expression after compilation and execution.
+
+If a provided expression returns a value but does not assign that result to a variable, a scratch variable will be created:
+
+\begin{lstlisting}[language=None]
+conc> 10*10
+$0 ==> 100
+\end{lstlisting}
+
+The scratch variable may be referenced in subsequent expressions for evaluation:
+\begin{lstlisting}[language=None]
+conc> res = $0 + 1
+res ==> 101
+\end{lstlisting}
+
+In order to suppress the printing and creation of scratch variables, the input expression need only be terminated with a semi colon: \lstinline[language=None]{;}. For example:
+
+\begin{lstlisting}[language=None]
+conc> def timesTwo(a int) => a*2
+conc> timesTwo(2);
+conc> 
+\end{lstlisting}
+
+We can obtain extra feedback by toggling the verbose mode on using the \lstinline[language=None]{/verbose} command:
+
+\begin{lstlisting}[language=None]
+conc> /verbose
+|  Set verbose mode: on
+
+conc> def timesTwo(a int) => a*2
+|  created function timesTwo(int)
+
+conc>
+\end{lstlisting}
+
+Notice how above we now receive the extra line of feedback upon creation or modification of a function definition: \lstinline[language=None]{|  created function timesTwo(int)}.
+	
+\subsection{The continuation prompt}
+The Concurnas REPL provides support for structures that require mutl-line input such as functions and classes. This is achieved by showing the continuation prompt: \lstinline[language=None]{>}:
+
+\begin{lstlisting}[language=None]
+conc> def foo(a int, b int){
+    >   a + b
+    > }
+conc> 
+\end{lstlisting}
+
+In creating a class the effect is the same:
+\begin{lstlisting}[language=None]
+conc> class Person(firstName String, sirname String){
+    >   override toString(){
+    >     "Person({firstName, sirname)"
+    >   }
+    > }
+conc> 
+\end{lstlisting}
+
+\subsection{Changing definitions}
+We can overwrite functions, classes and other top level definitions which have already been defined as follows:
+
+\begin{lstlisting}[language=None]
+conc> /verbose
+|  Set verbose mode: on
+
+conc> def times3(a int) => a*2//oops!
+|  created function times3(int)
+
+conc> def times3(a int) => a*3//fixed!
+|  redefined function times3(int)
+conc> 
+\end{lstlisting}
+
+
+\subsection{Errors and Warnings}
+Any errors or warnings applicable for our code will be reported back to us after evaluation of the code submit to the REPL. For example:
+
+\begin{lstlisting}[language=None]
+conc> concat = "My best number: " - 4
+|  ERROR 1:9 in concat - numerical operation cannot be performed on type java.lang.String. No overloaded 'minus' operator found for type java.lang.String with signature: '(int)'
+
+conc> concat = "My best number: " + 4 //that's better!
+concat ==> My best number: 4
+
+conc> 
+\end{lstlisting}
+
+\subsection{Exceptions}
+If we write code which throws an exception, the exception stack trace provided by the JVM upon which Concurnas runs will be formatted by the REPL in order to help us identify where the exception was thrown. In the below example we try to throw a null pointer exception (some which is made deliberately difficult through Concurnas' inclusion of nullability in its type system):
+
+\begin{lstlisting}[language=None]
+conc> def npeThrower(input String?){
+	>   input??.length()//dangerous
+	> }
+
+conc> npeThrower("hi")//normal usage
+$0 ==> 2
+
+conc> npeThrower(null)
+|  java.lang.NullPointerException
+|    at npeThrower(line:2)
+|    at line:1
+
+conc>
+\end{lstlisting}
+
+\subsection{Forward references}
+The Concurnas REPL permits definitions of top level elements which reference functions, variables and classes that are not yet defined. Although in defining such elements an error will be reported, as soon as all the missing dependencies are satisfied the element will be usable:
+
+\begin{lstlisting}[language=None]
+conc> /verbose
+|  Set verbose mode: on
+
+conc> def multiplier(what int) => what*mul
+|  ERROR 1:33 in multiplier(int) - mul cannot be resolved to a variable
+
+conc> mul=10;
+|    update modified multiplier(int)
+
+conc> multiplier(10)
+$0 ==> 100
+
+conc> 
+\end{lstlisting}
+
+\subsection{Imports}
+When Concurnas is operating in REPL mode we can import any code provided on the classpath and within the standard Java JDK via \hyperref[chap:imports]{the usual means} of import. For instance, ArrayList:
+
+\begin{lstlisting}[language=None]
+conc> from java.util import ArrayList
+
+conc> mylist = ArrayList<String>()
+mylist ==> []
+
+conc>
+\end{lstlisting}
+
+\subsection{Deleting definitions}
+The \lstinline[language=None]{del} keyword has special meaning when Concurnas is operating in REPL mode. Any defined top level element such as a variable, function or class may be removed from top level scope (and deleted) by preceding its name with the \lstinline[language=None]{del} keyword as follows:
+
+\begin{lstlisting}[language=None]
+conc> myvar = 100;
+
+conc> myvar
+myvar ==> 100
+
+conc> del myvar
+
+conc> myvar //we expect this not to exist anymore!
+|  ERROR variable myvar does not exist
+
+conc>
+\end{lstlisting}
+
+\begin{lstlisting}[language=None]
+This of works for functions, classes etc:
+
+conc> def bar() => 100
+
+conc> bar()
+$0 ==> 100
+
+conc> del bar
+
+conc> bar() //no longer exists!
+|  ERROR 1:0 Unable to find method with matching name: bar
+
+conc> 
+\end{lstlisting}
+
+\section{Commands}
+The Concurnas REPL offers a number of commands which can be of assistance when using the REPL. The full listing is viewable by using the \lstinline[language=None]{/help} command:
+
+\begin{lstlisting}[language=None]
+conc> /help
+|  Type a Concurnas language expression, statement, or declaration.
+|  Or type one of the following commands:
+|  /help
+|      to show this message
+|  /exit
+|      to close the REPL
+|  /verbose
+|      to turn verbose mode on/off
+|  /bc
+|      to turn bytecode listing on/off
+|  /imports
+|      to show all imports
+|  /usings
+|      to show all usings
+|  /vars
+|      to show all defined variables
+|  /defs
+|      to show all defined functions
+|  /classes
+|      to show all defined classes
+|  /typedefs
+|      to show all typedefs
+|  To exit use command /exit or press Ctrl+D
+
+conc>
+\end{lstlisting}
+
+\section{Adding the REPL to the path}
+It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit the Concurnas REPL via \lstinline[language=None]{conc} to be run from any directory. Check your operating system documentation for details of how to do this.
+	
 \end{document}

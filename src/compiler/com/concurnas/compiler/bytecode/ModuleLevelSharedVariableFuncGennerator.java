@@ -1,9 +1,18 @@
 package com.concurnas.compiler.bytecode;
 
-import com.concurnas.compiler.ast.*;
+import com.concurnas.compiler.ast.AssignExisting;
+import com.concurnas.compiler.ast.AssignNew;
+import com.concurnas.compiler.ast.Block;
+import com.concurnas.compiler.ast.DuffAssign;
+import com.concurnas.compiler.ast.FuncDef;
+import com.concurnas.compiler.ast.FuncInvoke;
+import com.concurnas.compiler.ast.LineHolder;
+import com.concurnas.compiler.ast.RefName;
+import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
+import com.concurnas.compiler.visitors.Unskippable;
 
 /**
 Turns this:
@@ -22,7 +31,7 @@ stays as:
 shared abs Integer
 
  */
-public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor {
+public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor  implements Unskippable{
 
 	private Block currentBlock;
 	private int cblockno = 0;

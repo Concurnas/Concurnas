@@ -564,3 +564,11 @@ okok
 ~~~~~
 //##149. actor being called with shared variable argumnet
 [true, true]
+
+~~~~~
+//##150. actor add explicit new
+ok 100
+
+~~~~~
+//##151. actor at top level
+ok 100

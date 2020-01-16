@@ -30,11 +30,7 @@ import com.concurnas.compiler.typeAndLocation.Location;
 import com.concurnas.compiler.typeAndLocation.LocationClassField;
 import com.concurnas.compiler.typeAndLocation.LocationStaticField;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
-import com.concurnas.compiler.utils.EightPull;
 import com.concurnas.compiler.utils.ITEM_TYPE;
-import com.concurnas.compiler.utils.NinePull;
-import com.concurnas.compiler.utils.Sevenple;
-import com.concurnas.compiler.utils.Sixple;
 import com.concurnas.compiler.utils.StringUtils;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
@@ -168,6 +164,10 @@ public class TheScopeFrame {
 	public void setIsREPL() {
 		replModLevelForcedNewvars = new HashMap<String, TypeAndLocation>();
 		replModLevelForcedNewfuncs = new HashMap<String, HashSet<FuncType>>();
+		replModLevelForcedNewClasses = new HashMap<String, ClassDef>();
+		replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
+		replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
+		replNameToRemoveAtEndOfSessionTYPEDEF = new HashSet<String>();
 		//isREPL=true;
 	}
 	
@@ -229,8 +229,10 @@ public class TheScopeFrame {
 				this.parent.addChild(((Block)nd).getIdentity(), this.children.get(nd));
 			}
 		}
+
+		this.classesSelfRequestor = new HashMap<String, ClassDef>();
+		
 		if(!isREPL) {
-			this.classesSelfRequestor = new HashMap<String, ClassDef>();
 			this.varsSelfRequestor    = new HashMap<String, TypeAndLocation>();
 			this.consSelfRequestor   = new HashSet<FuncType>();
 		}
@@ -241,6 +243,7 @@ public class TheScopeFrame {
 	
 	public void updatePrevSessionVars () {
 		this.replPrevSessionVars.addAll(replModLevelForcedNewvars.keySet());
+		this.replPrevSessionClasses.putAll(replModLevelForcedNewClasses);
 		
 		for(String name : replModLevelForcedNewfuncs.keySet()) {
 			HashSet<FuncType> toAdd = replModLevelForcedNewfuncs.get(name);
@@ -278,8 +281,20 @@ public class TheScopeFrame {
 	////REPL ///
 	public HashMap<String, TypeAndLocation>     			replModLevelForcedNewvars   ;
 	public HashMap<String, HashSet<FuncType>>     			replModLevelForcedNewfuncs   ;
+	public HashMap<String, ClassDef>     			replModLevelForcedNewClasses   ;
+	
+	//del
+	public HashSet<String>  replNameToRemoveAtEndOfSessionVARS = new HashSet<String>();
+	public HashSet<String>  replNameToRemoveAtEndOfSessionFUNCS = new HashSet<String>();
+	public HashSet<String>  replNameToRemoveAtEndOfSessionCLASSES = new HashSet<String>();
+	public HashSet<String>  replNameToRemoveAtEndOfSessionTYPEDEF = new HashSet<String>();
+	//
+	
+	
 	public HashSet<String> replPrevSessionVars = new HashSet<String>();
 	public HashMap<String, HashSet<FuncType>> replPrevSessionFuncs = new HashMap<String, HashSet<FuncType>>();
+	public HashMap<String, ClassDef> replPrevSessionClasses = new HashMap<String, ClassDef>();
+	
 	public HashSet<String> replAssignedthisIteration = new HashSet<String>();
 	////REPL ///
 	
@@ -302,7 +317,15 @@ public class TheScopeFrame {
 	
 	public boolean isRequestorScopeMeOrMyChild(TheScopeFrame requestor)
 	{
-		return this == requestor;
+		if(this == requestor) {
+			if( this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+				return false;
+			}
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	
@@ -426,6 +449,10 @@ public class TheScopeFrame {
 	
 	public TypeDefTypeProvider getTypeDef(String name){
 		if(typedefs.containsKey(name)){
+			if(this.paThisIsModule && this.replModLevelForcedNewvars != null && replNameToRemoveAtEndOfSessionTYPEDEF.contains(name)) {
+				return null;
+			}
+			
 			return typedefs.get(name);
 		}
 		else if(parent != null){
@@ -439,6 +466,11 @@ public class TheScopeFrame {
 	}
 	
 	public void setTypeDef(String key, TypeDefTypeProvider value){
+		
+		if(this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+			replNameToRemoveAtEndOfSessionTYPEDEF.remove(key);
+		}
+		
 		typedefs.put(key, value);
 	}
 	
@@ -479,6 +511,11 @@ public class TheScopeFrame {
 		
 		if(vars.containsKey(varname))
 		{
+			
+			if(this.replNameToRemoveAtEndOfSessionVARS != null && replNameToRemoveAtEndOfSessionVARS.contains(varname)) {
+				return new Pair<TypeAndLocation, Boolean>(null, this.isClass);//nope
+			}
+			
 			return new Pair<TypeAndLocation, Boolean>(vars.get(varname), this.isClass); 
 		}
 		else if(null != parent && lookParent)
@@ -535,6 +572,8 @@ public class TheScopeFrame {
 			vars.put(varname + "$n"+level, var);
 			
 			if(this.paThisIsModule && this.replModLevelForcedNewvars != null) {
+				replNameToRemoveAtEndOfSessionVARS.remove(varname);
+				
 				replModLevelForcedNewvars.put(varname, var);
 				if(isAssignNew) {
 					replPrevSessionVars.remove(varname);
@@ -572,6 +611,7 @@ public class TheScopeFrame {
 	
 	public void setVariable(String varname) {
 		replAssignedthisIteration.add(varname);
+		replNameToRemoveAtEndOfSessionVARS.remove(varname);
 	}
 	
 	public void setVariableAssigned(String varname){
@@ -607,15 +647,11 @@ public class TheScopeFrame {
 		return ret;
 	}
 	
-	public ClassDef getClassDef(TheScopeFrame requestor, String varname)
-	{
-		return getClassDef(requestor, varname, true);
-	}
-	public ClassDef getClassDef(TheScopeFrame requestor, String varname, boolean lookParent)
+	public ClassDef getClassDef(TheScopeFrame requestor, String varname, boolean lookParent, boolean isCreation)
 	{
 		HashMap<String, ClassDef> classes = this.classes;
 		
-		if(isRequestorScopeMeOrMyChild(requestor))//only modules have null parent
+		if (isRequestorScopeMeOrMyChild(requestor)  && isCreation)//only modules have null parent
 		{//apply sequential ordering if this scope is a module
 			//so divert to special this instance only map
 			classes = this.classesSelfRequestor;
@@ -631,18 +667,26 @@ public class TheScopeFrame {
 		
 		if(dotpos == -1 || startsWithpack)
 		{
+			ArrayList<String> varTry = new ArrayList<String>();
+			varTry.add(varname);
+			
 			if(startsWithpack){
 				varname = varname.substring(moduleName.length()+1);
+				varTry.add(varname);
 			}
 			
-			if(classes.containsKey(varname))
-			{
-				return classes.get(varname);
+			for(String vntry : varTry) {
+				if(classes.containsKey(vntry))
+				{
+					return classes.get(vntry);
+				}
+				else if(null != parent && lookParent)
+				{
+					return parent.getClassDef(parent, vntry, true, isCreation);
+				}
 			}
-			else if(null != parent && lookParent)
-			{
-				return parent.getClassDef(parent, varname, true);
-			}
+			
+			
 		}
 		else
 		{//uh oh, we need to drill into the class heirarchy (and we only need to do this with classes)
@@ -656,7 +700,7 @@ public class TheScopeFrame {
 			}
 			else if(null != parent && lookParent)
 			{
-				soFar= parent.getClassDef(parent, firstPart, true);
+				soFar= parent.getClassDef(parent, firstPart, true, isCreation);
 			}
 			if(null != soFar && (Object)soFar instanceof ClassDefJava)//only java does static nested classse
 			{
@@ -666,9 +710,17 @@ public class TheScopeFrame {
 		return null;
 	}
 	
-	public boolean hasClassDef(TheScopeFrame requestor, String varname, boolean lookParent)
+	public boolean hasClassDef(TheScopeFrame requestor, String varname, boolean lookParent, boolean isCreation)
 	{
-		return null != getClassDef(requestor, varname, lookParent);
+		if(null == getClassDef(requestor, varname, lookParent, isCreation)) {
+			return false;
+		}
+		
+		if(isCreation && this.paThisIsModule && this.replModLevelForcedNewClasses != null && replPrevSessionClasses.containsKey(varname)) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public void setClassDef(TheScopeFrame requestor, String varname, ClassDef var, int modifier)
@@ -679,9 +731,15 @@ public class TheScopeFrame {
 		{
 			classesSelfRequestor.put(varname, var);
 		}
+		
+		if(this.paThisIsModule && this.replModLevelForcedNewClasses != null) {
+			
+			replModLevelForcedNewClasses.put(varname, var);
+			replPrevSessionClasses.remove(varname);
+		}
 	}
 	
-	public void removeClassDef(TheScopeFrame requestor, String varname) {
+	public void removeClassDef(String varname) {
 		classes.remove(varname);
 		if(isPersisted)
 		{
@@ -715,21 +773,7 @@ public class TheScopeFrame {
 			vars = varsSelfRequestor;
 		}
 		
-		if(vars.containsKey(varname)){
-			TypeAndLocation tal = vars.get(varname);
-			
-			/*Type typ = tal.getType();
-			Type conv = TypeCheckUtils.convertTypeToFuncType(typ);
-			if(conv != typ) {
-				tal = new TypeAndLocation(conv, tal.getLocation());
-			}*/
-			
-			HashSet<TypeAndLocation> ret = new HashSet<TypeAndLocation>();
-			ret.add(tal);
-			return new Pair<Pair<Boolean, HashSet<TypeAndLocation>>, Boolean>(new Pair<Boolean, HashSet<TypeAndLocation>>(false, ret), this.isClass);
-		}
-		else if(funcs.containsKey(varname))
-		{
+		if(funcs.containsKey(varname)){//priortize functions first, then vars
 			HashSet<TypeAndLocation> items = funcs.get(varname);
 			HashSet<TypeAndLocation> filtered = new HashSet<TypeAndLocation>();
 			
@@ -746,11 +790,6 @@ public class TheScopeFrame {
 					if(got instanceof FuncType && ((FuncType)got).extFuncOn ){
 						continue;
 					}
-					/*Type gotc = TypeCheckUtils.convertTypeToFuncType(got);
-					if(gotc != got) {
-						tal = new TypeAndLocation(gotc, tal.getLocation());
-					}
-					*/
 					filtered.add(tal);
 				}
 			}
@@ -760,6 +799,12 @@ public class TheScopeFrame {
 			}
 			
 			return new Pair<Pair<Boolean, HashSet<TypeAndLocation>>, Boolean>(new Pair<Boolean, HashSet<TypeAndLocation>>(true, filtered), this.isClass);
+		}else if(vars.containsKey(varname)){
+			TypeAndLocation tal = vars.get(varname);
+			
+			HashSet<TypeAndLocation> ret = new HashSet<TypeAndLocation>();
+			ret.add(tal);
+			return new Pair<Pair<Boolean, HashSet<TypeAndLocation>>, Boolean>(new Pair<Boolean, HashSet<TypeAndLocation>>(false, ret), this.isClass);
 		}
 		else if(null != parent && lookParent)
 		{
@@ -931,17 +976,14 @@ public class TheScopeFrame {
 							ret = ExisitsAlready.TRUE_GT_ERASED;
 						}
 						
-						if(ret != null) {
-							
-							//fix here, also from create/replacer
-							if(isCreation && this.paThisIsModule && this.replModLevelForcedNewfuncs != null) {
-								if(replPrevSessionFuncs.containsKey(varname) && replPrevSessionFuncs.get(varname).contains(sigCheck.getErasedFuncTypeNoRet())) {
-									return ExisitsAlready.FALSE;
-								}
-								
+						//fix here, also from create/replacer
+						if(isCreation && this.paThisIsModule && this.replModLevelForcedNewfuncs != null) {
+							if(replPrevSessionFuncs.containsKey(varname) && replPrevSessionFuncs.get(varname).contains(sigCheck.getErasedFuncTypeNoRet())) {
+								ret=null;
 							}
-							
-							
+						}
+						
+						if(ret != null) {
 							return ret;
 						}
 						
@@ -956,10 +998,34 @@ public class TheScopeFrame {
 		
 		HashSet<TypeAndLocation> got = this.funcs.get(varname);
 		got.remove(old);
+		
+		if(this.replPrevSessionFuncs != null) {//replace ignoring return type if in repl mode
+			if(!got.isEmpty()) {
+				Type tt = newLoc.getType();
+				if(tt instanceof FuncType) {
+					FuncType wanted = ((FuncType)tt).copyIgnoreReturnType();
+					
+					HashSet<TypeAndLocation> toRemove = new HashSet<TypeAndLocation>();
+					for(TypeAndLocation tal : got) {
+						Type ttx = tal.getType();
+						if(ttx instanceof FuncType) {
+							FuncType ft = (FuncType)ttx;
+							if(wanted.equals(ft.copyIgnoreReturnType())) {
+								toRemove.add(tal);
+							}
+						}
+					}
+					got.removeAll(toRemove);
+				}
+			}
+		}
+		
 		if(isPersisted)
 		{
 			HashSet<TypeAndLocation> got2 = this.funcsSelfRequestor.get(varname);
-			got2.remove(old);
+			if(null != got2) {
+				got2.remove(old);
+			}
 		}
 		
 		setFuncDef(requestor, varname, newLoc, modifier);
@@ -1142,7 +1208,7 @@ public class TheScopeFrame {
 			}
 			else if (type == ITEM_TYPE.NESTED_CLASS || type == ITEM_TYPE.STATIC_CLASS)
 			{
-				return this.getClassDef(null, dottedName, false);
+				return this.getClassDef(null, dottedName, false, false);
 			}
 			else if(type == ITEM_TYPE.TYPEDEF){
 				return this.typedefs.get(dottedName);
@@ -1153,7 +1219,7 @@ public class TheScopeFrame {
 			String[] bits = dottedName.split("\\.");
 			
 			String firstBit = bits[0];
-			ClassDef cls = this.getClassDef(null, firstBit, false);
+			ClassDef cls = this.getClassDef(null, firstBit, false, false);
 			
 			if(null != cls)
 			{
@@ -1198,9 +1264,15 @@ public class TheScopeFrame {
 
 	public void removeVariable(String name){
 		if(this.vars.containsKey(name)){
-			this.vars.remove(name);
+			
+			if(this.replModLevelForcedNewvars == null) {
+				this.vars.remove(name);
+			}else if(null != this.replNameToRemoveAtEndOfSessionVARS){
+				this.replNameToRemoveAtEndOfSessionVARS.add(name);
+			}
+			
 			this.varsSelfRequestor.remove(name);
-		}else{
+		}else if(this.replModLevelForcedNewvars == null){
 			parent.removeVariable(name);
 		}
 		
@@ -1218,33 +1290,59 @@ public class TheScopeFrame {
 			return;
 		}
 		
+		boolean removeAllAtModLevel = signature == null;
+		
+		if(!removeAllAtModLevel && this.replModLevelForcedNewfuncs != null) {//we can overwrite a functioin defintion from a previous incarnation when in REPL mode
+			signature = signature.copyIgnoreReturnType();
+		}
+		
+		
 		{
-			HashSet<TypeAndLocation> choices = this.funcs.get(name);
-			if(null != choices){
-				for(TypeAndLocation tal : choices){
-					Type tt = tal.getType();
-					/*if(ignoreGensAndRetType) {
-						tt = ((FuncType)tt).origonatingFuncDef.getFuncType().getErasedFuncTypeNoRet();
-					}*/
-					if(tt.equals(signature)){
-						choices.remove(tal);
-						break;
+			if(removeAllAtModLevel) {
+				if(null != this.replNameToRemoveAtEndOfSessionFUNCS){
+					this.replNameToRemoveAtEndOfSessionFUNCS.add(name);
+				}
+			}else {
+				HashSet<TypeAndLocation> choices = this.funcs.get(name);
+				if(null != choices){
+					for(TypeAndLocation tal : choices){
+						Type tt = tal.getType();
+						if(this.replModLevelForcedNewfuncs != null) {
+							tt = tt.copyIgnoreReturnType();
+						}
+						
+						if(tt.equals(signature)){
+							choices.remove(tal);
+							if(choices.isEmpty()) {
+								this.funcs.remove(name);
+							}
+							break;
+						}
 					}
 				}
 			}
 		}
 		
 		{//JPT: optimization here, if above is null then return? which one, one cannot be null without the other hmm, i forget which is more strict
-			HashSet<TypeAndLocation> choices = this.funcsSelfRequestor.get(name);
-			if(null != choices){
-				for(TypeAndLocation tal : choices){
-					Type tt = tal.getType();
-					/*if(ignoreGensAndRetType) {
-						tt = ((FuncType)tt).origonatingFuncDef.getFuncType().getErasedFuncTypeNoRet();
-					}*/
-					if(tt.equals(signature)){
-						choices.remove(tal);
-						break;
+			if(removeAllAtModLevel) {
+				this.funcsSelfRequestor.remove(name);
+			}else {
+				HashSet<TypeAndLocation> choices = this.funcsSelfRequestor.get(name);
+				if(null != choices){
+					for(TypeAndLocation tal : choices){
+						
+						Type tt = tal.getType();
+						if(this.replModLevelForcedNewfuncs != null) {
+							tt = tt.copyIgnoreReturnType();
+						}
+						
+						if(tt.equals(signature)){
+							choices.remove(tal);
+							if(choices.isEmpty()) {
+								this.funcsSelfRequestor.remove(name);
+							}
+							break;
+						}
 					}
 				}
 			}
@@ -1294,5 +1392,44 @@ public class TheScopeFrame {
 		}
 		
 		return ret;
+	}
+
+	public HashSet<String> getAllItemsDeleted(){
+		HashSet<String> ret = new HashSet<String>();
+		ret.addAll(replNameToRemoveAtEndOfSessionVARS);
+		ret.addAll(replNameToRemoveAtEndOfSessionFUNCS);
+		ret.addAll(replNameToRemoveAtEndOfSessionCLASSES);
+		ret.addAll(replNameToRemoveAtEndOfSessionTYPEDEF);
+		return ret;
+	}
+	
+	public void cleanUpAtEndOfREPLCycle() {
+		for(String name : replNameToRemoveAtEndOfSessionVARS) {
+			this.vars.remove(name);
+		}
+		
+		for(String name : replNameToRemoveAtEndOfSessionFUNCS) {
+			this.funcs.remove(name);
+		}
+		
+		for(String name : replNameToRemoveAtEndOfSessionCLASSES) {
+			this.classes.remove(name);
+		}
+	}
+
+	public void removeTypeDefREPL(String varname) {
+		this.replNameToRemoveAtEndOfSessionTYPEDEF.add(varname);
+		this.typedefs.remove(varname);
+	}
+
+	public void delREPLTolLevelElement(String toRemove) {
+		this.replPrevSessionClasses.remove(toRemove);
+		this.replPrevSessionFuncs.remove(toRemove);
+		this.replPrevSessionVars.remove(toRemove);
+		
+		this.replNameToRemoveAtEndOfSessionCLASSES.add(toRemove);
+		this.replNameToRemoveAtEndOfSessionFUNCS.add(toRemove);
+		this.replNameToRemoveAtEndOfSessionTYPEDEF.add(toRemove);
+		this.replNameToRemoveAtEndOfSessionVARS.add(toRemove);
 	}
 }

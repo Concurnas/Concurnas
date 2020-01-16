@@ -1,6 +1,9 @@
 package com.concurnas.compiler;
 
-import com.concurnas.compiler.ast.FuncDef;
+import java.util.ArrayList;
+
+import com.concurnas.compiler.ast.Assign;
+import com.concurnas.compiler.ast.REPLTopLevelComponent;
 import com.concurnas.compiler.visitors.WarningVariant;
 
 
@@ -10,9 +13,9 @@ public class ErrorHolder implements Comparable<ErrorHolder> {
 	private final int column;
 	private final String message;
 	private final WarningVariant wv;
-	private final FuncDef context;
+	private final ArrayList<REPLTopLevelComponent> context;
 
-	public ErrorHolder(String filename, int line, int column, String message, WarningVariant wv, FuncDef context)
+	public ErrorHolder(String filename, int line, int column, String message, WarningVariant wv, ArrayList<REPLTopLevelComponent> context)
 	{
 		this.filename = filename==null?"":filename;
 		this.line = line;
@@ -20,13 +23,17 @@ public class ErrorHolder implements Comparable<ErrorHolder> {
 		this.message = message;
 		this.wv = wv;
 		this.context = context;
-		if(context != null) {
-			context.hasErrors=true;
-		}
+		/*
+		 * if(context != null) { context.setErrors(true); }
+		 */
 	}
 	
 	public ErrorHolder(String filename, int line, int column, String message){
 		this(filename, line, column, message, null, null);
+	}
+	
+	public ErrorHolder copyWithErPrefix(String prefix) {
+		return new ErrorHolder(filename, line, column, "in " + prefix + " - " + message);
 	}
 
 	public String getFilename() {
@@ -54,11 +61,15 @@ public class ErrorHolder implements Comparable<ErrorHolder> {
 	}
 	
 	public boolean hasContext(){
-		return context != null;
+		return context != null && context.stream().noneMatch(a -> a instanceof Assign);
 	}
 	
-	public FuncDef getContext(){
-		return context;
+	public boolean getAnyContextHavingErrSupression(){
+		return this.context != null && this.context.stream().anyMatch(a -> a.getSupressErrors());
+	}
+	
+	public REPLTopLevelComponent getHeadContext() {
+		return this.context == null || this.context.isEmpty()?null:this.context.get(0);
 	}
 	
 	@Override

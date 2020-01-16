@@ -10,7 +10,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -38,7 +37,6 @@ public def getY ( ) int {
 return this \. y ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class Cls2 {
@@ -51,7 +49,6 @@ public def getX ( ) x2advancedtranslatetogetter.Cls {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -78,7 +75,6 @@ public def getY ( ) int {
 return this \. y ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class Cls2 {
@@ -91,7 +87,6 @@ public def getX ( ) x2badvancedtranslatetogetterarrays.Cls [] {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -118,7 +113,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -143,7 +137,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -168,7 +161,6 @@ public def getX ( ) int[] {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -193,7 +185,6 @@ public def getY ( ) int {
 return this \. y ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class Cls2 {
@@ -206,7 +197,6 @@ public def getX ( ) x4setteradvanced.Cls {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -226,7 +216,6 @@ return ;
 public class Cls {
 public x int ;
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -260,7 +249,6 @@ y = x ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 }
@@ -284,7 +272,6 @@ y int = arg . x ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 }
@@ -303,12 +290,10 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class ClsOther extends Sup {
 public this ( ) {
-super ( ) ;
 }
 }
 public class Cls extends Sup {
@@ -331,7 +316,6 @@ y int = arg . getX ( ) ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 }
@@ -350,7 +334,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class Cls extends Sup {
@@ -368,7 +351,6 @@ y int = super . x ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 }
@@ -387,7 +369,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -411,7 +392,6 @@ public def getY ( ) int {
 return this \. y ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class Cls {
@@ -424,7 +404,6 @@ public def getX ( ) x102advancednoneqsetters.Held {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -449,7 +428,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def funcCall ( ) x103advancednoneqsettersviaarrastuff.Holder [] {
@@ -475,7 +453,6 @@ public def getX ( ) int[] {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def funcCall ( ) x103badvancednoneqsettersviaotherarraystuff.Holder [] {
@@ -509,7 +486,6 @@ public def getY ( ) int {
 return this \. y ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -540,7 +516,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class B {
@@ -553,7 +528,6 @@ public def getH ( ) int {
 return this \. h ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def functo ( var inp int ) x104aadvancedincdecoperations.B {
@@ -580,7 +554,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public class B {
@@ -593,7 +566,6 @@ public def getH ( ) int {
 return this \. h ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def functo ( var inp int ) x104badvancedincdecoperations.B {
@@ -620,7 +592,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -644,7 +615,6 @@ public def getX ( ) java.lang.String {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -679,7 +649,6 @@ x = 99 ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) void {
@@ -709,7 +678,6 @@ x = 99 ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.Object {
@@ -739,7 +707,6 @@ public def getX ( ) int {
 return this \. x ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 z int = 5 ;
@@ -773,7 +740,6 @@ public def getFuncTo ( ) ( java.lang.Integer , java.lang.Integer , java.lang.Int
 return this \. funcTo ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {
@@ -800,7 +766,6 @@ ab = a ;
 return ;
 }
 public this ( ) {
-super ( ) ;
 }
 }
 public def doings ( ) java.lang.String {

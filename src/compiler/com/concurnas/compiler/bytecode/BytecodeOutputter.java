@@ -243,7 +243,7 @@ public class BytecodeOutputter implements Opcodes {
 		lastWriteLabel = false;
 		lastWroteRet = false;
 		if (PRINT_OPCODES) {
-			System.out.println("\ndef " + methodName + "==>");
+			System.out.println("\ndef " + methodName + sigNormalString + "==>");
 		}
 
 		//methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, "asd", "()Ljava/lang/Integer;", "<X:Ljava/lang/Integer;>()TX;", null);
@@ -606,7 +606,9 @@ public class BytecodeOutputter implements Opcodes {
 		// GETSTATIC bytecodeSandbox flipper Lcom/concurnas/runtime/ref/Local;
 		// PUTFIELD bytecodeSandbox$SubMyClass f Ljava/lang/String;
 		//GETFIELD bytecodeSandbox$bytecodeSandbox$$onChange0$SO.lastVal$n1 : Ljava/lang/Integer;
-		if (dowhat == GETFIELD && fullModuleAndClassName.equals("bytecodeSandbox$bytecodeSandbox$$onChange0$SO") && name.equals("a$n1")) {
+		//GETSTATIC repl$.a : Lcom/concurnas/runtime/ref/Local;
+		//PUTSTATIC bytecodeSandbox.a : Lcom/concurnas/runtime/ref/Local;
+		if (dowhat == PUTSTATIC && fullModuleAndClassName.equals("bytecodeSandbox") && name.equals("a")) {
 			int g = 9;
 		}
 
@@ -648,8 +650,10 @@ public class BytecodeOutputter implements Opcodes {
 		//INVOKESPECIAL bytecodeSandbox$MyTrait.ifaceMethod ()I
 		//INVOKESTATIC bytecodeSandbox$MyTrait.thing$traitM (LbytecodeSandbox$MyTrait;)Ljava/lang/String;
 		//INVOKEINTERFACE bytecodeSandbox$MyTrait.ifaceMethod ()I
-		
-		if(opcode == INVOKEINTERFACE && owner.equals("bytecodeSandbox$MyTrait") && name.equals("ifaceMethod") ) {
+		//INVOKESPECIAL java/lang/Object.<init> (Lrepl$$Master;Lrepl$$Master;)V
+		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
+
+		if(opcode == PUTSTATIC && owner.equals("bytecodeSandbox") && name.equals("a") ) {
 			int h=9;
 		}
 		

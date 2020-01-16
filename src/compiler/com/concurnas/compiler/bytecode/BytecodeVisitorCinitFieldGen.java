@@ -6,8 +6,9 @@ import com.concurnas.compiler.ErrorHolder;
 import com.concurnas.compiler.ast.AssignExisting;
 import com.concurnas.compiler.ast.AssignNew;
 import com.concurnas.compiler.visitors.AbstractVisitor;
+import com.concurnas.compiler.visitors.Unskippable;
 
-public class BytecodeVisitorCinitFieldGen extends AbstractVisitor{
+public class BytecodeVisitorCinitFieldGen extends AbstractVisitor implements Unskippable{
 
 	private BytecodeGennerator mainVistitor;
 	

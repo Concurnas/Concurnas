@@ -19,8 +19,8 @@ import com.concurnas.compiler.ast.util.JustLoad;
 
 public interface Visitor {
 	
-	public void pushErrorContext(FuncDef xxx);
-	public FuncDef popErrorContext();
+	public void pushErrorContext(REPLTopLevelComponent xxx);
+	public REPLTopLevelComponent popErrorContext();
 	
 	Object visit(Additive addMinusExpression);
 	
@@ -135,7 +135,6 @@ public interface Visitor {
 
 	Object visit(VarDouble varDouble);
 
-	Object visit(UsingStatement usingStatement);
 
 	Object visit(TryCatch tryCatch);
 

@@ -6,7 +6,9 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
+import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.cps.analysis.ConcClassWriter;
 
 public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes {
@@ -28,7 +30,11 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 		}
 		
 		public void unboxToRequiredType(String desc){
-			if( desc.startsWith("L") || desc.startsWith("[")){//object or array - do nothing
+			if( desc.startsWith("L") ){//object or array - do nothing
+				mv.visitTypeInsn(CHECKCAST, desc.substring(1, desc.length()-1));
+				return;
+			}
+			else if( desc.startsWith("[")){//object or array - do nothing
 				mv.visitTypeInsn(CHECKCAST, desc);
 				return;
 			}
@@ -66,19 +72,19 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 		public void visitFieldInsn(int opcode, String owner, String name, String desc) {
 			if(owner.equals(classNameToRedirect)) {
 				if(opcode == PUTSTATIC) {
-					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 					genericSswap(desc);
 					mv.visitLdcInsn(name);
 					genericSswap(desc);
 					//thing to object type
 					boxIfPrimative(desc);
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false);
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
 					mv.visitInsn(POP);
 					return;
 				}else if(opcode == GETSTATIC) {
-					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 					mv.visitLdcInsn(name);
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", true);
 					//object type to thing
 					unboxToRequiredType(desc);
 					return;
@@ -96,15 +102,26 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 			mv.visitMethodInsn(opcode, owner, name, desc, itf);
 		}
 		
+		  public void visitLdcInsn(Object value) {
+			  if(value instanceof Type) {
+				  String cn = ((Type)value).getClassName();
+				  if(classNameToRedirect.equals(cn)) {
+					  value = Type.getObjectType(newClassName);//Type.get.getType(newClassName);
+				  }
+			  }
+		      mv.visitLdcInsn(value);
+		  }
 		
 	}
 	
 	private String classNameToRedirect;
 	private String newClassName;
-	public REPLCodeRepointStateHolder(ClassVisitor cv, String classNameToRedirect, String newClassName) {
+	private boolean mapProvidedClassName;
+	public REPLCodeRepointStateHolder(ClassVisitor cv, String classNameToRedirect, String newClassName, boolean mapProvidedClassName) {
 		super(ASM7, cv);
 		this.classNameToRedirect = classNameToRedirect;
 		this.newClassName = newClassName;
+		this.mapProvidedClassName = mapProvidedClassName;
 	}
 
 
@@ -125,7 +142,7 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 	}
 	
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-		super.visit(version, access, newClassName, signature, superName, interfaces);
+		super.visit(version, access, mapProvidedClassName?newClassName:name, signature, superName, interfaces);
 	}
 
 	public void visitSource(String source, String debug) {
@@ -133,10 +150,10 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 	}
 	
 	
-	static byte[] repointToREPLStateHolder(byte[] code, String codeName, String newcodeName) {
+	static byte[] repointToREPLStateHolder(byte[] code, String codeName, String newcodeName, boolean mapProvidedClassName) {
 		ClassReader cr = new ClassReader(code);
-		ClassWriter cw = new ConcClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, null);
-		REPLCodeRepointStateHolder staticRedirector = new REPLCodeRepointStateHolder(cw, codeName, newcodeName);
+		ClassWriter cw = new ConcClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, new ConcurnasClassLoader().getDetector());
+		REPLCodeRepointStateHolder staticRedirector = new REPLCodeRepointStateHolder(cw, codeName, newcodeName, mapProvidedClassName);
 		cr.accept(staticRedirector, 0);
 		return cw.toByteArray();
 	}

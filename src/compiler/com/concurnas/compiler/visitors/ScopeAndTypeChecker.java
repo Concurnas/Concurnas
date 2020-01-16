@@ -91,6 +91,8 @@ import com.concurnas.compiler.visitors.util.CastCheck;
 import com.concurnas.compiler.visitors.util.ConstArg;
 import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrors;
 import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrorsAndLogProblem;
+import com.concurnas.compiler.visitors.util.ImportStarUtil;
+import com.concurnas.compiler.visitors.util.ImportStarUtil.PackageOrClass;
 import com.concurnas.compiler.visitors.util.LanguageExtensionRunner;
 import com.concurnas.compiler.visitors.util.MactchCase;
 import com.concurnas.compiler.visitors.util.MiscUtils;
@@ -268,9 +270,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		public final String somthing;
 		public final Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker;
 		public final WarningVariant wv;
-		public final FuncDef context;
+		public final ArrayList<REPLTopLevelComponent> context;
 		
-		public CapMaskedErrs(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv, FuncDef context){
+		public CapMaskedErrs(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv, ArrayList<REPLTopLevelComponent> context){
 			this.line= line;
 			this.column= column;
 			this.somthing= somthing;
@@ -342,18 +344,18 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 	}
 	
-	protected Stack<FuncDef> errorLocation = new Stack<FuncDef>();
-	public void pushErrorContext(FuncDef xxx) {
-		errorLocation.push(xxx);
+	protected ArrayList<REPLTopLevelComponent> errorLocation = new ArrayList<REPLTopLevelComponent>();
+	public void pushErrorContext(REPLTopLevelComponent xxx) {
+		errorLocation.add(xxx);
 	}
-	public FuncDef popErrorContext(){
-		return errorLocation.pop();
+	public REPLTopLevelComponent popErrorContext(){
+		return errorLocation.remove(errorLocation.size()-1);
 	}
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "incompatible type: int vs java.lang.String";
-		if(somthing.contains(err) && !maskErrors.isEmpty()/* && line == 1660*/ ){
+		String err = "Type mismatch: cannot convert from java.lang.String: to void";
+		if(somthing.contains(err) && maskErrors.isEmpty()/* && line == 1660*/ ){
 			int h=999;
 		}
 		
@@ -368,7 +370,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			{
 				if(!currentLineToErr.containsKey(line))
 				{//add if one has not already been assigned
-					currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, somthing, wv, ignorecurrentContext?null:errorLocation.isEmpty()?null:errorLocation.peek()) );
+					currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, somthing, wv, (ignorecurrentContext || wv != null)?null: Utils.tagErrorChain(errorLocation) ) );
 				}
 			}
 		}
@@ -380,7 +382,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 			
 			if(captureMaskedErrors.peek() != null){
-				captureMaskedErrors.peek().add(new CapMaskedErrs(ignorecurrentContext, line, column, somthing, thingsOnLineTracker, wv, (null == wv || errorLocation.isEmpty())?null:errorLocation.peek()));
+				captureMaskedErrors.peek().add(new CapMaskedErrs(ignorecurrentContext, line, column, somthing, thingsOnLineTracker, wv, (null == wv || errorLocation.isEmpty())?null:Utils.tagErrorChain(errorLocation)));
 			}
 		}
 	}
@@ -2488,7 +2490,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			//can only be one argument
 			FuncRefInvoke afi = (FuncRefInvoke)expr;
 			if(afi.args.asnames.size()==1 && afi.args.nameMap.isEmpty()){
-				ret.add(afi.funcRef);
+				ArrayList<Expression> rec = extractExprsFromExpression(afi.funcRef, convertToArrayDef);//e.g. [ x18  (x23-20) (x23-20)  9]
+				if(null != rec && !rec.isEmpty()) {
+					ret.addAll(rec);
+				}else {
+					ret.add(afi.funcRef);
+				}
 				ret.add(afi.args.asnames.get(0));
 			}
 		}else if(expr instanceof DotOperator) {
@@ -3741,8 +3748,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 		}
 
-		//assignExisting.isReallyNew = false;
-		
 		tagFieldLevelBlock(assignExisting.expr);
 		
 		Type lhs = null;
@@ -3870,7 +3875,11 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				Utils.inferAnonLambda(this, (Node)assignExisting.expr, lhs);
 			}
 
-			assignExisting.isReallyNew = false;//reset this in case it was set below
+			if(this.isREPL == null) {
+				assignExisting.isReallyNew = false;//reset this in case it was set below
+			}
+			
+			
 			if(null == lhs || lhs==const_void_thrown)
 			{//it's new! but the type has not been stated
 				if(!assignExisting.eq.isEquals())
@@ -5434,10 +5443,28 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 				}
 			}else {
-				this.raiseError(line, col, String.format("Cannot import all assets from: %s as it cannot be resolved to a path" , nameSoFar));
+				boolean isPackage = Package.getPackage(nameSoFar) != null;
+				
+				Class<?> isClass = null;
+				try {
+					isClass = Class.forName(nameSoFar);
+				}catch(ClassNotFoundException cnf) {
+					
+				}
+				
+				if(isPackage) {
+					this.importStar.peek().add(new ImportStarUtil.PackageIS(nameSoFar));
+				}
+				
+				if(null != isClass) {
+					this.importStar.peek().add(new ImportStarUtil.ClassIS(isClass));
+				}
+				
+				if(!isPackage && null == isClass) {
+					this.raiseError(line, col, String.format("Cannot import all assets from: %s as it cannot be resolved to a path" , nameSoFar));
+				}
 			}
 		}
-		
 		
 		return null;
 	}
@@ -5446,6 +5473,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	
 	private Stack<Map<String, String> > scopedshortNameToLongNameaa = UncallableMethods.cloneAutoImports();  //bootstrap from the auto imported stuff
+	private Stack<HashSet<PackageOrClass>> importStar = new Stack<HashSet<PackageOrClass>>();  //bootstrap from the auto imported stuff
 	private Stack<Map<String, ClassDefJava> > scopedshortNameToLongNameaaUsing = new Stack<Map<String, ClassDefJava> >();
 	private HashMap<String, ClassDefJava> precompiledBytecodeExistsCache = new HashMap<String, ClassDefJava>();
 	private Stack<Set<String> > rawImports = new Stack<Set<String>>();  
@@ -5454,16 +5482,18 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void enterScopedNameMapREPL() {
 		REPLTopLevelImports topL = this.isREPL.tliCache;
-			scopedshortNameToLongNameaa.add(new HashMap<String, String>(topL.topshortNameToLong));
-			scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>(topL.topshortNameToLongUsing));
-			rawImports.add(new HashSet<String>(topL.toprawImports));
-			rawUsings.add(new HashSet<String>(topL.toprawUsings));
-			typedefsAtThisLevel.add(new HashMap<Pair<String, Integer>, TypeDefTypeProvider>(topL.toptypeDef));
+		scopedshortNameToLongNameaa.add(new HashMap<String, String>(topL.topshortNameToLong));
+		importStar.add(new HashSet<PackageOrClass>());
+		scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>(topL.topshortNameToLongUsing));
+		rawImports.add(new HashSet<String>(topL.toprawImports));
+		rawUsings.add(new HashSet<String>(topL.toprawUsings));
+		typedefsAtThisLevel.add(new HashMap<Pair<String, Integer>, TypeDefTypeProvider>(topL.toptypeDef));
 	}
 	
 	private void enterScopedNameMap()
 	{
 		scopedshortNameToLongNameaa.add(new HashMap<String, String>());
+		importStar.add(new HashSet<PackageOrClass>());
 		scopedshortNameToLongNameaaUsing.add(new HashMap<String, ClassDefJava>());
 		rawImports.add(new HashSet<String>());
 		rawUsings.add(new HashSet<String>());
@@ -5474,6 +5504,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void leaveScopedNameMapREPL() {
 		replLastTopLevelImports.topshortNameToLong = scopedshortNameToLongNameaa.pop();
+		replLastTopLevelImports.topImportStar = importStar.pop();
 		replLastTopLevelImports.topshortNameToLongUsing = scopedshortNameToLongNameaaUsing.pop();
 		replLastTopLevelImports.toprawImports = rawImports.pop();
 		replLastTopLevelImports.toprawUsings = rawUsings.pop();
@@ -5483,6 +5514,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private void leaveScopedNameMap()
 	{
 		scopedshortNameToLongNameaa.pop();
+		importStar.pop();
 		scopedshortNameToLongNameaaUsing.pop();
 		rawImports.pop();
 		rawUsings.pop();
@@ -5497,7 +5529,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return hasUsingBeenRegistered(shortname, false);
 	}
 	
-	private <X> boolean hasThingBeenRegistered(Stack<Map<String/*ref anme*/, X> > thing, String shortname, boolean onlyCheckCurrentLevel) {
+	private <X> boolean hasThingBeenRegistered(Stack<Map<String/*ref name*/, X> > thing, boolean alsoCheckStarImport, String shortname, boolean onlyCheckCurrentLevel) {
 		if(shortname == null){
 			return false;
 		}
@@ -5513,24 +5545,50 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				break; //so false
 			}
 		}
+		
+		if(alsoCheckStarImport) {
+			for(int pos = importStar.size()-1; pos >=0; pos--){
+				HashSet<PackageOrClass> pocs = importStar.get(pos);
+				for(PackageOrClass poc : pocs) {
+					if(poc.getResource(shortname) != null) {
+						return true;
+					}
+				}
+				
+				if(onlyCheckCurrentLevel){
+					break; //so false
+				}
+			}
+		}
+		
+		
 		return false;
 	}
 	
 	private boolean hasImportBeenRegistered(String shortname, boolean onlyCheckCurrentLevel) {
-		return hasThingBeenRegistered(scopedshortNameToLongNameaa, shortname, onlyCheckCurrentLevel);
+		return hasThingBeenRegistered(scopedshortNameToLongNameaa, true, shortname, onlyCheckCurrentLevel);
 	}
 	
 	private boolean hasUsingBeenRegistered(String shortname, boolean onlyCheckCurrentLevel) {
-		return hasThingBeenRegistered(scopedshortNameToLongNameaaUsing, shortname, onlyCheckCurrentLevel);
+		return hasThingBeenRegistered(scopedshortNameToLongNameaaUsing, false, shortname, onlyCheckCurrentLevel);
 	}
 	
-	public String getImportBeenRegistered(String shortname)
-	{
+	public String getImportBeenRegistered(String shortname){
 		for(int pos = scopedshortNameToLongNameaa.size()-1; pos >=0; pos--){
 			Map<String/*ref anme*/, String> level = scopedshortNameToLongNameaa.get(pos);
 			
 			if(level.containsKey(shortname)){
 				return  level.get(shortname);
+			}
+		}
+
+		for(int pos = importStar.size()-1; pos >=0; pos--){
+			HashSet<PackageOrClass> pocs = importStar.get(pos);
+			for(PackageOrClass poc : pocs) {
+				String haz = poc.getResource(shortname);
+				if(haz != null) {
+					return haz;
+				}
 			}
 		}
 		
@@ -6824,7 +6882,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				|| (null != lhsOpOnType && lhsOpOnType.requiresGenTypeInference);
 		
 		
-		if(name.equals("addShutdownHook")) {
+		if(name.equals("bar")) {
 			int h = 9;
 		}
 		
@@ -6969,7 +7027,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(mostSpec.hasBeenVectorized != null ){
 			FuncType ft = (FuncType)tal.getType();
-			if(ft.origonatingFuncDef.isNestedFuncionDef) {
+			if(ft.origonatingFuncDef != null && ft.origonatingFuncDef.isNestedFuncionDef) {
 				funcInvoke.resolvedFuncTypeAndLocation = tal;
 			}
 			
@@ -8582,7 +8640,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			findExtFunc=false;
 		}
 		
-		if(nameola.equals("thing")) {
+		if(nameola.equals("bar")) {
 			int h=9;
 		}
 		
@@ -9028,27 +9086,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(!lambdaNameToClassName.containsKey(lazyLambdaName)){
 			//modulename$$Lambda0
 			//com/mycomp/modulename$$Lambda0
-			
-			//TODO: with defualt actors being gennerated at runtime, in the following needed?
-			/*String cls = "";
-			if(!this.currentlyInClassDef.isEmpty()){
-				for(ClassDef cd : this.currentlyInClassDef){
-					cls += cd.getPrettyName();
-				}
-				cls = this.currentlyInClassDef.peek().getPrettyName().replace(".", "");
-			}
-			else{
-				cls = this.justPackageName;
-			}
-			
-			String fullname = cls + "$$Lambda" +  localLambdaCount++;
-			String filename = this.justPackageName.replace('.', '/') + "$" +  (fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')): fullname);
-					
-			ret = new Tuple<String, String>(filename, fullname );
-			*/
-			
-			
-			ret = createLambdaDetsObject("$$Lambda" +  localLambdaCount++);
+			ret = createLambdaDetsObject("$$Lambda" +  localLambdaCount++ + getREPLIteration());
 			lambdaNameToClassName.put(lazyLambdaName, ret);
 		}
 		else{
@@ -9057,46 +9095,17 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return ret;
 	}
 	
+	
+	private String getREPLIteration() {
+		if(null != this.isREPL) {
+			return "repl"+this.isREPL.replIteration;
+		}else {
+			return "";
+		}
+	}
 
 	private boolean withinOnChange = false; 
 
-/*	private boolean isWithinAwait = false;
-	
-	private static class AwaitContentsEchcker extends AbstractVisitor{
-		private ScopeAndTypeChecker satc;
-
-		public AwaitContentsEchcker(ScopeAndTypeChecker satc) {
-			this.satc = satc;
-		}
-		
-		@Override
-		public Object visit(Await await){
-			satc.raiseError(await.getLine(), await.getColumn(), "await may not be nested within await");
-			return null;
-		}
-		@Override
-		public Object visit(OnChange await){
-			satc.raiseError(await.getLine(), await.getColumn(), "onchange may not be nested within await");
-			return null;
-			
-		}
-		@Override
-		public Object visit(OnEvery await){
-			satc.raiseError(await.getLine(), await.getColumn(), "every may not be nested within await");
-			return null;
-		}
-		
-		@Override
-		public Object visit(AsyncBlock await){
-			satc.raiseError(await.getLine(), await.getColumn(), "! may not be nested within await");
-			return null;
-		}
-		
-		public Object checkRootAwait(Await await){
-			return super.visit((OnChange)await);
-		}
-	}
-	*/
 	@Override
 	public Object visit(Await await) {
 		if(null == await.body){//make a fake one resolving to true
@@ -9482,13 +9491,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		
 		if(null == asyncBodyBlock.onChangeDets){
-			String fullname = this.justPackageName + "$$AsyncBlock" + localLambdaCount;
+			String fullname = this.justPackageName + "$$AsyncBlock" + localLambdaCount + getREPLIteration();
 			String filename = fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')): fullname;
 			asyncBodyBlock.onChangeDets = new Pair<String, String> (fullname, filename);
 			
-			asyncBodyBlock.applyMethodName = "$$AsyncBlock" + (localLambdaCount) + "$apply";
-			asyncBodyBlock.initMethodName = "$$AsyncBlock" + (localLambdaCount) + "$init";
-			asyncBodyBlock.cleanupMethodName = "$$AsyncBlock" + (localLambdaCount) + "$cleanup";
+			asyncBodyBlock.applyMethodName = "$$AsyncBlock" + (localLambdaCount)+ getREPLIteration() + "$apply";
+			asyncBodyBlock.initMethodName = "$$AsyncBlock" + (localLambdaCount)+ getREPLIteration() + "$init";
+			asyncBodyBlock.cleanupMethodName = "$$AsyncBlock" + (localLambdaCount)+ getREPLIteration() + "$cleanup";
 		}
 		localLambdaCount++;
 		
@@ -9765,12 +9774,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		addVarsAndMethodsOnEntryTocurrentScope(onChange.getLine(), onChange.getColumn());
 		
 		if(null == onChange.onChangeDets){
-			Pair<String, String> lamDets = createLambdaDetsObject("$$onChange" + localLambdaCount++);
+			Pair<String, String> lamDets = createLambdaDetsObject("$$onChange" + localLambdaCount++ + getREPLIteration());
 			
 			onChange.onChangeDets = lamDets;
-			onChange.applyMethodName = "$$onChange" + (localLambdaCount-1) + "$apply";
-			onChange.initMethodName = "$$onChange" + (localLambdaCount-1) + "$init";
-			onChange.cleanupMethodName = "$$onChange" + (localLambdaCount-1) + "$cleanup";
+			onChange.applyMethodName = "$$onChange" + (localLambdaCount-1)+ getREPLIteration() + "$apply";
+			onChange.initMethodName = "$$onChange" + (localLambdaCount-1)+ getREPLIteration() + "$init";
+			onChange.cleanupMethodName = "$$onChange" + (localLambdaCount-1)+ getREPLIteration() + "$cleanup";
 			//System.err.println("assign lambda dets to: " + asyncBlock);
 		}
 		else{
@@ -10015,15 +10024,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		if(null == asyncBlock.lamDets){
-			///String fullname = this.justPackageName.replace('.', '/') + "$$Lambda" + localLambdaCount++;
-			//System.err.println("fullname: " + fullname);
-			//String filename = fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')+1): fullname;
-			
-			/*String fullname = "$$Lambda" + localLambdaCount++;
-			//System.err.println("fullname: " + fullname);
-			String filename = this.justPackageName.replace('.', '/') +"$" + fullname;
-			Tuple<String, String> lamDets = new Tuple<String, String> (filename, fullname);*/
-			Pair<String, String> lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++);
+			Pair<String, String> lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++ + getREPLIteration());
 			asyncBlock.lamDets = lamDets;
 			
 			//System.err.println("assign lambda dets to: " + asyncBlock);
@@ -10246,16 +10247,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		Pair<String, String> lamDets;
 		if(lambdaDef.lamDets==null){
 			//if not passsed from an asyncblock... create one
-			/*String fullname = this.justPackageName + "$$Lambda" + localLambdaCount++;
-			fullname = fullname.replace('.', '/');
-			//System.err.println("fullname lam: " +  fullname  + ":" + fakeFuncRef.getLine());
-			String filename = fullname.contains("/")?fullname.substring(fullname.lastIndexOf('/')+1): fullname;
-			lamDets = new Tuple<String, String> (fullname, filename);*/
-			
-			lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++);
-			
+			lamDets = createLambdaDetsObject("$$Lambda" + localLambdaCount++ + getREPLIteration());
 			lambdaDef.lamDets = lamDets;
-			//System.err.println("assign lambda dets to [lam]: " + lambdaDef);
 		}
 		else{
 			lamDets = lambdaDef.lamDets;
@@ -13540,9 +13533,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private GenericType fromNamedTypeToGenericType(Type tt){
 		if(tt instanceof NamedType){
 			NamedType asNamed =(NamedType)tt;
-			if(!asNamed.isGeneric()){
-				//on nice its generic use it as that
-				GenericType ret = new GenericType(asNamed.getNamedTypeStr(),0); 
+			
+			if(!asNamed.isGeneric() && isREPL == null){
+				//try it as a generic param - ignore this when in REPL mode as may be satisfied later
+				GenericType ret = new GenericType(asNamed.getNamedTypeStr(),0);
 				ret.splicedIn = true;
 				return ret; 
 			}
@@ -13566,7 +13560,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		String whatmeExt = isTrait?"implement":"extend";
 		String whatmeExted = isTrait?"implemented":"extended";
 		
-		ClassDef superOrMixinClassDef = parentDF.getClassDef(classSF, superOrMixinClass, true);
+		ClassDef superOrMixinClassDef = parentDF.getClassDef(classSF, superOrMixinClass, true, false);
 		
 		if(null == superOrMixinClassDef){ //try to look globally...
 			superOrMixinClassDef = getImportedClassDef(superOrMixinClass);
@@ -13942,7 +13936,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(null != parentDF)
 		{
-			if(parentDF.hasClassDef(parentDF, className, false))
+			if(parentDF.hasClassDef(parentDF, className, false, true))
 			{
 				this.raiseError(classDef.getLine(), classDef.getColumn(), String.format("Class name has already been declared in current scope: '%s'" , classNameForErrors));
 			}
@@ -13952,7 +13946,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 			
 			//if(null != this.currentScopeFrame.getParent() && parentDF.hasClassDef(this.currentScopeFrame.getParent(), className, true))
-			if( parentDF.hasClassDef(parentDF, className, true))
+			if( parentDF.hasClassDef(parentDF, className, true, true))
 			{
 				/*boolean isNestedInParentSameName=false;
 				for(ClassDef cd : this.currentlyInClassDef){
@@ -16537,6 +16531,22 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(lh.l instanceof Block){
 				((Block)lh.l).isDirectParentABlock = true;
 			}
+			
+			if(lh.l instanceof ClassDef && lh.lastLine) {
+				ClassDef cd = (ClassDef)lh.l;
+				if(cd.isActor) {
+					if(cd.classDefArgs==null && cd.classBlock.isEmpty() && !cd.istypedActor) {
+						//convert actor MyClass() => new actor MyClass()
+						int line = cd.getLine();
+						int col = cd.getColumn();
+						
+						New nexExpr = new New(line, col, new NamedType(line, col, cd.className), new FuncInvokeArgs(line, col), true);
+						lh.l = new DuffAssign(line, col, nexExpr);
+					}
+				}
+				
+			}
+			
 			Type got = (Type)lh.accept(this);
 			
 			if(!(lh.l instanceof ContinueStatement && ((ContinueStatement)lh.l).isSynthetic)){
@@ -16561,6 +16571,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 				
 				if(expr instanceof FuncDef) {
+					expr = null;
+				}
+				if(expr instanceof ClassDef) {
 					expr = null;
 				}
 				
@@ -16594,9 +16607,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						blk.isolated = true;
 						blk.setShouldBePresevedOnStack(true);
 						
-						AssignNew an = new AssignNew(null, lastProcLH.getLine(), lastProcLH.getColumn(), tmpVarName, lastproceded, AssignStyleEnum.EQUALS, blk);
+						AssignNew an = new AssignNew(null, lastProcLH.getLine(), lastProcLH.getColumn(), tmpVarName, null, AssignStyleEnum.EQUALS, blk);
 						an.isautogenerated=true;
 						block.replaceLast(new LineHolder(an));
+						//block.lines.remove(block.lines.size()-1);
 						
 						lastproceded = (Type)an.accept(this);
 					}
@@ -17046,12 +17060,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	}
 
 	@Override
-	public Object visit(UsingStatement usingStatement) {
-		return null; //TODO: remove this
-
-	}
-
-	@Override
 	public Object visit(TryCatch tryCatch) {
 		if(tryCatch.astRepoint != null){
 			Type tt = (Type)tryCatch.astRepoint.accept(this);
@@ -17478,7 +17486,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		//return null;
 	}
 	
-	private final static PrimativeType const_void_thrown = new PrimativeType(PrimativeTypeEnum.VOID);
+	public final static PrimativeType const_void_thrown = new PrimativeType(PrimativeTypeEnum.VOID);
 	static{
 		const_void_thrown.thrown=true;
 	}
@@ -19278,9 +19286,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 					else
 					{
-						if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true))
+						if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true, false))
 						{
-							return search.getClassDef(this.currentScopeFrame, namereftoresolve, true);
+							return search.getClassDef(this.currentScopeFrame, namereftoresolve, true, false);
 						}
 					}
 					search = search.getParent();
@@ -19314,9 +19322,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						if(!search.isClass())
 						{
 							//we've reached the top level
-							if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true))
+							if(search.hasClassDef(this.currentScopeFrame, namereftoresolve, true, false))
 							{
-								return search.getClassDef(this.currentScopeFrame, namereftoresolve, true);
+								return search.getClassDef(this.currentScopeFrame, namereftoresolve, true, false);
 							}
 						}
 						search = search.getParent();
@@ -19495,8 +19503,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	public Object visit(NamedType namedType) {
 		String namereftoresolve = namedType.getNamedTypeStr();
 		
-		
-		
 		ArrayList<Type> gens = namedType.getGenericTypeElements();
 				
 		//validateGenerics(gens, namedType.getLine(), namedType.getColumn());
@@ -19654,7 +19660,11 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 	public Object visit(NamedType namedType, boolean ignoreGenericTypeCheck) {
 		String namereftoresolve = namedType.getNamedTypeStr();
-			
+		
+		if(namereftoresolve.contains("onChange0$SO")){
+			int h=9;
+		}
+		
 		NamedType upperBound = namedType.getOrigonalGenericTypeUpperBound();
 		if(null != upperBound){
 			upperBound.accept(this);
@@ -19748,7 +19758,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							return namedType;
 						}
 					}
-					
 					
 					this.raiseError(namedType.getLine(), namedType.getColumn(), "Unable to resolve type corresponding to name: " + namereftoresolve);
 					return null;//must return null else everything breaks lol
@@ -20809,6 +20818,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 	}
 	
+	public String methodOrFunction() {
+		return this.currentScopeFrame.paThisIsModule?"Function":"Method";
+	}
+	
 	public Object visitReal(FuncDef funcDef) {
 		
 		FuncType oldFuncType = funcDef.getFuncType();
@@ -20818,7 +20831,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		this.maskErrors(true);
 		
 		if(this.currentScopeFrame.isAnnotation){
-			this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("method: %s cannot be defined within annotation", funcDef.funcName));
+			this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s: %s cannot be defined within annotation", methodOrFunction(), funcDef.funcName));
 		}
 		
 		if(this.currentScopeFrame.isClass()){
@@ -20916,13 +20929,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					funcDef.annotations.annotations.add((Annotation)const_InjectAnnotation.copy());
 				}
 			}
-			
-			/*if(!this.currentlyInClassDef.isEmpty()) {
-				ClassDef cd = this.currentlyInClassDef.peek();
-				if(cd.isLocalClass || cd.isAnonClass) {
-					this.raiseError(funcDef.getLine(), funcDef.getColumn(), "local and anonymous classes may not have methods marked with inject");
-				}
-			}*/
 		}
 		
 		if(funcDef.annotations!= null){
@@ -21039,14 +21045,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		else if(ExisitsAlready.TRUE == existAlready){
 			if(!funcDef.funcName.contains("$")){//exlcude synthetics like: $$onChange1$apply, this way omchange can be created inside function argument, or other places where they get double visisted in the same pass
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope", methodOrFunction(), funcDef.funcName));
 			}
 		}
 		else if(ExisitsAlready.TRUE_IMPLICIT == existAlready){
-			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists implicitly already in current Scope", funcDef.funcName));
+			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists implicitly already in current Scope", methodOrFunction(), funcDef.funcName));
 		}
 		else if(ExisitsAlready.TRUE_GT_ERASED == existAlready){
-			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope - generic types are erased at runtime", funcDef.funcName));
+			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope - generic types are erased at runtime", methodOrFunction(), funcDef.funcName));
 		}
 		else
 		{
@@ -21054,13 +21060,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			ExisitsAlready existAlreadyMinSet = this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, funcDef.funcName, funcDef.getFuncType(), false, funcDef.isAutoGennerated, true, true, true);
 			
 			if(ExisitsAlready.TRUE == existAlreadyMinSet){
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope when default arguments are ignored", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope when default arguments are ignored", methodOrFunction(), funcDef.funcName));
 			}
 			else if(ExisitsAlready.TRUE_IMPLICIT == existAlreadyMinSet){
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists implicitly already in current Scope when default arguments are ignored", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists implicitly already in current Scope when default arguments are ignored", methodOrFunction(), funcDef.funcName));
 			}
 			else if(ExisitsAlready.TRUE_GT_ERASED == existAlreadyMinSet){
-				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in current Scope - generic types are erased at runtime when default arguments are ignored", funcDef.funcName));
+				this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope - generic types are erased at runtime when default arguments are ignored", methodOrFunction(), funcDef.funcName));
 			}
 			
 			
@@ -21086,7 +21092,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			boolean blacklist = false;//why is it called a black list?
 			if(isOverride && superClass == null)
 			{
-				this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("Method: %s which has been declared as overriden can only be defined within a subclass", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName)));
+				this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s: %s which has been declared as overriden can only be defined within a subclass", methodOrFunction(), String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName)));
 			}
 			else
 			{
@@ -21455,6 +21461,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					if(TypeCheckUtils.isValidType(t)){
 						nonVoids.add(t);
 					}
+				}
+				
+				if(nonVoids.isEmpty()) {
+					return const_void_errored;
 				}
 				
 				retTypeOption = TypeCheckUtils.getMoreGeneric(this.ers, this, 0, 0, nonVoids, null);
@@ -22038,7 +22048,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 								if(null!= sf)
 								{
 									String lastBit = fullClsPathWanted.equals(topClsStr) ? topClsStr: fullClsPathWanted.substring(topClsStr.length()+1);
-									if(null != sf.getClassDef(null,lastBit))
+									if(null != sf.getClassDef(null,lastBit, true, false))
 									{
 										ok = true;
 										break;
@@ -23116,7 +23126,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 		TheScopeFrame parentDF = this.currentScopeFrame;
 		
-		if(parentDF.hasClassDef(parentDF, enumDef.enaumName, false)){
+		if(parentDF.hasClassDef(parentDF, enumDef.enaumName, false, true)){
 			this.raiseError(line, col, String.format("enum %s has already been declared in current scope" , enumDef.enaumName));
 		}
 		
@@ -23671,7 +23681,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 		TheScopeFrame parentDF = this.currentScopeFrame;
 		
-		if(parentDF.hasClassDef(parentDF, annotationDef.name, false)){
+		if(parentDF.hasClassDef(parentDF, annotationDef.name, false, true)){
 			this.raiseError(line, col, String.format("annotation %s has already been declared in current scope" , annotationDef.name));
 		}
 		
@@ -23861,6 +23871,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				tp.add(got, generics, typedefStatement.accessModifier, loc, name);
 				typedefsAtThisLevel.peek().put(key, tp);
+				
+				if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {
+					this.currentScopeFrame.replNameToRemoveAtEndOfSessionTYPEDEF.remove(name);
+				}
 			}
 		}
 		
@@ -25008,6 +25022,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		//a.b.c[12] <- ArrayRef
 	}
 	
+	private void removeFromAllModCats(String varname) {
+		this.currentScopeFrame.removeFuncDef(varname, null);
+		this.currentScopeFrame.removeVariable(varname);
+		this.currentScopeFrame.removeClassDef(varname);
+		this.currentScopeFrame.removeTypeDefREPL(varname);
+	}
+	
 	@Override
 	public Object visit(DeleteStatement deleteStatement){
 		for(Expression ee : deleteStatement.exprs) {
@@ -25016,8 +25037,50 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				ArrayRef ar = (ArrayRef)rhsResovlesToExpr;
 				ar.arrayLevelElements.getLastArrayRefElement().liToMap = LISTorMAPType.REMOVE;
 			}
+
+			Type opon;
 			
-			Type opon = (Type)ee.accept(this);
+			if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {
+				//if in top level repl mode...
+				this.maskErrors(true);
+				opon = (Type)ee.accept(this);
+				ArrayList<CapMaskedErrs> errs = this.getmaskedErrors();
+				if(!errs.isEmpty()) {
+					//see if we can delete any top level elements with this name
+					if(ee instanceof RefName) {
+						String varname = ((RefName)ee).name;
+						if(this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, varname, false, true, false) || this.currentScopeFrame.replNameToRemoveAtEndOfSessionFUNCS.contains(varname)) {
+							removeFromAllModCats(varname);
+							return null;
+						}
+						if(this.currentScopeFrame.hasClassDef(this.currentScopeFrame, varname, false, false) || this.currentScopeFrame.replNameToRemoveAtEndOfSessionCLASSES.contains(varname)) {
+							removeFromAllModCats(varname);
+							return null;
+						}
+						
+						if(!typedefsAtThisLevel.isEmpty()) {
+							HashMap<Pair<String, Integer>, TypeDefTypeProvider> topLeveltds = typedefsAtThisLevel.peek();
+							
+							if(topLeveltds.keySet().stream().anyMatch(a -> a.getA().equals(varname)) ) {
+								removeFromAllModCats(varname);
+								return null;
+							}
+						}
+						
+						if(this.currentScopeFrame.replNameToRemoveAtEndOfSessionTYPEDEF.contains(varname)) {
+							removeFromAllModCats(varname);
+							return null;
+						}
+					}
+					
+					//cannot process...
+					this.applyMaskedErrors(errs);
+					return null;
+				}
+			}else {
+				opon = (Type)ee.accept(this);
+			}
+			
 			if(!TypeCheckUtils.isValidType(opon)){
 				this.raiseError(ee.getLine(), ee.getColumn(), String.format("Invalid type %s", opon) );
 			}
@@ -25029,11 +25092,37 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					if(null != asRef.resolvesTo){
 						Location loc = asRef.resolvesTo.getLocation();
 						if(null != loc && !(loc instanceof LocationLocalVar)){
-							this.raiseError(ee.getLine(), ee.getColumn(), "Only local variables can be deleted");
+							if(this.isREPL != null && loc instanceof LocationStaticField && this.currentScopeFrame.paThisIsModule) {
+								//remove variable
+								removeFromAllModCats(asRef.name);
+							}else {
+								this.raiseError(ee.getLine(), ee.getColumn(), "Only local variables can be deleted");
+							}
 						}else{
 							deleteStatement.operatesOn = DSOpOn.LOCALVAR;
 							this.currentScopeFrame.removeVariable(asRef.name);
 						}
+					}else {
+						if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {
+							Node astRed = asRef.astRedirect;
+							if(astRed instanceof FuncRef) {
+								FuncRef fr = (FuncRef)astRed;
+								if(null != fr.typeOperatedOn) {
+									Location loc = fr.typeOperatedOn.getLocation();
+									if(loc instanceof StaticFuncLocation) {
+										removeFromAllModCats(asRef.name);
+										return null;
+									}
+								}
+								
+							}
+							
+
+							this.raiseError(ee.getLine(), ee.getColumn(), String.format("Cannot delete %s", asRef.name));
+							return null;
+						}
+						
+						this.raiseError(ee.getLine(), ee.getColumn(), String.format("%s resolves to something other than a local variable", asRef.name));
 					}
 				}
 				else if( rhsResovlesToExpr instanceof ArrayRef ){
@@ -26216,7 +26305,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				objectProvider.astRedirect = null;
 				//return null;
 			}else {
-				this.currentScopeFrame.removeClassDef(this.currentScopeFrame, objectProvider.astRedirect.getClassName());
+				this.currentScopeFrame.removeClassDef(objectProvider.astRedirect.getClassName());
 			}
 		}
 		

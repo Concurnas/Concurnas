@@ -86,12 +86,12 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		}
 	}
 	
-	protected Stack<FuncDef> errorLocation = new Stack<FuncDef>();
-	public void pushErrorContext(FuncDef xxx) {
-		errorLocation.push(xxx);
+	protected ArrayList<REPLTopLevelComponent> errorLocation = new ArrayList<REPLTopLevelComponent>();
+	public void pushErrorContext(REPLTopLevelComponent xxx) {
+		errorLocation.add(xxx);
 	}
-	public FuncDef popErrorContext(){
-		return errorLocation.pop();
+	public REPLTopLevelComponent popErrorContext(){
+		return errorLocation.remove(errorLocation.size()-1);
 	}
 	
 	public void raiseError(int line, int column, String error)
@@ -106,7 +106,7 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		{
 			if(!currentLineToErr.containsKey(line))
 			{//add if one has not already been assigned
-				currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, error, null, errorLocation.isEmpty()?null:errorLocation.peek()  ) );
+				currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, error, null, Utils.tagErrorChain(errorLocation)  ) );
 			}
 		}
 		
@@ -118,7 +118,7 @@ public class GPUKernalFuncTranspiler implements Visitor {
 	// above should be mixin...
 	
 	
-	private static class GPUFuncDefScanner extends AbstractVisitor{
+	private static class GPUFuncDefScanner extends AbstractVisitor implements Unskippable{
 		private GPUKernalFuncTranspiler transpilerToApply;
 		private TheScopeFrame moduleScopeFrame;
 
@@ -1942,12 +1942,6 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		return null;
 	}
 	
-	@Override
-	public Object visit(UsingStatement usingStatement) {
-		//raiseErrorNoUse(usingStatement.getLine(), usingStatement.getColumn(), "using");
-		return null;
-	}
-
 	@Override
 	public Object visit(VarChar varString) {
 		this.addItem("'"+varString.chr+"'");

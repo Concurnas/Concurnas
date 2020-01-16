@@ -342,7 +342,10 @@ public class ProviderCreator {
 				satc.maskErrors(true);
 				Type tta = (Type)oplp.provides.accept(satc);
 				ArrayList<CapMaskedErrs> cap = satc.getmaskedErrors();
-				if(!(tta instanceof NamedType) || tta.hasArrayLevels()) {
+				if(tta == null) {
+					satc.raiseError(linea, cola, String.format(String.format("Provide defintion type: %s not found", oplp.provides)));
+					fail=true;
+				}else if(!(tta instanceof NamedType) || tta.hasArrayLevels()) {
 					satc.raiseError(linea, cola, String.format("Provide defintions can be expressed only for non array object types"));
 					fail=true;
 				}

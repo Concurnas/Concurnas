@@ -3,9 +3,11 @@ package com.concurnas.compiler.ast;
 import java.util.ArrayList;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Visitor;
 
-public class AnnotationDef extends CompoundStatement implements HasAnnotations {
+public class AnnotationDef extends CompoundStatement implements HasAnnotations, REPLTopLevelComponent {
 
 	public ArrayList<AnnotationDefArg> annotationDefArgs;
 	public Annotations annotations;
@@ -34,7 +36,19 @@ public class AnnotationDef extends CompoundStatement implements HasAnnotations {
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
-		return visitor.visit(this);
+		
+
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+
+		if(visitor instanceof ScopeAndTypeChecker) {
+			this.hasErrors = false;
+		}
+		visitor.pushErrorContext(this);
+		Object ret = visitor.visit(this);
+		visitor.popErrorContext();
+		return ret;
 	}
 
 	@Override
@@ -65,5 +79,58 @@ public class AnnotationDef extends CompoundStatement implements HasAnnotations {
 	@Override
 	public boolean getCanReturnAValue(){
 		return false;
-	}	
+	}
+	
+
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public Type getFuncType() {
+		return new NamedType(fakeclassDef);
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
+	}
+	
+	@Override
+	public boolean persistant() { 
+		return true;
+	}
+	
+
+	public boolean hasErrors = false;
+	@Override
+	public void setErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+	@Override
+	public boolean getErrors() {
+		return hasErrors;
+	}
+	
+	private boolean supressErrors = false;
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
+	}
 }

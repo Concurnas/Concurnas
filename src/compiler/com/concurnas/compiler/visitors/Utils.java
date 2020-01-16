@@ -58,6 +58,7 @@ import com.concurnas.compiler.ast.NamedType;
 import com.concurnas.compiler.ast.New;
 import com.concurnas.compiler.ast.Node;
 import com.concurnas.compiler.ast.NullStatus;
+import com.concurnas.compiler.ast.REPLTopLevelComponent;
 import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.ReturnStatement;
 import com.concurnas.compiler.ast.ThrowStatement;
@@ -1262,6 +1263,17 @@ public class Utils {
 			}
 		}
 		throw new RuntimeException("Cannot find method");
+	}
+
+	public static ArrayList<REPLTopLevelComponent> tagErrorChain(ArrayList<REPLTopLevelComponent> errorLocation) {
+		if(errorLocation.isEmpty()) {
+			return null;
+		}
+		
+		for(REPLTopLevelComponent lastCtxt : errorLocation) {
+			lastCtxt.setErrors(true);
+		}
+		return new ArrayList<REPLTopLevelComponent>(errorLocation);//make a copy as other things change this
 	}
 	
 }

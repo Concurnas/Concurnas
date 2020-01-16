@@ -4,7 +4,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import com.concurnas.compiler.ast.*;
+import com.concurnas.compiler.ast.Additive;
+import com.concurnas.compiler.ast.AndExpression;
+import com.concurnas.compiler.ast.ArrayConstructor;
+import com.concurnas.compiler.ast.ArrayDef;
+import com.concurnas.compiler.ast.ArrayDefComplex;
+import com.concurnas.compiler.ast.ArrayRef;
+import com.concurnas.compiler.ast.ArrayRefElement;
+import com.concurnas.compiler.ast.ArrayRefElementPostfixAll;
+import com.concurnas.compiler.ast.ArrayRefElementPrefixAll;
+import com.concurnas.compiler.ast.ArrayRefElementSubList;
+import com.concurnas.compiler.ast.AssertStatement;
+import com.concurnas.compiler.ast.AssignExisting;
+import com.concurnas.compiler.ast.AssignNew;
+import com.concurnas.compiler.ast.AsyncBlock;
+import com.concurnas.compiler.ast.AsyncRefRef;
+import com.concurnas.compiler.ast.BitwiseOperation;
+import com.concurnas.compiler.ast.CastExpression;
+import com.concurnas.compiler.ast.DMANewFromExpression;
+import com.concurnas.compiler.ast.DeleteStatement;
+import com.concurnas.compiler.ast.DotOperator;
+import com.concurnas.compiler.ast.ElifUnit;
+import com.concurnas.compiler.ast.EqReExpression;
+import com.concurnas.compiler.ast.ForBlock;
+import com.concurnas.compiler.ast.ForBlockOld;
+import com.concurnas.compiler.ast.FuncInvoke;
+import com.concurnas.compiler.ast.FuncRef;
+import com.concurnas.compiler.ast.FuncType;
+import com.concurnas.compiler.ast.IfStatement;
+import com.concurnas.compiler.ast.InExpression;
+import com.concurnas.compiler.ast.Is;
+import com.concurnas.compiler.ast.IsAMapElement;
+import com.concurnas.compiler.ast.MapDef;
+import com.concurnas.compiler.ast.MapDefElement;
+import com.concurnas.compiler.ast.MapDefaultElement;
+import com.concurnas.compiler.ast.MulerExpression;
+import com.concurnas.compiler.ast.NamedType;
+import com.concurnas.compiler.ast.New;
+import com.concurnas.compiler.ast.Node;
+import com.concurnas.compiler.ast.NotExpression;
+import com.concurnas.compiler.ast.OnChange;
+import com.concurnas.compiler.ast.OnEvery;
+import com.concurnas.compiler.ast.OrExpression;
+import com.concurnas.compiler.ast.PostfixOp;
+import com.concurnas.compiler.ast.PowOperator;
+import com.concurnas.compiler.ast.PrefixOp;
+import com.concurnas.compiler.ast.ShiftExpression;
+import com.concurnas.compiler.ast.SizeofStatement;
+import com.concurnas.compiler.ast.ThrowStatement;
+import com.concurnas.compiler.ast.TryCatch;
+import com.concurnas.compiler.ast.Type;
+import com.concurnas.compiler.ast.WhileBlock;
+import com.concurnas.compiler.ast.WithBlock;
 import com.concurnas.compiler.ast.interfaces.Expression;
 
 /**
@@ -26,7 +77,7 @@ import com.concurnas.compiler.ast.interfaces.Expression;
  * 	[refRetCall(), 2:] 
  *
  */
-public class ImplicitUnrefNeedsDelete extends AbstractVisitor implements Visitor {
+public class ImplicitUnrefNeedsDelete extends AbstractVisitor implements Visitor, Unskippable {
 
 	private Stack<Boolean> refFromFuncInvokeNeedsTag = new Stack<Boolean>();
 	

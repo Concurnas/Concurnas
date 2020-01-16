@@ -1,3 +1,56 @@
+
+gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
+    globalRow = get_global_id(0) // Row ID of C (0..M)
+    globalCol = get_global_id(1) // Col ID of C (0..N)
+ 
+    // Compute a single element (loop over K)
+    acc = 0.0f;
+    for (k=0; k<K; k++) {
+		acc += A[k*M + globalRow] * B[globalCol*K + k]
+    }
+    // Store the result
+    C[globalCol*M + globalRow] = acc;
+}
+
+
+def firstGPU(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){
+		cpuDev[0]
+	}else{
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]
+	}
+}
+
 def doings(){
-	"hello world"
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = firstGPU(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	inGPU2 = device.makeOffHeapArrayIn(float[2].class, 2, 2)
+	result = device.makeOffHeapArrayOut(float[2].class, 2, 2)
+	
+	x = [ 1.f 2 ; 3.f 4]
+	
+	c1 := inGPU1.writeToBuffer(x)
+	c2 := inGPU2.writeToBuffer(x)
+	
+	inst = matMult(2, 2, 2, inGPU1, inGPU2, result)
+	compute := device.exe(inst, [2 2], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
 }

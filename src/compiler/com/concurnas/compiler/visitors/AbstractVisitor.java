@@ -39,9 +39,9 @@ public abstract  class AbstractVisitor implements Visitor {
 		this.lastLineVisited = lineNo;
 	}
 	
-	public void pushErrorContext(FuncDef xxx) {
+	public void pushErrorContext(REPLTopLevelComponent xxx) {
 	}
-	public FuncDef popErrorContext(){
+	public REPLTopLevelComponent popErrorContext(){
 		return null;
 	}
 	
@@ -819,16 +819,6 @@ public abstract  class AbstractVisitor implements Visitor {
 	@Override
 	public Object visit(VarDouble varDouble) {
 		//lastLineVisited=varDouble.getLine();
-		return null;
-	}
-
-	@Override
-	public Object visit(UsingStatement usingStatement) {
-		//lastLineVisited=usingStatement.getLine();
-		for(DottedAsName dan : usingStatement.asnames)
-		{
-			dan.accept(this);
-		}
 		return null;
 	}
 

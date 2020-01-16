@@ -527,43 +527,45 @@ public class ConstantFolding extends AbstractErrorRaiseVisitor implements Visito
 				Object rhsValue = ele.expr.accept(this);
 				if(null != rhsValue && rhsValue instanceof Number){
 					MulerExprEnum op = ele.mulOper;//DIV("/", "div"), MOD("%", "mod"), MUL("*", "mul");
+					Type toRet = TypeCheckUtils.unboxTypeIfBoxed(ele.getTaggedType());
+					
 					if(op == MulerExprEnum.DIV){
-						if(headValue instanceof Long){
-							headValue = ((Long)headValue).longValue() / ((Number)rhsValue).longValue();
+						if(ScopeAndTypeChecker.const_long.equals(toRet)){
+							headValue = ((Number)headValue).longValue() / ((Number)rhsValue).longValue();
 						}
-						else if(headValue instanceof Float){
-							headValue = ((Float)headValue).floatValue() / ((Number)rhsValue).floatValue();
+						else if(ScopeAndTypeChecker.const_float.equals(toRet)){
+							headValue = ((Number)headValue).floatValue() / ((Number)rhsValue).floatValue();
 						}
-						else if(headValue instanceof Double){
-							headValue = ((Double)headValue).doubleValue() / ((Number)rhsValue).doubleValue();
+						else if(ScopeAndTypeChecker.const_double.equals(toRet)){
+							headValue = ((Number)headValue).doubleValue() / ((Number)rhsValue).doubleValue();
 						}
 						else{//int
 							headValue = ((Number)headValue).intValue() / ((Number)rhsValue).intValue();
 						}
 					}
 					else if(op == MulerExprEnum.MOD){
-						if(headValue instanceof Long){
-							headValue = ((Long)headValue).longValue() % ((Number)rhsValue).longValue();
+						if(ScopeAndTypeChecker.const_long.equals(toRet)){
+							headValue = ((Number)headValue).longValue() % ((Number)rhsValue).longValue();
 						}
-						else if(headValue instanceof Float){
-							headValue = ((Float)headValue).floatValue() % ((Number)rhsValue).floatValue();
+						else if(ScopeAndTypeChecker.const_float.equals(toRet)){
+							headValue = ((Number)headValue).floatValue() % ((Number)rhsValue).floatValue();
 						}
-						else if(headValue instanceof Double){
-							headValue = ((Double)headValue).doubleValue() % ((Number)rhsValue).doubleValue();
+						else if(ScopeAndTypeChecker.const_double.equals(toRet)){
+							headValue = ((Number)headValue).doubleValue() % ((Number)rhsValue).doubleValue();
 						}
 						else{//int
 							headValue = ((Number)headValue).intValue() % ((Number)rhsValue).intValue();
 						}
 					}
 					else if(op == MulerExprEnum.MUL){
-						if(headValue instanceof Long){
-							headValue = ((Long)headValue).longValue() * ((Number)rhsValue).longValue();
+						if(ScopeAndTypeChecker.const_long.equals(toRet)){
+							headValue = ((Number)headValue).longValue() * ((Number)rhsValue).longValue();
 						}
-						else if(headValue instanceof Float){
-							headValue = ((Float)headValue).floatValue() * ((Number)rhsValue).floatValue();
+						else if(ScopeAndTypeChecker.const_float.equals(toRet)){
+							headValue = ((Number)headValue).floatValue() * ((Number)rhsValue).floatValue();
 						}
-						else if(headValue instanceof Double){
-							headValue = ((Double)headValue).doubleValue() * ((Number)rhsValue).doubleValue();
+						else if(ScopeAndTypeChecker.const_double.equals(toRet)){
+							headValue = ((Number)headValue).doubleValue() * ((Number)rhsValue).doubleValue();
 						}
 						else{//int
 							headValue = ((Number)headValue).intValue() * ((Number)rhsValue).intValue();

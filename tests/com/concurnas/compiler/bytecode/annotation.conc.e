@@ -126,14 +126,14 @@ class: [@NullStatus(nullable = [])]
 ~~~~~
 //##31. annotation of default constructor for enums plus bugfix on loc names
 fields: [ENUM$VALUES: [], a: [], ONE: [@NullStatus(nullable = [])], TWO: [@NullStatus(nullable = [])]]
-methods:[$ConcurnasMetaVersion$: [], clone: [], compareTo: [], compareTo: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], equals: [], fromBinary: [], getA: [@NullStatus(nullable = [])], getDeclaringClass: [], getGlobalDependancies$: [], hashCode: [], init: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], init: [], init: [], metaBinary: [], name: [], ordinal: [], setA: [@NullStatus(nullable = [])], toBinary: [], toBoolean: [], toString: [], valueOf: [], valueOf: [], values: []]
+methods:[$ConcurnasMetaVersion$: [], clone: [], compareTo: [], compareTo: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], describeConstable: [], equals: [], fromBinary: [], getA: [@NullStatus(nullable = [])], getDeclaringClass: [], getGlobalDependancies$: [], hashCode: [], init: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], init: [], init: [], lambda$describeConstable$0: [], metaBinary: [], name: [], ordinal: [], setA: [@NullStatus(nullable = [])], toBinary: [], toBoolean: [], toString: [], valueOf: [], valueOf: [], values: []]
 cons: [[@AnnotOneArg(name = ok) @NullStatus(nullable = [])]]
 class: [@AnnotOneArg(name = ok to the class) @NullStatus(nullable = []) @ConcImmutable]
 
 ~~~~~
 //##32. annotation of enum elements
 fields: [ENUM$VALUES: [], a: [], b: [], c: [], d: [], e: [@AnnotOneArg(name = ok)], ONE: [@NullStatus(nullable = [])], TWO: [@NullStatus(nullable = [])], zall: [@AnnotOneArg(name = ok)]]
-methods:[$ConcurnasMetaVersion$: [], clone: [], compareTo: [], compareTo: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], equals: [], fromBinary: [], getA: [@NullStatus(nullable = [])], getB: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], getC: [@NullStatus(nullable = [])], getD: [@NullStatus(nullable = [])], getDeclaringClass: [], getE: [@NullStatus(nullable = [])], getGlobalDependancies$: [], getZall: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], hashCode: [], init: [@NullStatus(nullable = [])], init: [], init: [], metaBinary: [], name: [], ordinal: [], setA: [@NullStatus(nullable = [])], setB: [@NullStatus(nullable = [])], setC: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], setD: [@NullStatus(nullable = [])], setE: [@NullStatus(nullable = [])], setZall: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], toBinary: [], toBoolean: [], toString: [], valueOf: [], valueOf: [], values: []]
+methods:[$ConcurnasMetaVersion$: [], clone: [], compareTo: [], compareTo: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], describeConstable: [], equals: [], fromBinary: [], getA: [@NullStatus(nullable = [])], getB: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], getC: [@NullStatus(nullable = [])], getD: [@NullStatus(nullable = [])], getDeclaringClass: [], getE: [@NullStatus(nullable = [])], getGlobalDependancies$: [], getZall: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], hashCode: [], init: [@NullStatus(nullable = [])], init: [], init: [], lambda$describeConstable$0: [], metaBinary: [], name: [], ordinal: [], setA: [@NullStatus(nullable = [])], setB: [@NullStatus(nullable = [])], setC: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], setD: [@NullStatus(nullable = [])], setE: [@NullStatus(nullable = [])], setZall: [@AnnotOneArg(name = ok) @NullStatus(nullable = [])], toBinary: [], toBoolean: [], toString: [], valueOf: [], valueOf: [], values: []]
 cons: [[ ;  ;  ;  ;  ;  ;  ;  ; ], [ ;  ;  ; ], [ ;  ; ], [ ;  ; ], [ ; ], [ ; ], [@ParamName(hasDefaultValue = false, isVararg = false, name = enum$0) ; @ParamName(hasDefaultValue = false, isVararg = false, name = enum$1) ; @AnnotOneArg(name = ok) @ParamName(hasDefaultValue = false, isVararg = false, name = a) ; @ParamName(hasDefaultValue = false, isVararg = false, name = b) ; @ParamName(hasDefaultValue = false, isVararg = false, name = c) ; @AnnotOneArg(name = ok) @ParamName(hasDefaultValue = false, isVararg = false, name = d) ; @ParamName(hasDefaultValue = false, isVararg = false, name = e) ; @AnnotOneArg(name = ok) @ParamName(hasDefaultValue = false, isVararg = false, name = zall)], []]
 class: [@NullStatus(nullable = []) @ConcImmutable]
 
@@ -157,16 +157,16 @@ class: [@AnnotOneArg(name = ok cls) @NullStatus(nullable = [])]
 //##35. Inherited annotion works without effort
 fields: []
 methods:[$ConcurnasMetaVersion$: [], clone: [], copy: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], equals: [@NullStatus(nullable = [])], fromBinary: [@Uninterruptible], getGlobalDependancies$: [], hashCode: [@NullStatus(nullable = [])], init: [], init: [], metaBinary: [@Uninterruptible], toBinary: [@Uninterruptible], toBoolean: [], toString: []]
-cons: [[ ; ], [], [], [], [ ;  ; ], [ ;  ;  ; ], [ ;  ; ], [ ; ]]
-con itself: [[], [], [@NullStatus(nullable = [])], [@NullStatus(nullable = [])], [], [], [], []]
+cons: [[], [], [ ; ], [], [ ; ], [ ;  ; ], [ ;  ; ], [ ;  ;  ; ]]
+con itself: [[], [@NullStatus(nullable = [])], [], [@NullStatus(nullable = [])], [], [], [], []]
 class: [@InheritedOne(value = hi) @NullStatus(nullable = [])]
 
 ~~~~~
 //##36. custom annotations
 fields: []
 methods:[$ConcurnasMetaVersion$: [], clone: [], copy: [], copy: [], defaultFieldInit$: [], delete: [], equals: [@NullStatus(nullable = [])], fromBinary: [@Uninterruptible], getGlobalDependancies$: [], hashCode: [@NullStatus(nullable = [])], metaBinary: [@Uninterruptible], toBinary: [@Uninterruptible], toBoolean: [], toString: []]
-cons: [[ ; ], [], [], [ ; ], [ ;  ; ], []]
-con itself: [[], [], [@NullStatus(nullable = [])], [], [], [@NullStatus(nullable = [])]]
+cons: [[], [], [ ; ], [], [ ; ], [ ;  ; ]]
+con itself: [[], [@NullStatus(nullable = [])], [], [@NullStatus(nullable = [])], [], []]
 class: [@MYAnnotation($ConcurnasMetaVersion$ = Concurnas, a = hi, b = 8, c = ok, ff = [1 2 3], getGlobalDependancies$ = []) @NullStatus(nullable = []) @ConcImmutable]
 
 ~~~~~
@@ -283,4 +283,4 @@ class [Z
 
 ~~~~~
 //##64. fiber is a visible parameter 
-[[ ;  ;  ;  ; ], [ ; ], [ ; ], [], [ ;  ; ], [ ;  ; ], [@AnnotOneArg(name = hi) ;  ; ]]
+[[@AnnotOneArg(name = hi) ;  ; ], [ ;  ;  ;  ; ], [ ; ], [ ; ], [], [ ;  ; ], [ ;  ; ]]

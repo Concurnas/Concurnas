@@ -25,6 +25,7 @@ import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.ErrorRaiseable;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
@@ -33,7 +34,7 @@ import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrors;
 import com.concurnas.compiler.visitors.util.VarAtScopeLevel;
 import com.concurnas.runtime.Pair;
 
-public class ClassDef extends CompoundStatement implements ClassDefI, AttachedScopeFrame, HasAnnotations {
+public class ClassDef extends CompoundStatement implements ClassDefI, AttachedScopeFrame, HasAnnotations, REPLTopLevelComponent {
 
 	public String className;
 	public String packageName = "xxx.package.xxx"; //TODO: implement package tracking
@@ -432,7 +433,18 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
-		return visitor.visit(this);
+		
+		if(this.canSkipIterativeCompilation && !(visitor instanceof Unskippable)) {
+			return null;
+		}
+
+		if(visitor instanceof ScopeAndTypeChecker) {
+			this.hasErrors = false;
+		}
+		visitor.pushErrorContext(this);
+		Object ret = visitor.visit(this);
+		visitor.popErrorContext();
+		return ret;
 	}
 
 	@Override
@@ -1004,14 +1016,14 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 			//int dotpos = name.indexOf('.'); cannot do nested static classes in concurnas
 			//if(dotpos == -1)
 			//{
-				if(myScopeFrame.hasClassDef(null, name, false))
-				{
-					return myScopeFrame.getClassDef(null, name, false);
-				}
-				else if(null != this.resolvedSuperType)
-				{
-					return this.resolvedSuperType.getClassDef(name);
-				}
+			if(myScopeFrame.hasClassDef(null, name, false, false))
+			{
+				return myScopeFrame.getClassDef(null, name, false, false);
+			}
+			else if(null != this.resolvedSuperType)
+			{
+				return this.resolvedSuperType.getClassDef(name);
+			}
 		}
 		return null;
 	}
@@ -1409,5 +1421,57 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 
 	public ArrayList<ClassDef> getAllNestedClasses() {
 		return this.myScopeFrame.getAllClasses();
+	}
+
+	private boolean canSkipIterativeCompilation=false;
+	@Override
+	public boolean canSkip() {
+		return canSkipIterativeCompilation;
+	}
+
+	@Override
+	public void setSkippable(boolean skippable) {
+		canSkipIterativeCompilation = skippable;
+	}
+
+	@Override
+	public String getName() {
+		return this.className;
+	}
+
+	@Override
+	public Type getFuncType() {
+		return new NamedType(this);
+	}
+
+	@Override
+	public boolean isNewComponent() {
+		return true;
+	}
+	
+	@Override
+	public boolean persistant() { 
+		return true;
+	}
+	
+
+	public boolean hasErrors = false;
+	@Override
+	public void setErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+	@Override
+	public boolean getErrors() {
+		return hasErrors;
+	}
+	
+	private boolean supressErrors = false;
+	@Override
+	public void setSupressErrors(boolean supressErrors) {
+		this.supressErrors = supressErrors;
+	}
+	@Override
+	public boolean getSupressErrors() {
+		return supressErrors;
 	}
 }

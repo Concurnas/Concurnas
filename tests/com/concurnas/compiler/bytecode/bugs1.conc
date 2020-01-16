@@ -3960,3 +3960,59 @@ def doings(){
 	
 	"" + [res1, res2]
 }
+
+~~~~~
+//##210. import star class
+from java.util import *
+
+def doings(){
+	"ok" + new ArrayList<String>()
+}
+
+~~~~~
+//##211. import star static assets
+from com.concurnas.lang.precompiled.ImportStar import *
+
+def doings(){
+	"ok" + [anInteger afunction()]
+}
+
+~~~~~
+//##212. onchange was not utilizing existing return value ref
+a = 1:
+b = 2:
+
+ccc <= a + b;
+
+def doings(){
+	"ok" + ccc
+}
+
+~~~~~
+//##213. top level every and await
+a = 1:
+b = 2:
+
+ccc <= a + b;
+
+a=100; 
+
+await(ccc; ccc == 102)
+
+def doings(){
+	"ok" + ccc
+}
+
+~~~~~
+//##214. const folding bugfix
+
+def doings(){//folding constants
+	div = 3/2.//this was incorrect before
+	mul = 3*2.
+	mo = 3 mod 2
+	plus1 = 2 + 3.
+	plus2 = 2. + 3
+	eq1 = 2 == 2.
+	eq2 = 2. == 2
+	"" + (div, mul, mo, plus1, plus2, eq1, eq2)
+}

@@ -292,11 +292,11 @@ public class ModuleCompiler implements Comparable{
 	
 	public void progressCompilationREPL(Block lap, String srcName, FileWriter fw) throws Exception {
 		lexedAndParsedAST = lap;
-		wasProgressMade=false;
 		postASTErrorsHistory = new LinkedHashSet<HashSet<ErrorHolder>>();
 		warnings = new HashSet<ErrorHolder>();
 		attemptsAtCompilation=0;
 		hasBuiltInitialAST = true;
+		wasProgressMade = true;
 		//packageAndClassName = srcName;
 		writer = fw;
 		lastVisitor = null;
@@ -304,7 +304,12 @@ public class ModuleCompiler implements Comparable{
 		interminalState = false;
 		compiledClass = null;
 		
-		tryToProgressCompilation();
+		while(wasProgressMade) {
+			tryToProgressCompilation();
+			if(finishedCompiling()) {
+				break;
+			}
+		}
 	}
 	
 	public REPLTopLevelImports replLastTopLevelImports = null;//extractable and usable for repl
@@ -319,7 +324,12 @@ public class ModuleCompiler implements Comparable{
 			if(latestRoundOfErrors.isEmpty()) {
 				return true;
 			}else {
-				return latestRoundOfErrors.stream().allMatch(a -> a.hasContext());
+				if(postASTErrorsHistory.contains(latestRoundOfErrors)) {//if we've had this set before
+					return latestRoundOfErrors.stream().allMatch(a -> a.hasContext());
+				}
+				else {
+					return false;
+				}
 			}
 		}
 	}
@@ -444,7 +454,21 @@ public class ModuleCompiler implements Comparable{
 					boolean anychagnes = fieldAccessReport.hadMadeRepoints() || nestedFuncRepoint.hadMadeRepoints() 
 							|| returnVisitor.hadMadeRepoints() || vectorizedRedirector.hadMadeRepoints()
 							|| scopeTypeChecker.hasSharedModuleLevelVars
-							|| scopeTypeChecker.attemptGenTypeInference;
+							|| scopeTypeChecker.attemptGenTypeInference
+							|| defaultActorCreator.changeMade;
+					
+					
+					if(isREPL) {
+						this.isREPL.replDepGraph.reset();
+						
+						if(!anychagnes) {//see if what we have added to the repl will result in changes to other areas of the graph...
+							//output true if there are things needing recalculation
+							if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
+							prepareAndSetLastVisitor(this.isREPL.replDepGraph);
+							anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST, this.moduleLevelFrame);
+						}
+					}
+					
 					
 					
 					int iter = 0;
@@ -453,7 +477,7 @@ public class ModuleCompiler implements Comparable{
 						//prepareAndSetLastVisitor(nestedFuncRepoint);
 						nestedFuncRepoint.resetRepoints();
 						//prepareAndSetLastVisitor(defaultActorCreator);
-						defaultActorCreator.resetRepoints();
+						//defaultActorCreator.resetRepoints();
 						constFolder = new ConstantFolding(fullPathName);//just make a new one easier than clearing out existing errors etc
 
 						scopeTypeChecker = new ScopeAndTypeChecker(this.ml, this, fullPathName, packageAndClassName, moduleLevelFrame, typeDirectory, !scopeTypeChecker.getErrors().isEmpty(), this.isREPL);//TODO: why do we create a new one?
@@ -524,6 +548,15 @@ public class ModuleCompiler implements Comparable{
 								anychagnes=true;
 							}
 						}
+						
+						
+						
+						if(isREPL && !anychagnes) {//see if what we have added to the repl will result in changes to other areas of the graph...
+							//output true if there are things needing recalculation
+							if(this.profiler != null) { profiler.mark("Next REPLDepGraph"); }
+							prepareAndSetLastVisitor(this.isREPL.replDepGraph);
+							anychagnes = this.isREPL.replDepGraph.updateDepGraph(lexedAndParsedAST, moduleLevelFrame);
+						}
 					}
 					
 					latestRoundOfErrors.addAll(stcErrs);
@@ -541,7 +574,7 @@ public class ModuleCompiler implements Comparable{
 						step.visit(lexedAndParsedAST);
 						latestRoundOfErrors.addAll(step.getErrors());
 					}
-					//should refactor to the above, meh
+					//TODO: last thing ret is called twice?
 					prepareAndSetLastVisitor(lastThingRet);
 					lastThingRet.visit(lexedAndParsedAST);
 					if(this.profiler != null) { profiler.mark("lastThingRet"); }
@@ -551,7 +584,14 @@ public class ModuleCompiler implements Comparable{
 					ErrorRaiseable erSup = scopeTypeChecker.getErrorRaiseableSupression();
 					
 					if(errorsPermitCompilation(latestRoundOfErrors))
-					{//dont bother with compilation if u cannot even get the semantics right...
+					{//comple if other aspects above correct
+						
+						if(isREPL) {
+							this.isREPL.topLevelItemsToSkip.forEach(a -> {
+								a.comp.setSkippable(true);
+							});
+						}
+						
 						
 						//gennerate C99 compliant opencl code if applicable and possible
 						if(scopeTypeChecker.hasGPUFuncorkernals) {
@@ -732,43 +772,16 @@ public class ModuleCompiler implements Comparable{
 	
 	private final static double log10 = Math.log(10);
 	
-	private static int countOccurrences(String input, char thing) {
-		int count = 0;
-		for (int i = 0; i < input.length(); i++) {
-			if (input.charAt(i) == thing) {
-				count++;
-			}
-		}
-		return count;
-	}
+	/*
+	 * private static int countOccurrences(String input, char thing) { int count =
+	 * 0; for (int i = 0; i < input.length(); i++) { if (input.charAt(i) == thing) {
+	 * count++; } } return count; }
+	 * 
+	 * private static int cntSemis(String s){ int counter = 0; for( int i=0;
+	 * i<s.length(); i++ ) { if( s.charAt(i) == ';' ) { counter++; } } return
+	 * counter; }
+	 */
 	
-	private static int cntSemis(String s){
-		int counter = 0;
-		for( int i=0; i<s.length(); i++ ) {
-		    if( s.charAt(i) == ';' ) {
-		        counter++;
-		    } 
-		}
-		return counter;
-	}
-	
-	/*private static class FixedAntlrStream extends ANTLRStringStream{
-		public FixedAntlrStream(String data,  int n){
-			super.n = n;
-			super.data = data.toCharArray();
-		}
-	}
-	
-	public static ANTLRStringStream preParser(ANTLRStringStream input){
-		//TODO: when upgrade to antlr4 - see if the below can be removed, at least see if the write-to-file hack can be eliminated
-		String rever = new StringBuilder(input.toString()).reverse().toString();
-		String repl = rever.replaceAll("}(?!\\s*;)(?=([^']*'[^']*')*[^']*$)(?=([^\"]*\"[^\"]*\")*[^\"]*$)", "};");
-		
-		repl = new StringBuilder(repl).reverse().toString() + ";";
-		
-		FixedAntlrStream ret= new FixedAntlrStream(repl, input.size()+ cntSemis(repl)-cntSemis(rever)-1);
-		return ret;
-	}*/
 	
 	private CharStream origInpu;
 	

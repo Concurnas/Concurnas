@@ -13,11 +13,11 @@ import com.concurnas.compiler.ast.ForBlock;
 import com.concurnas.compiler.ast.ForBlockOld;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.LambdaDef;
-import com.concurnas.compiler.ast.LineHolder;
 import com.concurnas.compiler.ast.ReturnStatement;
 import com.concurnas.compiler.ast.TryCatch;
 import com.concurnas.compiler.ast.WhileBlock;
 import com.concurnas.compiler.visitors.AbstractVisitor;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.runtime.Pair;
 
 /**
@@ -35,7 +35,7 @@ import com.concurnas.runtime.Pair;
  * @author Jason
  *
  */
-public class FinallyBlockCodeCopier extends AbstractVisitor {
+public class FinallyBlockCodeCopier extends AbstractVisitor implements Unskippable{
 	//TODO: test with nested blocks
 	
 	//private Stack<Boolean> hasCatchBlocks = new Stack<Boolean>();

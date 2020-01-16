@@ -2384,3 +2384,12 @@ def doings(){
 	
 	"" + [toinvert1, toinvert2, toinvert3]
 }
+
+~~~~~
+//##28 further bugfix for paranthesis used within array definitions
+def doings() String{
+	x18 = 90
+	x23 = 90
+	//funcrefinvoke of a funcref...
+	"" + [ x18  (x23-20) (x23-20)  9]
+}

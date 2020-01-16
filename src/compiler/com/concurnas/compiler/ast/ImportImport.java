@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import com.concurnas.compiler.visitors.Visitor;
 
-public class ImportImport extends ImportStatement {
+public class ImportImport extends ImportStatement  {
 	public ArrayList<DottedAsName> imports = new ArrayList<DottedAsName>();
 	
 	public ImportImport(int line, int col, boolean isNormalImport) {//TODO: isNormalImport remove its unused
@@ -34,4 +34,25 @@ public class ImportImport extends ImportStatement {
 		return this;
 	}
 	
+	@Override
+	public ArrayList<String> getNames() {
+		ArrayList<String> ret = new ArrayList<String>();
+		
+		for(DottedAsName entry : this.imports)
+		{
+			if(entry.singleEntry)
+			{
+				int lastDot = entry.refName.lastIndexOf('.');
+				if( lastDot != -1)
+				{
+					ret.add(entry.refName.substring(lastDot+1));
+					continue;
+				}
+			}
+			
+			ret.add(entry.refName);
+		}
+		
+		return ret;
+	}
 }

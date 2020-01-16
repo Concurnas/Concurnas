@@ -2930,3 +2930,23 @@ def doings(){
 	//getIHC -> method call should copy anyway
 	"" + [ihc == act.getIHC(), ihc <> act.getIHC(inst)]
 }
+
+~~~~~
+//##150. actor add explicit new
+def aa() =>  actor MyClass()
+
+def doings() String{
+	"ok " + aa().thing()
+}
+
+class MyClass { def thing() => 100 }
+
+~~~~~
+//##151. actor at top level
+class MyClass { def thing() => 100 }
+
+aa = actor MyClass()
+
+def doings() String{
+	"ok " + aa.thing()
+}

@@ -344,7 +344,10 @@ public class Concurnifier implements Opcodes   {
 							String superClass = cm.getSuperclassNoEx();
 							while (superClass != null) {
 								cm = this.extraClassInfo.classForName(superClass);
-							//	System.out.println(" " + superClass);
+								if(null == cm) {
+									throw new RuntimeException("Cannot find class mirror for: " + superClass);
+								}
+								
 								isShared = cm.getAnnotations().contains("Lcom/concurnas/lang/Shared;");
 								if (isShared) {
 									break;

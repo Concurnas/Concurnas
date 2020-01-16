@@ -18,19 +18,24 @@ sourceCompatibility = 1.8
 repositories {
     jcenter()
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 configurations {
     libsForRuntime
 }
 
+
 dependencies {
     api 'com.google.jimfs:jimfs:1.1'
     testImplementation 'junit:junit:4.12'
     libsForRuntime "org.antlr:antlr4:4.7.2"
+    libsForRuntime 'org.jline:jline:3.13.3'
+    libsForRuntime 'org.fusesource.jansi:jansi:1.18'
+    api 'org.jline:jline:3.13.3'
+    api 'org.fusesource.jansi:jansi:1.18'
     antlr "org.antlr:antlr4:4.7.2"
 }
-
 
 sourceSets {
    main {
@@ -152,6 +157,9 @@ jar {//
     version =  readVersion()
 	excludes = ["com/concurnas/build/**", "com/concurnas/lang/**", "com/concurnas/runtime/**", "org/jocl/**", "com.concurnas.bootstrap/**"]
 	from "LICENSE"
+	from('src/tools'){
+    	include "com/concurnas/repl/*.nanorc"
+    }
 }
 
 task runtimeJar(type: Jar) {

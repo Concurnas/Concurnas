@@ -56,6 +56,7 @@ x69Lambdacurrying21simplecase.conc line 7:19 For variable reference on: 'innapro
 ~~~~~
 //##69. Lambda - currying 2.2 - avoid masking
 x69Lambdacurrying22avoidmasking.conc line 5:0 Method reference variable 'mask' hides existing named method or method reference definition
+x69Lambdacurrying22avoidmasking.conc line 6:16 Generic Type argument type mismatch: out java.lang.Integer vs java.lang.Boolean
  
 ~~~~~
 //##69. Lambda - currying 2.3 - search upper nest

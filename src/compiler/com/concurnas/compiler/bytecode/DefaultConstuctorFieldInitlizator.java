@@ -5,16 +5,15 @@ import java.util.Collection;
 import com.concurnas.compiler.ErrorHolder;
 import com.concurnas.compiler.ast.AssignExisting;
 import com.concurnas.compiler.ast.AssignNew;
-import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.ConstructorDef;
 import com.concurnas.compiler.ast.FuncDef;
-import com.concurnas.compiler.ast.LambdaDef;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 
-public class DefaultConstuctorFieldInitlizator extends AbstractVisitor {
+public class DefaultConstuctorFieldInitlizator extends AbstractVisitor  implements Unskippable{
 
 	private BytecodeGennerator mainVistitor;
 	

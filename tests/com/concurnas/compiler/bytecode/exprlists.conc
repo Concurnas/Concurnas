@@ -118,7 +118,7 @@ def doings(){
 ~~~~~
 //##9. abigiuity overriden by normal logic rules
 
-def nn() => 9
+//def nn() => 9 //actually this doesnt work - this will be marked as ambigious
 def myfunc(a int, b int) => a+b
 nn = 3
 

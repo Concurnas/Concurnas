@@ -34,9 +34,10 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.compiler.visitors.Unskippable;
 import com.concurnas.runtime.Pair;
 
-public class LabelAllocator extends AbstractVisitor {
+public class LabelAllocator extends AbstractVisitor implements Unskippable{
 	
 	private boolean isLastLineInBlock = false;
 	private Stack<Pair<Label, Label>> labelNeedingConsumption = new  Stack<Pair<Label, Label>>(); //[End, Start]
@@ -513,7 +514,11 @@ public class LabelAllocator extends AbstractVisitor {
 	private IdentityHashMap<FuncDef, LinkedList<FuncDef>> toCheckOnExit = new IdentityHashMap<FuncDef, LinkedList<FuncDef>>(); //id cos somehow nested methods can have same signature sometimes, weird...
 	
 	private void addToCheckOnExit(FuncDef toCheck){
-		toCheckOnExit.get(currentFD.peek()).add(toCheck);
+		if(currentFD.isEmpty()) {
+			this.visit(toCheck);
+		}else {
+			toCheckOnExit.get(currentFD.peek()).add(toCheck);
+		}
 	}
 	
 	@Override

@@ -4165,6 +4165,16 @@ def x() int{
 
 def y() int{ return 2;}
 
+~~~~~
+//##74.b forward references 2
+
+def getter(cc CalledOn)=> cc.thing()
+
+class CalledOn() { def thing() => 'works'}
+
+def doings() String{
+	"ok " + getter(new CalledOn())
+}
 
 ~~~~~
 //##75. default equals implementation for lamdabs
