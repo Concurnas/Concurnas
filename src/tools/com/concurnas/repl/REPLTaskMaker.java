@@ -45,18 +45,18 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				String var = itr.next();
 
 				mv.visitLabel(new Label());
-				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 				mv.visitLdcInsn(var);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "containsKey", "(Ljava/lang/Object;)Z", false);
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "containsKey", "(Ljava/lang/Object;)Z", true);
 				Label onmissing = new Label();
 				mv.visitJumpInsn(IFEQ, onmissing);
 				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
 				mv.visitInsn(DUP);
 				mv.visitLdcInsn(var + " ==> ");
 				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false);
-				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 				mv.visitLdcInsn(var);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", true);
 				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
 				//if(n++ < sz) {

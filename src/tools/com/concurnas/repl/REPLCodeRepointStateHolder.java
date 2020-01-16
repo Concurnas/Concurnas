@@ -72,19 +72,19 @@ public class REPLCodeRepointStateHolder extends ClassVisitor implements Opcodes 
 		public void visitFieldInsn(int opcode, String owner, String name, String desc) {
 			if(owner.equals(classNameToRedirect)) {
 				if(opcode == PUTSTATIC) {
-					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 					genericSswap(desc);
 					mv.visitLdcInsn(name);
 					genericSswap(desc);
 					//thing to object type
 					boxIfPrimative(desc);
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false);
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
 					mv.visitInsn(POP);
 					return;
 				}else if(opcode == GETSTATIC) {
-					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/concurrent/ConcurrentHashMap;");
+					mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 					mv.visitLdcInsn(name);
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/concurrent/ConcurrentHashMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", true);
 					//object type to thing
 					unboxToRequiredType(desc);
 					return;

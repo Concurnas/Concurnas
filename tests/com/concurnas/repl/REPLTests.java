@@ -22,6 +22,7 @@ public class REPLTests {
 	
 	//////////////////////////////////////////////////////////
 	
+	
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -1243,6 +1244,18 @@ public class REPLTests {
 	}
 	
 	
+	@Test
+	public void nullableTypes() throws Exception {
+		assertEquals("v ==> hi", repl.processInput("v String? = 'hi'"));
+		assertEquals("v ==> null", repl.processInput("v=null"));
+	}
+	
+	@Test
+	public void dontremovePrevOKVarDuetoFaultyAssign() throws Exception {
+		assertEquals("v ==> hi", repl.processInput("v String = 'hi'"));
+		assertEquals("|  ERROR 1:0 in v - Assingment can be null, but assignment type is not nullable", repl.processInput("v=null"));
+		assertEquals("v ==> hi", repl.processInput("v"));
+	}
 	
 	
 }

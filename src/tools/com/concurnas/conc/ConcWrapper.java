@@ -55,6 +55,7 @@ public class ConcWrapper {
 			sb.append("--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED\n");
 
 			sb.append("--add-opens=java.base/java.nio=ALL-UNNAMED\n");
+			sb.append("--add-opens=java.base/java.time=ALL-UNNAMED\n");
 			sb.append("--add-opens=java.base/com.concurnas.bootstrap.lang=ALL-UNNAMED");
 
 			return sb.toString().trim();

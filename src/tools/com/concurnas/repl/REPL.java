@@ -470,7 +470,7 @@ public class REPL implements Opcodes {
 			REPLTopLevelComponent  replCtxt = er.getHeadContext();
 			if(null != replCtxt) {
 				String prefix = formatTopLevelElement(replCtxt);
-				if(!prefix.contains("$")) {
+				if(null != prefix && !prefix.contains("$")) {
 					er = er.copyWithErPrefix(prefix);
 				}
 			}
@@ -743,6 +743,17 @@ public class REPL implements Opcodes {
 	
 	private void tidyScopeFrameDirtyVars(REPLTopLevelComponent tla) {
 		if(tla.getErrors()) {
+			
+			if(tla instanceof AssignExisting) {
+				if(!((AssignExisting)tla).isReallyNew) {
+					return;//skip if not new, dont remove previous var
+				}
+			}else if(tla instanceof AssignNew) {
+				if(!((AssignNew)tla).isReallyNew) {
+					return;//skip if not new, dont remove previous var
+				}
+			}
+			
 			if(null != this.moduleCompiler.moduleLevelFrame) {
 				this.moduleCompiler.moduleLevelFrame.removeVariable(tla.getName());
 			}
