@@ -3,6 +3,8 @@ package com.concurnas.runtimeCache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,15 +25,15 @@ public class RuntimeCacheJars extends RuntimeCache{
 	private final File fromDirectory;
 	private final ArrayList<File> foundJars;
 
-	public static File getRTJarPath() {
+	public static File getRTJarPath() throws URISyntaxException, IOException {
 		Class<?> klass = Object.class;
 		URL location = klass.getResource('/' + klass.getName().replace('.', '/') + ".class");
-		String fullPath = "" + location.getPath();// expected: file:/C:/Program%20Files/Java/jdk1.8.0_45/jre/lib/rt.jar!/java/lang/String.class
-
-		return new File(fullPath.substring(6, fullPath.length() - 30).replace("%20", " "));
+		File file = new File(((JarURLConnection) location.openConnection()).getJarFileURL().toURI());
+		String fullpath = file.getAbsolutePath();
+		return new File((fullpath.substring(0,fullpath.length() - 6)));		
 	}
 	
-	public RuntimeCacheJars(String[] classpath, String toDirectory, boolean log) throws IOException {
+	public RuntimeCacheJars(String[] classpath, String toDirectory, boolean log) throws Exception {
 		super(classpath, toDirectory, log);
 		
 		this.fromDirectory = getRTJarPath();
