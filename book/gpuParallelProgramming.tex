@@ -799,10 +799,10 @@ We achieve this by using the barrier gpudef function:
 \end{itemize}
 
 
-Add note on program squareness
+%Add note on program squareness
 
 \subsection{Local Work Size}
-When invoking gpukernels using local memory we must specify the dimensions used for our local identifiers accessible by the work items running as part of a work group. We do this in much the same way as we defined global dimensions on invocation; we pass in an array of dimensions. There are however some caveats on must be aware of. The specified local dimensions must:
+When invoking gpukernels using local memory we must specify the dimensions used for our local identifiers accessible by the work items running as part of a work group. We do this in much the same way as we defined global dimensions on invocation; we pass in an array of dimensions. There are however some caveats we must be aware of. The specified local dimensions must:
 \begin{itemize}
 	\item Evenly divide into the global dimensions specified.
 	\item Be no larger than the device specific Max Work Item Sizes per dimension (up to 3). This can be determined at runtime by calling \lstinline{device.getMaxWorkItemSizes()}.

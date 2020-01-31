@@ -121,7 +121,7 @@ public abstract class RuntimeCache implements Opcodes {
 		HashMap<String, ClassProvider> clsToClasspath = new HashMap<String, ClassProvider>();
 		for (String thing : this.classpath) {
 			Path asPath = Paths.get(thing);
-			ClassloaderUtils.populateClasses(asPath, asPath, clsToClasspath, true);
+			ClassloaderUtils.populateClasses(asPath, asPath, clsToClasspath, true, null);
 		}
 
 		this.createConcCoreJar(modloader.getCpsStateClasses(), clsToClasspath, modules, findStaticLambdas);

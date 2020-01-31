@@ -13,13 +13,14 @@ import java.util.WeakHashMap;
 import java.util.zip.ZipException;
 
 import com.concurnas.conc.ConcUtis;
+import com.concurnas.runtime.ClassloaderUtils.ClassProvider;
 
 public class ClassloaderUtils {
-	public static void populateClasses(Path root, Path loc, HashMap<String, ClassProvider> clses, boolean firstClass){
+	public static void populateClasses(Path root, Path loc, HashMap<String, ClassProvider> clses, boolean firstClass, HashMap<String, ClassProvider> ignoreIfIn){
 		try{
 			if(Files.exists(loc)) {
 				if(Files.isDirectory(loc)){
-					Files.list(loc).forEach(a -> populateClasses(root, a, clses, false));
+					Files.list(loc).forEach(a -> populateClasses(root, a, clses, false, ignoreIfIn));
 				}
 				else{
 					String name = loc.toString();
@@ -34,11 +35,13 @@ public class ClassloaderUtils {
 							pkgFullName = pkgFullName.replace("\\", "/");
 						}
 						
+						if(null == ignoreIfIn || !ignoreIfIn.containsKey(pkgFullName)) {
+							clses.put(pkgFullName, new FileCP(loc));
+						}
 						
-						clses.put(pkgFullName, new FileCP(loc));
 					}
 					else if (name.endsWith(".jar")){
-						JarCP jarcp = new JarCP(loc);
+						JarCP jarcp = new JarCP(loc, ignoreIfIn);
 						jarcp.augmentclassPath(clses);
 					}
 				}
@@ -81,14 +84,16 @@ public class ClassloaderUtils {
 	
 	public static class JarCP extends ClassProvider{
 		private URI jarUri;
+		private HashMap<String, ClassProvider> ignoreIfIn;
 
 		private static final Map<String, String> env = new HashMap<String, String>();
 		static {
 			 env.put("create", "true");
 		}
 		
-		public JarCP(Path pp) throws ZipException, IOException{
+		public JarCP(Path pp, HashMap<String, ClassProvider> ignoreIfIn) throws ZipException, IOException{
 			this.jarUri = URI.create("jar:" + pp.toUri());
+			this.ignoreIfIn = ignoreIfIn;
 		}
 
 		//used to ensure we don't hit FileSystemAlreadyExistsException on seperate conclassloader instances
@@ -109,7 +114,12 @@ public class ClassloaderUtils {
 		}
 		
 		private void addToClsP(String classname, HashMap<String, ClassProvider> clsToClasspath) {
-			clsToClasspath.put(classname.substring(1, classname.length()-6), this);
+			classname = classname.substring(1, classname.length()-6);
+			
+			if(ignoreIfIn == null || !ignoreIfIn.containsKey(classname)) {
+				clsToClasspath.put(classname, this);
+			}
+			
 		}
 		
 		public void augmentclassPath(HashMap<String, ClassProvider> clsToClasspath){
@@ -117,7 +127,7 @@ public class ClassloaderUtils {
 			synchronized(strToURI.computeIfAbsent(jarUri, (URI a) -> a)) {
 				try (FileSystem zipfs = FileSystems.newFileSystem(jarUri, env)) {
 					Path root = zipfs.getPath("/");
-					Files.walk(root).filter(a -> !Files.isDirectory(a) && a.toString().endsWith(".class")).forEach(a -> addToClsP(a.toString(), clsToClasspath));
+					Files.walk(root).filter(a -> !Files.isDirectory(a) && a.toString().endsWith(".class")).forEach( a -> addToClsP(a.toString(), clsToClasspath) );
 		        } catch (IOException e) {
 					e.printStackTrace();
 				} 

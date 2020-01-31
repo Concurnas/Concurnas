@@ -154,15 +154,8 @@ public class Globalizer implements Opcodes {
 		private String findLocationOfFieldOrMethod(boolean isField, String name, String desc, String supCls, String[] ifaces, HashSet<String> searchAlready) {
 			String curSup = supCls;
 			while(null != curSup && !curSup.equals("java/lang/Object") && !searchAlready.contains(curSup)) {
-				try {
-					if(curSup.equals("java/security/Policy")) {
-						int h = 9;
-					}
-					
+				try {					
 					ClassMirror sup = this.clloader.getDetector().classForName(curSup);
-					if(null == sup) {
-						int h=9;
-					}
 					
 					if(isField) {
 						FieldMirror fm = sup.getField(name);

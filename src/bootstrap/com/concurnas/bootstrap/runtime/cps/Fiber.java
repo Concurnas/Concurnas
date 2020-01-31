@@ -24,7 +24,8 @@ public final class Fiber {
 	public volatile Iso iso;// The task to which this Fiber belongs
 
 	private Stack<SyncTracker> syncTrackers = new Stack<SyncTracker>();
-	
+
+	private TypedActorInterface<?> primeActor;
 
 	public LinkedList<TransactionHandler> transactions = new LinkedList<TransactionHandler>();
 	private static final State PAUSE_STATE = new State();// Special marker state used by pause
@@ -36,6 +37,7 @@ public final class Fiber {
 
 	public void reset() {
 		curState=null;
+		primeActor=null;
 		pc = 0;
 		iStack = -1;
 		stateStack = new State[10];
@@ -115,7 +117,6 @@ public final class Fiber {
 		return f.iso.worker.scheduler;
 	}
 
-	private TypedActorInterface<?> primeActor;
 	public static Scheduler setPrimeActor(TypedActorInterface<?> act) {throw new RuntimeException("Fiber method: 'setPrimeActor' must be invoked via concurnas, missing fiber information, @Uninterruptible cannot be used"); }
 	public static void setPrimeActor(TypedActorInterface<?> act, Fiber f) {
 		//prime actor is that for which the fiber was spawned

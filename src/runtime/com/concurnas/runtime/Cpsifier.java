@@ -1,19 +1,9 @@
 package com.concurnas.runtime;
 
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
-import com.concurnas.bootstrap.runtime.cps.Fiber;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
-import com.concurnas.runtime.cps.analysis.ConcClassWriter;
 import com.concurnas.runtime.cps.analysis.Fiberizer;
 import com.concurnas.runtime.cps.mirrors.ClassMirror;
 import com.concurnas.runtime.cps.mirrors.ClassMirrorNotFoundException;
@@ -123,6 +113,11 @@ public class Cpsifier {
 					 * System.out.println("prior weaving names: " + namea); }
 					 */
 
+					/*if (namea.endsWith("HttpServerProvider")) {
+						System.out.println("pre weaving names: " + namea);
+						BytecodePrettyPrinter.print(code, true);
+					}*/
+					
 					InitConverter2 ic = new InitConverter2(code, bcp, namea, assumeNoPrimordials, inRuntimeMode);// isGlob =>globals already have init
 					code = ic.transform();
 
@@ -136,8 +131,17 @@ public class Cpsifier {
 
 					// add getGlobalDependancies$
 					code = GetDependanciesMethodAdder.transform(code, clloader);
+					
+					/*
+					if (namea.endsWith("HttpServerProvider")) {
+						System.out.println("post weaving names: " + namea);
+						BytecodePrettyPrinter.print(code, true);
+					}*/
+					 
 
-
+					
+					
+					
 					
 					Fiberizer cw = new Fiberizer(code, clloader, assumeNoPrimordials, verbose);// , nonPasuableMethods.contains(className));
 					cw.onlyMethods = onlyMethods;// TODO: remove testing hack

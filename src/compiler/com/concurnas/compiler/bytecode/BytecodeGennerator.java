@@ -99,11 +99,14 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 
 	public final HashMap<String, ClassDef> typeDirectory;
 
-	public BytecodeGennerator(TheScopeFrame moduleScopeFrame, String packageAndClassName, ErrorRaiseable errorRaisableSupression, HashMap<String, ClassDef> typeDirectory) {
+	private boolean isREPL;
+
+	public BytecodeGennerator(TheScopeFrame moduleScopeFrame, String packageAndClassName, ErrorRaiseable errorRaisableSupression, HashMap<String, ClassDef> typeDirectory, boolean isREPL) {
 		this.moduleScopeFrame = moduleScopeFrame;
 		this.packageAndClassName = packageAndClassName;
 		this.errorRaisableSupressionFromSatc = errorRaisableSupression;
 		this.typeDirectory = typeDirectory;
+		this.isREPL = isREPL;
 	}
 
 	public void pushErrorContext(REPLTopLevelComponent xxx) {}
@@ -112,7 +115,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	public LinkedHashMap<String, byte[]> toByteArray() {
 		return nameToBytecode;
 	}
-
+	
 	protected int lastLineVisited = -1;
 	public void resetLastLineVisited(){
 		lastLineVisited = -1;
@@ -1840,7 +1843,6 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	}
 
 	private int tempVarCnt = 0;
-
 	public String getTempVarName() {
 		return "$tvar" + tempVarCnt++;
 	}
@@ -8299,8 +8301,31 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		 */
 	}
 
+
 	@Override
 	public Object visit(ForBlock forBlock) {
+		if(this.isREPL) {//for block visitor mutates a few aspects of for block state, making it unsuitable by itself 
+			Block blkCopy = (Block)forBlock.block.copy();//for repeated processing by the bc gennerator, hence this solution...
+			
+			AssignTupleDeref atd = null;
+			if(forBlock.assignTuple != null) {
+				atd = (AssignTupleDeref)forBlock.assignTuple.copy();
+			}
+			
+			Object ret = visitReal(forBlock);
+			
+			forBlock.block = blkCopy;
+			if(atd != null) {
+				forBlock.assignTuple = atd;
+			}
+			
+			return ret;
+		}else {
+			return visitReal(forBlock);
+		}
+	}
+	
+	public Object visitReal(ForBlock forBlock) {
 		// new style
 
 		// translate the new for block into an old one - note that there are two

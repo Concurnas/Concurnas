@@ -1,5 +1,7 @@
 package com.concurnas.repl;
 
+import java.io.IOError;
+
 import org.jline.builtins.Widgets.AutopairWidgets;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -28,7 +30,7 @@ public class REPLShell {
 	 * } }
 	 */
     
-	public static int replLoop(boolean bc, boolean verbose) {
+	public static int replLoop(String concVersion, String vmname, String version, boolean bc, boolean verbose) {
 		LineReader reader;
 		REPL repl;
 		try {
@@ -51,23 +53,20 @@ public class REPLShell {
 			DefaultParser parser = new DefaultParser();
 			parser.setEofOnUnclosedBracket(Bracket.CURLY, Bracket.ROUND, Bracket.SQUARE);
 			
-	        TerminalBuilder builder = TerminalBuilder.builder();
-	        Terminal terminal = builder.build();
+	       // TerminalBuilder builder = TerminalBuilder.builder();
+	        //Terminal terminal = builder
+           //         .build();
 	        reader = LineReaderBuilder.builder()
-	                .terminal(terminal)
+	               // .terminal(terminal)
 	                //.completer(finalCompleter)
 	                .parser(parser)
 	                //.highlighter(highlighter)
 	                .variable(LineReader.SECONDARY_PROMPT_PATTERN, "%P   > ")
 	                .variable(LineReader.INDENTATION, 2)
+	                .option(Option.DISABLE_EVENT_EXPANSION, true)
 	                //.option(Option.INSERT_BRACKET, true)
 	                .option(Option.EMPTY_WORD_OPTIONS, false)
 	                .build();
-	        
-	        
-            
-	        
-	        
 	        // Create autopair widgets
 	        AutopairWidgets autopairWidgets = new AutopairWidgets(reader);
 	        // Enable autopair 
@@ -77,6 +76,9 @@ public class REPLShell {
         	e.printStackTrace();
         	return 1;
 		}
+		
+		System.out.println(String.format("Welcome to Concurnas %s (%s, Java %s).", concVersion, vmname, version));
+		System.out.println("Currently running in REPL mode. For help type: /help\n");
 		
         while (true) {
             String line = null;
@@ -95,20 +97,21 @@ public class REPLShell {
                 }else {
                 	System.out.println(result.trim()+"\n");
                 }
-            } catch (UserInterruptException e) {
-                // Ignore
-            } catch (EndOfFileException e) {
+            } catch (UserInterruptException e) {//ctlr + c
+            	System.out.println("|  Bye!");
                 return 0;
-            }catch(Exception e) {
+            }  catch (EndOfFileException e) {// Handle CTRL + D
+            	System.out.println("|  Bye!");
+                return 0;
+            }catch(Throwable e) {
             	System.err.println("Unknown error in REPL: " + e.getMessage());
             	e.printStackTrace();
             	return 1;
             }
 		}
 	}
-	
-	public static void main(String[] args) {
-		REPLShell.replLoop(false, false);
-	}
-	
+	/*
+	 * public static void main(String[] args) { REPLShell.replLoop("","","",false,
+	 * false); }
+	 */
 }

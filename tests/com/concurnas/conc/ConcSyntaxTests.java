@@ -1,5 +1,6 @@
 package com.concurnas.conc;
 
+import java.io.File;
 import java.util.Arrays;
 
 import org.junit.Test;
@@ -12,7 +13,7 @@ public class ConcSyntaxTests{
 	@Test
 	public void longerExample() {
 		Conc concc = new Conc("-cp /work;/nonExist.class;/work/myfile.class;/work/thing.jar /work/MyFirstClass.class", null);
-		String expect = "-cp /work;/nonExist.class;/work/myfile.class;/work/thing.jar /work/MyFirstClass.class";
+		String expect = "-cp /work"+File.pathSeparator+"/nonExist.class"+File.pathSeparator+"/work/myfile.class"+File.pathSeparator+"/work/thing.jar /work/MyFirstClass.class";
 		
 		TestCase.assertEquals(expect, ""+concc.getConcInstance());
 	}

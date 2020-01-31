@@ -623,7 +623,7 @@ public class ModuleCompiler implements Comparable{
 							impliocitUnrefTagger.visit(lexedAndParsedAST);
 							if(this.profiler != null) { profiler.mark("fin ImplicitUnrefNeedsDelete"); }
 							
-							BytecodeGennerator bytecodeVisitor = new BytecodeGennerator(moduleLevelFrame, this.packageAndClassName, erSup, typeDirectory);
+							BytecodeGennerator bytecodeVisitor = new BytecodeGennerator(moduleLevelFrame, this.packageAndClassName, erSup, typeDirectory, this.isREPL != null);
 							try{
 								prepareAndSetLastVisitor(bytecodeVisitor);
 								bytecodeVisitor.visit(lexedAndParsedAST);

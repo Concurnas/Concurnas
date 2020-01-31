@@ -1049,15 +1049,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ArrayList<Pair<String, NamedType>> methodGenricList = null != ctx.genericQualiList() ? (ArrayList<Pair<String, NamedType>>) ctx.genericQualiList().accept(this) : new ArrayList<Pair<String, NamedType>>();
 
 		Type retType = ctx.retTypeIncVoid() == null ? null : (Type) ctx.retTypeIncVoid().accept(this);
-		boolean aabstract = false;
-		Block body;
-		if (ctx.block() != null) {
-			body = (Block) ctx.block().accept(this);
-		} else if (ctx.single_line_block() != null) {
-			body = (Block) ctx.single_line_block().accept(this);
-		} else {
+		boolean aabstract;
+		
+		Block body = null;
+		if(ctx.blockOrBlock() != null) {
+			body = (Block)ctx.blockOrBlock().accept(this);
+			aabstract = false;
+		}else {
 			aabstract = true;
-			body = null;
 		}
 
 		FuncParams params = ctx.funcParams() != null ? (FuncParams) ctx.funcParams().accept(this) : new FuncParams(ctx.start.getLine(), ctx.start.getCharPositionInLine());
@@ -1872,6 +1871,18 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		return new Pair<String, Expression>(ctx.NAME() == null ? null : ctx.NAME().getText(), expr);
 	}
 
+
+	@Override
+	public Block visitBlockOrBlock(ConcurnasParser.BlockOrBlockContext ctx) {
+		Block bbk;
+		if (ctx.block() != null) {
+			bbk = (Block) ctx.block().accept(this);
+		} else {
+			bbk = (Block) ctx.single_line_block().accept(this);
+		}
+		return bbk;
+	}
+
 	@Override
 	public ConstructorDef visitConstructorDef(ConcurnasParser.ConstructorDefContext ctx) {
 		int line = ctx.start.getLine();
@@ -1881,13 +1892,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		AccessModifier accessModi = accessModifierAndInject == null?null:accessModifierAndInject.getA();
 		
 		FuncParams params = ctx.funcParams() == null ? new FuncParams(line, col) : (FuncParams) ctx.funcParams().accept(this);
-
-		Block bbk;
-		if (ctx.block() != null) {
-			bbk = (Block) ctx.block().accept(this);
-		} else {
-			bbk = (Block) ctx.single_line_block().accept(this);
-		}
+		
+		Block bbk = (Block)ctx.blockOrBlock().accept(this);
 
 		ConstructorDef cd = new ConstructorDef(line, col, accessModi, params, bbk);
 		cd.isInjected = accessModifierAndInject==null?false:accessModifierAndInject.getB();
@@ -2043,12 +2049,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ctx.match_case_stmt().forEach(a -> cases.add((MactchCase) a.accept(this)));
 
 		Block elseblock = null;
-		if (ctx.elseb != null) {
-			elseblock = (Block) ctx.elseb.accept(this);
-		} else if (ctx.elsebs != null) {
-			elseblock = (Block) ctx.elsebs.accept(this);
+		if(ctx.elseb != null) {
+			elseblock = (Block)ctx.elseb.accept(this);
 		}
-
+		
 		return new MatchStatement(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Statement) ctx.simple_stmt().accept(this) /* RefName matchon */, cases, elseblock);
 	}
 
@@ -2059,7 +2063,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public MactchCase visitMatch_case_stmt_case(ConcurnasParser.Match_case_stmt_caseContext ctx) {
-		Block blk = (Block) (ctx.block() != null ? ctx.block().accept(this) : ctx.single_line_block().accept(this));
+		Block blk = (Block)ctx.blockOrBlock().accept(this);
 
 		CaseExpression ce;
 		if (ctx.match_case_stmt_assign() != null) {
@@ -2088,7 +2092,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public MactchCase visitMatch_case_stmt_nocase(ConcurnasParser.Match_case_stmt_nocaseContext ctx) {
-		Block blk = (Block) (ctx.block() != null ? ctx.block().accept(this) : ctx.single_line_block().accept(this));
+		Block blk = (Block)ctx.blockOrBlock().accept(this);
 
 		CaseExpression ce;
 		if (ctx.match_case_stmt_assign() != null) {

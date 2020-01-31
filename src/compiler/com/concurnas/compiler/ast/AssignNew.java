@@ -58,6 +58,7 @@ public class AssignNew extends Assign implements REPLTopLevelComponent{
 		ret.gpuVarQualifier = gpuVarQualifier;
 		ret.isInjected = isInjected;
 		ret.skipNullableCheck = skipNullableCheck;
+		ret.origNamePreASTRedirect = origNamePreASTRedirect;
 		
 		return ret; 
 	}
@@ -232,6 +233,7 @@ public class AssignNew extends Assign implements REPLTopLevelComponent{
 	}
 	
 	private boolean supressErrors = false;
+	public String origNamePreASTRedirect;
 	@Override
 	public void setSupressErrors(boolean supressErrors) {
 		this.supressErrors = supressErrors;

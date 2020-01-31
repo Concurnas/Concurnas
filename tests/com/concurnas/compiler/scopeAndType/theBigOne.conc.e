@@ -4221,9 +4221,9 @@ x556tuplesrhsno.conc line 6:2 c cannot be resolved to a variable
  
 ~~~~~
 //##557. no tuples in gpu 
+x557notuplesingpu.conc line 1:10 non primative types may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 7:5 tuples may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 8:1 tuple decomposition may not be used within a gpudef or gpukernel
-x557notuplesingpu.conc line 13:2 non primative types may not be used within a gpudef or gpukernel
  
 ~~~~~
 //##558. anon lambda ret type incompatible

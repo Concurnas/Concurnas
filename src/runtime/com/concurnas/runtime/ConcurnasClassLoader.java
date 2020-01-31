@@ -2,6 +2,7 @@ package com.concurnas.runtime;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
@@ -92,17 +93,17 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 	
 	private void loadClasses(){
 		//later tnerites override earlier ones
-		if(null != this.classpath){
-			for(Path thing : this.classpath){
-				//File thing = new File(element);
-				ClassloaderUtils.populateClasses(thing, thing, clsToClasspath, true);
-			}
-		}
-
 		if(this.primordialClassPath != null){
 			for(Path thing : this.primordialClassPath){
 				//File thing = new File(element);
-				ClassloaderUtils.populateClasses(thing, thing, clsToPrimordialClasspath, false);
+				ClassloaderUtils.populateClasses(thing, thing, clsToPrimordialClasspath, false, null);
+			}
+		}
+		
+		if(null != this.classpath){
+			for(Path thing : this.classpath){
+				//File thing = new File(element);
+				ClassloaderUtils.populateClasses(thing, thing, clsToClasspath, true, clsToPrimordialClasspath);
 			}
 		}
 	}
@@ -352,7 +353,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
 		Class<?> ret = definedAlready.get(name);
 		
-		//System.err.println(" loadclass: " + name);
+		//System.err.println("loadclass: " + name + " already def: " + (null != ret));
 				
 		if (null == ret) {
 			// check parent first
@@ -408,7 +409,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
     	//TODO: combine with above method
     	//TODO: exclude code from cdk?
     	String nameSlash = name.replace('.', '/');
-
+    	
     	Class<?> retola = definedAlready.get(name);
     	
     	if(null == retola){
@@ -457,13 +458,6 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
     			} catch (IOException e) {
     				throw new ClassNotFoundException("Cannot load class");
     			}
-        		
-				/*if (null != this.parent) {
-					try {
-						return this.parent.loadClass(name);
-					} catch (ClassNotFoundException e) {
-					}
-				}*/
         		
 				try {
 					String loadName = name.endsWith("$Globals$") ? name.substring(0, name.length() - 9) : name;

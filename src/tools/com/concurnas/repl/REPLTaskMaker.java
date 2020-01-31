@@ -12,7 +12,6 @@ import com.concurnas.conc.TaskMaker;
 
 public class REPLTaskMaker extends TaskMaker implements Opcodes{
 
-
 	public REPLTaskMaker(String invokerclassName, String classBeingTested, Set<String> newvars){
 		super(invokerclassName, classBeingTested, newvars, false);
 	}
@@ -45,11 +44,40 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				String var = itr.next();
 
 				mv.visitLabel(new Label());
+				mv.visitLdcInsn(var);
+				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/repl/REPLRuntimeState", "contains", "(Ljava/lang/String;)Z", false);
+				Label onmissing = new Label();
+				mv.visitJumpInsn(IFEQ, onmissing);
+				
+				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(var + " ==> ");
+				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false);
+				mv.visitLdcInsn(var);
+				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/repl/REPLRuntimeState", "get", "(Ljava/lang/String;)Ljava/lang/Object;", false);
+				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				mv.visitLdcInsn("\n");
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+				
+				Label after = new Label();
+				mv.visitJumpInsn(GOTO, after);
+				
+				mv.visitLabel(onmissing);
+				mv.visitLdcInsn("|  ERROR variable "+var+" does not exist\n");
+				
+				mv.visitLabel(after);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				
+				/*
+				mv.visitLabel(new Label());
 				mv.visitFieldInsn(GETSTATIC, "com/concurnas/repl/REPLRuntimeState", "vars", "Ljava/util/Map;");
 				mv.visitLdcInsn(var);
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "containsKey", "(Ljava/lang/Object;)Z", true);
 				Label onmissing = new Label();
 				mv.visitJumpInsn(IFEQ, onmissing);
+				
 				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
 				mv.visitInsn(DUP);
 				mv.visitLdcInsn(var + " ==> ");
@@ -59,23 +87,20 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", true);
 				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				//if(n++ < sz) {
-					mv.visitLdcInsn("\n");
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-				//}
+				mv.visitLdcInsn("\n");
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+				
 				Label after = new Label();
 				mv.visitJumpInsn(GOTO, after);
-				mv.visitLabel(onmissing);
 				
-				String errMsg = "|  ERROR variable "+var+" does not exist";
-				//if(n++ < sz) {
-					errMsg += "\n";
-				//}
-				mv.visitLdcInsn(errMsg);
+				mv.visitLabel(onmissing);
+				mv.visitLdcInsn("|  ERROR variable "+var+" does not exist\n");
+				
 				mv.visitLabel(after);
 				
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				*/
 			}
 			
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
@@ -116,9 +141,5 @@ public class REPLTaskMaker extends TaskMaker implements Opcodes{
 		mv.visitInsn(ARETURN);
 		mv.visitEnd();
 		
-	}
-	
-	private void sdfsdf() {
-		String xxx = REPLRuntimeState.vars.containsKey("myVar")?"myVar ==> " + REPLRuntimeState.vars.get("myVar"):"|  ERROR variable myVar does not exist";
 	}
 }

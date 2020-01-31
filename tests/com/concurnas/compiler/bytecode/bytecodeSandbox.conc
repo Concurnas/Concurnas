@@ -1,4 +1,34 @@
+def matcher(a Object) {
+	match(a){
+		int; ==1 or ==2 => { "first case"}
+		else => "other case"
+	}
+}
 
+def doings(){
+	a1=matcher(1) // -> returns “first case”
+	a2=matcher(2)  // -> returns “first case”
+	a3=matcher(3)  // -> returns “other case”
+
+	"" + [a1, a2, a3]	
+}
+	
+	
+	
+
+//System out println "hello world"
+
+
+/*
+from com.sun.net.httpserver import HttpServer
+
+def doings(){
+	srv = HttpServer.create()
+	"" + srv
+}*/
+
+
+/*
 gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
     globalRow = get_global_id(0) // Row ID of C (0..M)
     globalCol = get_global_id(1) // Col ID of C (0..N)
@@ -54,3 +84,4 @@ def doings(){
 	
 	'nice: ' + ret
 }
+*/

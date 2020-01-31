@@ -33,7 +33,8 @@ public class InExpression extends AbstractExpression implements Expression, CanB
 		ret.isArrayMatch = isArrayMatch;
 		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
-
+		ret.containsMethodCall = containsMethodCall == null ? null: (Expression)containsMethodCall.copy();
+		
 		return ret;
 	}
 	private Expression preceedingExpression;

@@ -237,12 +237,7 @@ public class Conc {
 					version = System.getProperty("java.specification.version");
 				}
 				
-				System.out.println(String.format("|  Welcome to Concurnas %s (%s, Java %s).", concVersion, vmname, version));
-				System.out.println("|  Currently running in REPL mode...");
-				System.out.println("|  For help type: /help\n");
-				
-				
-				returnCode = REPLShell.replLoop(validconcObject.bytecode, false);
+				returnCode = REPLShell.replLoop(concVersion, vmname, version, validconcObject.bytecode, false);
 				return "";
 			}else {
 				ConcurnasClassLoader concClassLoader = validconcObject.concClassLoader;

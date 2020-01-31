@@ -42,7 +42,8 @@ n+1 for n in [1 2 3]//list comprehension
 	\begin{lstlisting}
 a = 8
 anint int = 99
-aref := 21 //a reference
+var reassignOk = 12//new variable
+val nonReassign = 99//new variable cannot reassign
 	\end{lstlisting}
 	
 	\item \textbf{Control flow statements:}
@@ -97,17 +98,30 @@ actor MyActor
 actor AnotherActor of MyClass
 enum MyEnum{ONE, TWO, THREE}
 \end{lstlisting}
-			
+
+
+\item \textbf{Isolates and refs:}
+\begin{lstlisting}
+aref := 21 //a reference
+res = { 'hello' + ' world' }!
+//^ string concatination performed in dedicated thread like isolate, returns ref
+res int: = myfunc(12)!
+//^ myfunc called in dedicated thread like isolate, returns ref
+res = myfunc(12)!//same as above with return type inferred
+\end{lstlisting}
+
+
 	\item \textbf{Reactive concurrent statements:}
 	\begin{lstlisting}
 onchange(x){ doSomething()}//on change of x, perform an action
-every(x){ doSomething()}//as above but including initial value
+every(x){ doSomething(x)}//as above but including initial value
 await(x; x > 2)//pause execution until the condition is met
 trans{//a transaction acting upon two references
 	a -= 10
 	b += 10
 }
-z <= a+b//shorthand for onchange
+z <= a+b//shorthand for every
+z <- a+b//shorthand for onchange
 	\end{lstlisting}
 	
 	\item \textbf{Object providers:}

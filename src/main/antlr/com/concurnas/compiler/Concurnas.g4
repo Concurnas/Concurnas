@@ -228,10 +228,12 @@ compound_stmt_atomic_base
   | every    
   ;
 
+blockOrBlock : block | single_line_block;
+
 funcdef 
     : ppp?  ( (override='override')? ('def' | gpuitem = 'gpudef' | gpuitem ='gpukernel' kerneldim = intNode) | (override='override') )  ( (extFuncOn ('|' extFuncOn)* )? funcDefName DOT?)?
     		genericQualiList?
-    		LPARA {setNotInArrayDef();} funcParams? RPARA {popInArrayDef();} retTypeIncVoid? (  block | single_line_block )?
+    		LPARA {setNotInArrayDef();} funcParams? RPARA {popInArrayDef();} retTypeIncVoid? blockOrBlock?
 	;
 
 funcDefName
@@ -277,7 +279,7 @@ gpuVarQualifier: 'global'|'local'|'constant';
 gpuInOutFuncParamModifier : 'in'|'out';
 
 constructorDef 
-  :  ppp? 'def'? 'this' LPARA {setNotInArrayDef();} funcParams? RPARA {popInArrayDef();} (block | single_line_block)
+  :  ppp? 'def'? 'this' LPARA {setNotInArrayDef();} funcParams? RPARA {popInArrayDef();} blockOrBlock
   ;
 
 
@@ -434,7 +436,7 @@ match_stmt
   'match' NEWLINE* LPARA {setNotInArrayDef();} NEWLINE* simple_stmt NEWLINE* RPARA {popInArrayDef();} NEWLINE* 
    LBRACE NEWLINE*
 	   match_case_stmt*
-	   ( NEWLINE* 'else'  (elseb=block | elsebs = single_line_block))?
+	   ( NEWLINE* 'else'  elseb=blockOrBlock)?
     NEWLINE* RBRACE 
   ;
 
@@ -451,7 +453,7 @@ match_case_stmt_case:
 	      	) matchAlso=match_also_attachment?) 
 	      | justAlso=match_also_attachment//needs an also...
 	      )  RPARA {popInArrayDef();}
-	    (block | single_line_block) 
+	    blockOrBlock 
 	) 
    ;
    
@@ -466,7 +468,7 @@ match_case_stmt_nocase:
 	      	) matchAlso=match_also_attachment?) 
 	      | justAlso=match_also_attachment//needs an also...
 	      )  
-	    (block | single_line_block) 
+	    blockOrBlock
 	) 
    ;
 

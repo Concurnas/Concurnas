@@ -1,6 +1,7 @@
 package com.concurnas.repl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Before;
@@ -503,9 +504,9 @@ public class REPLTests {
 		
 		assertEquals("|  redefined Person",repl.processInput("class Person(name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
 		assertEquals("v2 ==> Person(dave, person, 1989)", repl.processInput("v2 = new Person('dave', 'person', 1989)"));
-		assertEquals("$0 ==> true", repl.processInput("v1 == v2"));
+		assertEquals("$0 ==> ok", repl.processInput("try{x=v1 == v2; 'fail'}catch(e){'ok'}"));
 		
-		assertEquals("$1 ==> dave",repl.processInput("v1.name"));
+		assertEquals("$1 ==> ok",repl.processInput("try{n=v1.name; 'fail'}catch(e){'ok'}"));
 		assertEquals("|  ERROR 1:3 The variable name is not visible",repl.processInput("v2.name"));
 	}
 	
@@ -521,13 +522,6 @@ public class REPLTests {
 		assertEquals("|  ERROR 1:14 in make() - Unable to find method with matching name: Person", repl.processInput("def make() => Person('dave', 'person', 1989)"));
 		assertEquals("|  created Person\n|    update modified make()",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
 		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()"));
-	}
-	
-	@Test
-	public void constructorRefFwdRef() throws Exception {
-		assertEquals("|  ERROR 1:18 in make() - Unable to find reference function Type for: <init>", repl.processInput("def make() => new Person&"));
-		assertEquals("|  created Person\n|    update modified make()",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
-		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()('dave', 'person', 1989)"));
 	}
 	
 	@Test
@@ -897,15 +891,6 @@ public class REPLTests {
 	}
 	
 	@Test
-	public void awaitInFuncManyLines() throws Exception {
-		assertEquals("", repl.processInput("a int:= 1;"));
-		assertEquals("|  created function getA()", repl.processInput("def getA() => a:"));
-		assertEquals("", repl.processInput("d := getA();"));
-		assertEquals("|  created function waiter(java.lang.Integer:, int)", repl.processInput("def waiter(x int:, n int) {  await(x; x == n) }"));
-		assertEquals("a ==> 10:", repl.processInput("a = 10; waiter(a:, 10); a"));
-	}
-	
-	@Test
 	public void awaitInTopLevel() throws Exception {
 		assertEquals("", repl.processInput("a int:= 1;"));
 		assertEquals("", repl.processInput("await(a; a == 1)"));
@@ -1015,7 +1000,7 @@ public class REPLTests {
 		
 		//and redefine
 		assertEquals("|  created Person", repl.processInput("class Person(~name String, lastname String = 'smith', yob int){ override toString() => 'PersonNew({name}, {lastname}, {yob})'}"));//updates, bar and foo
-		assertEquals("p3 ==> Person(dave, smith, 23)", repl.processInput("p3 = Person('dave', 23)"));//ERROR should be new def: PersonNew
+		assertEquals("p3 ==> PersonNew(dave, smith, 23)", repl.processInput("p3 = Person('dave', 23)"));//ERROR should be new def: PersonNew
 	}
 	
 	@Test
@@ -1179,6 +1164,35 @@ public class REPLTests {
 	}
 	
 	@Test
+	public void nullableTypes() throws Exception {
+		assertEquals("v ==> hi", repl.processInput("v String? = 'hi'"));
+		assertEquals("v ==> null", repl.processInput("v=null"));
+	}
+	
+	@Test
+	public void dontremovePrevOKVarDuetoFaultyAssign() throws Exception {
+		assertEquals("v ==> hi", repl.processInput("v String = 'hi'"));
+		assertEquals("|  ERROR 1:0 in v - Assingment can be null, but assignment type is not nullable", repl.processInput("v=null"));
+		assertEquals("v ==> hi", repl.processInput("v"));
+	}
+	
+	@Test
+	public void doubleFuncDefine() throws Exception {
+		assertEquals("|  created function sum(int[])", repl.processInput("def sum(what int[]){ ret = 0; for(x in what) { ret += x} return ret; }"));
+		assertEquals("$0 ==> 15", repl.processInput("sum([1 2 3 4 5])"));
+		assertEquals("|  redefined function sum(int[])", repl.processInput("def sum(what int[]){ ret = 0; for(x in what) { ret += x} return ret; }"));
+		assertEquals("$1 ==> 15", repl.processInput("sum([1 2 3 4 5])"));
+	}
+	
+	@Test
+	public void sumExprList() throws Exception {
+		assertEquals("|  created function sum(int[])", repl.processInput("def sum(what int[]){ ret = 0; for(x in what) { ret += x} return ret; }"));
+		assertEquals("", repl.processInput("a = [1 2 3 4 5 6 7 8 9];"));
+		assertEquals("$0 ==> 45", repl.processInput("sum a"));
+	}
+	
+
+	@Test
 	public void gpukernel() throws Exception {
 		String gpuKernel = "gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {\r\n" + 
 				"	    globalRow = get_global_id(0) // Row ID of C (0..M)\r\n" + 
@@ -1243,18 +1257,66 @@ public class REPLTests {
 		assertEquals("$0 ==> nice: [7.0 10.0 ; 15.0 22.0]", repl.processInput("doings()"));
 	}
 	
-	
 	@Test
-	public void nullableTypes() throws Exception {
-		assertEquals("v ==> hi", repl.processInput("v String? = 'hi'"));
-		assertEquals("v ==> null", repl.processInput("v=null"));
+	public void fwdVarChange() throws Exception {
+		assertEquals("|  ERROR 1:13 in foo() - ab cannot be resolved to a variable", repl.processInput("def foo() => ab"));
+		assertEquals("|    update modified foo()\n\nab ==> 100", repl.processInput("ab = 100"));
+		assertEquals("$0 ==> 100", repl.processInput("foo()"));
+		assertEquals("ab ==> 200", repl.processInput("ab = 200"));
+		assertEquals("ab ==> 200", repl.processInput("ab"));
+		assertEquals("$1 ==> 200", repl.processInput("foo()"));
 	}
 	
 	@Test
-	public void dontremovePrevOKVarDuetoFaultyAssign() throws Exception {
-		assertEquals("v ==> hi", repl.processInput("v String = 'hi'"));
-		assertEquals("|  ERROR 1:0 in v - Assingment can be null, but assignment type is not nullable", repl.processInput("v=null"));
-		assertEquals("v ==> hi", repl.processInput("v"));
+	public void awaitInFuncManyLines() throws Exception {
+		assertEquals("", repl.processInput("a int:= 1;"));
+		assertEquals("|  created function getA()", repl.processInput("def getA() => a:"));
+		assertEquals("", repl.processInput("d := getA();"));
+		assertEquals("|  created function waiter(java.lang.Integer:, int)", repl.processInput("def waiter(x int:, n int) {  await(x; x == n) }"));
+		assertEquals("a ==> 10:", repl.processInput("a = 10; waiter(a:, 10); a"));
+	}
+	
+	@Test
+	public void topLevelIsolateIsolation() throws Exception {
+		assertEquals("a ==> 99", repl.processInput("a=99"));
+		assertEquals("a ==> 100", repl.processInput("++a; a"));
+		assertEquals("a ==> 100", repl.processInput("a"));
+		assertEquals("$1 ==> 101:", repl.processInput("{++a}!"));
+		assertEquals("a ==> 100", repl.processInput("a"));
+	}
+	
+	@Test
+	public void redefClass() throws Exception {
+		assertEquals("|  created MyClass", repl.processInput("class MyClass(az int) { override toString() { 'MyClass({az})' } }"));
+		assertEquals("d ==> 12", repl.processInput("d=12"));
+		assertEquals("a ==> MyClass(12)", repl.processInput("a=new MyClass(12)"));
+		assertEquals("a ==> MyClass(13)", repl.processInput("a=new MyClass(13)"));
+		assertEquals("|  redefined MyClass", repl.processInput("class MyClass(a int) { override toString() { 'MyClass2({a})' } }"));
+		assertEquals("b ==> MyClass2(12)", repl.processInput("b=new MyClass(12)"));
+		assertEquals("a ==> MyClass(13)", repl.processInput("a"));
+	}
+	
+	@Test
+	public void redefClassSelfRef() throws Exception {
+		assertEquals("|  created MyClass", repl.processInput("class MyClass(az int) { override toString() { 'MyClass({az})' } def thing(g MyClass) => [g g] }"));
+		assertEquals("a ==> MyClass(12)", repl.processInput("a=new MyClass(12)"));
+		assertEquals("b ==> [MyClass(12) MyClass(12)]", repl.processInput("b=a thing a"));
+	}
+	
+	
+	@Test
+	public void constructorRefFwdRef() throws Exception {
+		assertEquals("|  ERROR 1:18 in make() - Unable to find reference function Type for: <init>", repl.processInput("def make() => new Person&"));
+		assertEquals("|  created Person\n|    update modified make()",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()('dave', 'person', 1989)"));
+		
+	}
+	
+	@Test
+	public void constructorRef() throws Exception {
+		assertEquals("|  created Person",repl.processInput("class Person(~name String, lastname String, yob int){ override toString() => 'Person({name}, {lastname}, {yob})'} "));//updates, bar and foo
+		assertEquals("|  created function make()", repl.processInput("def make() => new Person&"));
+		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()('dave', 'person', 1989)"));
 	}
 	
 	

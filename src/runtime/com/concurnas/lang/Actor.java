@@ -17,7 +17,7 @@ import com.concurnas.runtime.ref.Local;
 
 @Shared
 public class Actor  implements ReifiedType  {
-	private final PriorityQueue<Pair<?, ?>> processQueue = new PriorityQueue<Pair<?, ?>>();//usually 2nd arg is Function1<ActingOn, ?> 
+	public final PriorityQueue<Pair<?, ?>> processQueue = new PriorityQueue<Pair<?, ?>>();//usually 2nd arg is Function1<ActingOn, ?> 
 	//private final LinkedList<Function0<?>> initializers = new LinkedList<Function0<?>>();
 
 	protected final void addCall(int priority, Pair<?, ?> x){

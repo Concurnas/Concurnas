@@ -70,7 +70,7 @@ task runVersionSplicer(type: JavaExec) {
   main = 'com.concurnas.build.VersionSplicer'
 }
 
-task runInstaller(type: JavaExec) {
+task runCacheCreator(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = 'com.concurnas.runtimeCache.RuntimeCacheCreator'
 }
@@ -86,8 +86,8 @@ task runLibCompile(type: JavaExec) {
 }
 
 compileJava.finalizedBy runVersionSplicer
-runVersionSplicer.finalizedBy runInstaller
-runInstaller.finalizedBy runLibCompile
+runVersionSplicer.finalizedBy runCacheCreator
+runCacheCreator.finalizedBy runLibCompile
 
 test.enabled = false
 task test(type: JavaExec, overwrite: true) {

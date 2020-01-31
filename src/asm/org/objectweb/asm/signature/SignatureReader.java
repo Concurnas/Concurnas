@@ -178,6 +178,9 @@ public class SignatureReader {
         signatureVisitor.visitTypeVariable(signature.substring(offset, endOffset));
         return endOffset + 1;
 
+      case '+'://skip this move onto next
+    	  currentChar = signature.charAt(offset++);
+    	  
       case 'L':
         // Case of a ClassTypeSignature, which ends with ';'.
         // These signatures have a main class type followed by zero or more inner class types
@@ -244,7 +247,6 @@ public class SignatureReader {
           }
         }
         return offset;
-
       default:
         throw new IllegalArgumentException();
     }
