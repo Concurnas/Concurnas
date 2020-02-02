@@ -60,9 +60,9 @@ This logic is reasonably comprehensive and can cater for complex cases such as t
 alambda ((int) int)? = def (a int) => a+10
 
 res = if(alambda == null){
-0
-}else{//we've established that alambda is not null
-alambda(1)
+			0
+		}else{//we've established that alambda is not null
+			alambda(1)
 }
 \end{lstlisting}
 
@@ -70,9 +70,9 @@ This logic applies on an incorporated running basis within the if test, thus the
 
 \begin{lstlisting}
 res = if(nullableVar <> null and nullableVar.length() > 2){
-"ok"
-}else{
-"fail"
+			"ok"
+		}else{
+			"fail"
 }
 \end{lstlisting}
 
@@ -91,9 +91,9 @@ This logic is applied to branching control flow:
 a=2; b=10
 nullable  String?  = null
 if(a > b){
-nullable = "ok"
+	nullable = "ok"
 }else{
-nullable = "also ok"
+	nullable = "also ok"
 }
 ok = nullable.length()//ok as we know at this point nullable isn't nullable
 \end{lstlisting}
@@ -102,26 +102,22 @@ This inference logic extends to class fields with the caveat that calls to metho
 
 \begin{lstlisting}
 class MyClass{
-aString String?
+	aString String?
 
-def nullable(){
-aString = "ok"
-foo()
-aString.length()//aString might be nullable
-}
-
-def inferNonNull(){
-aString = "ok"
-aString.length()//aString is not nullable
-}
-
-def foo(){
-
-}
+	def foo(){ 
+		aString = null
+	}
+	
+	def inferNonNull(){
+		aString = "ok"
+		len = aString.length()//ok aString is not nullable
+		foo()//foo may set aString to null
+		len = aString.length()//error aString might be nullable
+	}
 }
 \end{lstlisting}
 
-This logic does not apply to shared nullable variables since they set to null by any isolate having access to them.
+This logic does not apply to shared nullable variables since they can be set to null by any isolate having access to them.
 
 
 \section{Safe calls}
@@ -139,7 +135,7 @@ normalString String = "a String"
 len = normalString?.length()//compilaton error
 \end{lstlisting}
 
-\subsection{ Array reference safe calls }
+\subsection{Array reference safe calls }
 Safe calls can be applied to array reference calls by inserting a \lstinline{?} between the expression and array reference brackets \lstinline{[]} as follows:
 
 \begin{lstlisting}
@@ -166,8 +162,8 @@ firstChildColor = parent?.children?[0]?.favColour//chained safe calls
 The Elvis operator\footnote{So called as the token looks like the emoticon for Elvis Presley}, \lstinline{?:} in Concurnas servers a similar purpose to the safe dot operator above in that it allows us to react appropriately to the case where the expression on the left hand side of the operator resolves to \lstinline{null}. The difference with the Elvis operator is that when \lstinline{null} is found, the expression on the right hand side is evaluated and returned:
 
 \begin{lstlisting}
-nullableVar String? = "a String"
-len = nullableVar?.length()?:-1//len is of type Integer? (nullable Integer)
+nullableVar String? = null
+len int = (nullableVar?: "").length()
 \end{lstlisting}
 
 \section{No null assertion}
@@ -229,8 +225,8 @@ inst.x = null//this is ok
 Class fields if not initialized at point of declaration or via the constructor invocation chain will default to null. Class fields like this must be declared as being nullable otherwise they will be flagged up as an error at compilation time. For example:
 \begin{lstlisting}
 class UninitNonNullables<X>{
-aString String//initially set to null, but type not nullable - hence error!
-anArray int[] //initially set to null, but type not nullable - hence error!
+	aString String//initially set to null, but type not nullable - hence error!
+	anArray int[] //initially set to null, but type not nullable - hence error!
 }
 \end{lstlisting}
 
@@ -238,7 +234,7 @@ This can be solved by either declaring the variables as being of a nullable type
 
 \begin{lstlisting}
 class UninitNonNullables<X>(anArray int[]){//initialized in default constructor
-aString String?//nullable
+	aString String?//nullable
 }
 \end{lstlisting}
 
@@ -275,13 +271,13 @@ import com.concurnas.lang.NoNull.When;
 import java.util.List;
 
 public static @NoNull List<@NoNull String> addToList(@NoNull List<@NoNull String> addTo, @NoNull String item ){
-addTo.add(item);
-return addTo;
+	addTo.add(item);
+	return addTo;
 }
 
 public static @NoNull(when = When.NEVER) List<@NoNull(when = When.NEVER) String> addToListNULL(@NoNull(when = When.NEVER) List<@NoNull(when = When.NEVER) String> addTo, @NoNull(when = When.NEVER) String item ){
-addTo.add(item);
-return addTo;
+	addTo.add(item);
+	return addTo;
 }
 \end{lstlisting}
 

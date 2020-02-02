@@ -1,6 +1,6 @@
 package com.concurnas.repl;
 
-import java.io.IOError;
+import java.util.ArrayList;
 
 import org.jline.builtins.Widgets.AutopairWidgets;
 import org.jline.reader.EndOfFileException;
@@ -10,8 +10,6 @@ import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.DefaultParser.Bracket;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 
 public class REPLShell {
 
@@ -80,7 +78,7 @@ public class REPLShell {
 		System.out.println(String.format("Welcome to Concurnas %s (%s, Java %s).", concVersion, vmname, version));
 		System.out.println("Currently running in REPL mode. For help type: /help\n");
 		
-        while (true) {
+		while (true) {
             String line = null;
             try {
                 line = reader.readLine("conc> ").trim();

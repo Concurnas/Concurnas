@@ -1129,6 +1129,7 @@ NAME: //{permitDollarPrefixRefName}? => '$'+ NAME_ITMS |
 	 | '\\constant' {setText("constant");}
 	 | '\\local' {setText("local");}
 	 | '\\global' {setText("global");}
+	 | '\\of' {setText("of");}
 	 //TODO: add backslash as a general escape pattern
 	;
 
