@@ -1907,7 +1907,7 @@ public class TypeCheckUtils {
 		while(true) {
 			if(inps.hasArrayLevels()) {
 				inps.setArrayLevels(0);
-			}else if(TypeCheckUtils.isList(errorRaisableSupression, inps, false)){
+			}else if(TypeCheckUtils.isList(errorRaisableSupression, inps, false) && ((NamedType)inps).getGenericTypeElements() != null && !((NamedType)inps).getGenericTypeElements().isEmpty()){
 				inps = ((NamedType)inps).getGenericTypeElements().get(0);
 			}else {
 				break;

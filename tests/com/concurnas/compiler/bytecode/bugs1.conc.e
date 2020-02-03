@@ -863,3 +863,11 @@ ok102
 ~~~~~
 //##214. const folding bugfix
 (1.5, 6.0, 1, 5.0, 5.0, true, true)
+
+~~~~~
+//##215. syntax err previously for tuple declaration
+ok
+
+~~~~~
+//##216. syntax err previously for tuple declaration async
+ok

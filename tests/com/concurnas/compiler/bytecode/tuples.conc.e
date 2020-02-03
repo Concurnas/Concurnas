@@ -152,3 +152,7 @@ true
 ~~~~~
 //##39. tuple creation when assigned to a ref
 ok
+
+~~~~~
+//##40. tuple of refs
+(Holder(9), Holder(12))

@@ -8,6 +8,7 @@ public class AsyncRefRef extends AbstractExpression implements Expression {
 	public Expression b;
 	public int refCntLevels;
 	public boolean checkRefLevels;
+	public Node astRedirect;
 	//public boolean followedByRefOperation;
 
 	public AsyncRefRef(int line, int col, Expression b, int refCntLevels) {
@@ -23,6 +24,11 @@ public class AsyncRefRef extends AbstractExpression implements Expression {
 	@Override
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
+		
+		if(null != astRedirect ){
+			return astRedirect.accept(visitor);
+		}
+		
 		return visitor.visit(this);
 	}
 
@@ -31,6 +37,7 @@ public class AsyncRefRef extends AbstractExpression implements Expression {
 		AsyncRefRef ret = new AsyncRefRef(super.line, super.column, (Expression)b.copy(), refCntLevels);
 		ret.checkRefLevels = this.checkRefLevels;
 		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
+		ret.astRedirect = astRedirect==null?null:astRedirect.copy();
 		//ret.followedByRefOperation = this.followedByRefOperation;
 		return ret;
 	}

@@ -21,7 +21,7 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 	public boolean isSynth = false;
 	public Type refRepointOrigLhsType;
 	public Node astRedirectforOnChangeNesting;
-	public Expression astRedirect;
+	public Node astRedirect;
 	public Node primaryASTOverride;
 	private Block vectorizedRedirect=null;
 	public ArrayList<Type> genTypes;
@@ -167,6 +167,7 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 		ret.requiresGenTypeInference = requiresGenTypeInference;
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		ret.origName = origName==null?null:(RefName)origName.copy();
+		ret.lhsOfAssignExisting = lhsOfAssignExisting;
 		//ret.copyInArgs = copyInArgs;
 		//ret.vectroizedDegreeAndArgs = vectroizedDegreeAndArgs;
 		
@@ -222,6 +223,7 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 	public boolean supressVectorization=false;
 	public boolean requiresGenTypeInference=false;
 	public RefName origName;
+	public boolean lhsOfAssignExisting=false;;
 	@Override
 	public boolean hasErroredAlready() {
 		return hasErrored;

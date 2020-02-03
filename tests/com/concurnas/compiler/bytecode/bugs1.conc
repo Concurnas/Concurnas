@@ -4016,3 +4016,23 @@ def doings(){//folding constants
 	eq2 = 2. == 2
 	"" + (div, mul, mo, plus1, plus2, eq1, eq2)
 }
+~~~~~
+//##215. syntax err previously for tuple declaration
+class Holder(a int)
+
+def doings(){
+	lowhigh (Holder, Holder, Holder)
+	
+	"ok"
+}
+
+~~~~~
+//##216. syntax err previously for tuple declaration async
+
+class Holder(a int)
+
+def doings(){
+	lowhigh (Holder, Holder, Holder):
+	
+	"ok"
+}

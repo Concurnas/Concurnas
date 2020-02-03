@@ -4485,3 +4485,8 @@ x610importstarscopes.conc line 8:8 Unable to resolve type corresponding to name:
 ~~~~~
 //##611. top level del on func
 x611topleveldelonfunc.conc line 4:4 thing resolves to something other than a local variable
+
+~~~~~
+//##612. missing typed used to blow up
+bytecodeSandbox.conc line 9:9 Unable to find method with matching name: BigDecimal
+bytecodeSandbox.conc line 16:10 Unable to find method with matching name: constructor and arguments (java.time.LocalDateTime, void)

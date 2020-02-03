@@ -460,3 +460,21 @@ def doings(){
 		
 	"ok"
 }
+
+~~~~~
+//##40. tuple of refs
+class Holder(a int){ override toString() => "Holder({a})"}
+
+def doings(){
+	lowhigh (Holder, Holder):
+	
+	str Holder:
+	
+	onchange(str){
+		lowhigh = (str, Holder(12))
+	}
+	
+	str = Holder(9)
+	
+	"" + lowhigh
+}

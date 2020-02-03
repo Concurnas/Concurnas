@@ -2684,6 +2684,20 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			lhsResolvestoRefName = tagLhsOfAsyncRefRefExprSupressUnassign(asyncRefRef.b);
 		}
 		
+		if(asyncRefRef.b instanceof FuncInvoke) {
+			FuncInvoke funcInvoke = (FuncInvoke)asyncRefRef.b;
+			AssignNew tupleDec = checkFuncInvokeIsReallyTupleDecl(funcInvoke);
+			if(null != tupleDec){
+				
+				for(int n=0; n < asyncRefRef.refCntLevels; n++) {
+					tupleDec.type = new NamedType(0,0, tupleDec.type);
+				}
+				
+				asyncRefRef.astRedirect = tupleDec;
+				return asyncRefRef.astRedirect.accept(this);
+			}
+		}
+		
 		Type lhsType = (Type)asyncRefRef.b.accept(this);
 		Type origLhs = lhsType==null?null:(Type)lhsType.copy();
 		
@@ -4198,6 +4212,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			if(assignee instanceof FuncInvoke) {//unlikely to Work...
 				this.maskErrors(true);
+				((FuncInvoke)assignee).lhsOfAssignExisting = true;
 				lhs = (Type)assignee.accept(this);
 				ArrayList<CapMaskedErrs> errs = this.getmaskedErrors();
 				if(!errs.isEmpty()) {//map f(int, String) and f(String, String) to AssignNew tuple: f (int, String) instead of a function invokation
@@ -6793,6 +6808,38 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return null;
 	}
 	
+	private AssignNew checkFuncInvokeIsReallyTupleDecl(FuncInvoke funcInvoke) {
+		//check this myvar (Thing, Thing)//cannot be mapped to a assignNew myvar of tuple type: (Thing, Thing) 
+		if(funcInvoke.lhsOfAssignExisting) {
+			return null;
+		}
+		
+		if(!funcInvoke.args.isEmpty() && funcInvoke.args.asnames.stream().allMatch(a -> a instanceof RefName)) {
+			boolean isReallyTupleDecl = true;
+			ArrayList<Type> genTypes = new ArrayList<Type>();
+			for(Expression arg : funcInvoke.args.asnames) {
+				RefName rn = (RefName)arg;
+				NamedType tryNT = new NamedType(rn.getLine(), rn.getColumn(), rn.name);
+				this.maskErrors();
+				tryNT.accept(this);
+				if(this.maskedErrors()) {
+					isReallyTupleDecl = false;
+					break;
+				}else {
+					genTypes.add(tryNT);
+				}
+			}
+			
+			if(isReallyTupleDecl) {
+				ArrayList<Pair<String, ArrayList<Type>>> nestorSegments = new ArrayList<Pair<String, ArrayList<Type>>>();
+				NamedType tt = new NamedType(funcInvoke.getLine(), funcInvoke.getColumn(), "Tuple" + genTypes.size(), genTypes, nestorSegments);
+				AssignNew an = new AssignNew(null, funcInvoke.getLine(), funcInvoke.getColumn(), funcInvoke.funName, tt);
+				return an;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public Object visit(FuncInvoke funcInvoke) {
 		if(funcInvoke.astRedirectforOnChangeNesting != null){
@@ -6802,6 +6849,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			this.dotOperatorLHS.pop();
 			this.currentDotOperatorTracker.pop();
 			return x;
+		}
+		
+		{
+			AssignNew tupleDec = checkFuncInvokeIsReallyTupleDecl(funcInvoke);
+			if(null != tupleDec){
+				funcInvoke.astRedirect = tupleDec;
+				return funcInvoke.astRedirect.accept(this);
+			}
 		}
 		
 		String name =  funcInvoke.funName;
@@ -18386,12 +18441,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				refName.ignoreWhenGenByteCode=true;
 				
-				/*boolean inDop = !currentDotOperatorTracker.isEmpty();
-				if(!inDop || !(inDop && currentDotOperatorTracker.peek().isProcesingLastElement()))
-				{
-					this.raiseError(refName.getLine(), refName.getColumn(), String.format("%s cannot be resolved to a variable", name));
-				}*/
-				
 				return new ModuleType(refName.getLine(), refName.getColumn(), modTypeName);
 			}
 		}
@@ -26134,7 +26183,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			return null;
 		}
 		
-		List<Type> types = tupleExpression.tupleElements.stream().map(a -> (Type)a.accept(this)).collect(Collectors.toList());
+		List<Type> types = tupleExpression.tupleElements.stream().map(a -> TypeCheckUtils.getRefType( (Type)a.accept(this))).collect(Collectors.toList());
 		
 		if(types.stream().anyMatch(a -> !TypeCheckUtils.isValidType(a))) {
 			this.raiseError(tupleExpression.getLine(), tupleExpression.getColumn(), "tuples cannot contain void");

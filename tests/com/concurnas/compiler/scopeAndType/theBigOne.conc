@@ -15929,3 +15929,31 @@ del thing
 def doings(){
 	"ok"
 }
+
+~~~~~
+//##612. missing typed used to blow up
+from java.util import Random
+from java.time import LocalDateTime
+
+class TSPoint(-dateTime LocalDateTime, -price double){ override toString() => String.format("TSPoint(%S, %.2f)", dateTime, price) }
+
+def createData(seed = 1337){//seed is an optional parameter with a default value
+	rnd = new Random(seed)
+	startTime = LocalDateTime.\of(2020, 1, 1, 0, 0)//midnight 1st jan 2020
+	price = BigDecimal(100.)
+	
+	def rnd2dp(x double) => Math.round(x*100)/100. //nested function
+	
+	ret = list()
+	for(sOffset in 0 to 60*60*24){//'x to y' - an integer range
+		time = startTime.plusSeconds(sOffset)
+		ret.add(TSPoint(time, price))
+		price += rnd2dp(rnd.nextGaussian()*0.01)
+	}
+
+	ret
+}
+
+def doings(){
+	"ok"
+}

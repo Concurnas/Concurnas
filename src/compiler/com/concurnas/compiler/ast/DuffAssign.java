@@ -65,6 +65,14 @@ public class DuffAssign extends Assign {
 			}
 		}
 		
+		if(e instanceof FuncInvoke) {
+			return ((FuncInvoke)e).astRedirect != null;
+		}
+		
+		if(e instanceof AsyncRefRef) {
+			return ((AsyncRefRef)e).astRedirect != null;
+		}
+		
 		return isValidAtClassLevel;
 	}
 

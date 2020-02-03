@@ -8768,8 +8768,8 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				bcoutputter.visitInsn(DUP);
 			}
 			
-			if(e instanceof FuncInvoke && ((FuncInvoke)e).astRedirect != null){//a bit hacky but this is the only case where this logic applies so we can get away with it
-				dotOpExprCurrentProcess=((FuncInvoke)e).astRedirect;//its used here: par = Parent<int>(); ins = par.MyClass<String>()
+			if(e instanceof FuncInvoke && ((FuncInvoke)e).astRedirect != null && ((FuncInvoke)e).astRedirect instanceof Expression){//a bit hacky but this is the only case where this logic applies so we can get away with it
+				dotOpExprCurrentProcess=(Expression)((FuncInvoke)e).astRedirect;//its used here: par = Parent<int>(); ins = par.MyClass<String>()
 			}
 			else if(e instanceof NamedConstructorRef){//another hack for this: par.new MyClass<String>&() 
 				dotOpExprCurrentProcess=((NamedConstructorRef)e).funcRef;
@@ -13122,17 +13122,6 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		bcoutputter.visitInsn(DUP);
 		
 		Utils.createTypeArray(bcoutputter, tupleType);
-		/*int typeSize = types.size();
-		Utils.intOpcode(bcoutputter, typeSize);
-		bcoutputter.visitTypeInsn(ANEWARRAY, "java/lang/Class");
-		
-		for(int n=0; n < typeSize; n++){//construct array as normal
-			String ttt = types.get(n).getBytecodeType();
-			bcoutputter.visitInsn(DUP);
-			Utils.intOpcode(bcoutputter, n);
-			bcoutputter.visitLdcInsn(org.objectweb.asm.Type.getType(ttt));
-			bcoutputter.visitInsn(AASTORE);
-		}*/
 		
 		int n=0;
 		StringBuilder methodInv = new StringBuilder("([Ljava/lang/Class;");
