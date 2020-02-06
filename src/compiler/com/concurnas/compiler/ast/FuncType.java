@@ -168,7 +168,7 @@ public class FuncType  extends AbstractType  implements Comparable<FuncType> {
 		FuncType ret = this.copyTypeSpecific();
 		ret.realReturnType=null;
 		ret.retType = null;
-		ret.inputs = new ArrayList<Type>(ret.inputs.stream().map(a -> a.copyIgnoreReturnType()).collect(Collectors.toList()));
+		ret.inputs = new ArrayList<Type>(ret.inputs.stream().map(a -> a==null?null:a.copyIgnoreReturnType()).collect(Collectors.toList()));
 		return ret;
 	}
 	
@@ -399,7 +399,7 @@ public class FuncType  extends AbstractType  implements Comparable<FuncType> {
 				for(int n = 0; n < this.inputs.size(); n++)
 				{
 					Type item = this.inputs.get(n);
-					if(ignoreInOUtModi ){
+					if(ignoreInOUtModi && null != item){
 						item = (Type)item.copy();
 						item.setInOutGenModifier(null);
 						item.setNullStatus(NullStatus.NONNULL);

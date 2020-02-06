@@ -978,7 +978,7 @@ public class TheScopeFrame {
 						
 						//fix here, also from create/replacer
 						if(isCreation && this.paThisIsModule && this.replModLevelForcedNewfuncs != null) {
-							if(replPrevSessionFuncs.containsKey(varname) && replPrevSessionFuncs.get(varname).contains(sigCheck.getErasedFuncTypeNoRet())) {
+							if(replPrevSessionFuncs.containsKey(varname) && replPrevSessionFuncs.get(varname).contains(g.getErasedFuncTypeNoRet())) {
 								ret=null;
 							}
 						}

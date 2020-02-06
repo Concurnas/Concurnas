@@ -21111,8 +21111,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			this.raiseError(true, funcDef.getLine(), funcDef.getColumn(), String.format("%s %s with matching argument definition exists already in current Scope - generic types are erased at runtime", methodOrFunction(), funcDef.funcName));
 		}
 		else
-		{
-			//check to see if exists with default arguments ignored
+		{//check to see if exists with default arguments ignored
 			ExisitsAlready existAlreadyMinSet = this.currentScopeFrame.hasFuncDef(this.currentScopeFrame, funcDef.funcName, funcDef.getFuncType(), false, funcDef.isAutoGennerated, true, true, true);
 			
 			if(ExisitsAlready.TRUE == existAlreadyMinSet){

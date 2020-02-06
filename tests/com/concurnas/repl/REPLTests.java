@@ -23,7 +23,6 @@ public class REPLTests {
 	
 	//////////////////////////////////////////////////////////
 	
-	
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -1318,6 +1317,76 @@ public class REPLTests {
 		assertEquals("|  created function make()", repl.processInput("def make() => new Person&"));
 		assertEquals("$0 ==> Person(dave, person, 1989)",repl.processInput("make()('dave', 'person', 1989)"));
 	}
+	
+	@Test
+	public void bugVect() throws Exception {
+	String another = "from java.util import Random\n" + 
+			"from java.time import LocalDateTime\n" + 
+			"\n" + 
+			"class TSPoint(-dateTime LocalDateTime, -price double){\n" + 
+			"//class with two fields having implicit getter functions automatically defined by prefixing them with -\n" + 
+			"	override toString() => String.format(\"TSPoint(%S, %.2f)\", dateTime, price)\n" + 
+			"}\n" + 
+			"\n" + 
+			"def createData(){//seed is an optional parameter with a default value\n" + 
+			"	rnd = new Random(1337)\n" + 
+			"	startTime = LocalDateTime.\\of(2020, 1, 1, 0, 0)//midnight 1st jan 2020\n" + 
+			"	price = 100.\n" + 
+			"	\n" + 
+			"	def rnd2dp(x double) => Math.round(x*100)/100. //nested function\n" + 
+			"	\n" + 
+			"	ret = list()\n" + 
+			"	for(sOffset in 0 to 60*60*24){//'x to y' - an integer range from 'x' to 'y'\n" + 
+			"		time = startTime.plusSeconds(sOffset)\n" + 
+			"		ret.add(TSPoint(time, price))\n" + 
+			"		price += rnd2dp(rnd.nextGaussian()*0.01)\n" + 
+			"	}\n" + 
+			"\n" + 
+			"	ret\n" + 
+			"}";
+		
+		assertEquals("|  created TSPoint\n|  created function createData()",repl.processInput(another));
+	}
+	
+	@Test
+	public void bugReOpParams() throws Exception {
+		String bug = "from java.util import Random\n" + 
+				"from java.time import LocalDateTime\n" + 
+				"\n" + 
+				"class TSPoint(-dateTime LocalDateTime, -price double){\n" + 
+				"//class with two fields having implicit getter functions automatically defined by prefixing them with -\n" + 
+				"	override toString() => String.format(\"TSPoint(%S, %.2f)\", dateTime, price)\n" + 
+				"}\n" + 
+				"\n" + 
+				"def createData(seed = 1337){//seed is an optional parameter with a default value\n" + 
+				"	rnd = new Random(seed)\n" + 
+				"	startTime = LocalDateTime.\\of(2020, 1, 1, 0, 0)//midnight 1st jan 2020\n" + 
+				"	price = 100.\n" + 
+				"	\n" + 
+				"	def rnd2dp(x double) => Math.round(x*100)/100. //nested function\n" + 
+				"	\n" + 
+				"	ret = list()\n" + 
+				"	for(sOffset in 0 to 60*60*24){//'x to y' - an integer range from 'x' to 'y'\n" + 
+				"		time = startTime.plusSeconds(sOffset)\n" + 
+				"		ret.add(TSPoint(time, price))\n" + 
+				"		price += rnd2dp(rnd.nextGaussian()*0.01)\n" + 
+				"	}\n" + 
+				"\n" + 
+				"	ret\n" + 
+				"}";
+		
+		assertEquals("|  created TSPoint\n|  created function createData(int)",repl.processInput(bug));
+		assertEquals("$0 ==> TSPoint(2020-01-01T00:00, 100.00)",repl.processInput("f = x for x in createData(); f[0]"));
+	}
+	
+
+	@Test
+	public void bugOptionalParams() throws Exception {
+		assertEquals("|  created function thing(int)",repl.processInput("def thing(a = 12) => a"));
+		assertEquals("$0 ==> 12",repl.processInput("thing()"));
+	}
+
+	
 	
 	
 }

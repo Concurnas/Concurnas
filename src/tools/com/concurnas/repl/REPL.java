@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import org.antlr.v4.misc.OrderedHashMap;
 import org.antlr.v4.runtime.RecognitionException;
 import org.objectweb.asm.Opcodes;
 
@@ -50,6 +49,7 @@ import com.concurnas.compiler.bytecode.BytecodeOutputter;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.visitors.REPLDepGraphManager.REPLComponentWrapper;
+import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.runtime.ClassPathUtils;
 import com.concurnas.runtime.ConcurnasClassLoader;
@@ -418,6 +418,27 @@ public class REPL implements Opcodes {
 
 		return new Pair<List<Pair<REPLTopLevelComponent, Boolean>>, List<REPLComponentWrapper>>(newlyDefined, newTLEs);
 	}
+	
+	private void trackNewDefaultMethods(Block blk, List<REPLComponentWrapper> newTopLevelItemsDeclared) {
+		for (LineHolder lh : blk.lines) {
+			Line lin = lh.l;
+			if (lin instanceof FuncDef) {
+				FuncDef fd = (FuncDef) lin;
+				
+				if(fd.isAutoGennerated) {
+					if(fd.params.params.stream().anyMatch(a -> a.name.contains("$defaultNull") && ScopeAndTypeChecker.const_defaultParamUncre.equals(a.type))) {
+						Type tt = fd.getFuncType().getErasedFuncTypeNoRet();
+						String name = fd.getName();
+						Pair<String, Type> key = new Pair<String, Type>(name, tt);
+
+						persistedTopLevelElementSet.put(key, fd);
+						newTopLevelItemsDeclared.add(new REPLComponentWrapper(fd));
+					}
+				}
+			}
+		}
+	}
+	
 
 	private static List<ErrorHolder> remoteSupressedErrors(HashSet<ErrorHolder> ers) {
 		ArrayList<ErrorHolder> ret = new ArrayList<ErrorHolder>();
@@ -563,6 +584,8 @@ public class REPL implements Opcodes {
 				
 				this.moduleCompiler.progressCompilationREPL(obtained.block, srcName, fw);
 
+				trackNewDefaultMethods(obtained.block, newTopLevelItemsDeclared);
+				
 				if(varToShow != null && !varToShow.isEmpty()) {
 					removeVarsWithASTRedir(obtained.block, varToShow);
 				}
