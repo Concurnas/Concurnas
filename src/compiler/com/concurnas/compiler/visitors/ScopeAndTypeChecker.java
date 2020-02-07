@@ -26182,7 +26182,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			return null;
 		}
 		
-		List<Type> types = tupleExpression.tupleElements.stream().map(a -> TypeCheckUtils.getRefType( (Type)a.accept(this))).collect(Collectors.toList());
+		List<Type> types = tupleExpression.tupleElements.stream().map(a -> TypeCheckUtils.getRefTypeToLocked( (Type)a.accept(this))).collect(Collectors.toList());
 		
 		if(types.stream().anyMatch(a -> !TypeCheckUtils.isValidType(a))) {
 			this.raiseError(tupleExpression.getLine(), tupleExpression.getColumn(), "tuples cannot contain void");

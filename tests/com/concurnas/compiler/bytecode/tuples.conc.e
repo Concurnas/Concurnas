@@ -156,3 +156,7 @@ ok
 ~~~~~
 //##40. tuple of refs
 (Holder(9), Holder(12))
+
+~~~~~
+//##41. same ref no accidental unreffing
+[12 13 true]

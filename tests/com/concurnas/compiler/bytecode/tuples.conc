@@ -478,3 +478,15 @@ def doings(){
 	
 	"" + lowhigh
 }
+
+~~~~~
+//##41. same ref no accidental unreffing
+or1 := 12
+
+x = or1:, 13:
+
+def doings(){
+	(a:, b) = x
+		
+	"" + [a b or1:&==a:]
+}

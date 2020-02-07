@@ -4221,9 +4221,9 @@ x556tuplesrhsno.conc line 6:2 c cannot be resolved to a variable
  
 ~~~~~
 //##557. no tuples in gpu 
-x557notuplesingpu.conc line 1:10 non primative types may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 7:5 tuples may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 8:1 tuple decomposition may not be used within a gpudef or gpukernel
+x557notuplesingpu.conc line 13:2 non primative types may not be used within a gpudef or gpukernel
  
 ~~~~~
 //##558. anon lambda ret type incompatible
@@ -4488,5 +4488,5 @@ x611topleveldelonfunc.conc line 4:4 thing resolves to something other than a loc
 
 ~~~~~
 //##612. missing typed used to blow up
-bytecodeSandbox.conc line 9:9 Unable to find method with matching name: BigDecimal
-bytecodeSandbox.conc line 16:10 Unable to find method with matching name: constructor and arguments (java.time.LocalDateTime, void)
+x612missingtypedusedtoblowup.conc line 11:9 Unable to find method with matching name: BigDecimal
+x612missingtypedusedtoblowup.conc line 18:10 Unable to find method with matching name: constructor and arguments (java.time.LocalDateTime, void)
