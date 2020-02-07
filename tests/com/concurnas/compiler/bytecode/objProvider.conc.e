@@ -187,7 +187,7 @@ nice: (ok, 11)
 
 ~~~~~
 //##48. primative ref dep
-nice: (ingf, 23:)
+nice: (ingf, 23)
 
 ~~~~~
 //##49. another generic instance

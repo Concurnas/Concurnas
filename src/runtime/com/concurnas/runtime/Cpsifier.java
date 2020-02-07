@@ -113,10 +113,6 @@ public class Cpsifier {
 					 * System.out.println("prior weaving names: " + namea); }
 					 */
 
-					/*if (namea.endsWith("HttpServerProvider")) {
-						System.out.println("pre weaving names: " + namea);
-						BytecodePrettyPrinter.print(code, true);
-					}*/
 					
 					InitConverter2 ic = new InitConverter2(code, bcp, namea, assumeNoPrimordials, inRuntimeMode);// isGlob =>globals already have init
 					code = ic.transform();
@@ -131,16 +127,6 @@ public class Cpsifier {
 
 					// add getGlobalDependancies$
 					code = GetDependanciesMethodAdder.transform(code, clloader);
-					
-					/*
-					if (namea.endsWith("HttpServerProvider")) {
-						System.out.println("post weaving names: " + namea);
-						BytecodePrettyPrinter.print(code, true);
-					}*/
-					 
-
-					
-					
 					
 					
 					Fiberizer cw = new Fiberizer(code, clloader, assumeNoPrimordials, verbose);// , nonPasuableMethods.contains(className));
