@@ -83,6 +83,8 @@ public class REPLRuntimeState {
 	}
 	
 	public static void remove(String varname) {
-		master.remove(varname);
+		if(master.containsKey(varname)) {
+			master.remove(varname);
+		}
 	}
 }

@@ -118,11 +118,11 @@ Copy destination effective index to: 50 must be less than buffer size of: 10 ele
 
 ~~~~~
 //##28. gpu single write read copy simple
-res: (true:, 456:)
+res: (true, 456)
 
 ~~~~~
 //##29. gpu single write read copy simple conv types
-res: (true:, 4623113902481840538:, 12.3:)
+res: (true, 4623113902481840538, 12.3)
 
 ~~~~~
 //##30. gpu single errors

@@ -568,9 +568,10 @@ public class BytecodeOutputter implements Opcodes {
 		 * if(space==4 && lstore==Opcodes.ALOAD) {
 		 * System.out.println("did a backet case"); }
 		 */
-		/*
-		 * if(space == 4){ int j=8; }
-		 */
+		
+		  if(space == 2){ 
+			  int j=8; }
+		 
 		// ALOAD 0
 		// ALOAD 9
 		// ASTORE 2

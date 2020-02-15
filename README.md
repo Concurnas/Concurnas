@@ -121,6 +121,7 @@ Run the following code in eclipse (after each clean build) in order to complete 
  3. Compile the unit test helpers written in Concurnas:
  
 		com.concurnas.concc.Concc -d ./bin/test ./tests[com/concurnas/tests/helpers]
+
 #### Running unit tests:
 It's recommended that you take the time to setup and run the unit tests within eclipse as it has good JUnit integration and you don't have to switch applications to run them interrupting your work flow. All the unit tests can be run via the following command *as a JUnit test suite* in eclipse:
 
@@ -138,3 +139,20 @@ The sandbox unit test is a nice way of testing Concurnas code end to end, it als
 
 		com.concurnas.compiler.bytecode.BytecodeTestJustSandbox
 With the aforementioned VM arguments specified contingent upon your JDK.
+
+
+### Msi Windows installer
+
+Concurnas makes use of a [gradle plugin](https://github.com/i-net-software/SetupBuilder) in order to produce a windows .msi. This plugin stipulates the following dependencies:
+
+| Platform  | Requirement                                                          |
+| :---------| :------------------------------------------------------------------- |
+| all       | Java 8 or higher. Gradle must run with Java 8                        |
+| Windows   | Wix Toolset or WixEdit must be installed                             |
+| Linux     | Lintian, FakeRoot <br> on Ubuntu: `apt-get install lintian fakeroot` |
+| Linux     | dpkg for creating Debian packages: `apt-get install dpkg`         |
+| Linux     | rpm for creating RPM packages: `apt-get install rpm`              |
+
+A msi may be created with gradle as follows:
+
+	gradle clean build msi -x test   

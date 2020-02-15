@@ -1386,7 +1386,21 @@ public class REPLTests {
 		assertEquals("$0 ==> 12",repl.processInput("thing()"));
 	}
 
-	
+	@Test
+	public void parfor() throws Exception {
+		String gcd = "def gcd(x int, y int){//greatest common divisor of two integers\n" + 
+				"  while(y){\n" + 
+				"    (x, y) = (y, x mod y)\n" + 
+				"  }\n" + 
+				"  x\n" + 
+				"}";
+		
+		assertEquals("|  created function gcd(int, int)",repl.processInput(gcd));
+		assertEquals("result ==> [10:, 1:, 2:, 1:, 2:, 5:, 2:, 1:, 2:, 1:, 10:]", repl.processInput("result = parfor(b in 0 to 10){\n" + 
+				"  gcd(b, 10-b)\n" + 
+				"}"));
+	}
+
 	
 	
 }

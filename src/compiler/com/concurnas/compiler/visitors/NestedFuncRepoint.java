@@ -1998,7 +1998,22 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 	
 	@Override
 	public Object visit(ForBlock forblock) {
-		if(inFunction){
+		FuncDefIInOutWrapper inoutWrapper = null;
+		
+		if(!inFunction) {
+			inoutWrapper = new FuncDefIInOutWrapper();
+		}
+				
+		
+		if(null != inoutWrapper) {
+			inoutWrapper.enter();
+		}
+		
+		
+		//if(inFunction){
+		
+		
+		
 			FuncParam fp = new FuncParam(forblock.getLine(), forblock.getColumn(), forblock.localVarName + "$n" + nestedLevel, forblock.localVarTypeToAssign, false, nestedLevel);
 			addVarToLocalStack(forblock.localVarName, true, fp);
 			if(null != forblock.idxVariableCreator && null != forblock.idxVariableAssignment) {
@@ -2006,9 +2021,23 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 				FuncParam fpidx = new FuncParam(forblock.getLine(), forblock.getColumn(), ifxName + "$n" + nestedLevel, forblock.idxVariableCreator.getTaggedType(), false, nestedLevel);
 				addVarToLocalStack(ifxName, true, fpidx);
 			}
+		//}
+		
+			
+			
+
+		//FuncDefIInOutWrapper inoutWrapper = new FuncDefIInOutWrapper();
+		//inoutWrapper.enter();
+		
+		Object ret= super.visit(forblock);
+		
+		//inoutWrapper.exit();
+		
+		if(null != inoutWrapper) {
+			inoutWrapper.exit();
 		}
 		
-		return super.visit(forblock);
+		return ret;
 	}
 	
 	

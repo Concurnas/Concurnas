@@ -8301,9 +8301,24 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		 */
 	}
 
-
 	@Override
 	public Object visit(ForBlock forBlock) {
+		boolean topLevelFor=false;
+		if(this.level==0) {
+			this.level++;
+			topLevelFor=true;
+		}
+		
+		Object ret = visitForBlock(forBlock);
+		
+		if(topLevelFor) {
+			this.level--;
+		}
+		
+		return ret;
+	}
+
+	public Object visitForBlock(ForBlock forBlock) {
 		if(this.isREPL) {//for block visitor mutates a few aspects of for block state, making it unsuitable by itself 
 			Block blkCopy = (Block)forBlock.block.copy();//for repeated processing by the bc gennerator, hence this solution...
 			

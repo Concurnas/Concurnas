@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product>
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+        <Feature Id="ProductFeature" Title="MySetup" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+        </Feature>
+    </Product>
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLDIR">
+			<Component Id="pathComponent" Guid="7ddfb712-fe3e-4c5f-824b-ba53468f6105" KeyPath="yes">
+				<CreateFolder>
+	    			<util:PermissionEx User="Users" GenericAll="yes" />
+		      	</CreateFolder>
+				<Environment 
+					  Id="PATH" 
+					  Name="PATH" 
+					  Value="[INSTALLDIR]bin" 
+					  Permanent="no" 
+					  Part="last" 
+					  Action="set" 
+					  System="yes" />
+			</Component>
+        </ComponentGroup>
+    </Fragment>
+</Wix>

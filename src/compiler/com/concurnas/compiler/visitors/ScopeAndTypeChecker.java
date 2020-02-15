@@ -354,7 +354,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "Type mismatch: cannot convert from java.lang.String: to void";
+		String err = "b$n1 cannot be resolved to a variable";
 		if(somthing.contains(err) && maskErrors.isEmpty()/* && line == 1660*/ ){
 			int h=999;
 		}
@@ -12427,8 +12427,25 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 	}
 	
+
 	@Override
 	public Object visit(ForBlock forBlock) {
+		boolean topLevel = false;
+		if(level == 0) {
+			topLevel=true;
+			level++;
+		}
+		
+		Object ret = visitForBlock(forBlock);
+		
+		if(topLevel) {
+			level--;
+		}
+		
+		return ret;
+	}
+	
+	public Object visitForBlock(ForBlock forBlock) {
 
 		this.forWhileExpectsReturn.push(new Pair<Boolean, String>(forBlock.getShouldBePresevedOnStack(), "for"));
 		

@@ -4036,3 +4036,13 @@ def doings(){
 	
 	"ok"
 }
+
+~~~~~
+//##217.parfor or for at top level
+
+result1 = for(b in 0 to 5){ {b+1000}! }
+result2 = parfor(b in 0 to 5){ b+1000 }
+
+def doings(){
+	"hi: " + (result1, result2)
+}

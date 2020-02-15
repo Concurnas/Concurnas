@@ -1,4 +1,15 @@
 //version = '1.13.1'
+buildscript {
+    repositories {
+        maven {
+            url uri('https://plugins.gradle.org/m2/')
+        }
+    }
+    dependencies {
+        apply from: 'https://raw.githubusercontent.com/i-net-software/SetupBuilder/master/scripts/SetupBuilderVersion.gradle'
+        classpath 'gradle.plugin.de.inetsoftware:SetupBuilder:' + setupBuilderVersion()
+    }
+}
 
 plugins {
     id 'com.github.johnrengelman.shadow' version '5.1.0'
@@ -7,6 +18,8 @@ plugins {
     id 'java'
     id 'eclipse'
 }
+
+apply plugin: 'de.inetsoftware.setupbuilder'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -207,7 +220,7 @@ task makeReleaseZip(type: Zip) {
     from("release") {
 	    include "bin/**"
 	    fileMode 0755
-	  }   
+	}   
 }
 
 task copyDist(type: Copy) {
@@ -219,5 +232,43 @@ jar.finalizedBy runtimeJar
 runtimeJar.finalizedBy copyJarsToRelease
 copyJarsToRelease.finalizedBy copyLic
 copyLic.finalizedBy copyBook
-copyLic.finalizedBy makeReleaseZip
+copyBook.finalizedBy makeReleaseZip
 makeReleaseZip.finalizedBy copyDist
+
+
+setupBuilder {
+    vendor        = 'Concurnas Ltd'
+    copyright     = "Copyright © 2020 Concurnas Ltd."
+    description   = "Concurnas " + readVersion() + " installer";
+    application   = "Concurnas";
+    appIdentifier = "Concurnas";
+    defaultResourceLanguage  = "en";
+    version = readVersion();
+    licenseFile = 'LICENSE'
+    from("release"){
+    	exclude "bin/**"
+    }
+    from("release") {
+	    include "bin/**"
+	    fileMode 0755
+	}
+}
+
+msi{
+	languages = [ "en-US" ]
+    wxsTemplate = "./build_resources/msitemplate.wxs"
+}
+
+task zipmsi(type: Zip) {       
+    from("$buildDir/distributions"){
+    	include "**.msi"
+    }
+    
+    archiveFileName = provider {
+    	fileTree("$buildDir/distributions").filter { it.isFile() && it.toString().endsWith("msi") }.files.name[0] + ".zip"
+    
+    }
+}
+
+msi.finalizedBy zipmsi
+zipmsi.finalizedBy copyDist
