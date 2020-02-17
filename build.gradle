@@ -3,11 +3,13 @@ buildscript {
     repositories {
         maven {
             url uri('https://plugins.gradle.org/m2/')
+		  	url "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
         apply from: 'https://raw.githubusercontent.com/i-net-software/SetupBuilder/master/scripts/SetupBuilderVersion.gradle'
         classpath 'gradle.plugin.de.inetsoftware:SetupBuilder:' + setupBuilderVersion()
+		classpath "gradle.plugin.io.sdkman:gradle-sdkvendor-plugin:1.2.1"
     }
 }
 
@@ -19,6 +21,7 @@ plugins {
     id 'eclipse'
 }
 
+apply plugin: "io.sdkman.vendors"
 apply plugin: 'de.inetsoftware.setupbuilder'
 
 java {
@@ -220,7 +223,9 @@ task makeReleaseZip(type: Zip) {
     from("release") {
 	    include "bin/**"
 	    fileMode 0755
-	}   
+	}
+	
+	into "concurnas"
 }
 
 task copyDist(type: Copy) {
@@ -272,3 +277,16 @@ task zipmsi(type: Zip) {
 
 msi.finalizedBy zipmsi
 zipmsi.finalizedBy copyDist
+
+
+sdkman {
+	api = "https://vendors.sdkman.io/"
+	consumerKey = System.getenv("SDKVENDOR_KEY")
+	consumerToken = System.getenv("SDKVENDOR_TOKEN")
+	candidate = "concurnas"
+	version = readVersion()
+	url = "https://github.com/Concurnas/Concurnas/releases/download/"+readVersion()+"/Concurnas-"+readVersion()+".zip"
+	hashtag = "#concurnas"
+}
+
+
