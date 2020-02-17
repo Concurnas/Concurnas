@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -820,6 +821,7 @@ public class ModuleCompiler implements Comparable{
 			
 			lexer.removeErrorListeners(); // remove ConsoleErrorListener
 			lexer.addErrorListener(parserErrors); // add ours
+			
 			
 			ParseTree tree = parser.code();
 			if(this.profiler != null) { profiler.mark("Parse"); }

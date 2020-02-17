@@ -1,3 +1,5 @@
 def doings(){
-	"hi"
+	thing = def (a int) { a + 1 }
+
+	"hi" + thing&
 }

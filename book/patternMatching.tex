@@ -252,7 +252,7 @@ matcher(99)  // -> returns "more than or equal to 10"
 
 The full list of compatible operators which can be used in this manner is as follows:
 
-\lstinline{and, or, ==, <, <>, &==, &<>, >, >, <==, in, not, in}
+\lstinline{and, or, ==, <, <>, &==, &<>, >, >, <==, in, not, not in}
 
 Where an expression element is provided without an open attached operator, the matched value is compared for equality against it
 
@@ -361,7 +361,7 @@ Note that the expressions post the \lstinline{;} must be fully formed expression
 \section{Pattern case conditions with additional checks}
 Sometimes it may be necessary to perform additional checks using expressions which we do not want to check against the value being matched. In this case, the \lstinline{also} keyword can be used:
 
- needs better example
+%needs better example
 
 \begin{lstlisting}
 class Grouper(size int, avoid int[]){

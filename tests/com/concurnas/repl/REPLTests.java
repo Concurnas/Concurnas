@@ -1385,7 +1385,7 @@ public class REPLTests {
 		assertEquals("|  created function thing(int)",repl.processInput("def thing(a = 12) => a"));
 		assertEquals("$0 ==> 12",repl.processInput("thing()"));
 	}
-
+	
 	@Test
 	public void parfor() throws Exception {
 		String gcd = "def gcd(x int, y int){//greatest common divisor of two integers\n" + 
