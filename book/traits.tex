@@ -7,7 +7,7 @@
 \doquote{9cm}{45pt}{6cm}{8cm}{9.2cm}{footnotesize}{Black feathers in the storm, where will we fall?\\Will we ever be home?\\Let's let the wind decide, where we are going to fall\\Soaring to a destination\\She takes me away}{Black Feathers from Black Anima by Lacuna Coil\\(2019)}
 
 
-Traits allow us to define elements of reusable functionality (both methods and state) which can be mixed-in to classes. They are themselves not insatiable as, like abstract classes, they represent incomplete fragments of functionality. Unlike abstract classes however, a class may be composed of (aka mixed-in) more than one trait. Traits are useful as they encourage and facilitate software creation via composition as opposed to inheritance, which generally speaking is a better design pattern in object oriented programming.
+Traits allow us to define elements of reusable functionality (both methods and state) which can be mixed-in to classes. They are themselves not instantiable as, like abstract classes, they represent incomplete fragments of functionality. Unlike abstract classes however, a class may be composed of (aka mixed-in) more than one trait. Traits are useful as they encourage and facilitate software creation via composition as opposed to inheritance, which generally speaking is a better design pattern in object oriented programming.
 
 Traits can be compared to interfaces with default methods such as in languages like Java. However, they differ in that they can be chained together, may extend non trait classes and allow classes to be composed of stacked trait super method calls.
 
@@ -140,7 +140,7 @@ class Concrete3 ~ Trait2, Trait3//this works as Child2 (from Trait3) < Super2 (f
 \end{lstlisting}
 
 \section{Generic traits}
-Traits, like classes, may make full just of Generics. For example:
+Traits, like classes, may make full use of \hyperref[ch:generics]{Generics}. For example:
 \begin{lstlisting}
 trait Incrementor<X Number>{
 	def operation(a X) => a.doubleValue()+1

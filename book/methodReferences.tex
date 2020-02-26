@@ -262,7 +262,7 @@ mul = a => a.operation(5, "n")
 SAM types, or Single Abstract Method types are traits (or interfaces if referencing Java code) which define only one single abstract method. Concurnas performs a neat trick where we can map a lambda we have created, in compact form, to an instance of a SAM type. Some alternative methods to using a lambda are to implement our solution as either an instance object, or an anonymous class, but as you will see, the lambda is the preferred approach for its compactness.
 
 \begin{lstlisting}
-mixin Operator{//This is a SAM type as there is only one method defined which is abstract 
+trait Operator{//This is a SAM type as there is only one method defined which is abstract 
 	def perform(arg int, arg2 int) int
 }
 

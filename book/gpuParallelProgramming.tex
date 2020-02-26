@@ -282,15 +282,18 @@ Here is an example kernel for simple matrix multiplication\footnote{Those reader
 %begin-twoCol
 \noindent\begin{minipage}{.45\textwidth}
 	\begin{lstlisting}[caption=GPU kernel,frame=tlrb]{Name}
-gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out C float[2]) {
-	globalRow = get_global_id(0) 
-	globalCol = get_global_id(1) 
-	acc = 0.0f;
-	for (k=0; k<K; k++) {
-		acc += A[k*M + globalRow] * B[globalCol*K + k]
+gpukernel 2 matMult(wA int, wB int, global in matA float[2], global in matB float[2], global out result float[2]) {
+	globalRow = get_global_id(0) // Row ID
+	globalCol = get_global_id(1) // Col ID
+	
+	value = 0f;
+	for (k = 0; k < wA; ++k) {
+		value += matA[globalCol * wA + k] * matB[k * wB + globalRow];
 	}
-	C[globalCol*M + globalRow] = acc;
-} 
+	
+	// Write element to output matrix
+	result[globalCol * wA + globalRow] = value;
+}
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
@@ -358,7 +361,7 @@ Each work item here is operating on one item of data (one from A, one from B and
 We generally do not need to concern ourselves with the way in which Kernels are mapped to compute units and then individual work items (as this is automatically handled) unless we are looking at optimizing code - which we shall examine later.
 
 \subsection{Kernel dimensions}
-Most GPU parallelism is performed on n-dimensional array data. N-dimensional arrays in Concurnas kernels are always flattened to 1 dimensional arrays. The is performed implicitly when data is copied into a GPU Buffer. Likewise, when data is copied out of a GPU buffer, it is converted back into its n dimensional form. Given this flattening of n dimensional array data, navigation around the array space is thus performed via arithmetic, with consideration for the dimensionality of the arrays.
+Most GPU parallelism is performed on n-dimensional array data. N-dimensional arrays in Concurnas kernels are always flattened to 1 dimensional arrays. This is performed implicitly when data is copied into a GPU Buffer. Likewise, when data is copied out of a GPU buffer, it is converted back into its n dimensional form. Given this flattening of n dimensional array data, navigation around the array space is thus performed via arithmetic, with consideration for the dimensionality of the arrays.
 
 In order to assist with this array navigation, kernels must specify a dimension parameter between 1 and 3 (set to \lstinline{2} in the above example). One can consider that for the case of a 2 dimensional kernel, the execution is performed as a matrix. Thus a call to \lstinline{get_global_id(0)} provide an x axis, and \lstinline{get_global_id(1)} will a y axis reference (note if the kernel dimensionality was set to 3 then we would be able to call, \lstinline{getGlobalId(3)} to return a z axis reference). If the kernel were specified as a 1 dimensional kernel then only a \lstinline{getGlobalId(0)} call would be valid.
 

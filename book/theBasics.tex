@@ -138,15 +138,18 @@ provider TestTweeterClient{
 	\item \textbf{GPU computing:}
 	\begin{lstlisting}
 //a simple kernel for performing matrix multiplication...
-gpukernel 2 matMult(M int, N int, K int, global in A float[2], global in B float[2], global out resultMat float[2]) {
-	globalRow = get_global_id(0) 
-	globalCol = get_global_id(1) 
-	acc = 0.0f;
-	for (k=0; k<K; k++) {
-		acc += A[k*M + globalRow] * B[globalCol*K + k]
+gpukernel 2 matMult(wA int, wB int, global in matA float[2], global in matB float[2], global out result float[2]) {
+	globalRow = get_global_id(0) // Row ID
+	globalCol = get_global_id(1) // Col ID
+	
+	value = 0f;
+	for (k = 0; k < wA; ++k) {
+		value += matA[globalCol * wA + k] * matB[k * wB + globalRow];
 	}
-	resultMat[globalCol*M + globalRow] = acc;
-} 
+	
+	// Write element to output matrix
+	result[globalCol * wA + globalRow] = value;
+}
 \end{lstlisting}
 
 	\item \textbf{Comments and documentation blocks:}

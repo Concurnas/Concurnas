@@ -197,8 +197,8 @@ def matcher(an Object){
 }
 
 [matcher(Person(1945, "dave")), matcher(Person(1982, "freddie"))]
-/
-=> [Person. Born: 1945, unknown input]
+
+//=> [Person. Born: 1945, unknown input]
 \end{lstlisting}
 
 These types of object field content matches can be applied on a recursive basis to fields of objects as follows:
@@ -215,8 +215,8 @@ def matcher(an Object){
 }
 
 matcher(Person(1945, "dave", Favourites(12, "Panda")))
-/
-=> Person, born: 1945. Favourite word: Panda
+
+//=> Person, born: 1945. Favourite word: Panda
 \end{lstlisting}
 
 \section{Pattern case conditions}
@@ -234,7 +234,7 @@ matcher(2) // -> returns "less than 10"
 matcher(99)  // -> returns "more than or equal to 10"
 \end{lstlisting}
 
-/and/ and /or/ may also be used:
+\lstinline{and} and \lstinline{or} may also be used:
 
 \begin{lstlisting}
 def matcher(n int){
