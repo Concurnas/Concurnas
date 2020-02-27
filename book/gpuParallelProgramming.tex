@@ -1019,7 +1019,8 @@ gpukernel 2 matMultLocal(M int, N int, K int, constant A float[2], constant B fl
 	//loop over all tiles
 	cacheSize int = K/CacheSize
 	for (t=0; t<cacheSize; t++) {
-		//cache a section of A and B from global memory into local memory tiledRow = CacheSize*t + row
+		//cache a section of A and B from global memory into local memory 
+		tiledRow = CacheSize*t + row
 		tiledCol = CacheSize*t + col
 		cacheA[col][row] = A[tiledCol*M + globalRow]
 		cacheb[col][row] = B[globalCol*K + tiledRow]

@@ -90,10 +90,9 @@ trait ATrait < SuperTrait{
 	override def foo() => "trait method called " + super.foo()
 }//override keyword must be used since we are overriding the definition from the super trait: SuperTrait
 
-class AClass with SuperTrait, ATrait
+class AClass with ATrait
 
-aInstance = AClass() 
-aInstance.foo()
+AClass().foo()
 //returns: trait method called, superTrait method called
 \end{lstlisting}
 
@@ -255,10 +254,9 @@ trait B{
 
 class FooClass < AbstractFooClass with B, A{
 	override def foo() => "" + [super[AbstractFooClass].foo(), super[A].foo(),super[B].foo()]
-	
-	FooClass().foo()
-	
 }
+
+FooClass().foo()
 //returns: [version AbstractFooClass, version A, version B]
 \end{lstlisting}
 
@@ -311,19 +309,19 @@ open class ID < Operator{
 	override def operate(a int) => a
 }
 
-trait PlusOne < Operator{    override def operate(a int) => super.operate(a)+1 }
-trait Square  < Operator{    override def operate(a int) => super.operate(a)**2 }
-trait MinusOne < Operator{  override def operate(a int) => super.operate(a)-1 }
-trait DivTwo < Operator{     override def operate(a int) => super.operate(a)/2 }
+trait PlusOne  < Operator{ override def operate(a int) => super.operate(a)+1  }
+trait Square   < Operator{ override def operate(a int) => super.operate(a)**2 }
+trait MinusOne < Operator{ override def operate(a int) => super.operate(a)-1  }
+trait DivTwo   < Operator{ override def operate(a int) => super.operate(a)/2  }
 
-x = new ID ~ PlusOne, Square, MinusOne, DivTwo 
-y = new ID ~ DivTwo, MinusOne, Square, PlusOne//reverse operation application
+x = new ID ~ PlusOne, Square, MinusOne, DivTwo // (((x/2) - 1) ** 2) + 1
+y = new ID ~ DivTwo, MinusOne, Square, PlusOne //reverse operator application
 z = new ID ~ DivTwo, MinusOne, Square, PlusOne{
 	override def operate(a int) => super.operate(a)+1000
-}//reverse with additional operation
+}//reverse operator application with additional operation
 
 inst.operate(10) for inst in [x y z]
-//returns: []60, 17, 1017]
+//returns: [60, 17, 1017]
 \end{lstlisting}
 
 They can even implicitly be composed of traits as follows:
