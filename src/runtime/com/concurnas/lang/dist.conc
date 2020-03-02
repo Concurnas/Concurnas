@@ -1268,7 +1268,7 @@ actor Remote(hostname String, port = DEFAULT_CONC_PORT, loggerprov LoggerProvide
 			}
 			
 			if(not connected){
-				log("No currently connected, connecting now...")
+				log("Not currently connected, connecting now...")
 				connect()//TODO: connect asynchronously?
 			}
 						

@@ -65,8 +65,9 @@ n = 10
 nplusone  = { n += 1; n }!//perform this calculation in an isolate
 nminusone = { n -= 1; n }!//and this
 
-assert nplusone == 10
+assert nplusone == 11
 assert nminusone == 9
+assert n==10//n always remains unchanged
 \end{lstlisting}
 
 The above code will always provide a consistent output, despite the isolates non deterministic nature, since the \lstinline{n} variable dependency is copied into each of the isolates and is not shared between them. Thus changes made to the variable in one isolate do not affect the other. Notice how we've not had to define anything in the way of a critical section, synchronization, lock management etc.

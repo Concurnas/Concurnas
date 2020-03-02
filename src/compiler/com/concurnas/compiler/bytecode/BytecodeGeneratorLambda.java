@@ -161,7 +161,7 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 
 		List<FuncType> constructors = classOperatingOn.getAllConstructorsExcludeHiddenArgs(null);
 		//List<FuncType> allConstructors = classOperatingOn.getAllConstructors();
-
+		
 		List<FuncParam> splicedInArguments = new ArrayList<FuncParam>();
 		if(classOperatingOn.getSetClassDef().isLocalClass){
 			for(FuncType aCon : classOperatingOn.getAllConstructors(null)){
