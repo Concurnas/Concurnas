@@ -64,12 +64,10 @@ The build process for Concurnas is more involved than for typical projects since
 The following commands can be used in order to build Concurnas from scratch:
 
 ### Windows
-    gradlew clean build -x test   
+    gradlew.bat clean build -x test   
 	
 ### Linux
-*first install gradle if you have not already done so...*
-
-	gradle clean build -x test   
+	./gradlew clean build -x test   
 
 *It is recommended that one skip the automatic running of tests unless one has a machine which is powerful enough to run them.*
 
@@ -155,4 +153,4 @@ Concurnas makes use of a [gradle plugin](https://github.com/i-net-software/Setup
 
 A msi may be created with gradle as follows:
 
-	gradle clean build msi -x test   
+	gradlew.bat clean build msi -x test   
