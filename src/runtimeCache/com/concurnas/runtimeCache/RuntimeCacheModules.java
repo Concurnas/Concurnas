@@ -22,7 +22,7 @@ import com.concurnas.runtime.OffHeapAugmentor;
 
 /**
  * Perform caching in instance of modules
- *
+ * invoked only when caching process is run on jdk version 9+ (<=8 uses RuntimeCacheJars)
  */
 public class RuntimeCacheModules extends RuntimeCache{
 	

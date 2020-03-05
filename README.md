@@ -75,11 +75,12 @@ This will output a release zip which will look like: **Concurnas-1.13.108.zip**
 
 ### Recommended specs for machine to run test suite
  - Min:
-	 - Java 1.8
+	 - Java 1.9 for the build and testing
 	 - 4-core CPU
 	 - 16GB RAM
 	 - A GPU - NVIDIA GTX 590
 - Recommended:
+	- Java 1.9 for the build
 	- Java 1.8 and Java 1.9 - *some unit tests behave differently under each version*
 	- 8-core CPU
 	- 32GB RAM

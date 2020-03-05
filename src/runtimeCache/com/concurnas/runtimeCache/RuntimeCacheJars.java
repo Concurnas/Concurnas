@@ -20,6 +20,10 @@ import java.util.zip.ZipOutputStream;
 import com.concurnas.runtime.ConcurnasClassLoader;
 import com.concurnas.runtime.OffHeapAugmentor;
 
+/**
+ * Perform caching in instance of modules
+ * invoked only when caching process is run on jdk version <=8 (9+ uses RuntimeCacheModules)
+ */
 public class RuntimeCacheJars extends RuntimeCache{
 
 	private final File fromDirectory;
