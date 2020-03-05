@@ -153,4 +153,4 @@ Concurnas makes use of a [gradle plugin](https://github.com/i-net-software/Setup
 
 A msi may be created with gradle as follows:
 
-	gradle clean build msi -x test   
+	gradlew.bat clean build msi -x test   
