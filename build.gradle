@@ -171,7 +171,7 @@ def getJVMArgs(){
 jar {//
     baseName = 'Concurnas'
     version =  readVersion()
-    excludes = ["com/concurnas/build/**", "com.concurnas.bootstrap/**"]
+    excludes = ["com/concurnas/build/**"]
     from "LICENSE"
     from('src/tools'){
         include "com/concurnas/repl/*.nanorc"
