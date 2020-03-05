@@ -169,34 +169,28 @@ def getJVMArgs(){
 
 
 jar {//
-	baseName = 'Concurnas'
+    baseName = 'Concurnas'
     version =  readVersion()
-	excludes = ["com/concurnas/build/**", "com/concurnas/lang/**", "com/concurnas/runtime/**", "org/jocl/**", "com.concurnas.bootstrap/**"]
-	from "LICENSE"
-	from('src/tools'){
-    	include "com/concurnas/repl/*.nanorc"
+    excludes = ["com/concurnas/build/**", "com.concurnas.bootstrap/**"]
+    from "LICENSE"
+    from('src/tools'){
+        include "com/concurnas/repl/*.nanorc"
     }
-}
-
-task runtimeJar(type: Jar) {
-	baseName = 'Concurnas-rt'
-    version =  readVersion()
     from(sourceSets.main.output) {
         include "com/concurnas/lang/**"
-    }    
+    }
     from(sourceSets.main.output) {
         include "com/concurnas/runtime/**"
-    } 
+    }
     from(sourceSets.main.output) {
         include "org/jocl/**"
     }
     from('src/jocl'){
-    	include "lib/**"
+        include "lib/**"
     }
     from {
-		configurations.libsForRuntime.collect { it.isDirectory() ? it : zipTree(it) }
-	}
-    from "LICENSE"
+        configurations.libsForRuntime.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 task copyJarsToRelease(type: Copy) {
@@ -233,8 +227,7 @@ task copyDist(type: Copy) {
     into "."
 }
 
-jar.finalizedBy runtimeJar
-runtimeJar.finalizedBy copyJarsToRelease
+jar.finalizedBy copyJarsToRelease
 copyJarsToRelease.finalizedBy copyLic
 copyLic.finalizedBy copyBook
 copyBook.finalizedBy makeReleaseZip
@@ -243,7 +236,7 @@ makeReleaseZip.finalizedBy copyDist
 
 setupBuilder {
     vendor        = 'Concurnas Ltd'
-    copyright     = "Copyright © 2020 Concurnas Ltd."
+    copyright     = "Copyright Â© 2020 Concurnas Ltd."
     description   = "Concurnas " + readVersion() + " installer";
     application   = "Concurnas";
     appIdentifier = "Concurnas";
