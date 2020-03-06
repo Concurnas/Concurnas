@@ -13,7 +13,7 @@ public class WhileBlock extends CompoundStatement implements IdxVarHaver{
 	public Boolean defoEndsInGotoStmtAlready=false;
 	public Label labelAsLastLineInBlock;
 	public boolean isTransWhileBlock = false;
-	public AssignNew idxVariableCreator;
+	public AssignExisting idxVariableCreator;
 	public RefName idxVariableAssignment;
 	
 	public WhileBlock(int line, int col, Expression cond, Block blk) {
@@ -34,7 +34,7 @@ public class WhileBlock extends CompoundStatement implements IdxVarHaver{
 		ret.labelAsLastLineInBlock = labelAsLastLineInBlock;
 		ret.skipGotoStart = skipGotoStart;
 		ret.shouldBePresevedOnStack = shouldBePresevedOnStack;
-		ret.idxVariableCreator = idxVariableCreator==null?null:(AssignNew)idxVariableCreator.copy();
+		ret.idxVariableCreator = idxVariableCreator==null?null:(AssignExisting)idxVariableCreator.copy();
 		ret.idxVariableAssignment = idxVariableAssignment==null?null:(RefName)idxVariableAssignment.copy();
 		ret.elseblock = elseblock==null?null:(Block)elseblock.copy();
 		//ret.beforeAdder = beforeAdder;
@@ -89,7 +89,7 @@ public class WhileBlock extends CompoundStatement implements IdxVarHaver{
 	}
 	
 	@Override
-	public AssignNew getIdxVariableCreator() {
+	public AssignExisting getIdxVariableCreator() {
 		return this.idxVariableCreator;
 	}
 	
@@ -99,7 +99,7 @@ public class WhileBlock extends CompoundStatement implements IdxVarHaver{
 	}
 	
 	@Override
-	public void setIdxVariableCreator(AssignNew xxx) {
+	public void setIdxVariableCreator(AssignExisting xxx) {
 		this.idxVariableCreator = xxx;
 	}
 	

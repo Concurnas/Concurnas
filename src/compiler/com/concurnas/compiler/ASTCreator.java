@@ -263,8 +263,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 			if (ctx.refname != null) {
 				assignee = new RefName(line, col, ctx.refname.getText());
-			} else {
+			} else if(ctx.assignee != null ){
 				assignee = (Expression) ctx.assignee.accept(this);
+			}else {
+				assignee = null;
 			}
 
 			Type type = null;
@@ -2002,7 +2004,17 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				ret.idxVariableAssignment = new RefName(line, col, ctx.idxName.getText());
 			}else {
 				Expression expr = ctx.idxExpr == null ?  new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
-				ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				
+				if(ctx.idxType != null) {
+					Type tt = (Type) ctx.idxType.accept(this);
+					expr = new CastExpression(line, col, tt, expr);
+				}
+				
+				AssignExisting ae = new AssignExisting(line, col, ctx.idxName.getText(), AssignStyleEnum.EQUALS, expr);
+				ret.idxVariableCreator = ae;
+				
+				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
 			}
 		}
 		
@@ -2326,7 +2338,17 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				ret.idxVariableAssignment = new RefName(line, col, ctx.idxName.getText());
 			}else {
 				Expression expr = ctx.idxExpr == null ?  new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
-				ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				
+				if(ctx.idxType != null) {
+					Type tt = (Type) ctx.idxType.accept(this);
+					expr = new CastExpression(line, col, tt, expr);
+				}
+				
+				AssignExisting ae = new AssignExisting(line, col, ctx.idxName.getText(), AssignStyleEnum.EQUALS, expr);
+				ret.idxVariableCreator = ae;
+				
 			}
 		}
 
@@ -2344,7 +2366,15 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				ret.idxVariableAssignment = new RefName(line, col, ctx.idxName.getText());
 			}else {
 				Expression expr = ctx.idxExpr == null ?  new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
-				ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				
+				if(ctx.idxType != null) {
+					Type tt = (Type) ctx.idxType.accept(this);
+					expr = new CastExpression(line, col, tt, expr);
+				}
+				
+				AssignExisting ae = new AssignExisting(line, col, ctx.idxName.getText(), AssignStyleEnum.EQUALS, expr);
+				ret.idxVariableCreator = ae;
 			}
 		}
 

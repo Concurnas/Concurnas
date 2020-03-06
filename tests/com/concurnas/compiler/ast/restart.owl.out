@@ -143,7 +143,7 @@ while ( a == 8 ) {
 else {
 g = 9 ;
 }
-while ( a == 100 ; a int = 3 ) {
+while ( a == 100 ; a = 3 as int ) {
 }
 while ( true ) {
 }

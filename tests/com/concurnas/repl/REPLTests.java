@@ -23,6 +23,7 @@ public class REPLTests {
 	
 	//////////////////////////////////////////////////////////
 	
+	
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -1402,5 +1403,107 @@ public class REPLTests {
 	}
 
 	
+	@Test
+	public void getWithIt() throws Exception {
+		String gcd = "class Accumilator(-state int){\n" + 
+				"	def add(e int)   => state += e;;\n" + 
+				"	def minus(e int) => state -= e;;\n" + 
+				"	def mul(e int)   => state *= e;;\n" + 
+				"}\n" + 
+				"";
+		
+		String doWith = "def doings(){\n" + 
+				"	res = with(Accumilator(2)){\n" + 
+				"		add(23)\n" + 
+				"		if(state > 16){\n" + 
+				"			minus(16)\n" + 
+				"		}else{\n" + 
+				"			mul(8)\n" + 
+				"			mul(2)\n" + 
+				"		}\n" + 
+				"		state\n" + 
+				"	}\n" + 
+				"\n" + 
+				"	\"\" + res\n" + 
+				"}";
+		
+		assertEquals("|  created Accumilator",repl.processInput(gcd));
+		assertEquals("|  created function doings()", repl.processInput(doWith));
+		assertEquals("$0 ==> 9", repl.processInput("doings()"));
+	}
 	
+	
+	@Test
+	public void justRet() throws Exception {
+		String gcd = "class Accumilator(-state int){\n" + 
+				"	def add(e int)   => state += e;;\n" + 
+				"	def minus(e int) => state -= e;;\n" + 
+				"	def mul(e int)   => state *= e;;\n" + 
+				"}\n" + 
+				"";
+		
+		String doWith = "with(Accumilator(2)){\n" + 
+				"		add(23)\n" + 
+				"		if(state > 16){\n" + 
+				"			minus(16)\n" + 
+				"		}else{\n" + 
+				"			mul(8)\n" + 
+				"			mul(2)\n" + 
+				"		}\n" + 
+				"		state\n" + 
+				"	}";
+		
+		assertEquals("|  created Accumilator",repl.processInput(gcd));
+		assertEquals("$0 ==> 9", repl.processInput(doWith));
+	}
+
+	
+
+	@Test
+	public void localClasses() throws Exception {
+		String traitDef = "trait IndAncDec{\n" + 
+				"		-count int\n" + 
+				"		-countdown int =0\n" + 
+				"		def inc() => ++count + countdown\n" + 
+				"		def dec() => --countdown + count\n" + 
+				"	}\n" + 
+				"\n" + 
+				"	class HasIncAndDec ~ IndAncDec{\n" + 
+				"		override count = 0\n" + 
+				"	}";
+		
+		String localClass = "def foo(){\n" + 
+				"	AnotherCounty = class ~ IndAncDec{\n" + 
+				"		override count = 0\n" + 
+				"		override toString() => 'ok'\n" + 
+				"	}\n" + 
+				"\n" + 
+				"	new AnotherCounty()\n" + 
+				"}";
+		assertEquals("|  created IndAncDec\n|  created HasIncAndDec",repl.processInput(traitDef));
+		assertEquals("|  created function foo()",repl.processInput(localClass));
+		assertEquals("$0 ==> ok",repl.processInput("foo()"));
+	}
+	
+	@Test
+	public void blowsUpREPL() throws Exception {
+		String oops = "class Holder<X>{\n" + 
+				"	private +x X?\n" + 
+				"	public toBoolean() =>  this.x != null\n" + 
+				"}\n" + 
+				"\n" + 
+				"holder = new Holder<Integer>();\n" + 
+				"\n" + 
+				"if(holder) {\n" + 
+				"	//x has been set inside holder!\n" + 
+				"}";
+		assertTrue(repl.processInput(oops).contains("extraneous input"));
+	}
+	
+	@Test
+	public void idxLocal() throws Exception {
+		assertEquals("", repl.processInput("myarray = [1 2 3 4 5];"));
+		assertEquals("res ==> [(1, 0), (2, 1), (3, 2), (4, 3), (5, 4)]", repl.processInput("res = for(n in myarray ; idx){ (n, idx) }"));
+	}
 }
+

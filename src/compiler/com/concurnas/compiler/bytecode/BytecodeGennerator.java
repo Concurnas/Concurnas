@@ -8470,7 +8470,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			fakeMeUpScotty.newforTmpVar = rhsExprTemp;
 
 			if(forBlock.idxVariableCreator != null || forBlock.idxVariableAssignment != null){
-				fakeMeUpScotty.postIdxIncremement = new PostfixOp(line, col, FactorPostFixEnum.PLUSPLUS, new RefName(line, col, forBlock.idxVariableAssignment!=null?forBlock.idxVariableAssignment.name:forBlock.idxVariableCreator.name));
+				fakeMeUpScotty.postIdxIncremement = new PostfixOp(line, col, FactorPostFixEnum.PLUSPLUS, new RefName(line, col, forBlock.idxVariableAssignment!=null?forBlock.idxVariableAssignment.name:((RefName)forBlock.idxVariableCreator.assignee).name));
 				fakeMeUpScotty.postIdxIncremement.setShouldBePresevedOnStack(false);
 			}
 			
@@ -12801,13 +12801,17 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 					for(int n=0; n < sz; n++){
 						Object val = extractAnnotationElement(Array.get(foldedConstatnt, n));
 						if(isEnum){
-							resolvedType.setArrayLevels(0);
+							int arLevels = resolvedType.getArrayLevels();
+							resolvedType.setArrayLevels(0);//TODO: need to remove this mutable operation, causes a lot of issues
 							av1.visitEnum(null, resolvedType.getBytecodeType(), val.toString());
+							resolvedType.setArrayLevels(arLevels);
 						}
 						else if(isAnnotation){
+							int arLevels = resolvedType.getArrayLevels();
 							resolvedType.setArrayLevels(0);
 							nextAV = av1.visitAnnotation(null, resolvedType.getBytecodeType());
 							((Annotation)val).accept(this);
+							resolvedType.setArrayLevels(arLevels);
 						}
 						else{
 							av1.visit(null, val);

@@ -638,6 +638,9 @@ public class REPL implements Opcodes {
 									//plus actor mapping
 									classNameToMappedName.put("x"+name+"$$ActorIterface", "x"+mappedName+"$$ActorIterface");
 									
+									//plus ClassRefIFace
+									classNameToMappedName.put("x"+name+"$ClassRefIface", "x"+mappedName+"$ClassRefIface");
+									
 								}
 							}
 						}

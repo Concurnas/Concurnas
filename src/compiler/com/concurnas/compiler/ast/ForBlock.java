@@ -45,7 +45,7 @@ public class ForBlock extends CompoundStatement implements ForBlockMaybeParFor, 
 		ret.shouldBePresevedOnStack = shouldBePresevedOnStack;
 		ret.localVarTypeToAssign = localVarTypeToAssign;
 		ret.repointed=repointed==null?null:(Block)repointed.copy();
-		ret.idxVariableCreator = idxVariableCreator==null?null:(AssignNew)idxVariableCreator.copy();
+		ret.idxVariableCreator = idxVariableCreator==null?null:(AssignExisting)idxVariableCreator.copy();
 		ret.idxVariableAssignment = idxVariableAssignment==null?null:(RefName)idxVariableAssignment.copy();
 		ret.elseblock = elseblock==null?null:(Block)elseblock.copy();
 		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
@@ -97,7 +97,7 @@ public class ForBlock extends CompoundStatement implements ForBlockMaybeParFor, 
 	public Label beforeAdder;
 	public NamedType isMapSetType = null;
 	public Type localVarTypeToAssign;
-	public AssignNew idxVariableCreator;
+	public AssignExisting idxVariableCreator;
 	public RefName idxVariableAssignment;
 	public Block elseblock;
 	public boolean flagErrorListCompri=false;
@@ -131,7 +131,7 @@ public class ForBlock extends CompoundStatement implements ForBlockMaybeParFor, 
 	}
 	
 	@Override
-	public AssignNew getIdxVariableCreator() {
+	public AssignExisting getIdxVariableCreator() {
 		return this.idxVariableCreator;
 	}
 	
@@ -141,7 +141,7 @@ public class ForBlock extends CompoundStatement implements ForBlockMaybeParFor, 
 	}
 
 	@Override
-	public void setIdxVariableCreator(AssignNew xxx) {
+	public void setIdxVariableCreator(AssignExisting xxx) {
 		this.idxVariableCreator = xxx;
 	}
 	

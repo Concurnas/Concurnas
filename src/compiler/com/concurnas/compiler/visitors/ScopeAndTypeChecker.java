@@ -12380,26 +12380,31 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				if(existingVarType!=null && (!TypeCheckUtils.checkNumerical(null, existingVarType, line, column, false))){
 					this.raiseError(idxVariableAssignment.getLine(), idxVariableAssignment.getColumn(), "Expected numerical type in block incrementer");
 				}
-				idxHaver.setIdxVariableCreator(null);//ensure that if didnt exist initially, but later does (iterative compilation) then we remove any idxCreator we may have added accidentally.
+				//idxHaver.setIdxVariableCreator(null);//ensure that if didnt exist initially, but later does (iterative compilation) then we remove any idxCreator we may have added accidentally.
 				
 			}
 			else{//create new long
-				idxHaver.setIdxVariableCreator(new AssignNew(null, line, column, false, false, idxVariableAssignment.name, new PrimativeType(line, column, PrimativeTypeEnum.INT), AssignStyleEnum.EQUALS, new VarInt(line, column, 0)));
+				//idxHaver.setIdxVariableCreator(new AssignNew(null, line, column, false, false, idxVariableAssignment.name, new PrimativeType(line, column, PrimativeTypeEnum.INT), AssignStyleEnum.EQUALS, new VarInt(line, column, 0)));
+				AssignExisting ae = new AssignExisting(line, column, idxVariableAssignment.name, AssignStyleEnum.EQUALS, new VarInt(line, column, 0));
+				//new PrimativeType(line, column, PrimativeTypeEnum.INT)
+				idxHaver.setIdxVariableCreator(ae);
 			}
 		}
 
-		AssignNew idxVariableCreator = idxHaver.getIdxVariableCreator();
+		AssignExisting idxVariableCreator = idxHaver.getIdxVariableCreator();
 		
 		if(idxVariableCreator!= null ){
 			Type rhsResovlesTo = (Type)idxVariableCreator.expr.accept(this);
 			
-			Type idxVariableType;
-			if(null == idxVariableCreator.type ) {
-				idxVariableCreator.type = rhsResovlesTo;
-				idxVariableType = (Type)rhsResovlesTo.copy();
-			}else {
-				idxVariableType = (Type)idxVariableCreator.type.accept(this);
-			}
+			/*
+			 * Type idxVariableType; if(null == idxVariableCreator ) {
+			 * //idxVariableCreator.type = rhsResovlesTo; idxVariableType =
+			 * (Type)rhsResovlesTo.copy(); }else { idxVariableType =
+			 * rhsResovlesTo;//(Type)idxVariableCreator.type.accept(this); }
+			 */
+			Type idxVariableType = (Type)rhsResovlesTo.copy();
+			idxVariableCreator.setTaggedType(idxVariableType);
+			
 			
 			int line = idxVariableCreator.getLine();
 			int col = idxVariableCreator.getColumn();
@@ -12419,10 +12424,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				TypeCheckUtils.checkSubType(this, idxVariableType, rhsResovlesTo, line, col, line, col);//error if not subtype
 			}
 				
-			addToScopeStackVars(idxVariableCreator.name, idxVariableType, false, true, false);
+			addToScopeStackVars(((RefName)idxVariableCreator.assignee).name, idxVariableType, false, true, false);
 			
-			((AssignNew) idxVariableCreator).isReallyNew = true;
-			((AssignNew) idxVariableCreator).isTempVariableAssignment = true;
+			((AssignExisting) idxVariableCreator).isReallyNew = true;
+			((AssignExisting) idxVariableCreator).isTempVariableAssignment = true;
 		}
 		
 	}
@@ -12728,10 +12733,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				int line = forBlock.getLine();
 				int col = forBlock.getColumn();
 				
-				String name = forBlock.idxVariableAssignment!=null?forBlock.idxVariableAssignment.name:forBlock.idxVariableCreator.name;
+				String name = forBlock.idxVariableAssignment!=null?forBlock.idxVariableAssignment.name:((RefName)forBlock.idxVariableCreator.assignee).name;
 				
 				if(!this.currentScopeFrame.hasVariableAssigned(name)) {
-					AssignNew idxVariableCreator = forBlock.getIdxVariableCreator();
+					AssignExisting idxVariableCreator = forBlock.getIdxVariableCreator();
 					if(null != idxVariableCreator) {//HERE thing
 						idxVariableCreator.accept(this);
 					}
@@ -16775,7 +16780,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(withBlock.astOverride != null) {
 			Block astOv = (Block)withBlock.astOverride;
 			LineHolder lh = astOv.lines.remove(0);
-			AssignNew assnew = (AssignNew)lh.l;
+			AssignExisting assnew = (AssignExisting)lh.l;
 			assnew.accept(this);
 			currentlyInWithStatement.push(new Pair<String, NamedType>(tmpVarName, (NamedType)eType));
 			Type ret = withBlock.setTaggedType((Type)astOv.accept(this));
@@ -16786,7 +16791,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		
 		this.maskErrors(true);
-		AssignNew assnew = new AssignNew(null, line, col, tmpVarName, eType, AssignStyleEnum.EQUALS, forTempVar);
+		//AssignNew assnew = new AssignNew(null, line, col, tmpVarName, eType, AssignStyleEnum.EQUALS, forTempVar);
+		AssignExisting assnew = new AssignExisting(line, col, tmpVarName, AssignStyleEnum.EQUALS, forTempVar);
 		assnew.accept(this);
 		
 		currentlyInWithStatement.push(new Pair<String, NamedType>(tmpVarName, (NamedType)eType));
@@ -16940,10 +16946,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		PostfixOp postIdxIncremement=null;
 		if(whileBlock.idxVariableCreator != null || whileBlock.idxVariableAssignment != null){
-			String name = whileBlock.idxVariableAssignment!=null?whileBlock.idxVariableAssignment.name:whileBlock.idxVariableCreator.name;
+			String name = whileBlock.idxVariableAssignment!=null?whileBlock.idxVariableAssignment.name:((RefName)whileBlock.idxVariableCreator.assignee).name;
 			
 			if(!this.currentScopeFrame.hasVariableAssigned(name)) {
-				AssignNew idxVariableCreator = whileBlock.getIdxVariableCreator();
+				AssignExisting idxVariableCreator = whileBlock.getIdxVariableCreator();
 				if(null != idxVariableCreator) {//HERE thing
 					idxVariableCreator.accept(this);
 				}

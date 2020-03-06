@@ -131,7 +131,7 @@ public class ForBlockOld extends CompoundStatement implements ForBlockMaybeParFo
 
 	public Type resolvedassigType;
 
-	public AssignNew idxExpression;
+	public AssignExisting idxExpression;
 
 	public PostfixOp postIdxIncremement;
 
