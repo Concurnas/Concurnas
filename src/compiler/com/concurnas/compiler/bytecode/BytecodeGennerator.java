@@ -8519,42 +8519,51 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				nt = (NamedType) getKeySet.accept(this);
 			}
 
-			FuncInvoke iterator = new FuncInvoke(line, col, "iterator", new FuncInvokeArgs(line, col));
-
-			boolean isLocalArray = TypeCheckUtils.isLocalArray(nt);
-
-			NamedType iteratOn;
 			Type genType;
-			if (isLocalArray) {
-				genType = nt.copyTypeSpecific();
-				genType.setArrayLevels(nt.getArrayLevels() - 1);
-				iteratOn = new NamedType(new ClassDefJava(LocalArray.class));
-				iteratOn.setGenTypes(genType);
-			} else {
-				iteratOn = nt;
-				genType = null;
-				if(!TypeCheckUtils.isList(this.errorRaisableSupressionFromSatc, nt, false)) {
-					//pull out iterator
-					List<Pair<String, TypeAndLocation>> methods = nt.getAllMethods(null);
-					for(Pair<String, TypeAndLocation> inst : methods) {
-						if(inst.getA().equals("iterator")) {
-							FuncType ft = (FuncType)inst.getB().getType();
-							if(ft.inputs.isEmpty()) {
-								//iteratOn = (NamedType)ft.retType;
-								genType = ((NamedType) (NamedType)ft.retType ).getGenTypes().get(0);
-								break;
+			FuncInvoke iterator;
+			if(forBlock.iteratorOpOverload != null) {
+				iterator = forBlock.iteratorOpOverload;
+				genType = ((NamedType)iterator.getTaggedType()).getGenTypes().get(0);
+			}else {
+				iterator = new FuncInvoke(line, col, "iterator", new FuncInvokeArgs(line, col));
+
+				boolean isLocalArray = TypeCheckUtils.isLocalArray(nt);
+
+				NamedType iteratOn;
+				if (isLocalArray) {
+					genType = nt.copyTypeSpecific();
+					genType.setArrayLevels(nt.getArrayLevels() - 1);
+					iteratOn = new NamedType(new ClassDefJava(LocalArray.class));
+					iteratOn.setGenTypes(genType);
+				} else {
+					iteratOn = nt;
+					genType = null;
+					if(!TypeCheckUtils.isList(this.errorRaisableSupressionFromSatc, nt, false)) {
+						//pull out iterator
+						List<Pair<String, TypeAndLocation>> methods = nt.getAllMethods(null);
+						for(Pair<String, TypeAndLocation> inst : methods) {
+							if(inst.getA().equals("iterator")) {
+								FuncType ft = (FuncType)inst.getB().getType();
+								if(ft.inputs.isEmpty()) {
+									//iteratOn = (NamedType)ft.retType;
+									genType = ((NamedType) (NamedType)ft.retType ).getGenTypes().get(0);
+									break;
+								}
 							}
 						}
+						
+						
+					}else {
+						genType = nt.getGenericTypeElements().get(0);
 					}
-				}else {
-					genType = nt.getGenericTypeElements().get(0);
 				}
+
+				iterator.resolvedFuncTypeAndLocation = new TypeAndLocation(new FuncType(new ArrayList<Type>(), new NamedType(new ClassDefJava(Iterator.class))), new ClassFunctionLocation(iteratOn.getSetClassDef().bcFullName(), iteratOn));
+				iterator.setTaggedType(iterator.resolvedFuncTypeAndLocation.getType());
+
+				iterator.setPreceededByThis(rhsExpr instanceof RefThis);
 			}
-
-			iterator.resolvedFuncTypeAndLocation = new TypeAndLocation(new FuncType(new ArrayList<Type>(), new NamedType(new ClassDefJava(Iterator.class))), new ClassFunctionLocation(iteratOn.getSetClassDef().bcFullName(), iteratOn));
-			iterator.setTaggedType(iterator.resolvedFuncTypeAndLocation.getType());
-
-			iterator.setPreceededByThis(rhsExpr instanceof RefThis);
+			
 			
 			NamedType iterType = (NamedType) iterator.accept(this);
 

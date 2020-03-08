@@ -359,6 +359,10 @@ public class ClassDef extends CompoundStatement implements ClassDefI, AttachedSc
 		return ret;
 	}
 	
+	public HashSet<TypeAndLocation> getMethod(String name){
+		return this.getAllMethodsPlusNestorParent().get(name);
+	}
+	
 	public List<Fiveple<String, ClassDef, Type, Boolean, AccessModifier>> getTraitFields(Map<Type, Type> superGenToChildGenBinding){
 		HashMap<Pair<String, Type>, Thruple<Boolean, AccessModifier, ClassDef>> retx = new HashMap<Pair<String, Type>, Thruple<Boolean, AccessModifier, ClassDef>>();
 		

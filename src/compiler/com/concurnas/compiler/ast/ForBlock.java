@@ -147,6 +147,7 @@ public class ForBlock extends CompoundStatement implements ForBlockMaybeParFor, 
 	
 
 	private boolean canRetValue=false;
+	public FuncInvoke iteratorOpOverload;
 	@Override
 	public boolean getCanReturnAValue() {
 		return this.canRetValue;

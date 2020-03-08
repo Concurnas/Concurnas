@@ -130,7 +130,17 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 		if(null != valsSetInCurrentConstructor){
 			//in construcotr - two valid approaches are this.y = 9, or y = 9;
 			if(assignExisting.assignee instanceof RefName){
-				valsSetInCurrentConstructor.add(((RefName)assignExisting.assignee).name);
+				String name = ((RefName)assignExisting.assignee).name;
+				
+				ArrayList<AssignExisting> aes;
+				if(!valsSetInCurrentConstructor.containsKey(name)) {
+					aes = new ArrayList<AssignExisting>();
+					valsSetInCurrentConstructor.put(name, aes);
+				}else {
+					aes = valsSetInCurrentConstructor.get(name);
+				}
+				aes.add(assignExisting);
+				
 			}
 			else if(assignExisting.assignee instanceof DotOperator){
 				DotOperator doo = (DotOperator)assignExisting.assignee;
@@ -139,7 +149,16 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 					Expression one = elements.get(0);
 					Expression two = elements.get(1);
 					if(one instanceof RefThis && two instanceof RefName){
-						valsSetInCurrentConstructor.add(((RefName)two).name);
+						String name = ((RefName)two).name;
+						
+						ArrayList<AssignExisting> aes;
+						if(!valsSetInCurrentConstructor.containsKey(name)) {
+							aes = new ArrayList<AssignExisting>();
+							valsSetInCurrentConstructor.put(name, aes);
+						}else {
+							aes = valsSetInCurrentConstructor.get(name);
+						}
+						aes.add(assignExisting);
 					}
 				}
 			}
@@ -450,17 +469,17 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 	
 	
 	//stuff for class vals...
-	private HashSet<String> valsSetInCurrentConstructor = null;	
-	private HashMap<ConstructorDef, HashSet<String>> constructorTovalsSetInConstructor = new HashMap<ConstructorDef, HashSet<String>>();
+	private HashMap<String, ArrayList<AssignExisting>> valsSetInCurrentConstructor = null;	
+	private HashMap<ConstructorDef, HashMap<String, ArrayList<AssignExisting>>> constructorTovalsSetInConstructor = new HashMap<ConstructorDef, HashMap<String, ArrayList<AssignExisting>>>();
 	private HashMap<ConstructorDef, ConstructorDef> constructorCallsOwnConstructor = new HashMap<ConstructorDef, ConstructorDef>();
 	private HashSet<String> valsAlreadySetWhenDeclaredAtClassLevel;	
 	
 	@Override
 	public Object visit(ConstructorDef funcDef) {
-		HashSet<String> prev = valsSetInCurrentConstructor;
-		valsSetInCurrentConstructor = new HashSet<String>();
+		HashMap<String, ArrayList<AssignExisting>> prev = valsSetInCurrentConstructor;
+		valsSetInCurrentConstructor = new HashMap<String, ArrayList<AssignExisting>>();
 		Object g = super.visit(funcDef);
-		HashSet<String> found = valsSetInCurrentConstructor;
+		HashMap<String, ArrayList<AssignExisting>> found = valsSetInCurrentConstructor;
 		valsSetInCurrentConstructor = prev;
 		constructorTovalsSetInConstructor.put(funcDef, found);
 		ConstructorDef another = funcDef.callsThisConstructor;
@@ -517,10 +536,10 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 	
 	@Override
 	public Object visit(ClassDef classDef) {
-		HashMap<ConstructorDef, HashSet<String>> prevconstructorTovalsSetInConstructor = constructorTovalsSetInConstructor;
+		HashMap<ConstructorDef, HashMap<String, ArrayList<AssignExisting>>> prevconstructorTovalsSetInConstructor = constructorTovalsSetInConstructor;
 		HashMap<ConstructorDef, ConstructorDef>  prevconstructorCallsOwnConstructor = constructorCallsOwnConstructor;
 		
-		constructorTovalsSetInConstructor = new HashMap<ConstructorDef, HashSet<String>>();
+		constructorTovalsSetInConstructor = new HashMap<ConstructorDef, HashMap<String, ArrayList<AssignExisting>>>();
 		constructorCallsOwnConstructor = new HashMap<ConstructorDef, ConstructorDef>();
 		
 		HashSet<String> prev = valsAlreadySetWhenDeclaredAtClassLevel;
@@ -535,13 +554,13 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 		if(null!= tsf){
 			ArrayList<VarAtScopeLevel> finalFieldsInClass = tsf.getAllVariablesAtScopeLevel(true, true, false, false);
 			if(!finalFieldsInClass.isEmpty()) {
-				processFieldsAndErr(classDef, finalFieldsInClass, setAlready, "These variables have been declared val");
+				processFieldsAndErr(classDef, finalFieldsInClass, setAlready, true);
 			}
 			
 			if(!classDef.objProvider) {
 				ArrayList<VarAtScopeLevel> nonNullFields = tsf.getAllVariablesAtScopeLevel(false, true, false, true);
 				if(!nonNullFields.isEmpty()) {
-					processFieldsAndErr(classDef, nonNullFields, setAlready, "These variables have been declared non nullable");
+					processFieldsAndErr(classDef, nonNullFields, setAlready, false);
 				}
 			}
 		}
@@ -552,10 +571,12 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 		return ret;
 	}
 	
-	private void processFieldsAndErr(ClassDef classDef, ArrayList<VarAtScopeLevel> finalFieldsInClass, HashSet<String> setAlready, String errprefix) {
+	private void processFieldsAndErr(ClassDef classDef, ArrayList<VarAtScopeLevel> finalFieldsInClass, HashSet<String> setAlready, boolean isVal) {
 		if(classDef.isEnum){
 			finalFieldsInClass = removeEnumFields(finalFieldsInClass, new NamedType(classDef));
 		}
+		
+		String errprefix = isVal?"These variables have been declared val":"These variables have been declared non nullable";
 		
 		HashSet<String>  allNamesNeeded = justNames(finalFieldsInClass);
 		allNamesNeeded.removeAll(setAlready);//remove all final fields that are initially set
@@ -576,17 +597,30 @@ public class DefoAssignmentVisitor extends AbstractErrorRaiseVisitor {
 					boolean isFirst =true;
 					HashSet<String> doubleSetted = new HashSet<String>();
 					while(null != constr){
-						
-						HashSet<String> atThisLevel = constructorTovalsSetInConstructor.get(constr);
+						//ASDADASD
+						HashMap<String, ArrayList<AssignExisting>> atThisLevel = constructorTovalsSetInConstructor.get(constr);
 						if(!isFirst){
-							for(String parAdd : atThisLevel){
+							for(String parAdd : atThisLevel.keySet()){
+								
 								if( hasDefoSet.contains(parAdd)){
 									doubleSetted.add(parAdd);
 								}
 							}
 						}
 						
-						hasDefoSet.addAll( atThisLevel );
+						
+						if(isVal) {
+							for(String parAdd : atThisLevel.keySet()){
+								//mark first instance as being ignoreFinalCheck
+								if(allNamesNeeded.contains(parAdd)) {
+									ArrayList<AssignExisting> aes = atThisLevel.get(parAdd);
+									aes.get(0).ignoreFinalCheck=true;
+								}
+							}
+						}
+						
+						
+						hasDefoSet.addAll( atThisLevel.keySet());
 						if(isFirst){
 							isFirst=false;
 						}

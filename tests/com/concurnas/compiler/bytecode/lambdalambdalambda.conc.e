@@ -244,3 +244,7 @@ onetwo
 ~~~~~
 //##37. funcref void ret
 oneone
+
+~~~~~
+//##38. toString for lambdas and constructor references
+((java/lang/Integer) java/lang/Integer, (*) x38toStringforlambdasandconstructorreferences$MyClass, (*) x38toStringforlambdasandconstructorreferences$MyClass)

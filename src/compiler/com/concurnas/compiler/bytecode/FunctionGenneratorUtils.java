@@ -1113,7 +1113,7 @@ public class FunctionGenneratorUtils {
 						DotOperator thisDotThat = new DotOperator(line, col, putterExpr);
 						CastExpression toInt = new CastExpression(line, col, const_int, thisDotThat);
 						
-						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash", asStyle, toInt)));
+						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, toInt)));
 						
 					}
 					else if(ttype.hasArrayLevels()){//has array levels
@@ -1138,7 +1138,7 @@ public class FunctionGenneratorUtils {
 
 						DotOperator hashCall = new DotOperator(line, col, callHasher);
 						
-						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash", asStyle, hashCall)));
+						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, hashCall)));
 					}
 					else{
 						//object
@@ -1176,7 +1176,7 @@ public class FunctionGenneratorUtils {
 						
 						//IfExpr ifNullCheck = new IfExpr(line,  col, refEQ, new VarInt(line, col, 0), callfieldHashcode);
 						
-						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash", asStyle, IfStatement.makeFromTwoExprs(line, col, new VarInt(line, col, 0), callfieldHashcode, refEQ))));
+						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, IfStatement.makeFromTwoExprs(line, col, new VarInt(line, col, 0), callfieldHashcode, refEQ))));
 					}
 					
 				}
@@ -1210,11 +1210,11 @@ public class FunctionGenneratorUtils {
 					putterExpr.add(new FuncInvoke(line, col, "hashCode", new FuncInvokeArgs(line, col)));
 					DotOperator callfieldHashcode = new DotOperator(line, col, putterExpr);
 					
-					functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash", asStyle, callfieldHashcode)));
+					functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, callfieldHashcode)));
 				}
 
 				
-				functionBody.add(new LineHolder(line, col, new ReturnStatement(line, col,  eqRefName(line, col, "hash"))));
+				functionBody.add(new LineHolder(line, col, new ReturnStatement(line, col,  eqRefName(line, col, "hash$"))));
 			}
 			
 			
@@ -1243,17 +1243,22 @@ public class FunctionGenneratorUtils {
 			
 			String fname = isActor?"hashCode$ActorSuperCallObjM" : "hashCode";
 			
-			FuncDef eqfunc = new FuncDef(line, col, null, AccessModifier.PUBLIC, fname, new FuncParams(line, col), theRealFunctionBody, new PrimativeType(PrimativeTypeEnum.INT), !isActor, false, false, new ArrayList<Pair<String, NamedType>>());
-			eqfunc.isAutoGennerated=true;
+			FuncDef hcFunc = new FuncDef(line, col, null, AccessModifier.PUBLIC, fname, new FuncParams(line, col), theRealFunctionBody, new PrimativeType(PrimativeTypeEnum.INT), !isActor, false, false, new ArrayList<Pair<String, NamedType>>());
+			hcFunc.isAutoGennerated=true;
 			
-			FuncType sig = eqfunc.getFuncType();
+			FuncType sig = hcFunc.getFuncType();
 			
 			classDef.removeFuncDef(fname, sig);//remove because will have been processed already by prev cycle
-			classDef.overwriteLineHolder(new Pair<String, FuncType>(fname, sig), new LineHolder(line, col, eqfunc));
+			classDef.overwriteLineHolder(new Pair<String, FuncType>(fname, sig), new LineHolder(line, col, hcFunc));
 			
-			eqfunc.accept(satc);
+			/*
+			 * PrintSourceVisitor psv = new PrintSourceVisitor(); psv.visit(hcFunc);
+			 * System.err.println("" + psv);
+			 */
 			
-			return eqfunc;
+			hcFunc.accept(satc);
+			
+			return hcFunc;
 		}
 		
 		return null;

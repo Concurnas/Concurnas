@@ -201,3 +201,13 @@ MyThing[56]
 ~~~~~
 //##29. assign and unassign
 100
+
+~~~~~
+//##30. op overload strings
+ok a
+true
+bc
+abc
+defgh
+[(a, false), (b, false), (c, false), (d, false), (e, false), (f, false), (g, true), (h, false)]
+[(a, false), (b, false), (c, false), (d, false), (e, false), (f, false), (g, true), (h, false)]

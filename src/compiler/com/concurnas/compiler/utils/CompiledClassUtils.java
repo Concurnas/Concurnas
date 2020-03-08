@@ -1151,6 +1151,8 @@ public class CompiledClassUtils {
 											loc = new ClassFunctionLocation(bcName, ownerNt);
 										}
 										
+										sig.origin = new ClassDefJava(relevantClass);
+										
 										ret.add( new TypeAndLocation(sig, loc) );
 									}
 								}

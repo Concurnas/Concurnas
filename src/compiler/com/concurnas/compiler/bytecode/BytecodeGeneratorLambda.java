@@ -395,6 +395,16 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 		
 		addEqualsAndHashCode(cw, fullname);
 		
+
+		{//toString
+			MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null);
+			methodVisitor.visitCode();
+			methodVisitor.visitLabel(new Label());
+			methodVisitor.visitLdcInsn("(*) " + classConstrucrtedStrJustName);
+			methodVisitor.visitInsn(ARETURN);
+			methodVisitor.visitMaxs(1, 1);
+			methodVisitor.visitEnd();
+		}
 		
 		cw.visitEnd();
 
@@ -486,23 +496,45 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 		Type taggedReturnType = taggedType.retType;
 		
 		String signature;
+		String toString;
 		if (funcRef.superClassName != null) {
 			signature = "L" + funcRef.superClassName + ";";// IsoTask
+			toString= "()" + funcRef.superClassName;
 		} else {
 			if(returnVoid && taggedType.getInputs().isEmpty()) {
 				signature = "Lcom/concurnas/bootstrap/lang/Lambda$Function0v;";
+				toString = "() void";
 			}else {
 				StringBuilder sb = new StringBuilder("Lcom/concurnas/bootstrap/lang/Lambda$Function" + args.unboundCount() + (returnVoid?"v":"")  + "<");
-
-				for (Type t : taggedType.getInputs()) {
-					sb.append( ((AbstractType) (TypeCheckUtils.boxTypeIfPrimative(t, false))).getGenericBytecodeTypeNoGens());//.getGenericBytecodeTypeWithoutArray());
+				StringBuilder tsBuf = new StringBuilder("(");
+				
+				ArrayList<Type> inpts = taggedType.getInputs();
+				ArrayList<String> addtoTSBuf = new ArrayList<String>(inpts.size());
+				for (Type t : inpts) {
+					String tname =  ((AbstractType) (TypeCheckUtils.boxTypeIfPrimative(t, false))).getGenericBytecodeTypeNoGens();
+					
+					addtoTSBuf.add(tname.length() > 3?tname.substring(1, tname.length()-1): tname);
+					
+					sb.append(tname);//.getGenericBytecodeTypeWithoutArray());
 				}
+				
+				if(!inpts.isEmpty()) {
+					tsBuf.append(String.join(", ", addtoTSBuf));
+				}
+				
+				tsBuf.append(") ");
+				
 				if(!returnVoid) {
-					sb.append( ((AbstractType)  (  TypeCheckUtils.boxTypeIfPrimative(taggedReturnType, false))).getGenericBytecodeTypeNoGens());
+					String tname =  ((AbstractType)  (  TypeCheckUtils.boxTypeIfPrimative(taggedReturnType, false))).getGenericBytecodeTypeNoGens();
+					sb.append(tname);
+					tsBuf.append(tname.length() > 3? tname.substring(1, tname.length()-1): tname);
+				}else {
+					tsBuf.append("void");
 				}
 				
 				sb.append(">;");
 				signature = sb.toString();
+				toString = tsBuf.toString();
 			}
 		}
 		
@@ -1363,6 +1395,17 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 			}
 
 		}
+		
+		
+		{//toString
+			MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null);
+			methodVisitor.visitCode();
+			methodVisitor.visitLabel(new Label());
+			methodVisitor.visitLdcInsn(toString);
+			methodVisitor.visitInsn(ARETURN);
+			methodVisitor.visitMaxs(1, 1);
+			methodVisitor.visitEnd();
+		}
 
 		cw.visitEnd();
 
@@ -1372,6 +1415,10 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 		this.bytecodeVisitor.addNameBtyecode(fullname, cw.toByteArray(fullname));
 	}
 
+	public String toString() {
+		return "thing";
+	}
+	
 	private HashSet<Pair<String, String>> genLambdaAlready = new HashSet<Pair<String, String>>();
 
 	@Override

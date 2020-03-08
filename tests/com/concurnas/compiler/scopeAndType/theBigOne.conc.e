@@ -4447,7 +4447,7 @@ x602validateonchangeeveryoptions.conc line 11:41 invalid options specified: only
 
 ~~~~~
 //##603. in qualification cannot be used as output param
-x603inqualificationcannotbeusedasoutputparam.conc line 7:11 Method: get is not callable as generic return type: in java.lang.String has been qualified as in type and so cannot be used as method output
+x603inqualificationcannotbeusedasoutputparam.conc line 7:11 Cannot find get function on java.util.ArrayList<in java.lang.String> with arguments: [int]
 
 ~~~~~
 //##604. smart casts respect this.me vs thing.me vs me
@@ -4490,3 +4490,8 @@ x611topleveldelonfunc.conc line 4:4 thing resolves to something other than a loc
 //##612. missing typed used to blow up
 x612missingtypedusedtoblowup.conc line 11:9 Unable to find method with matching name: BigDecimal
 x612missingtypedusedtoblowup.conc line 18:10 Unable to find method with matching name: constructor and arguments (java.time.LocalDateTime, void)
+
+~~~~~
+//##613. cannot double assign to final field
+x613cannotdoubleassigntofinalfield.conc line 15:3 Variable len has been decalred as val and cannot be reassigned
+ 

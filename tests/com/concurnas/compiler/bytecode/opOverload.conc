@@ -1424,3 +1424,31 @@ def doings(){
 	mc = def () {100}
 	"" + mc
 }
+
+~~~~~
+//##30. op overload strings
+
+def doings(){
+	thstr = "abcdefgh"
+	
+	item = thstr[0]
+	
+	cont = 'de' in thstr
+	
+	substr = thstr[1 ... 3]
+	subto = thstr[ ... 3]
+	subfrom = thstr[3 ...]
+	
+	
+	itr = thstr.iterator()
+	itrEach = while(itr.hasNext()){
+		n = itr.next()
+		n, n=='g'
+	}
+	
+	itrEach2 = for(x in thstr){
+		x, x=='g'
+	}
+
+	"ok {item}\n{cont}\n{substr}\n{subto}\n{subfrom}\n{itrEach}\n{itrEach2}" //+ thing
+}

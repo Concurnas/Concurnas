@@ -205,6 +205,49 @@ var2 = 234.
 String.format("var1: %s var2: %s", var1, var2)
 \end{lstlisting}
 
+\subsection{Additional operations on Strings}
+Concurnas supports the additional following set of basic operations on Strings:
+
+\subsubsection{Contains}
+A substring may be checked for:
+\begin{lstlisting}
+cont = "de" in "abcdefg"
+\end{lstlisting}
+
+\subsubsection{Character at}
+The character at a specific point in a String may be determined:
+\begin{lstlisting}
+achar = "abcdefg"[2] //c
+\end{lstlisting}
+
+\subsubsection{Substring}
+A substring between two points:
+\begin{lstlisting}
+substr = "abcdefg"[2 ... 4] //cd
+\end{lstlisting}
+
+\subsubsection{Substring from}
+A substring from a point to the end of a string:
+\begin{lstlisting}
+substr = "abcdefg"[4 ... ] //efg
+\end{lstlisting}
+
+
+\subsubsection{Substring to}
+A substring from the start to a point:
+\begin{lstlisting}
+substr = "abcdefg"[ ... 4] //abcd
+\end{lstlisting}
+
+
+\subsubsection{Iteration}
+Iteration over all characters of a String:
+\begin{lstlisting}
+elms = (x, x == 'b') for x in "abcdefg"
+//elms ==> [(a, false), (b, true), (c, false), (d, false), (e, false), (f, false), (g, false)]
+\end{lstlisting}
+
+
 \subsection{More information on Strings}
 Strings in Concurnas are supported by the JVM, for more information on Strings see: \href{https://docs.oracle.com/javase/tutorial/java/data/strings.html}{Oracle Java String documentation}
 

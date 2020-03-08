@@ -135,7 +135,7 @@ refToCon = MyClass&(int, int)
 instanceObj MyClass = refToCon(12, 13)
 \end{lstlisting}
 
-But, what if we wish to defer the choice of constructor called to the caller of the reference? In this case we can use the following syntax in order to create a constructor reference, with special type: \lstinline{(*) X/ where /X} is the type of the instance object being created. Example:
+But, what if we wish to defer the choice of constructor called to the caller of the reference? In this case we can use the following syntax in order to create a constructor reference, with special type: \lstinline{(*) X} where \lstinline{X} is the type of the instance object being created. Example:
 
 \begin{lstlisting}
 refToCon ( * ) MyClass = MyClass& //this will defer the choice of constructor to call until later

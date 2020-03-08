@@ -3,6 +3,7 @@
  * Inspired by the set of standard Python built in functions 
 */ 
 from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+from java.util import Iterator, NoSuchElementException
 from com.concurnas.lang import DefaultMap
 
 /** typedef set resolves to a HashSet requiring inference of generic qualifiers*/
@@ -399,4 +400,54 @@ def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(a1 List<A1>,
 			a10[n mod sa10],
 		)
 	}
+}
+
+//Operations on Strings...
+
+/**get retruns the character at the specified index.
+ * Can be used as an operator: myStr[n]
+ * @returns: character at specified index*/
+def String get(idx int)            => this.charAt(idx)
+
+/**sub retruns the substring between the specified indexes
+ * Can be used as an operator: "abcdefgh"[1 ... 3] ==> "bc"
+ * @returns: A String substring*/
+def String sub(fromx int, tox int) => this.substring(fromx, tox)
+
+/**subfrom retruns the substring from specified index to the end of the String
+ * Can be used as an operator: "abcdefgh"[3 ...] ==> "defgh"
+ * @returns: A String substring*/
+def String subfrom(fromx int)      => this.substring(fromx)
+
+/**subfrom retruns the substring from the start to specified index of the String
+ * Can be used as an operator: "abcdefgh"[... 3] ==> "abc"
+ * @returns: A String substring*/
+def String subto(tox int)          => this.substring(0, tox)
+
+/**iterator retruns an iterator over the characters of the String
+ * Can be used as an operator: x for x in "abcdef"
+ * @returns: A Character iterator: Iterator<Character>*/
+def String iterator() Iterator<Character> {
+	if(this == null){
+		throw new NullPointerException();
+	}
+
+	class Iter(string String) ~ Iterator<Character>{
+    	index = 0
+    	val len int
+		init{
+			len = string.length()
+		}
+		
+    	def hasNext() => index < len
+	    def next() Character {
+	    	if (not hasNext()){
+				throw new NoSuchElementException()
+	    	}
+			string.charAt(index++);
+	    }
+    	override remove() => throw new UnsupportedOperationException()
+  	}
+
+  	new Iter(this)
 }

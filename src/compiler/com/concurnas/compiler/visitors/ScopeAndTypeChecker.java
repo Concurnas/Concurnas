@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -63,9 +64,9 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
 import com.concurnas.compiler.ast.util.JustLoad;
 import com.concurnas.compiler.bytecode.FuncLocation;
-import com.concurnas.compiler.bytecode.FunctionGenneratorUtils;
 import com.concurnas.compiler.bytecode.FuncLocation.ClassFunctionLocation;
 import com.concurnas.compiler.bytecode.FuncLocation.StaticFuncLocation;
+import com.concurnas.compiler.bytecode.FunctionGenneratorUtils;
 import com.concurnas.compiler.constants.UncallableMethods;
 import com.concurnas.compiler.typeAndLocation.Location;
 import com.concurnas.compiler.typeAndLocation.LocationClassField;
@@ -354,8 +355,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "b$n1 cannot be resolved to a variable";
-		if(somthing.contains(err) && maskErrors.isEmpty()/* && line == 1660*/ ){
+		String err = "Unable to find method with matching number of arguments with name: get";
+		if(somthing.contains(err) && !maskErrors.isEmpty()/* && line == 1660*/ ){
 			int h=999;
 		}
 		
@@ -1712,10 +1713,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 						FuncType got = TypeCheckUtils.getMostSpecificFunctionForChoices(ers, ers, chocies, wantedArguments, null, "index get reference call", line, col, false, this, false);
 						if (null == got) {
-							this.raiseError(firstAOLine, firstAOCol, "Sublist cannot be operated on" + makeMissingOpOverLoadMessage(methodName, asNamed, wantedArguments, null));
-							this.dotOperatorLHS.pop();
-							this.currentDotOperatorTracker.pop();
-							return null;
+							FuncInvoke redir = canBeOperatorOverloaded(asNamed, wantedArguments, null, methodName, new ArrayList<Expression>(), asNamed.getLine(), asNamed.getColumn(), false, asNamed, false, null);
+							
+							if ( null == redir) {
+								this.raiseError(firstAOLine, firstAOCol, "Sublist cannot be operated on" + makeMissingOpOverLoadMessage(methodName, asNamed, wantedArguments, null));
+								this.dotOperatorLHS.pop();
+								this.currentDotOperatorTracker.pop();
+								return null;
+							}
 						}
 						
 						if(arrayOp.rhsOfAssigmentType != null) {//via op overload not normal method
@@ -3863,14 +3868,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				//refName.astRedirect
 			}
 			
-			if(!assignExisting.ignoreFinalCheck){
+			//if(!assignExisting.ignoreFinalCheck){
 				if (loc != null && (loc.isFinal() || isLocationConstant(loc)) ) {
-					if(checkFinalVarReassignment(assignExisting.getLine(), assignExisting.getColumn(), loc, lhsRefName.name, lhs, rhs, "cannot be reassigned")){
+					if(!assignExisting.ignoreFinalCheck && checkFinalVarReassignment(assignExisting.getLine(), assignExisting.getColumn(), loc, lhsRefName.name, lhs, rhs, "cannot be reassigned")){
 						return null;
 					}
 					currentScopeFrame.setVariableAssigned(lhsRefName.name);
 				}
-			}
+			//}
 			
 			
 			if(null != lhs){
@@ -6178,6 +6183,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	public static NamedType const_provider = new NamedType(new ClassDefJava(ObjectProvider.class, true));
 	public static NamedType cosnt_enum = new NamedType(new ClassDefJava(Enum.class, true));
 	public static NamedType const_integer_nt = new NamedType(new ClassDefJava(Integer.class, true));
+	public static NamedType const_iterator_nt = new NamedType(new ClassDefJava(Iterator.class, true));
 	public static NamedType const_long_nt = new NamedType(new ClassDefJava(Long.class, true));
 	public static NamedType const_float_nt = new NamedType(new ClassDefJava(Float.class, true));
 	public static NamedType const_double_nt = new NamedType(new ClassDefJava(Double.class, true));
@@ -8588,11 +8594,22 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				NamedType genericWithBound = (lhs instanceof GenericType && ((GenericType)lhs).upperBound != null)?((GenericType)lhs).upperBound:null;
 				
-				Pair<HashSet<TypeAndLocation>,Boolean> isExtfunc = findExtensionFunction(funcInvoke, er, nameola,  line, col, raiseErrors, ignoreLambdas, argsWanted, namessMap, lhs, genericWithBound);
-				
-				if(null != isExtfunc) {
-					return isExtfunc;
+				boolean skipExtFunc = false;
+				if(TypeCheckUtils.getRefLevels(lhs) > 0) {
+					ClassDef cd = ((NamedType)lhs).getSetClassDef();
+					
+					//skip if this is a method call on the ref
+					skipExtFunc = cd != null && cd.getMethod(nameola) != null;
 				}
+				
+				if(!skipExtFunc) {
+					Pair<HashSet<TypeAndLocation>,Boolean> isExtfunc = findExtensionFunction(funcInvoke, er, nameola,  line, col, raiseErrors, ignoreLambdas, argsWanted, namessMap, lhs, genericWithBound);
+					if(null != isExtfunc) {
+						return isExtfunc;
+					}
+				}
+				
+				
 					
 				tals = findFuncRefenceDefsLambdaCurry(line, col, funcInvoke, lhs, nameola, argsWanted, namessMap);
 				if(null != tals && !tals.isEmpty()) {
@@ -12571,7 +12588,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				if(null == nextFuncRef)
 				{
-					this.raiseError(forBlock.getLine(), forBlock.getColumn(), String.format("Missing expected method on java.util.Iterator for %s", fname));
+					this.raiseError(forBlock.getLine(), forBlock.getColumn(), String.format("Missing expected method on java.util.Iterator for %s", fname));//is this possible?
 					this.forWhileExpectsReturn.pop();
 					return null;
 				}
@@ -12579,9 +12596,25 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				iteratorType = nextFuncRef.retType;
 			}
 			else{
-				this.raiseError(forBlock.getLine(), forBlock.getColumn(), String.format("Expected Iterable object or array for %s not: %s", fname, thingActuallBeingIterated));
-				this.forWhileExpectsReturn.pop();
-				return null;
+				//see if it's been operator overloaded
+				FuncInvoke overloaded = canBeOperatorOverloaded(thingActuallBeingIterated, new ArrayList<Type>(), null, "iterator",  new ArrayList<Expression>(), forBlock.getLine(), forBlock.getColumn(), false, null, false, forBlock.iteratorOpOverload);
+				if(null != overloaded){
+					this.maskErrors();
+					this.dotOperatorLHS.push(thingActuallBeingIterated);
+					Type resolvesto = (Type)overloaded.accept(this);
+					this.dotOperatorLHS.pop();
+					
+					if(!this.maskedErrors() && null!=TypeCheckUtils.checkSubType(null, ScopeAndTypeChecker.const_iterator_nt, resolvesto)) {
+						iteratorType = ((NamedType)resolvesto).getGenericTypeElements().get(0);
+						forBlock.iteratorOpOverload = overloaded;
+					}
+				}
+				
+				if(forBlock.iteratorOpOverload == null) {
+					this.raiseError(forBlock.getLine(), forBlock.getColumn(), String.format("Expected Iterable object or array for %s not: %s", fname, thingActuallBeingIterated));
+					this.forWhileExpectsReturn.pop();
+					return null;
+				}
 			}
 			
 			Type actualTypeToAsign = null;

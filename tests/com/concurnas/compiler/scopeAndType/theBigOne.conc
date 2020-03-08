@@ -15957,3 +15957,33 @@ def createData(seed = 1337){//seed is an optional parameter with a default value
 def doings(){
 	"ok"
 }
+
+~~~~~
+//##613. cannot double assign to final field
+from java.util import Iterator, NoSuchElementException
+
+def String iterator() Iterator<Character> {
+	if(this == null){
+		throw new NullPointerException();
+	}
+
+	class Iter(string String) ~ Iterator<Character>{
+    	index = 0
+    	val len int
+		init{
+			len = string.length()
+			len = string.length()//this is an error
+		}
+		
+    	def hasNext() => index < len
+	    def next() Character {
+	    	if (not hasNext()){
+				throw new NoSuchElementException()
+	    	}
+			string.charAt(index++);
+	    }
+    	override remove() => throw new UnsupportedOperationException()
+  	}
+
+  	new Iter(this)
+}

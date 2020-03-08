@@ -4046,3 +4046,11 @@ result2 = parfor(b in 0 to 5){ b+1000 }
 def doings(){
 	"hi: " + (result1, result2)
 }
+
+~~~~~
+//##218. op overload on a ref
+def doings(){
+	aa String: = "ok"
+
+	"" + aa[1]
+}

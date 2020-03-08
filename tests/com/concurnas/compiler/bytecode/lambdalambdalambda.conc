@@ -1415,3 +1415,15 @@ def doings(){
 	x2("")
 	"{f1}"
 }
+
+~~~~~
+//##38. toString for lambdas and constructor references
+
+class MyClass
+
+def doings(){
+	x = def (a int) {a+1}
+	y (*) MyClass = MyClass&
+	z = MyClass&
+	"{x, y, z}"
+}
