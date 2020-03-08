@@ -102,7 +102,9 @@ public class REPLShell {
 					color = tokenToColor.get(tokenName);
 				}
 
-				sb.append(String.format("\u001b[38;5;%sm%s", color, tok.getText()));
+				boolean escaped = buffer.charAt(startIdx) == '\\';
+				
+				sb.append(String.format("\u001b[38;5;%sm%s", color, (escaped?"\\" : "") + tok.getText()));
 				cursor = tok.getStopIndex();
 			}
 			
@@ -139,7 +141,7 @@ public class REPLShell {
 	                //.completer(finalCompleter)
 	                .parser(parser)
 	                .highlighter(highlighter)
-	                .variable(LineReader.SECONDARY_PROMPT_PATTERN, "%P   > ")
+	                .variable(LineReader.SECONDARY_PROMPT_PATTERN, "%N%P   > ")
 	                .variable(LineReader.INDENTATION, 2)
 	                .option(Option.DISABLE_EVENT_EXPANSION, true)
 	                //.option(Option.INSERT_BRACKET, true)
