@@ -170,8 +170,7 @@ class HttpServer{
 }
 
 res = HttpServer.class.getAnnotations()
-/
-res => [@Ports(instances = [8080])]
+//res == [@Ports(instances = [8080])]
 \end{lstlisting}
 
 Many JVM annotation frameworks use this mechanism (reflection) to implement functionality operating on annotations.
