@@ -940,7 +940,7 @@ every(lhs, rhs){}
 	result1 = lhs + rhs
 }
 //can be written as:
-plusop2 = every(lhs, rhs) => lhs + rhs
+plusop2 = every(lhs, rhs) {lhs + rhs}
 \end{lstlisting}	
 
 \lstinline{every} and \lstinline{onchange} blocks will be triggered every time a change is made to a monitored ref. Code executed within their body which references the ref(s) that were changed in the transaction which caused that trigger with have their values locked at the value which was written in the transaction, other refs (which may or may not be monitored) will reflect the latest state of the ref in question as normal. An example:
@@ -969,7 +969,7 @@ aref=3
 It is possible to assign and declare a ref within a \lstinline{every} or \lstinline{onchange} block as follows:
 \begin{lstlisting}
 def retRef() int: => 12
-itmchanged = onchange(watch = retRef()) => watch
+itmchanged = onchange(watch = retRef()) { watch }
 \end{lstlisting}	
 
 \subsubsection{Returning from \lstinline{every} and \lstinline{onchange}}
@@ -979,7 +979,7 @@ itmchanged = onchange(watch = retRef()) => watch
 \begin{lstlisting}
 lhs int:
 rhs int:
-plusop2 = every(lhs, rhs) => lhs + rhs
+plusop2 = every(lhs, rhs){lhs + rhs}
 \end{lstlisting}	
 
 Since \lstinline{every} and \lstinline{onchange} blocks operate within their own isolate if an exception is thrown and left uncaught within that block, the exception will be set on the return value. In the above example \lstinline{plusop2}. After this exception has occurred no further execution of the \lstinline{every} and \lstinline{onchange} block will take place. The effect is the same in cases where there is no return value, the difference being that the exception will be handled by the isolate default exception handler - which will simple output a stack trace to the \lstinline{System.err} console output stream.
@@ -998,7 +998,7 @@ Example:
 \begin{lstlisting}
 lhs int:
 rhs int:
-howmanyclosed = every(lhs, rhs; onlyclose) => changed.getChanged().length
+howmanyclosed = every(lhs, rhs; onlyclose){changed.getChanged().length}
 \end{lstlisting}	
 
 \subsubsection{Implicit ref monitoring}
@@ -1164,20 +1164,20 @@ In the previously examined examples of reactive programming we have only conside
 	\begin{lstlisting}
 	lhs int:
 	rhs int:
-	plusop = every(lhs, rhs) => lhs + rhs	
+	plusop = every(lhs, rhs){ lhs + rhs	}
 	\end{lstlisting}
 	Multiple refs may be declared and assigned within the reactive element provided that the are in the comma seperated list, for example:
 	\begin{lstlisting}
 	lhs int:
 	rhs int:
-	plusop = every(a = lhs, b = rhs) => a + b
+	plusop = every(a = lhs, b = rhs) { a + b}
 	\end{lstlisting}	
 	\item \textbf{Arrays of refs} - Multiple individual refs may be referenced in a array of refs:
 	\begin{lstlisting}
 	lhs int:
 	rhs int:
 	watchAr = [lhs rhs]
-	plusop = every(watchAr) => lhs + rhs
+	plusop = every(watchAr){ lhs + rhs}
 	\end{lstlisting}
 	The refs monitored are those present within the array upon creation of the reactive element in question. If the contents of the array changes post element creation these changes will not be included in the set of refs to be monitored. For monitoring of a dynamic set of refs, a \lstinline{ReferenceSet} object is more appropriate.
 	\item \textbf{Lists, maps or sets of refs} - Multiple individual refs may be referenced in a list or set of refs or the key set of a map:
@@ -1185,7 +1185,7 @@ In the previously examined examples of reactive programming we have only conside
 	lhs int:
 	rhs int:
 	watchAr list<int:> = [lhs, rhs]
-	plusop = every(watchAr) => lhs + rhs
+	plusop = every(watchAr) { lhs + rhs}
 	\end{lstlisting}
 	As with likes of arrays of refs, only the refs present within lists, maps or sets of refs at the point of element creation will be included for monitoring. For monitoring of a dynamic set of refs, a \lstinline{ReferenceSet} object is more appropriate.	
 	\item \textbf{ReferenceSets} - Instances of \lstinline{com.concurnas.runtime.cps.ReferenceSet} can be used in order to monitor a dynamically changeable set of refs:
@@ -1198,7 +1198,7 @@ In the previously examined examples of reactive programming we have only conside
 	liveSet.add(lhs)
 	liveSet.add(rhs)
 		
-	numChanged = every(liveSet) => changed.getChanged().length
+	numChanged = every(liveSet) { changed.getChanged().length }
 	
 	liveSet.remove(lhs)
 	//our every expression will continue to monitor only 'rhs' for changes...
@@ -1212,7 +1212,7 @@ In the previously examined examples of reactive programming we have only conside
 	another2 int:
 	another3 int:
 	watchAr = [another1 another2 another3]
-	numChanged = onchange(lhs, rhs, watchAr) => changed.getChanged().length
+	numChanged = onchange(lhs, rhs, watchAr) { changed.getChanged().length }
 	\end{lstlisting}	
 \end{itemize}
 
@@ -1226,7 +1226,7 @@ The \lstinline{changed} keyword can be used in order to obtain the set of refs w
 \begin{lstlisting}
 lhs int:
 rhs int:
-numChanged = onchange(lhs, rhs) => changed.getChanged().length
+numChanged = onchange(lhs, rhs) { changed.getChanged().length }
 //numChanged is a ref containing the number of refs changed in a transaction causing onchange to be triggered
 \end{lstlisting}
 
@@ -1333,7 +1333,7 @@ As we have already seen when it comes to reactive elements, they will be trigger
 acc1 = 10000:
 acc2 = 10000:
 
-whatchanged = onchange(acc1) => changed.getChanged().length
+whatchanged = onchange(acc1) { changed.getChanged().length }
 
 trans{
 	acc1 -= 10
