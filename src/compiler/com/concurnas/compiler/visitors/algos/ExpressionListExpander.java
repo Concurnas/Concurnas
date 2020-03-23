@@ -8,6 +8,7 @@ import java.util.List;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 
 import com.concurnas.compiler.ast.DotOperator;
+import com.concurnas.compiler.ast.ExpressionList;
 import com.concurnas.compiler.ast.FuncDef;
 import com.concurnas.compiler.ast.FuncInvoke;
 import com.concurnas.compiler.ast.FuncInvokeArgs;
@@ -25,6 +26,7 @@ import com.concurnas.compiler.ast.NullStatus;
 import com.concurnas.compiler.ast.RefName;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.ast.util.ExpressionListOrigin;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.GenericTypeUtils;
 import com.concurnas.compiler.visitors.ErrorRaiseable;
@@ -38,13 +40,13 @@ import com.concurnas.runtime.Pair;
 public class ExpressionListExpander {
 	private ArrayList<Expression> exprs;
 	//private ArrayList<String> exprsStrRep;
+	private ExpressionList expressionList;
 	
 	
-	public ExpressionListExpander(ArrayList<Expression> exprs){
+	public ExpressionListExpander(ExpressionList expressionList, ArrayList<Expression> exprs){
+		this.expressionList= expressionList;
 		this.exprs= exprs;
 	}
-	
-	//TODO: reject on probably not needed
 	
 	public Pair<Boolean, ArrayList<Expression>> getPossibilities(ScopeAndTypeChecker satc){
 		//ArrayList<Expression> validPaths = new ArrayList<Expression>();
@@ -57,7 +59,7 @@ public class ExpressionListExpander {
 		}
 		
 		//generate all the possible paths
-		PathGennerator gen = new PathGennerator(this.exprs, satc, new DefaultFunctionProvider(satc));
+		PathGennerator gen = new PathGennerator(this.expressionList, this.exprs, satc, new DefaultFunctionProvider(satc));
 		
 		ArrayList<Expression> aths = gen.genneratePaths();
 		
@@ -86,6 +88,7 @@ public class ExpressionListExpander {
 	
 	public static class PathGennerator{
 		private List<Expression> exprs;
+		private ExpressionList expressionList;
 		private ScopeAndTypeChecker satc;
 		private FunctionProvider funcProvider;
 		
@@ -93,7 +96,8 @@ public class ExpressionListExpander {
 		public ArrayList<Expression> longestMatches = new ArrayList<Expression>();
 		private ErrorRaiseable supressException;
 
-		public PathGennerator(List<Expression> exprs, ScopeAndTypeChecker satc, FunctionProvider funcProvider){
+		public PathGennerator(ExpressionList expressionList, List<Expression> exprs, ScopeAndTypeChecker satc, FunctionProvider funcProvider){
+			this.expressionList = expressionList;
 			this.exprs = exprs;
 			this.satc = satc;
 			this.supressException = satc == null?null:satc.getErrorRaiseableSupression();
@@ -381,7 +385,7 @@ public class ExpressionListExpander {
 							//funcCalls.add( addFuncArgsItem(line, col, baseItem, new FuncInvokeArgs(line, col), opType) );//zero arg call
 							HashSet<Pair<ArrayList<Type>, Type>> funcs = argCountToFuncs.get(0);
 							Type fretType = funcs.iterator().next().getB();
-							addFuncCall(line, col, addFuncArgsItem(line, col, baseItem, new FuncInvokeArgs(line, col), opType), opType, pathSoFar, idx + argsWanted, cutSize, result, fretType);
+							addFuncCall(line, col, addFuncArgsItem(line, col, baseItem, new FuncInvokeArgs(line, col), opType, idx, idx + argsWanted), opType, pathSoFar, idx + argsWanted, cutSize, result, fretType);
 						}else{
 							HashSet<Pair<ArrayList<Type>, Type>> funcs = argCountToFuncs.get(argsWanted);
 							
@@ -468,7 +472,7 @@ public class ExpressionListExpander {
 											//funcCalls.add(addFuncArgsItem(line, col, baseItem, fias, opType));//zero arg call
 											
 											Type fretType = func.getB();
-											addFuncCall(line, col, addFuncArgsItem(line, col, baseItem, fias, opType), opType, pathSoFar, tocap, cutSize, result, fretType);
+											addFuncCall(line, col, addFuncArgsItem(line, col, baseItem, fias, opType, idx, tocap), opType, pathSoFar, tocap, cutSize, result, fretType);
 											
 										}
 									}
@@ -513,10 +517,11 @@ public class ExpressionListExpander {
 			}
 		}
 		
-		private static Expression addFuncArgsItem(int line, int col, Expression baseItem, FuncInvokeArgs args, FuncArgType dowhat){
+		private Expression addFuncArgsItem(int line, int col, Expression baseItem, FuncInvokeArgs args, FuncArgType dowhat, int idx, int cutSize){
 			if(dowhat == FuncArgType.FUNCINVOKE){
 				RefName ba = ((RefName)baseItem);
 				FuncInvoke ret = new FuncInvoke(line, col, ba.name, args);
+				ret.expressionListOrigin = new ExpressionListOrigin(this.expressionList, idx, cutSize);
 				ret.origName = ba;
 				return ret;
 			}else if(dowhat == FuncArgType.FUNCREF ){

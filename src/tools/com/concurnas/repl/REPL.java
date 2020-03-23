@@ -244,7 +244,7 @@ public class REPL implements Opcodes {
 	}
 
 	private String formatErrors(Collection<ErrorHolder> ers, String prefix) {
-		return String.join("\n", ers.stream().map(a -> String.format("%s %s:%s %s", prefix, a.getLine(), a.getColumn(), a.getMessage())).sorted().collect(Collectors.toList()));
+		return String.join("\n", ers.stream().map(a -> String.format("%s %s:%s %s", prefix, a.getLine()-1, a.getColumn(), a.getMessage())).sorted().collect(Collectors.toList()));
 	}
 
 	public void terminate() {

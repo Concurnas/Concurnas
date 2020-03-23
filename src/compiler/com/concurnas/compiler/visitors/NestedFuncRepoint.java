@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -24,6 +25,7 @@ import com.concurnas.compiler.ast.ClassDefJava;
 import com.concurnas.compiler.ast.ContinueStatement;
 import com.concurnas.compiler.ast.DotOperator;
 import com.concurnas.compiler.ast.DuffAssign;
+import com.concurnas.compiler.ast.ExpressionList;
 import com.concurnas.compiler.ast.ForBlock;
 import com.concurnas.compiler.ast.ForBlockOld;
 import com.concurnas.compiler.ast.FuncDef;
@@ -51,6 +53,7 @@ import com.concurnas.compiler.ast.ThisConstructorInvoke;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.WhileBlock;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.ast.util.ExpressionListOrigin;
 import com.concurnas.compiler.bytecode.FuncLocation;
 import com.concurnas.compiler.bytecode.FunctionGenneratorUtils;
 import com.concurnas.compiler.bytecode.OnChangeAwaitBCGennerator;
@@ -59,6 +62,7 @@ import com.concurnas.compiler.typeAndLocation.LocationClassField;
 import com.concurnas.compiler.typeAndLocation.LocationLocalVar;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.Fourple;
+import com.concurnas.compiler.visitors.NestedFuncRepoint.Step2AddExtraCapturedVarsEtc;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 import com.concurnas.runtime.Pair;
 import com.concurnas.runtime.cps.RefStateTracker;
@@ -69,7 +73,7 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 	 * Add extra vars captured like so fun g() = { x=1; fun ff() = x+1; ff() }// x is captured within ff and is passed in as a hidden argument
 	 * also for onchange capture, ensure that arguments are bound to state holder
 	 */
-	private class Step2AddExtraCapturedVarsEtc extends AbstractErrorRaiseVisitor
+	public class Step2AddExtraCapturedVarsEtc extends AbstractErrorRaiseVisitor
 	{
 		protected Step2AddExtraCapturedVarsEtc(String fullPathFileName) {
 			super(fullPathFileName);
@@ -145,11 +149,45 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 			}
 			return super.visit(assignExisting);
 		}
-		
-		//extra stuff added here which is not locally defined, -> spit back up to calling funcdef (so rewrite moi)
+
+		private ArrayList<Pair<ExpressionListOrigin, ArrayList<Expression>>> exprListToExtraPairs;
 		
 		@Override
+		public Object visit(ExpressionList expressionList) {
+			if(expressionList.astRedirect != null) {
+				ArrayList<Pair<ExpressionListOrigin, ArrayList<Expression>>> prev = exprListToExtraPairs;
+				exprListToExtraPairs = new ArrayList<Pair<ExpressionListOrigin, ArrayList<Expression>>>();
+				
+				expressionList.astRedirect.accept(this);
+				
+				if(hadMadeRepoints && !exprListToExtraPairs.isEmpty()) {
+					//add args back to front to source expression list...
+					int sz = exprListToExtraPairs.size()-1;
+					for(int n = sz; n >= 0; n--) {
+						Pair<ExpressionListOrigin, ArrayList<Expression>> items = exprListToExtraPairs.get(n);
+						ExpressionListOrigin exprListOrigin = items.getA();
+						exprListOrigin.origin.exprs.addAll(exprListOrigin.argEnd, items.getB());
+					}
+					
+				}
+				exprListToExtraPairs = prev;
+				
+				
+			}else {
+				for(Expression expr : expressionList.exprs){
+					expr.accept(this);
+				}
+			}
+			
+			return null;
+		}
+
+		
+		//extra stuff added here which is not locally defined, -> spit back up to calling funcdef (so rewrite moi)
+		@Override
 		public Object visit(FuncInvoke funcInvoke) {
+			Object x = super.visit(funcInvoke);
+			
 			if(null != funcInvoke.resolvedFuncTypeAndLocation){
 				Location loc = funcInvoke.resolvedFuncTypeAndLocation.getLocation();
 				
@@ -161,6 +199,7 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 							if (!funcInvoke.funName.equals(df.funcName)) {
 								funcInvoke.overrideFuncName(df.funcName);
 								// add extra args, if there are any
+								ArrayList<Expression> addParams = new ArrayList<Expression>();
 								ArrayList<FuncParam> extrafp = df.params.params;
 								for (int n = funcInvoke.args.getArgumentsWNPs().size(); n < extrafp.size(); n++) {
 									FuncParam toAdd = extrafp.get(n);
@@ -171,12 +210,20 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 										toAdd.name = toAdd.name.substring(0, toAdd.name.indexOf("$n"));;
 									}
 									
-									funcInvoke.args.add(createVariable(funcInvoke.getLine(), funcInvoke.getColumn(), toAdd.name, toAdd.getTaggedType()));
+									Expression toAddv = createVariable(funcInvoke.getLine(), funcInvoke.getColumn(), toAdd.name, toAdd.getTaggedType());
+									addParams.add(toAddv);
+									funcInvoke.addNIFArg(toAddv);
+																	
+									
 									if(!isVarDefinedLocally(toAdd.name)){//null -> defined locally so we dont bind it
 										if(null != extraVarsWithinForOnChange && !extraVarsWithinForOnChange.containsKey(toAdd.name)){
 											extraVarsWithinForOnChange.put(toAdd.name, toAdd);
 										}
 									}
+								}
+								
+								if(funcInvoke.expressionListOrigin != null && !addParams.isEmpty()) {
+									exprListToExtraPairs.add(new Pair<>(funcInvoke.expressionListOrigin, addParams));
 								}
 
 								setHadMadeRepoints();
@@ -191,7 +238,7 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 			}
 			
 			// super.visit(funcInvoke);
-			return super.visit(funcInvoke);
+			return x;
 		}
 		
 		@Override

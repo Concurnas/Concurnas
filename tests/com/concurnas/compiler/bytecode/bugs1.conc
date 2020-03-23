@@ -4054,3 +4054,12 @@ def doings(){
 
 	"" + aa[1]
 }
+
+~~~~~
+//##219. nice little map function
+def java.util.List<X> map<X>(func (X) X) => func(x) for x in this
+def java.util.List<X> map2<X>(func (X) X) => xx java.util.List<X> = this; func(x) for x in xx
+
+def doings(){
+	"" + [1, 2, 3, 4].map(x => x+10).map2(x => x+10)
+}

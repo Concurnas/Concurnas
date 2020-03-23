@@ -3,6 +3,7 @@ package com.concurnas.compiler.ast;
 import java.util.ArrayList;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.visitors.NestedFuncRepoint.Step2AddExtraCapturedVarsEtc;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.algos.ExpressionListExpander;
@@ -27,7 +28,7 @@ public class ExpressionList extends AbstractExpression implements Expression {
 	public Object accept(Visitor visitor) {
 		visitor.setLastLineVisited(super.getLine());
 		
-		if(astRedirect != null && !(visitor instanceof ScopeAndTypeChecker)){
+		if(astRedirect != null && !(visitor instanceof ScopeAndTypeChecker) && !(visitor instanceof Step2AddExtraCapturedVarsEtc)){
 			return astRedirect.accept(visitor);
 		}
 		

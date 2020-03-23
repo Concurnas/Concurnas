@@ -25519,7 +25519,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		//what coudld it be?
 		if(expressionList.exapnder == null){
-			expressionList.exapnder = new ExpressionListExpander(expressionList.exprs);
+			expressionList.exapnder = new ExpressionListExpander(expressionList, expressionList.exprs);
 		}
 		boolean calledInExprListExpandrprev = calledInExprListExpandr;
 		calledInExprListExpandr = true;

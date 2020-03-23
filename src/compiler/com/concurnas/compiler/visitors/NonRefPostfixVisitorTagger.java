@@ -90,21 +90,22 @@ public class NonRefPostfixVisitorTagger extends AbstractErrorRaiseVisitor implem
 	@Override
 	public Object visit(FuncInvoke funcInvoke) {
 		
-		if(funcInvoke.resolvedFuncTypeAndLocation != null){
-			List<Expression> args = funcInvoke.args.getArgumentsWNPs();
-			ArrayList<Type> expectedArgs = ((FuncType)TypeCheckUtils.getRefType(funcInvoke.resolvedFuncTypeAndLocation.getType())).getInputs();
-			
-			for(int n = 0; n < args.size(); n++){
-				Node argee = (Node)args.get(n);
-				if(null != argee){
-					Type got = argee.getTaggedType();
-					Type expected = expectedArgs.get(n);
-							
-					tagNodeWithExpectNonRef(got, expected, argee);
+		if(!funcInvoke.funName.startsWith("NIF$")) {
+			if(funcInvoke.resolvedFuncTypeAndLocation != null){
+				List<Expression> args = funcInvoke.args.getArgumentsWNPs();
+				ArrayList<Type> expectedArgs = ((FuncType)TypeCheckUtils.getRefType(funcInvoke.resolvedFuncTypeAndLocation.getType())).getInputs();
+				
+				for(int n = 0; n < args.size(); n++){
+					Node argee = (Node)args.get(n);
+					if(null != argee){
+						Type got = argee.getTaggedType();
+						Type expected = expectedArgs.get(n);
+								
+						tagNodeWithExpectNonRef(got, expected, argee);
+					}
 				}
 			}
 		}
-		
 		
 		return super.visit(funcInvoke);
 	}

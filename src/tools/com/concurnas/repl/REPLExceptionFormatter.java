@@ -18,9 +18,9 @@ public class REPLExceptionFormatter {
 			}
 			else if(clsName.equals(classBeingRunGlob)) {
 				if(methodName.equals("init")) {
-					sb.append(String.format("|    at line:%s", elm.getLineNumber()));
+					sb.append(String.format("|    at line:%s", elm.getLineNumber()-1));
 				}else {
-					sb.append(String.format("|    at %s(line:%s)", methodName, elm.getLineNumber()));
+					sb.append(String.format("|    at %s(line:%s)", methodName, elm.getLineNumber()-1));
 				}
 			}
 			else if(methodName.equals("init")) {

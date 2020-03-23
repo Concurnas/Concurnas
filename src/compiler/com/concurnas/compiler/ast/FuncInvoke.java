@@ -3,6 +3,7 @@ package com.concurnas.compiler.ast;
 import java.util.ArrayList;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.ast.util.ExpressionListOrigin;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.Fourple;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
@@ -89,6 +90,11 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 		return true;
 	}
 	
+	//e.g. nestedFunc(a int) => NIF$0(a int, dep1 int, dep2 int)
+	public void addNIFArg(Expression toAdd) {
+		this.args.add(toAdd);
+	}
+	
 	/*
 	public FuncInvoke(Expression funto, FuncInvokeArgs args) {
 		this.functo = funto;
@@ -168,6 +174,7 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		ret.origName = origName==null?null:(RefName)origName.copy();
 		ret.lhsOfAssignExisting = lhsOfAssignExisting;
+		ret.expressionListOrigin = expressionListOrigin;
 		//ret.copyInArgs = copyInArgs;
 		//ret.vectroizedDegreeAndArgs = vectroizedDegreeAndArgs;
 		
@@ -223,7 +230,9 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 	public boolean supressVectorization=false;
 	public boolean requiresGenTypeInference=false;
 	public RefName origName;
-	public boolean lhsOfAssignExisting=false;;
+	public boolean lhsOfAssignExisting=false;
+	public ExpressionListOrigin expressionListOrigin;
+	
 	@Override
 	public boolean hasErroredAlready() {
 		return hasErrored;

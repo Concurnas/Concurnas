@@ -85,7 +85,7 @@ public class ExprListExpanderTests {
 			}
 			
 
-			PathGennerator gen = new PathGennerator(exprs, null, new MockFunctionProvider());
+			PathGennerator gen = new PathGennerator(null, exprs, null, new MockFunctionProvider());
 			
 			for(Expression expr : gen.genneratePaths()){
 				PrintSourceVisitor visitor = new PrintSourceVisitor();

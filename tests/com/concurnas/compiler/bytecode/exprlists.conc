@@ -634,3 +634,22 @@ def doings() {
 	
 	"" + order
 }
+
+~~~~~
+//##49. expr list of nested extension function and nested function
+from java.util import List
+
+def myfunction(toA int){
+	def rangeTo(toAdd int){
+		toAdd + n for n in 0 to toA
+	}
+	
+	def List<Integer> addTo(items List<Integer>){
+		this.addAll(x+toA+100 for x in items)
+		this
+	}
+	//0     1   2    3      4
+	rangeTo 4 addTo rangeTo 6
+}
+
+def doings() => "" + myfunction(10)

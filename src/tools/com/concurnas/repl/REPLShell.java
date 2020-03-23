@@ -177,7 +177,6 @@ public class REPLShell {
                 }
             } catch (UserInterruptException e) {//CTRL + C
             	System.out.println("|  Bye!");
-            	System.exit(0);
                 return 0;
             }  catch (EndOfFileException e) {// Handle CTRL + D
             	System.out.println("|  Bye!");

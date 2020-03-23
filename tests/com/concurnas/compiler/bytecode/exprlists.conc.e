@@ -188,3 +188,7 @@ Buy 1 GBP at when
 ~~~~~
 //##48. tweak last element to return something
 Buy 1000000 GBP at when
+
+~~~~~
+//##49. expr list of nested extension function and nested function
+[10, 11, 12, 13, 14, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126]

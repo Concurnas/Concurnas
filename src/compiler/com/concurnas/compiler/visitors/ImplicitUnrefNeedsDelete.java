@@ -138,24 +138,26 @@ public class ImplicitUnrefNeedsDelete extends AbstractVisitor implements Visitor
 
 	@Override
 	public Object visit(FuncInvoke funcInvoke) {
-		if(!refFromFuncInvokeNeedsTag.isEmpty() && refFromFuncInvokeNeedsTag.peek()) {
-			funcInvoke.refShouldBeDeletedOnUsusedReturn=true;
-		}
 		
-		if(null != funcInvoke.resolvedFuncTypeAndLocation) {
-			Type resolve = funcInvoke.resolvedFuncTypeAndLocation.getType();
-			if(resolve instanceof FuncType) {
-				FuncType ft = (FuncType)resolve;
-				List<Expression> leArgs = funcInvoke.args.getArgumentsWNPs();
-				int sz = leArgs.size();
-				int m=ft.extFuncOn?1:0;
-				for(int n=0; n < sz; n++) {
-					tagProducerOfTypeIfUnreffed(leArgs.get(n), ft.inputs.get(m), true);
-					m++;
+		if(!funcInvoke.funName.startsWith("NIF$")) {
+			if(!refFromFuncInvokeNeedsTag.isEmpty() && refFromFuncInvokeNeedsTag.peek()) {
+				funcInvoke.refShouldBeDeletedOnUsusedReturn=true;
+			}
+			
+			if(null != funcInvoke.resolvedFuncTypeAndLocation) {
+				Type resolve = funcInvoke.resolvedFuncTypeAndLocation.getType();
+				if(resolve instanceof FuncType) {
+					FuncType ft = (FuncType)resolve;
+					List<Expression> leArgs = funcInvoke.args.getArgumentsWNPs();
+					int sz = leArgs.size();
+					int m=ft.extFuncOn?1:0;
+					for(int n=0; n < sz; n++) {
+						tagProducerOfTypeIfUnreffed(leArgs.get(n), ft.inputs.get(m), true);
+						m++;
+					}
 				}
 			}
 		}
-		
 		
 		return funcInvoke.getTaggedType();
 	}
