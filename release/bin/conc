@@ -29,7 +29,7 @@ function restoreSttySettings() {
     echo "$saved_stty"
   fi
     
-  stty $saved_stty
+  stty $saved_stty 2>/dev/null
   saved_stty=""
 }
 
