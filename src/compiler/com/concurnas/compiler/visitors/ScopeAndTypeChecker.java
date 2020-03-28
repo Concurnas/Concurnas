@@ -3240,7 +3240,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						//null check:
 						if(!assignNew.skipNullableCheck && !TypeCheckUtils.isNullable(lhsType) && TypeCheckUtils.isNullable(rhsType)) {
 							if(!TypeCheckUtils.eitherPointer(lhsType, rhsType)) {
-								this.raiseError(assignNew.getLine(), assignNew.getColumn(), "Assingment can be null, but assignment type is not nullable");
+								this.raiseError(assignNew.getLine(), assignNew.getColumn(), "Assignment can be null, but assignment type is not nullable");
 							}
 						}
 					}
@@ -3377,7 +3377,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			Type checked = TypeCheckUtils.checkAssignmentCanBeDone(this, assignNew.eq, already, rhsType, assignNew.getLine(), assignNew.getColumn(), rhsExpr.getLine(), rhsExpr.getColumn(), "");
 			
 			if(!TypeCheckUtils.isNullable(already) && TypeCheckUtils.isNullable(rhsType)) {//null check:
-				this.raiseError(assignNew.getLine(), assignNew.getColumn(), "Assingment can be null, but assignment type is not nullable");
+				this.raiseError(assignNew.getLine(), assignNew.getColumn(), "Assignment can be null, but assignment type is not nullable");
 			}
 			
 			retType = checked;
@@ -3646,7 +3646,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 				//unless lhs is ref and rhs is not a ref or has less ref levels 
 				if(fail){
-					this.raiseError(line, col, String.format("Variable %s has been decalred as %s and %s", varname, isLocationConstant(loc)?"constant":"val", operation));
+					this.raiseError(line, col, String.format("Variable %s has been declared as %s and %s", varname, isLocationConstant(loc)?"constant":"val", operation));
 					return true;
 				}
 			}
@@ -4289,7 +4289,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							
 						}
 						else{
-							this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), String.format("The field %s has been decalred as %s and cannot be reassigned", lhsName.name, isLocationConstant(loc)?"constant":"val"));
+							this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), String.format("The field %s has been declared as %s and cannot be reassigned", lhsName.name, isLocationConstant(loc)?"constant":"val"));
 						}
 					}
 				}
@@ -4326,7 +4326,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		if(null != lhs && null != rhs && TypeCheckUtils.isNotNullable(lhs) && TypeCheckUtils.isNullable(rhs) && assignExisting.eq != AssignStyleEnum.PLUS_EQUALS) {//null check:
-			this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), "Assingment can be null, but assignment type is not nullable");
+			this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), "Assignment can be null, but assignment type is not nullable");
 		}
 		
 		Pair<ArrayList<Pair<Boolean, NullStatus>>, Type> lhsvec = vectorizedOperator(lhs, assignee);

@@ -1,18 +1,18 @@
 //##1. basic null types and assignment
-x1basicnulltypesandassignment.conc line 4:1 Assingment can be null, but assignment type is not nullable
-x1basicnulltypesandassignment.conc line 5:1 Assingment can be null, but assignment type is not nullable
-x1basicnulltypesandassignment.conc line 13:1 Assingment can be null, but assignment type is not nullable
-x1basicnulltypesandassignment.conc line 16:1 Assingment can be null, but assignment type is not nullable
+x1basicnulltypesandassignment.conc line 4:1 Assignment can be null, but assignment type is not nullable
+x1basicnulltypesandassignment.conc line 5:1 Assignment can be null, but assignment type is not nullable
+x1basicnulltypesandassignment.conc line 13:1 Assignment can be null, but assignment type is not nullable
+x1basicnulltypesandassignment.conc line 16:1 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##2. branching logic etc
-x2branchinglogicetc.conc line 6:1 Assingment can be null, but assignment type is not nullable
-x2branchinglogicetc.conc line 8:1 Assingment can be null, but assignment type is not nullable
+x2branchinglogicetc.conc line 6:1 Assignment can be null, but assignment type is not nullable
+x2branchinglogicetc.conc line 8:1 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##3. assign fuctype and tuples
-x3assignfuctypeandtuples.conc line 4:1 Assingment can be null, but assignment type is not nullable
-x3assignfuctypeandtuples.conc line 7:1 Assingment can be null, but assignment type is not nullable
+x3assignfuctypeandtuples.conc line 4:1 Assignment can be null, but assignment type is not nullable
+x3assignfuctypeandtuples.conc line 7:1 Assignment can be null, but assignment type is not nullable
 
 ~~~~~
 //##4. nullable passed to function
@@ -68,7 +68,7 @@ x11nullableonoperators.conc line 58:2 Argument 1 passed to method (of minus) can
 x11nullableonoperators.conc line 60:7 Operand for operation might be null
 x11nullableonoperators.conc line 68:2 Operand for operation might be null
 x11nullableonoperators.conc line 75:1 Operand for operation might be null
-x11nullableonoperators.conc line 76:1 Assingment can be null, but assignment type is not nullable
+x11nullableonoperators.conc line 76:1 Assignment can be null, but assignment type is not nullable
 x11nullableonoperators.conc line 77:1 Operand for operation might be null
 x11nullableonoperators.conc line 79:5 Operand for operation might be null
  
@@ -79,14 +79,14 @@ x12expressionbeforedotmaybenull.conc line 14:6 expression before . might be null
 
 ~~~~~
 //##13. lists pt1
-x13listspt1.conc line 16:2 Assingment can be null, but assignment type is not nullable
+x13listspt1.conc line 16:2 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##14. for loop iterable can be null
 x14forloopiterablecanbenull.conc line 13:22 iterable for loop expression can be null
 x14forloopiterablecanbenull.conc line 17:13 iterable for loop expression can be null
-x14forloopiterablecanbenull.conc line 18:2 Assingment can be null, but assignment type is not nullable
-x14forloopiterablecanbenull.conc line 22:2 Assingment can be null, but assignment type is not nullable
+x14forloopiterablecanbenull.conc line 18:2 Assignment can be null, but assignment type is not nullable
+x14forloopiterablecanbenull.conc line 22:2 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##15. with expression may be null
@@ -98,16 +98,16 @@ x16returnfromtry.conc line 18:1 expression before . might be null
  
 ~~~~~
 //##17.nullable to non null
-x17nullabletononnull.conc line 5:1 Assingment can be null, but assignment type is not nullable
+x17nullabletononnull.conc line 5:1 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##18. nullable due to else block for loops etc
-x18nullableduetoelseblockforloopsetc.conc line 10:1 Assingment can be null, but assignment type is not nullable
+x18nullableduetoelseblockforloopsetc.conc line 10:1 Assignment can be null, but assignment type is not nullable
 x18nullableduetoelseblockforloopsetc.conc line 13:7 expression before . might be null
  
 ~~~~~
 //##19. return from func
-x19returnfromfunc.conc line 9:1 Assingment can be null, but assignment type is not nullable
+x19returnfromfunc.conc line 9:1 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##20. safe dot op
@@ -134,23 +134,23 @@ x23elvischecksandvoidnotapproperiate.conc line 13:1 void is not an instantiable 
 //##24. HasNoNullItems - test @NoNull annoation
 x24HasNoNullItemstest@NoNullannoation.conc line 8:32 Argument 1 passed to method (of addToList) can be null (java.util.ArrayList<java.lang.String>?), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 9:3 Argument 2 passed to method (of addToList) can be null (null), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 11:1 Assingment can be null, but assignment type is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 11:1 Assignment can be null, but assignment type is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 13:35 Argument 1 passed to method (of addToListLG) can be null (java.util.ArrayList<java.lang.String>?), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 14:3 Argument 2 passed to method (of addToListLG) can be null (null), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 16:1 Assingment can be null, but assignment type is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 35:1 Assingment can be null, but assignment type is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 41:1 Assingment can be null, but assignment type is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 48:1 Assingment can be null, but assignment type is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 53:1 Assingment can be null, but assignment type is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 16:1 Assignment can be null, but assignment type is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 35:1 Assignment can be null, but assignment type is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 41:1 Assignment can be null, but assignment type is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 48:1 Assignment can be null, but assignment type is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 53:1 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##25. HasNoNullItems - test @NoNull annoation fields
-x25HasNoNullItemstest@NoNullannoationfields.conc line 8:2 Assingment can be null, but assignment type is not nullable
-x25HasNoNullItemstest@NoNullannoationfields.conc line 9:2 Assingment can be null, but assignment type is not nullable
+x25HasNoNullItemstest@NoNullannoationfields.conc line 8:2 Assignment can be null, but assignment type is not nullable
+x25HasNoNullItemstest@NoNullannoationfields.conc line 9:2 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##26. bytecode fields and methods are annotated with no null annotation
-x26bytecodefieldsandmethodsareannotatedwithnonullannotation.conc line 8:1 Assingment can be null, but assignment type is not nullable
+x26bytecodefieldsandmethodsareannotatedwithnonullannotation.conc line 8:1 Assignment can be null, but assignment type is not nullable
 x26bytecodefieldsandmethodsareannotatedwithnonullannotation.conc line 9:15 Argument 1 passed to method (of conc) can be null (null), but method argument type([java.lang.String, java.lang.String?]) is not nullable
  
 ~~~~~
@@ -166,7 +166,7 @@ x29restrictionsonnullabletypes.conc line 4:12 ? may not be used consecutively
  
 ~~~~~
 //##30. basic nullable array assingment
-x30basicnullablearrayassingment.conc line 11:1 Assingment can be null, but assignment type is not nullable
+x30basicnullablearrayassingment.conc line 11:1 Assignment can be null, but assignment type is not nullable
 x30basicnullablearrayassingment.conc line 13:1 Array operation cannot be performed, array is nullable and might be null
 
 ~~~~~
@@ -181,8 +181,8 @@ x33nullablesonlistslikearrays.conc line 12:1 Array operation cannot be performed
  
 ~~~~~
 //##34. nullable arrays and lists
-x34nullablearraysandlists.conc line 10:1 Assingment can be null, but assignment type is not nullable
-x34nullablearraysandlists.conc line 16:1 Assingment can be null, but assignment type is not nullable
+x34nullablearraysandlists.conc line 10:1 Assignment can be null, but assignment type is not nullable
+x34nullablearraysandlists.conc line 16:1 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##34. vectorization

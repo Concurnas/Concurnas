@@ -15,21 +15,21 @@ So why not remove \lstinline{null} from the type system entirely? Well, it turns
 Concurnas, like other modern programming languages such as \href{https://kotlinlang.org/}{Kotlin} and \href{https://developer.apple.com/swift/}{Swift}, makes working with \lstinline{null} easy and safe by incorporating nullability a part of the type system, and by providing a range of null safety operators to assist in those instances where null is a desired object state. This allows us to write safe code in Concurnas which is largely free of \lstinline{NullPointerException} exceptions.
 
 \section{Type system nullability}
-All non primitive types in Concurnas are non nullable at the point of declaration by default. Thus, attempting to assign a null value to a variable having a non nullable type (or anywhere else where a non nullable type is expected, for instance in a method argument etc) will result in a compile time error:
+All non-primitive types in Concurnas are non-nullable at the point of declaration by default. Thus, attempting to assign a null value to a variable having a non-nullable type (or anywhere else where a non-nullable type is expected, for instance in a method argument etc) will result in a compile time error:
 
 \begin{lstlisting}
 aVariable String = "a String"
 aVariable = null//this is a compile time error!
 \end{lstlisting}
 
-If one wishes for a variable to be able to hold a value of null, a nullable type must be declared, this can be achieved for a non primitive type by appending a \lstinline{?} to the end of the type declaration. As par our prevoius example:
+If one wishes for a variable to be able to hold a value of null, a nullable type must be declared, this can be achieved for a non-primitive type by appending a \lstinline{?} to the end of the type declaration. As per our previous example:
 
 \begin{lstlisting}
 nullableVar String? = "a String"//nullableVar can hold a null value
 nullableVar = null//this is acceptable
 \end{lstlisting}
 
-With nullability as part of the type system we are able to write code such as the following safe in the knowlage that there is no possibility for a \lstinline{NullPointerException} exception to be thrown:
+With nullability as part of the type system we are able to write code such as the following safe in the knowledge that there is no possibility for a \lstinline{NullPointerException} exception to be thrown:
 
 \begin{lstlisting}
 len = aVariable.length()
@@ -77,12 +77,12 @@ res = if(nullableVar <> null and nullableVar.length() > 2){
 \end{lstlisting}
 
 
-Furthermore, in cases where a nullable variable is assigned a non nullable value, we know with certainty that said variable is now not nullable, Concurnas is able to make use of this information thus enabling the following code to be valid:
+Furthermore, in cases where a nullable variable is assigned a non-nullable value, we know with certainty that said variable is now not nullable, Concurnas is able to make use of this information thus enabling the following code to be valid:
 
 \begin{lstlisting}
 nullable String? = "not null"
 //... potentially other code...
-ok = nullable.length()//ok as we know at this point nullable isn't nullable
+ok = nullable.length() //ok as we know at this point nullable isn't nullable
 \end{lstlisting}
 
 This logic is applied to branching control flow:
@@ -95,7 +95,7 @@ if(a > b){
 }else{
 	nullable = "also ok"
 }
-ok = nullable.length()//ok as we know at this point nullable isn't nullable
+ok = nullable.length() //ok as we know at this point nullable isn't nullable
 \end{lstlisting}
 
 This inference logic extends to class fields with the caveat that calls to methods after the determination of non nullability will invalidate that inference (since it's possible such a method call may set our field in question to null). Thus the following holds:
@@ -110,9 +110,9 @@ class MyClass{
 	
 	def inferNonNull(){
 		aString = "ok"
-		len = aString.length()//ok aString is not nullable
+		len = aString.length() //ok aString is not nullable
 		foo()//foo may set aString to null
-		len = aString.length()//error aString might be nullable
+		len = aString.length() //error aString might be nullable
 	}
 }
 \end{lstlisting}
@@ -121,25 +121,25 @@ This logic does not apply to shared nullable variables since they can be set to 
 
 
 \section{Safe calls}
-The safe call dot operator, \lstinline{?.} allows us to execute the method or field access on the right hand side of a dot for a nullable entity iff it is not null. If it is null, then null is returned. This the type returned from any call of this nature will always be nullable.
+The safe call dot operator, \lstinline{?.} allows us to execute the method or field access on the right hand side of a dot for a nullable entity if it is not null. If it is null, then null is returned. This the type returned from any call of this nature will always be nullable.
 
 \begin{lstlisting}
 nullableVar String? = "a String"
-len = nullableVar?.length()//len is of type Integer? (nullable Integer)
+len = nullableVar?.length() //len is of type Integer? (nullable Integer)
 \end{lstlisting}
 
-The safe call dot operator may only be applied to nullable entities, applying it to a non nullable type results in a compilation error:
+The safe call dot operator may only be applied to nullable entities, applying it to a non-nullable type results in a compilation error:
 
 \begin{lstlisting}
 normalString String = "a String"
-len = normalString?.length()//compilaton error
+len = normalString?.length() //compilaton error
 \end{lstlisting}
 
 \subsection{Array reference safe calls }
 Safe calls can be applied to array reference calls by inserting a \lstinline{?} between the expression and array reference brackets \lstinline{[]} as follows:
 
 \begin{lstlisting}
-maybeNull int[]? = [1 2 3 4] if condition() else null//maybe null
+maybeNull int[]? = [1 2 3 4] if condition() else null //maybe null
 got = maybeNull?[0] //got is of type Integer?
 "" + got
 \end{lstlisting}
@@ -155,7 +155,7 @@ class Parent(-children Child...)
 
 parent Parent? = Parent(Child(Color.GREEN), Child(Color.RED))
 
-firstChildColor = parent?.children?[0]?.favColour//chained safe calls
+firstChildColor = parent?.children?[0]?.favColour //chained safe calls
 \end{lstlisting}
 
 \section{Elvis operator}
@@ -172,7 +172,7 @@ The final option for working with nullable types in Concurnas is the no null ass
 \begin{lstlisting}
 nullableString String? = "value"
 //...
-notNull String = nullableString??//throws a NullPointerException if nullableString is null
+notNull String = nullableString?? //throws a NullPointerException if nullableString is null
 \end{lstlisting}
 
 The operator may be used on its own in order to test for nullness without returning a value:
@@ -180,7 +180,7 @@ The operator may be used on its own in order to test for nullness without return
 \begin{lstlisting}
 nullableString String? = "value"
 //...
-nullableString??//throws a NullPointerException if nullableString is null
+nullableString?? //throws a NullPointerException if nullableString is null
 \end{lstlisting}
 
 The no null assertion, like many other operators, may be used preceding a dot operator:
@@ -188,36 +188,36 @@ The no null assertion, like many other operators, may be used preceding a dot op
 \begin{lstlisting}
 nullableString String? = "value"
 //...
-length int = nullableString??.length()//throws a NullPointerException if nullableString is null
+length int = nullableString??.length() //throws a NullPointerException if nullableString is null
 \end{lstlisting}
 
 \section{Nullable generics}
-When it comes to generic types, at the point of declaration by default the are non nullable, that is to say, the default upper bound of a generic type declaration is \lstinline{Object} - which is not nullable. i.e. Below the \lstinline{X} generic types of our \lstinline{TakesGeneric1} and \lstinline{TakesGeneric2} classes are the same:
+When it comes to generic types, at the point of declaration by default the are non-nullable, that is to say, the default upper bound of a generic type declaration is \lstinline{Object} - which is not nullable. i.e. Below the \lstinline{X} generic types of our \lstinline{TakesGeneric1} and \lstinline{TakesGeneric2} classes are the same:
 \begin{lstlisting}
 class TakesGeneric1<X>
-class TakesGeneric2<X Object>//Object is non nullable
+class TakesGeneric2<X Object> //Object is non-nullable
 \end{lstlisting}
 
-Since we have declared \lstinline{X} above as being non nullable the following code is not compilable:
+Since we have declared \lstinline{X} above as being non-nullable the following code is not compilable:
 \begin{lstlisting}
-inst = TakesGeneric1<String?>()//compile time error
+inst = TakesGeneric1<String?>() //compile time error
 \end{lstlisting}
 
 We could however redefine \lstinline{TakesGeneric1} in order to achieve this:
 
 \begin{lstlisting}
 class TakesGeneric1<X?>
-inst = TakesGeneric1<String?>()//this is ok
+inst = TakesGeneric1<String?>() //this is ok
 \end{lstlisting}
 
-Classes having non nullable generic types may still define nullable instances of those generic types as follows:
+Classes having non-nullable generic types may still define nullable instances of those generic types as follows:
 
 \begin{lstlisting}
 class TakesGeneric1<X>{
 ~x X?
 }
 inst = TakesGeneric1<String>()
-inst.x = null//this is ok
+inst.x = null //this is ok
 \end{lstlisting}
 
 
@@ -225,45 +225,45 @@ inst.x = null//this is ok
 Class fields if not initialized at point of declaration or via the constructor invocation chain will default to null. Class fields like this must be declared as being nullable otherwise they will be flagged up as an error at compilation time. For example:
 \begin{lstlisting}
 class UninitNonNullables<X>{
-	aString String//initially set to null, but type not nullable - hence error!
-	anArray int[] //initially set to null, but type not nullable - hence error!
+	aString String //initially set to null, but type not nullable - hence error!
+	anArray int[]  //initially set to null, but type not nullable - hence error!
 }
 \end{lstlisting}
 
 This can be solved by either declaring the variables as being of a nullable type or initializing them:
 
 \begin{lstlisting}
-class UninitNonNullables<X>(anArray int[]){//initialized in default constructor
-	aString String?//nullable
+class UninitNonNullables<X>(anArray int[]){ //initialized in default constructor
+	aString String? //nullable
 }
 \end{lstlisting}
 
-\section{Using non Concurnas types}
+\section{Using non-Concurnas types}
 Code written outside of Concurnas, for instance in Java, may not have any null safety. As such, by default Concurnas is somewhat conservative when it comes to invoking methods originating from languages other than Concurnas. Though this does not come at a sacrifice to what code can be used, it does come with some caveats.
 
-Essentially, unless otherwise annotated (see \hyperref[subsubsec:annotatenonconc]{Annotating non Concurnas code} below), the methods of non Concurnas types are assumed to consume and return values of unknown nullability. That is to say, they are assumed to be nullable but can be used as if they were both nullable and non nullable. For example, a list:
+Essentially, unless otherwise annotated (see \hyperref[subsubsec:annotatenonconc]{Annotating non-Concurnas code} below), the methods of non-Concurnas types are assumed to consume and return values of unknown nullability. That is to say, they are assumed to be nullable but can be used as if they were both nullable and non-nullable. For example, a list:
 
 \begin{lstlisting}
-alist = new list<String>()//generic param of java.util.ArrayList declared as a non nullable type
+alist = new list<String>() //generic param of java.util.ArrayList declared as a non-nullable type
 alist.add('inst')
-alist.add(null)//this is ok
-res1  = alist.get(0)//res1 is of nullable type: String?
+alist.add(null) //this is ok
+res1  = alist.get(0) //res1 is of nullable type: String?
 res2 String = alist.get(0)
 \end{lstlisting}
 
-The above would not be possible if the generic parameter of \lstinline{java.util.ArrayList} were to be known as either nullable or non nullable - but it's unknown in this case. Let's look at what this causes in detail:
+The above would not be possible if the generic parameter of \lstinline{java.util.ArrayList} were to be known as either nullable or non-nullable - but it's unknown in this case. Let's look at what this causes in detail:
 
 \begin{itemize}
 	\item \lstinline{alist.add(null)} - it is acceptable for null to be passed for a type of unknown nullability.
 	\item \lstinline{res1 = alist.get(0)} - \lstinline{res1} will be inferred to be a nullable type.
-	\item \lstinline{res2 String = alist.get(0)} - The value resulting from execution of the \lstinline{get} method call will be checked to ensure that it is not null before being assigned to \lstinline{res2} which has been declared as being non nullable. This helps avoid "null pollution" - i.e. a \lstinline{null} value being inadvertently assigned to a non nullable variable.
+	\item \lstinline{res2 String = alist.get(0)} - The value resulting from execution of the \lstinline{get} method call will be checked to ensure that it is not null before being assigned to \lstinline{res2} which has been declared as being non-nullable. This helps avoid "null pollution" - i.e. a \lstinline{null} value being inadvertently assigned to a non-nullable variable.
 \end{itemize}
 
-In the above code where Concurnas attempts to avoid "null pollution" - if an unknown nullability type resolves to a null value and is set to a non nullable variable (or say passed as an argument to a method expecting a non null parameter) then this will result in a \lstinline{NullPointerException}. If the \lstinline{alist} variable were to be created with a nullable generic type: \lstinline{alist = new list<String?>()} then this logic would not be required, though of course we'd be unable to assign the return value of \lstinline{alist.get(0)} to the non nullable variable: \lstinline{res2 String}. Throwing a \lstinline{NullPointerException} in order to avoid "null pollution" is non desirable, but necessary - and is a beneficial approach where the alternative is permitting "null pollution" because at least the \lstinline{NullPointerException} is thrown at the point of assignment/usage.
+In the above code where Concurnas attempts to avoid "null pollution" - if an unknown nullability type resolves to a null value and is set to a non-nullable variable (or say passed as an argument to a method expecting a non-null parameter) then this will result in a \lstinline{NullPointerException}. If the \lstinline{alist} variable were to be created with a nullable generic type: \lstinline{alist = new list<String?>()} then this logic would not be required, though of course we'd be unable to assign the return value of \lstinline{alist.get(0)} to the non-nullable variable: \lstinline{res2 String}. Throwing a \lstinline{NullPointerException} in order to avoid "null pollution" is not desirable, but necessary - and is a beneficial approach where the alternative is permitting "null pollution" because at least the \lstinline{NullPointerException} is thrown at the point of assignment/usage.
 
-\subsection{Annotating non Concurnas code}
+\subsection{Annotating non-Concurnas code}
 \label{subsubsec:annotatenonconc}
-Non Concurnas code may be decorated with the \lstinline{@com.concurnas.lang.NoNull} annotation in order to indicate a type is not nullable. Types may also be declared as being explicitly nullable. Here is an example of this in action for some Java code:
+non-Concurnas code may be decorated with the \lstinline{@com.concurnas.lang.NoNull} annotation in order to indicate a type is not nullable. Types may also be declared as being explicitly nullable. Here is an example of this in action for some Java code:
 
 \begin{lstlisting}[language = Java]
 import com.concurnas.lang.NoNull;
@@ -281,7 +281,7 @@ public static @NoNull(when = When.NEVER) List<@NoNull(when = When.NEVER) String>
 }
 \end{lstlisting}
 
-Above, for the \lstinline{addToList} method the following elements are tagged as non null:
+Above, for the \lstinline{addToList} method the following elements are tagged as non-null:
 \begin{itemize}
 	\item The return type: \lstinline{java.util.List}
 	\item The generic type qualification of the return type: \lstinline{String}
@@ -304,7 +304,7 @@ maybenull String? = nullableinst.get()
 
 
 \section{Nullable method references}
-Method reference types can be declared nullable by nesting their declaration within parenthesis and affixing a \lstinline{?} as par normal. For example:
+Method reference types can be declared nullable by nesting their declaration within parenthesis and affixing a \lstinline{?} as per normal. For example:
 
 \begin{lstlisting}
 nullLambda ((int) int)? //nullable method reference
@@ -314,10 +314,10 @@ nullLambda ((int) int)? //nullable method reference
 There are some limited circumstances in which \lstinline{NullPointerException} may still occur:
 
 \begin{itemize}
-	\item \textbf{When using non Concurnas types or calling non Concurnas code.} Covered above.
+	\item \textbf{When using non-Concurnas types or calling non-Concurnas code.} Covered above.
 	\item \textbf{When using the no null assertion.} Covered above.
-	\item \textbf{Values from non Concurnas code.} Concurnas attempts to avoid "null pollution" - as such it's possible for a \lstinline{NullPointerException} exception to be thrown from checking that the return value of a unknown nullability type is non null. This "null pollution" avoidance is not applied to the individual values of arrays as it would not be efficient to check every array in this manner. As such non primitive arrays and n+1 dimensional arrays provided by non Concurnas code should be used with care and attention to the possibility of null values being present within them.
-	\item \textbf{When using non Concurnas code.} Concurnas has no control over code authored in other languages, so they may throw a \lstinline{NullPointerException}.
+	\item \textbf{Values from non-Concurnas code.} Concurnas attempts to avoid "null pollution" - as such it's possible for a \lstinline{NullPointerException} exception to be thrown from checking that the return value of a unknown nullability type is non-null. This "null pollution" avoidance is not applied to the individual values of arrays as it would not be efficient to check every array in this manner. As such non-primitive arrays and n+1 dimensional arrays provided by non-Concurnas code should be used with care and attention to the possibility of null values being present within them.
+	\item \textbf{When using non-Concurnas code.} Concurnas has no control over code authored in other languages, so they may throw a \lstinline{NullPointerException}.
 \end{itemize}
 
 \end{document}

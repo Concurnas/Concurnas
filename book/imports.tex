@@ -8,7 +8,7 @@ When writing software it is generally considered best practice to separate our c
 
 We can import the following assets from other files: functions (including extension functions), classes, module variables (including those referring to function references), typedefs, enums and annotations.
 
-Imports are essentially referential sugar. They help us to avoid the need to type the fully qualified path of the asset we are making use of, instead being able to refer to the asset by its short name (the text after the full package name final dot) or by a name we assign at import point (via the \lstinline{as} keyword). At compile time any references to the short name we are making use of are mapped to the fully qualified path before being passed to the classloader (default or otherwise) for loading. For example, a fully qualified package name for class \lstinline{MyClass} might be: \lstinline{com.mycode.MyClass}, the short name is \lstinline{MyClass}.
+Imports are essentially referential sugar. They help us to avoid the need to type the fully-qualified path of the asset we are making use of, instead being able to refer to the asset by its short name (the text after the full package name final dot) or by a name we assign at import point (via the \lstinline{as} keyword). At compile time any references to the short name we are making use of are mapped to the fully-qualified path before being passed to the classloader (default or otherwise) for loading. For example, a fully-qualified package name for class \lstinline{MyClass} might be: \lstinline{com.mycode.MyClass}, the short name is \lstinline{MyClass}.
 
 Since Concurnas can run on the JVM, it is compatible with all other code compiled in JVM languages such as Scala, Kotlin, Clojure etc and of course Java. All that is necessary to import other JVM compiled code is is the compiled class itself (and appropriately supporting classloader).
 
@@ -20,7 +20,7 @@ import com.mycode.MyClass //MyClass will be imported with a short name of: MyCla
 import com.mycode.MyClass as ImportedClass //using 'as' enables us to override the short name of the asset imported
 \end{lstlisting}
 
-Recall that importing an asset allows us to use it within having to refer to the fully qualified name of the asset. So the following are equivalent:
+Recall that importing an asset allows us to use it within having to refer to the fully-qualified name of the asset. So the following are equivalent:
 
 \begin{lstlisting}
 import com.mycode.MyClass as ImportedClass //using as enables us to override the short name of the asset imported
@@ -67,10 +67,10 @@ Most of the time however, convention dictates that imports are best placed at th
 \section{Using imports}
 The \lstinline{import} statement is "side effect free" - that is to say that no code will be directly run at the point in which an asset is imported, instead this only takes place when the asset is used for the first time. This behaviour is in contrast to the likes of Python which, at the point where code is imported, any top level code present within the imported script will be executed.
 
-It is not essential to use import statements in one's code, one could simply refer to the fully qualified paths of the assets of interest. For example, instead of importing \lstinline{java.util.ArrayList} for use in a new object instantiation, one could just use the fully qualified name, i.e: \lstinline{mylist = new java.utils.ArrayList<String>()}
+It is not essential to use import statements in one's code, one could simply refer to the fully-qualified paths of the assets of interest. For example, instead of importing \lstinline{java.util.ArrayList} for use in a new object instantiation, one could just use the fully-qualified name, i.e: \lstinline{mylist = new java.utils.ArrayList<String>()}
 
 \section{Packages}
-An assets fully qualified importable package name is a function of its name within the module it's declared within, the module name and its path relative to the root of compilation at compilation time. Note that Concurnas does not have a package keyword, instead it relies upon the directory structure relative to the root of compilation in order to determine this. So for example, using a conventional directory structure (found in almost all operating systems) when we compile our code if our root was set to \lstinline{/home/project/src} and our code within this root, in a directory structure \lstinline{./com/mycode.conc} (i.e. file \lstinline{mycode.conc} is within subdirectory \lstinline{com} containing the class definition \lstinline{MyClass}) - then the fully qualified package name of the at compilation time would be \lstinline{com.mycode.MyClass}.
+An asset's fully-qualified importable package name is a function of its name within the module it's declared within, the module name and its path relative to the root of compilation at compilation time. Note that Concurnas does not have a package keyword, instead it relies upon the directory structure relative to the root of compilation in order to determine this. So for example, using a conventional directory structure (found in almost all operating systems) when we compile our code if our root was set to \lstinline{/home/project/src} and our code within this root, in a directory structure \lstinline{./com/mycode.conc} (i.e. file \lstinline{mycode.conc} is within subdirectory \lstinline{com} containing the class definition \lstinline{MyClass}) - then the fully qualified package name of the at compilation time would be \lstinline{com.mycode.MyClass}.
 
 \section{Accessibility Modifiers}
 Accessibility Modifiers play an important role in determining what assets can and cannot be imported. The following chart shows what can be imported from where:

@@ -83,11 +83,11 @@ x21opsonrefokfail.conc line 7:14 Unable to find method with matching name: getas
  
 ~~~~~ 
 //##Test: 26 - 24. can assign to final as shell
-x24canassigntofinalasshell.conc line 7:1 Variable a has been decalred as val and cannot be reassigned
+x24canassigntofinalasshell.conc line 7:1 Variable a has been declared as val and cannot be reassigned
 
 ~~~~~ 
 //##Test: 27 - 24.b can assign to final as shell
-x24bcanassigntofinalasshell.conc line 9:1 Variable a has been decalred as val and cannot be reassigned
+x24bcanassigntofinalasshell.conc line 9:1 Variable a has been declared as val and cannot be reassigned
  
 ~~~~~ 
 //##Test: 28 - 25. ensure no ignore unboxing

@@ -30,18 +30,18 @@ along long = anint //implicity 'upcast' to a long
 We see above that the value of \lstinline{anint} is converted ('upcast') to a long value. Of course, this makes the following code possible:
 
 \begin{lstlisting}
-expectLong long = 123//123 is converted to a long value
+expectLong long = 123 //123 is converted to a long value
 
 def operateOnLong(along long) => along+1
 
-operateOnLong(123)//123 is converted to a long value
+operateOnLong(123) //123 is converted to a long value
 \end{lstlisting}
 
 Note however that if we were to attempt a 'downcast' it would be considered a compilation error, as there is the potential for data loss (imagine a long value larger than $2^{31} - 1$ being stored in an int variable, it's not possible as we don't have enough bits of information):
 
 \begin{lstlisting}
 along = 100l
-anint int = along//compilation error!
+anint int = along //compilation error!
 \end{lstlisting}
 
 The way to achieve the above is to use an explicit cast in order to convert the value:
@@ -74,8 +74,8 @@ But of the following, representing a 'downcast' is only possible via an explicit
 def takesInteger(an Integer) => an
 
 aDouble = Double(0.32)
-takesInteger(aDouble)//this is not ok as an implicit 'downcast' is required, potentially losing data
-takesInteger(aDouble as Integer)//this will work, though is inadvisable
+takesInteger(aDouble) //this is not ok as an implicit 'downcast' is required, potentially losing data
+takesInteger(aDouble as Integer) //this will work, though is inadvisable
 \end{lstlisting}
 
 \section{Primitive type operators}
@@ -85,7 +85,7 @@ Something that often catches out new programmers is the following scenario, say 
 1/4
 \end{lstlisting}
 
-But actually we'd get the result /0/. This is because, by virtue of the fact that both our input primitive types to the division operator are integer, whole number division is applied. If we wish to perform fractional division then we'd need to convert at least one of the inputs to the division operator a floating point number, this is easy to achieve:
+But actually we'd get the result 0. This is because, by virtue of the fact that both our input primitive types to the division operator are integer, whole number division is applied. If we wish to perform fractional division then we'd need to convert at least one of the inputs to the division operator a floating point number, this is easy to achieve:
 
 \begin{lstlisting}
 1/4.
@@ -93,8 +93,8 @@ But actually we'd get the result /0/. This is because, by virtue of the fact tha
 
 Now we get the desired result: \lstinline{0.25}
 
-\section{checking and casting for non primitive Types}
-Any object subtype may be implicitly upcast to a supertype. Also, as has been touched upon earlier all non primitive types are subclasses of type \lstinline{java.lang.Object}. As such this is perfectly valid code:
+\section{checking and casting for non-primitive Types}
+Any object subtype may be implicitly upcast to a supertype. Also, as has been touched upon earlier all non-primitive types are subclasses of type \lstinline{java.lang.Object}. As such this is perfectly valid code:
 
 \begin{lstlisting}
 open class SuperClass
@@ -113,7 +113,7 @@ assert something is String
 assert something isnot Integer
 \end{lstlisting}
 
-Once we are sure of the type (eithr by using \lstinline{is} or by another means) we may wish to cast the object to the type of interest such that we can use it as such (i.e. access fields call methods etc):
+Once we are sure of the type (either by using \lstinline{is} or by another means) we may wish to cast the object to the type of interest such that we can use it as such (i.e. access fields call methods etc):
 
 \begin{lstlisting}
 something Object = "hi"
@@ -127,14 +127,14 @@ class MyGenClass<X>
 
 anObj Object = MyGenClass<String>()
 
-check = anObj is MyGenClass<String>//not valid
-convert = anObj as MyGenClass<String>//also not valid
+check = anObj is MyGenClass<String> //not valid
+convert = anObj as MyGenClass<String> //also not valid
 
-okcheck = anObj is MyGenClass<?>//ok
-okconvert = anObj as MyGenClass<?>//ok
+okcheck = anObj is MyGenClass<?> //ok
+okconvert = anObj as MyGenClass<?> //ok
 \end{lstlisting}
 
-Function refs, tuples, refs and actors are refried types which makes code like the following possible:
+Function refs, tuples, refs and actors are reified types which makes code like the following possible:
 \begin{lstlisting}
 afuncRef Object = def (a int, b int) => a+b
 
@@ -165,7 +165,7 @@ We can cast an array to be a supertype (unlike lists - due to the restrictions o
 \begin{lstlisting}
 anArray Object[] = [ 1 2 3 4 5 6 ] as Object[] //this is ok
 anArray[0] = 99 //this is ok as the type of the array is really Integer[]
-anArray[1] = "hi"//this is not ok as we cannot set a String value in an Integer[] array
+anArray[1] = "hi" //this is not ok as we cannot set a String value in an Integer[] array
 \end{lstlisting}
 
 A variable holding a value null can be cast to anything, it will remain null:
@@ -193,16 +193,16 @@ res = > [ 1 2; 3 4 ]
 \end{lstlisting}
 
 \section{Is with automatic cast}
-Is with automatic cast is a massive time saving feature of Concurnas in cases where one has already tested to ensure a variable is of a certain type and now needs to perform operations on said variable with it as cast to the type tested for. If the /is/ operator is used on a variable in an if or elif test, then throughout the remainder of the test and the block associated with the test that variable will be automatically cast for us as the type checked against. Example:
+\lstinline{is} with automatic cast is a massive time saving feature of Concurnas in cases where one has already tested to ensure a variable is of a certain type and now needs to perform operations on said variable with it as cast to the type tested for. If the \lstinline{is} operator is used on a variable in an \lstinline{if} or \lstinline{elif} test, then throughout the remainder of the test and the block associated with the test that variable will be automatically cast for us as the type checked against. Example:
 \begin{lstlisting}
 class Dog(~age int)
 
 def getAge(an Object){
-	if(an is Dog){an.age}//an is automatically as cast to type Dog. Thus we do not need an explicit cast
+	if(an is Dog){an.age} //an is automatically as cast to type Dog. Thus we do not need an explicit cast
 	else{"unknown"}
 }
 
-getAge(Dog(3))//returns 3
+getAge(Dog(3)) //returns 3
 \end{lstlisting}
 
 This also applies to if expressions:
@@ -210,7 +210,7 @@ This also applies to if expressions:
 class Dog(~age int)
 
 def getAge(an Object){
-	an.age if(an is Dog) else "unknown"//an is automatically as cast to Dog 
+	an.age if(an is Dog) else "unknown" //an is automatically as cast to Dog 
 }
 
 getAge(Dog(3))//returns 3
@@ -223,12 +223,12 @@ class Treatment(~level int)
 def matcher(an Object) 
 	=> 'match' if an is Treatment and an.level > 5 else 'none'
 
-[matcher(Treatment(7)), matcher(Treatment(2))]//resolsves to [match, none]
+[matcher(Treatment(7)), matcher(Treatment(2))] //resolsves to [match, none]
 \end{lstlisting}
 
 Note that this only applies if the is operator is used on a variable. e.g. This does not apply to values resulting from function calls, array indexes etc.
 
-This also does not apply to is operators used within tests which can be short circuited if the is is referenced past a short circuit point. For example, the following is invalid:
+This also does not apply to is operators used within tests which can be short circuited if the is is referenced past a short-circuit point. For example, the following is invalid:
 
 \begin{lstlisting}
 class Dog(~age int)
@@ -236,7 +236,7 @@ class Dog(~age int)
 maybe = true
 
 def getAge(an Object){
-	if(maybe or an is Dog){an.age}//compilation error as  required as cast to be used in this way
+	if(maybe or an is Dog){an.age} //compilation error as  required as cast to be used in this way
 	else{"unknown"}
 }
 

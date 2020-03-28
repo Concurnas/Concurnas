@@ -526,7 +526,7 @@ public class FunctionGenneratorUtils {
 		}
 		
 		ConstructorDef constDef = new ConstructorDef(line, col, isEnum?AccessModifier.PRIVATE:AccessModifier.PUBLIC, params, constructorBody);//default constuctor always public
-		//default constructor has same access modifier as class itself, e.g. private if class is decalared private
+		//default constructor has same access modifier as class itself, e.g. private if class is declared private
 		constDef.isAutoGennerated = true;
 		constDef.setAnnotations(annotations);
 		constDef.isInjected = isInjected;
@@ -1378,7 +1378,7 @@ public class FunctionGenneratorUtils {
 		constructorBody.add(new LineHolder(line, col, new DuffAssign(line, col, DotOperator.buildDotOperatorOne(line, col, new RefSuper(line, col), new FuncInvoke(line, col,"onInit")))));
 		
 		ConstructorDef constDef = new ConstructorDef(line, col, AccessModifier.PUBLIC, params, constructorBody);//default constuctor always public
-		//default constructor has same access modifier as class itself, e.g. private if class is decalared private
+		//default constructor has same access modifier as class itself, e.g. private if class is declared private
 		constDef.isAutoGennerated = true;
 		constDef.setAnnotations(annotations);
 		constDef.isInjected = isInjected;
@@ -1533,7 +1533,7 @@ public class FunctionGenneratorUtils {
 		constructorBody.add(new LineHolder(line, col, new DuffAssign(line, col, DotOperator.buildDotOperatorOne(line, col, new RefSuper(line, col), new FuncInvoke(line, col,"onInit")))));
 		
 		ConstructorDef constDef = new ConstructorDef(line, col, AccessModifier.PUBLIC, params, constructorBody);//default constuctor always public
-		//default constructor has same access modifier as class itself, e.g. private if class is decalared private
+		//default constructor has same access modifier as class itself, e.g. private if class is declared private
 		constDef.isAutoGennerated = true;
 		constDef.setAnnotations(annotations);
 		constDef.isInjected = isInjected;
