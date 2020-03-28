@@ -7,7 +7,7 @@
 
 In a sense, all programming is about data. As such the way in which we represent data, via types, is a fundamental concept in any programming language. In Concurnas, roughly speaking we have two foundation types: primitive and object types. From which we are able to derive six composite types of: arrays, method references, generics, actors, references and tuples.
 
-Why does Concurnas support both primitive types and Object types (after all, primitive types can all be represented via object types). Two reasons: performance and memory utilization. Generally speaking if we represent data which can be expressed as a primitive type using an object, then we consume more memory than we need to and can make the job of memory management (garbage collection, heap vs stack allocation etc) more difficult than it needs to be. Additionally our CPU processors are designed to perform operations on primitive type data, by using objects we are adding a level of indirection which of course has a (relatively minor) performance penalty. In any case, although behind the scenes via a compiler/runtime optimization this penalty is mostly eliminated, it is still useful to be able to give the programmer control over the use of primitive or object types.
+Why does Concurnas support both primitive types and Object types (after all, primitive types can all be represented via object types). Two reasons: performance and memory utilization. Generally speaking if we represent data which can be expressed as a primitive type using an object, then we consume more memory than we need to and can make the job of memory management (garbage collection, heap vs stack allocation etc) more difficult than it needs to be. Additionally our CPU processors are designed to perform operations on primitive type data, so by using objects we are adding a level of indirection which of course has a (relatively minor) performance penalty. In any case, although behind the scenes via a compiler/runtime optimization this penalty is mostly eliminated, it is still useful to be able to give the programmer control over the use of primitive or object types.
 
 That being said there are some circumstances in which using primitive types may seem to be a good idea, but we are forced instead to implicitly use object types - for instance, with generics. This is generally done to make code and libraries easier to understand, utilize and to eliminate code duplication.
 
@@ -31,7 +31,7 @@ Let us first begin with the numerical primitive types of which there are eight:
 		\hline
 	\end{tabular*}
 	\begin{tablenotes}
-		$^{a}$internally to Concurnas (or to be more precise, the JVM) a 32 bit int is used to represent a boolean.\\
+		$^{a}$internally to Concurnas (or to be more precise, the JVM) a 32-bit int is used to represent a boolean.\\
 		$^{b}$int is the default type used when an integer literal is expressed.\\
 		$^{c}$double is the default type used when a decimal number literal is expressed.
 	\end{tablenotes}
@@ -89,7 +89,7 @@ achar = 'a'
 achar = "a"
 \end{lstlisting}
 
-Character's are of some use in modern programming, but Unicode Strings (as seen later) are usually more useful.
+Characters are of some use in modern programming, but Unicode Strings (as seen later) are usually more useful.
 
 \subsection{Booleans}
 
@@ -106,10 +106,10 @@ mybyte = 0x011010 as byte
 \end{lstlisting}
 
 \subsection{Choosing primitives}
-When choosing which primitive type to represent our numerical data with, it is important to consider the range of values that our data can have and choose the smallest bit width type which best aligns to that data (so as to conserve memory). This is especially the case when defining large n dimensional arrays of data. However, these days our systems are generally non memory bound, and as such over allocating and say using an \lstinline{int} where a \lstinline{short} would be more appropriate is not considered a problem. If in doubt over allocate, and don't worry too much.
+When choosing which primitive type to represent our numerical data with, it is important to consider the range of values that our data can have and choose the smallest bit width type which best aligns to that data (so as to conserve memory). This is especially the case when defining large n dimensional arrays of data. However, these days our systems are generally non-memory bound, and as such over allocating and say using an \lstinline{int} where a \lstinline{short} would be more appropriate is not considered a problem. If in doubt over allocate, and don't worry too much.
 
 \section{Strings}
-It turns out that in modern programming Strings are so proliferant that they deserve their own first class citizen support (believe it or not, but there was a time when this was not the case!). In Concurnas there are a few handy special considerations to the language just to aid in working with Strings. Note that string's themselves are objects (covered in the next section).
+It turns out that in modern programming Strings are so proliferant that they deserve their own first-class citizen support (believe it or not, but there was a time when this was not the case!). In Concurnas there are a few handy special considerations to the language just to aid in working with Strings. Note that strings themselves are objects (covered in the next section).
 
 At the most basic level, Strings can be defined via use of either \lstinline{''} or \lstinline{""}. For example:
 \begin{lstlisting}
@@ -140,7 +140,7 @@ aString = "\u0048\u0065\u006c\u006c\u006f \u0077\u006f\u0072\u006c\u0064\u0021" 
 
 \subsection{The String concatenation operator \lstinline!+!}
 \label{subsec:StringConcat}
-We can compose strings by using the concatenation \lstinline{+} operator. This is useful for mixing raw text or pre existing string variables and variables/expression values together. For instance:
+We can compose strings by using the concatenation \lstinline{+} operator. This is useful for mixing raw text or pre-existing string variables and variables/expression values together. For instance:
 
 \begin{lstlisting}
 avar = 8
@@ -149,7 +149,7 @@ aString = "hi" + str + avar
 //aString =="hi there m8"
 \end{lstlisting}
 
-In order for string concatenation via the \lstinline{+} operator to work, at least one of the right hand side or left hand side arguments must be a String, however, even an empty String \lstinline{""} is acceptable.
+In order for string concatenation via the \lstinline{+} operator to work, at least one of the right-hand side or left-hand side arguments must be a String, however, even an empty String \lstinline{""} is acceptable.
 
 In the case where an object type is involved in String concatenation the object's \lstinline{toString} method is invoked. This method is included for all objects by virtue of the fact that they all inherit from Class \lstinline{java.lang.Object} where a default implementation returning the objects class name and hexadecimalized hashCode is returned as a string.
 
@@ -164,7 +164,7 @@ asStr = "" + mat
 Note that since strings are immutable objects, a new String is created as a result of the \lstinline{+} operator being applied.
 
 \subsection{Assignment plus \lstinline!+=!}
-The assignment plus operator \lstinline{+=} operates in a similar manner. If the item on the left hand side of the plus assignment operator is a String, then the item on the right hand side of the plus assignment operator is appended to the left hand side and a new string is assigned to the left hand side item. 
+The assignment plus operator \lstinline{+=} operates in a similar manner. If the item on the left-hand side of the plus assignment operator is a String, then the item on the right-hand side of the plus assignment operator is appended to the left-hand side and a new string is assigned to the left-hand side item. 
 
 \subsection{String is an Object}
 The type String is an object - therefore it can be created in the usual way for Objects:
@@ -188,7 +188,7 @@ aString = "addition result: {1+2}"
 //aString == "addition result: 3"
 \end{lstlisting}
 
-Code in Strings can be applied everywhere except for when defining Strings for default annotation parameters - as these are required to be fully defined constants at compilation time. Code within strings nest, that is to say that; code embedded within the string may nest other strings which may optionally have code within them too.
+Code in Strings can be applied everywhere except for when defining Strings for default annotation parameters - as these are required to be fully-defined constants at compilation time. Code within strings nest, that is to say that; code embedded within the string may nest other strings which may optionally have code within them too.
 
 \subsubsection{Escaping code in Strings}
 Code in Strings may be escaped by prefixing said code with a \lstinline{\\}:
@@ -249,10 +249,10 @@ elms = (x, x == 'b') for x in "abcdefg"
 
 
 \subsection{More information on Strings}
-Strings in Concurnas are supported by the JVM, for more information on Strings see: \href{https://docs.oracle.com/javase/tutorial/java/data/strings.html}{Oracle Java String documentation}
+Strings in Concurnas are supported by the JVM, for more information on Strings see: \href{https://docs.oracle.com/javase/tutorial/java/data/strings.html}{Oracle Java String documentation}.
 
 \section{Regex}
-Regex, or regular expressions, are another area of modern programming so proliferant that Concurnas has special first class citizen support. We can define a regex in much the same way as a String, by prepending the regex String within \lstinline{''} or \lstinline{""} with \lstinline{r}, to make \lstinline{r''} or \lstinline{r""} for example:
+Regex, or regular expressions, are another area of modern programming so proliferant that Concurnas has special first-class citizen support. We can define a regex in much the same way as a String, by prepending the regex String within \lstinline{''} or \lstinline{""} with \lstinline{r}, to make \lstinline{r''} or \lstinline{r""} for example:
 \begin{lstlisting}
 aregex = r"ab*a"
 ...
@@ -285,7 +285,7 @@ Note that \lstinline{java.lang.Object} is an implicit superclass of every class 
 \section{null}
 Null is a special type of Object and is represented simply by the keyword \lstinline{null}. Any object may be assigned a value of \lstinline{null} as it is a subtype of all Object types (including arrays). Attempting to call a method or access a field on a nullable object which is \lstinline{null} will result in a \lstinline{java.lang.NullPointerException} object being thrown. This means that where one suspects an object may be null, it is necessary to check for the null state. As such null should only be used sparingly.
 
-Generally speaking, the conventional wisdom of modern software engineering is that null should be used sparingly. As such if one wishes for a variable to be potentially nullable, it's type must be declared as being nullable, this is denoted by appending a \lstinline{?} to the type. For example:
+Generally speaking, the conventional wisdom of modern software engineering is that null should be used sparingly. As such if one wishes for a variable to be potentially nullable, its type must be declared as being nullable, this is denoted by appending a \lstinline{?} to the type. For example:
 
 \begin{lstlisting}
 aString  String  = "hi"
@@ -428,7 +428,8 @@ ans1 int = ref(1, 1)
 ans2 int = aslambda(1, 1)
 \end{lstlisting}
 
-All method references are a subtype of \lstinline{lambda} which is itself a shortcut for \lstinline{com.concurnas.bootstrap.lang.Lambda}:
+All method references are a subtype of \lstinline{lambda} which is itself a shortcut for
+\lstinline{com.concurnas.bootstrap.lang.Lambda}:
 
 \begin{lstlisting}
 def doer(a int) => a*2
@@ -437,7 +438,7 @@ afuncref lambda = doer&
 afuncref com.concurnas.bootstrap.lang.Lambda = doer&
 \end{lstlisting}
 
-An alternative representation for a method reference is to use their associated object type. For an method reference returning a non void type:
+An alternative representation for a method reference is to use their associated object type. For a method reference returning a non void type:
 \begin{lstlisting}
 def doer(a int) => a*2
 
@@ -517,14 +518,14 @@ Refs are covered in more detail in the \hyperref[sec:refs]{Refs section}. For no
 aref1 int: //defined but unassigned local ref of type int
 aref2 int := 21 //defined and assigned local ref of type int
 aref3 := 21 //assigned local ref of inferred type int
-aref4 = 21: //assigned variable of inferred type int: with the right hand side being a ref creation expression
-aref5 = {21}! //assigned variable of inferred type int: - right hand side being a ref returned from an isolate - this is the most computationally expensive variety of ref creation - if you find yourself doing this to create simple refs from expressions that don't require concurrent execution, consider using the preceding form
+aref4 = 21: //assigned variable of inferred type int: with the right-hand side being a ref creation expression
+aref5 = {21}! //assigned variable of inferred type int: - right-hand side being a ref returned from an isolate - this is the most computationally expensive variety of ref creation - if you find yourself doing this to create simple refs from expressions that don't require concurrent execution, consider using the preceding form
 \end{lstlisting}
 
-All the ref's above are of type \lstinline{int:}. As can be seen above the key when creating ref's is the use of \lstinline{:} postfixed to a type or prefixed to the assignment operator \lstinline{=} - this tells the compiler that we wish to create a ref type.
+All the refs above are of type \lstinline{int:}. As can be seen above, the key when creating refs is the use of \lstinline{:} postfixed to a type or prefixed to the assignment operator \lstinline{=} - this tells the compiler that we wish to create a ref type.
 
 Refs enable us to do two very useful things core to the operation of most programs written in Concurnas:
-They provide a mechanism by which differing isolates (pieces of code which are executed at the same time) can communicate between each other. For now, consider that isolates are concurrently executed blocks of code indicated by post pending the block with the isolate creation bang \lstinline{!}. e.g \lstinline!{1+1}!\lstinline{!}
+They provide a mechanism by which differing isolates (pieces of code which are executed at the same time) can communicate between each other. For now, consider that isolates are concurrently executed blocks of code indicated by post-pending the block with the isolate creation bang \lstinline{!}. e.g \lstinline!{1+1}!\lstinline{!}
 They enable reactive computing, via use of onchange, every, async and await (this topic is explored later in the Concurrency section).
 
 Refs have posses an very important feature which helps to enable the above. When we wish to perform an operation on a ref variable, or pass a ref to a function which is not expecting a ref - the ref will be unassigned. But, if no value has yet been assigned to the ref further execution will be blocked until a value is available.
@@ -540,9 +541,9 @@ Type wise, when unassigning a ref with type \lstinline{X:}, the type of the valu
 \begin{lstlisting}
 a int:
 
-{a = 99}!//execute our ref assignment in a separate isolate
+{a = 99}! //execute our ref assignment in a separate isolate
 
-b int = a//a is unassigned when our isolate spawned above complete's execution
+b int = a //a is unassigned when our isolate spawned above completes execution
 \end{lstlisting}
 
 If we wish to prevent this unassignment we can use the \lstinline{:} operator when referencing the variable. For example:
@@ -559,7 +560,7 @@ assert c: &== a: //a and c are references to the same ref
 
 
 \section{Actors}
-Actors are covered in more detail \hyperref[sec:actors]{in the Actors section}. In summary they are a hyrbid between isolates and objects.
+Actors are covered in more detail \hyperref[sec:actors]{in the Actors section}. In summary, they are a hybrid between isolates and objects.
 
 Method calls on actor objects occur within one dedicated isolate for the actor. Only one method is executed per actor at any point in time, as such actors can be shared between isolates. Method calls to actor methods return refs. An example actor:
 
@@ -569,7 +570,7 @@ class NormalClass(counter = 0){
 }
 
 anActor actor NormalClass = new actor NormalClass()
-anotherActor = new actor NormalClass()//the type of anotherActor is infered as: actor NormalClass
+anotherActor = new actor NormalClass()//the type of anotherActor is inferred as: actor NormalClass
 
 aref = anActor.inc() //aref is infered as type int:
 \end{lstlisting}
@@ -589,7 +590,7 @@ Concurnas applies pass by value or pass by reference contingent on the type bein
 Concerning primitive types, a copy of the value is made:
 \begin{lstlisting}
 anint1 = 99
-anint2 = anint1//copy value of anint1 to anint2
+anint2 = anint1 //copy value of anint1 to anint2
 
 anint2++ //increment anint2
 
