@@ -467,7 +467,7 @@ public class ConccToConc {
 			Files.write(myClass, ListMaker.make("class Proc{def doIt(args String[])void { System.err.println('hello' + args); }} def main(args String[]) => new Proc().doIt(args);; "), StandardCharsets.UTF_8);
 			
 			Concc concc = new Concc(String.format("-d . -jar myjar[hello] hello.conc"));
-			TestCase.assertEquals("Unable to resolve source file/directory of: '."+File.separator+"hello.conc' \nNo .conc files found to compile", concc.doit());
+			TestCase.assertEquals("Unable to resolve source file/directory of: '."+File.separator+"hello.conc' \nNo .conc files found to compile. Use: concc -help or concc --help for assistance.", concc.doit());
 		}finally {
 			Utils.deleteDirectory(tempDirWithPrefix.toFile());
 		}

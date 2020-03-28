@@ -24,7 +24,7 @@ public class ConccSemanticsTests {
 		
 		String expect = "There must be at least one source file or source directory specified\n" + 
 				"Output directory 'c:/work' does not exist\n" + 
-				"No .conc files found to compile";
+				"No .conc files found to compile. Use: concc -help or concc --help for assistance.";
 		
 		TestCase.assertEquals(expect, got);
 	}
@@ -40,7 +40,7 @@ public class ConccSemanticsTests {
 		String got = concc.validateConccInstance(concc.getConccInstance()).validationErrs;
 		
 		String expect = "There must be at least one source file or source directory specified\n" + 
-				"No .conc files found to compile";
+				"No .conc files found to compile. Use: concc -help or concc --help for assistance.";
 		
 		TestCase.assertEquals(expect, got);
 	}
@@ -75,7 +75,7 @@ public class ConccSemanticsTests {
 		String expect = "Classpath entry 'work.jar' does not exist\n" + 
 				"Classpath entry 'another.jar' does not exist\n" + 
 				"Unable to resolve source file/directory of: './MyFirstClass.conc' \n" + 
-				"No .conc files found to compile";
+				"No .conc files found to compile. Use: concc -help or concc --help for assistance.";
 		
 		TestCase.assertEquals(expect, got);
 	}
@@ -206,7 +206,7 @@ public class ConccSemanticsTests {
 		
 		String got = concc.validateConccInstance(concc.getConccInstance()).validationErrs;
 		String expect = "Root directory: 'work2' for source element does not exist\n" + 
-				"No .conc files found to compile";
+				"No .conc files found to compile. Use: concc -help or concc --help for assistance.";
 		
 		TestCase.assertEquals(expect, got);
 	}
@@ -236,7 +236,7 @@ public class ConccSemanticsTests {
 		
 		String expect = "Unable to resolve source file/directory of: './missing.conc' \n" + 
 				"Unable to resolve source file/directory of: './missingDir' \n" + 
-				"No .conc files found to compile";
+				"No .conc files found to compile. Use: concc -help or concc --help for assistance.";
 		
 		String got = concc.validateConccInstance(concc.getConccInstance()).validationErrs;
 		

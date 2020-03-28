@@ -544,7 +544,7 @@ public class Concc {
 			}
 			
 			if(srcInstances.isEmpty()) {
-				validationErrs.add("No .conc files found to compile");
+				validationErrs.add("No .conc files found to compile. Use: concc -help or concc --help for assistance.");
 			}
 			
 			//lovely

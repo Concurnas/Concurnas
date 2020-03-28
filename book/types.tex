@@ -117,19 +117,19 @@ astring = 'Hello World!'
 another = "I'm also a String"
 \end{lstlisting}
 
-Note above that by permitting both \lstinline{""} and \lstinline{''} for string defining, we're able to use \lstinline{'} and \lstinline{"} respectfully in our Strings. However, if one does not wish to switch between one style or another in order to use these characters, or has both a \lstinline{'} and a \lstinline{"} in the string one is defining, then an escape character \lstinline{\\} may be used. For example:
+Note above that by permitting both \lstinline{""} and \lstinline{''} for string defining, we're able to use \lstinline{'} and \lstinline{"} respectfully in our Strings. But, if one does not wish to switch between one style or another in order to use these characters inside a string, or has both a \lstinline{'} and a \lstinline{"} in the string one is defining, then an escape character \textbackslash may be used. For example:
 \begin{lstlisting}
 astring = 'I\'m also a String'
 \end{lstlisting}
 
-So as to disambiguate between the definition of a String and a char, for cases of one character length strings, the \lstinline{''} or \lstinline{""} must be prepended with an \lstinline{s} to make: \lstinline{s""} or \lstinline{s''}. For example:
+So as to disambiguate between the definition of a String and a character, for cases of single character length strings, using the \lstinline{''} denotes a character, and \lstinline{""} denotes a String. For example:
 \begin{lstlisting}
-notachar = s'c'
-achar = 'c'
+aString = "c"
+aChar   = 'c'
 \end{lstlisting}
 
 \subsection{The escape character}
-As we have already seen the escape character \lstinline{\\} can be used to input a \lstinline{'} or \lstinline{"} inside a \lstinline{''} or \lstinline{""} string. It may also be used to input a range of special characters including the newline character: \lstinline{\\n} and Unicode, UTF-16 characters. For example:
+As we have already seen the escape character \textbackslash can be used to input a \lstinline{'} or \lstinline{"} inside a \lstinline{''} or \lstinline{""} string. It may also be used to input a range of special characters including the newline character: \textbackslash n and Unicode, UTF-16 characters. For example:
 
 \begin{lstlisting}
 anewline = "Hello\nworld!"
@@ -191,7 +191,7 @@ aString = "addition result: {1+2}"
 Code in Strings can be applied everywhere except for when defining Strings for default annotation parameters - as these are required to be fully-defined constants at compilation time. Code within strings nest, that is to say that; code embedded within the string may nest other strings which may optionally have code within them too.
 
 \subsubsection{Escaping code in Strings}
-Code in Strings may be escaped by prefixing said code with a \lstinline{\\}:
+Code in Strings may be escaped by prefixing said code with a \textbackslash:
 \begin{lstlisting}
 aString = "addition result: \{1+2}"
 //aString == "addition result: {1+2}"

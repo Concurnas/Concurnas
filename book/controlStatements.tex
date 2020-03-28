@@ -222,9 +222,9 @@ result = if(counter){//equivilent to: counter <> null and counter.toBoolean()
 The behaviour for Strings, arrays, lists, sets and maps in Concurnas is slightly different from the above. In order to return true for:
 
 \begin{itemize}
-	\item Strings. The value must be non null and non zero (i.e. not an empty String)
-	\item Arrays. The value must be non null and the \lstinline{length} field must be greater than 0.
-	\item Lists, sets and maps. For \lstinline{java.lang.List}, \lstinline{java.lang.Set}, \lstinline{java.lang.Map}'s the value must be non null and a call to the \lstinline{isEmpty} method must return \lstinline{false}.
+	\item Strings. The value must be non-null and non zero (i.e. not an empty String)
+	\item Arrays. The value must be non-null and the \lstinline{length} field must be greater than 0.
+	\item Lists, sets and maps. For \lstinline{java.lang.List}, \lstinline{java.lang.Set}, \lstinline{java.lang.Map}'s the value must be non-null and a call to the \lstinline{isEmpty} method must return \lstinline{false}.
 \end{itemize}
 
 \section{Loop}
