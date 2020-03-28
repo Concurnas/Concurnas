@@ -256,7 +256,7 @@ Regex, or regular expressions, are another area of modern programming so prolife
 \begin{lstlisting}
 aregex = r"ab*a"
 ...
-amatch = aregex.matcher.matches("abbbba")
+amatch = aregex.matcher("abbbba").matches()
 \end{lstlisting}
 
 This syntax produces an object of type \lstinline{java.util.regex.Pattern}. More details of this can be found \href{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/util/regex/Pattern.html}{here}. For more details on the variant of regex supported by Concurnas, see \href{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/util/regex/Pattern.html}{here}. Note that it's relatively expensive to construct regex objects since they are compiled at runtime upon definition so its recommended that they be created as top level variables or cached and/or otherwise reused.
