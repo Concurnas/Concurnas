@@ -1667,7 +1667,7 @@ x816binitializationrhstransformation.conc line 14:0 Type mismatch: cannot conver
  
 ~~~~~
 //##81.8 cannot assign to array length
-x818cannotassigntoarraylength.conc line 10:1 The field length has been decalred as val and cannot be reassigned
+x818cannotassigntoarraylength.conc line 10:1 The field length has been declared as val and cannot be reassigned
 x818cannotassigntoarraylength.conc line 11:1 Cannot change the length of an array
  
 ~~~~~
@@ -1801,33 +1801,33 @@ x103finalmethods.conc line 25:1 Abstract method definition of 'finfun' cannnot b
  
 ~~~~~
 //##104. final var tests  1  gen 
-x104finalvartests1gen.conc line 7:0 Variable a has been decalred as val and cannot be reassigned
-x104finalvartests1gen.conc line 8:0 Variable b has been decalred as val and cannot be reassigned
+x104finalvartests1gen.conc line 7:0 Variable a has been declared as val and cannot be reassigned
+x104finalvartests1gen.conc line 8:0 Variable b has been declared as val and cannot be reassigned
 x104finalvartests1gen.conc line 11:0 Variable finVar has already been defined in current scope
-x104finalvartests1gen.conc line 12:0 Variable finVar has been decalred as val and cannot be reassigned
+x104finalvartests1gen.conc line 12:0 Variable finVar has been declared as val and cannot be reassigned
 x104finalvartests1gen.conc line 13:0 Variable finVar has already been defined in current scope
 x104finalvartests1gen.conc line 14:0 Variable finVar has already been defined in current scope
-x104finalvartests1gen.conc line 17:6 Variable finVar has been decalred as val and cannot be reassigned
+x104finalvartests1gen.conc line 17:6 Variable finVar has been declared as val and cannot be reassigned
 x104finalvartests1gen.conc line 23:0 Variable x has already been defined in current scope
 x104finalvartests1gen.conc line 24:0 Variable x has already been defined in current scope
-x104finalvartests1gen.conc line 50:1 Variable golo has been decalred as val and cannot be reassigned
-x104finalvartests1gen.conc line 52:2 Variable golo has been decalred as val and cannot be reassigned
-x104finalvartests1gen.conc line 61:2 Variable golo3 has been decalred as val and cannot be reassigned
-x104finalvartests1gen.conc line 64:2 Variable golo3 has been decalred as val and cannot be reassigned
+x104finalvartests1gen.conc line 50:1 Variable golo has been declared as val and cannot be reassigned
+x104finalvartests1gen.conc line 52:2 Variable golo has been declared as val and cannot be reassigned
+x104finalvartests1gen.conc line 61:2 Variable golo3 has been declared as val and cannot be reassigned
+x104finalvartests1gen.conc line 64:2 Variable golo3 has been declared as val and cannot be reassigned
 x104finalvartests1gen.conc line 68:0 Variable xfga has been decard val at top level and so must have a value assigned to it
-x104finalvartests1gen.conc line 86:1 Variable x has been decalred as val and cannot be reassigned
+x104finalvartests1gen.conc line 86:1 Variable x has been declared as val and cannot be reassigned
  
 ~~~~~
 //##104. final var tests  2  classes a
-x104finalvartests2classesa.conc line 9:2 Variable x has been decalred as val and cannot be reassigned
-x104finalvartests2classesa.conc line 10:2 Variable y has been decalred as val and cannot be reassigned
+x104finalvartests2classesa.conc line 9:2 Variable x has been declared as val and cannot be reassigned
+x104finalvartests2classesa.conc line 10:2 Variable y has been declared as val and cannot be reassigned
 x104finalvartests2classesa.conc line 16:0 These variables have been declared val but have not been assigned a value in the auto gennerated constructor: a
 x104finalvartests2classesa.conc line 18:1 Variable z has already been defined in current scope
-x104finalvartests2classesa.conc line 22:2 Variable y has been decalred as val and cannot be reassigned
-x104finalvartests2classesa.conc line 23:2 Variable z has been decalred as val and cannot be reassigned
-x104finalvartests2classesa.conc line 24:2 Variable a has been decalred as val and cannot be reassigned
-x104finalvartests2classesa.conc line 32:1 The field y has been decalred as val and cannot be reassigned
-x104finalvartests2classesa.conc line 33:1 The field z has been decalred as val and cannot be reassigned
+x104finalvartests2classesa.conc line 22:2 Variable y has been declared as val and cannot be reassigned
+x104finalvartests2classesa.conc line 23:2 Variable z has been declared as val and cannot be reassigned
+x104finalvartests2classesa.conc line 24:2 Variable a has been declared as val and cannot be reassigned
+x104finalvartests2classesa.conc line 32:1 The field y has been declared as val and cannot be reassigned
+x104finalvartests2classesa.conc line 33:1 The field z has been declared as val and cannot be reassigned
  
 ~~~~~
 //##104. final var tests  3  classes b
@@ -1839,8 +1839,8 @@ x104finalvartests3classesb.conc line 9:1 Cannot autodefine setter for field y2 t
 ~~~~~
 //##104. final var tests  4  cls a
 x104finalvartests4clsa.conc line 4:0 These variables have been declared val but have not been assigned a value in the auto gennerated constructor: x
-x104finalvartests4clsa.conc line 10:2 Variable x has been decalred as val and cannot be reassigned
-x104finalvartests4clsa.conc line 11:2 Variable y has been decalred as val and cannot be reassigned
+x104finalvartests4clsa.conc line 10:2 Variable x has been declared as val and cannot be reassigned
+x104finalvartests4clsa.conc line 11:2 Variable y has been declared as val and cannot be reassigned
  
 ~~~~~
 //##105. final var tests  5 constructors set only  1
@@ -1860,8 +1860,8 @@ x105finalvartests5constructorssetonly3.conc line 29:1 These variables have been 
 ~~~~~
 //##105. final var tests  5 constructors set only  4
 x105finalvartests5constructorssetonly4.conc line 4:0 These variables have been declared val but have not been assigned a value in the auto gennerated constructor: x
-x105finalvartests5constructorssetonly4.conc line 10:2 Variable x has been decalred as val and cannot be reassigned
-x105finalvartests5constructorssetonly4.conc line 11:2 Variable y has been decalred as val and cannot be reassigned
+x105finalvartests5constructorssetonly4.conc line 10:2 Variable x has been declared as val and cannot be reassigned
+x105finalvartests5constructorssetonly4.conc line 11:2 Variable y has been declared as val and cannot be reassigned
  
 ~~~~~
 //##105. final var tests  6 this is fine
@@ -1872,7 +1872,7 @@ x105finalvartests6thisisfine.conc line 14:20 The variable g is not visible
  
 ~~~~~
 //##106. imported final var cannot be fiddled with
-x106importedfinalvarcannotbefiddledwith.conc line 7:0 The field black has been decalred as val and cannot be reassigned
+x106importedfinalvarcannotbefiddledwith.conc line 7:0 The field black has been declared as val and cannot be reassigned
  
 ~~~~~
 //##107. Dunno where this belongs - abst if not impl all
@@ -1885,8 +1885,8 @@ x107nestedfinalclasslogic.conc line 21:2 These variables have been declared val 
 x107nestedfinalclasslogic.conc line 24:2 These variables have been declared val and can only be set once in constructor call hierarchy: x, y
 x107nestedfinalclasslogic.conc line 29:2 These variables have been declared val and can only be set once in constructor call hierarchy: y
 x107nestedfinalclasslogic.conc line 35:2 These variables have been declared val but have not been assigned a value in the auto gennerated constructor: x
-x107nestedfinalclasslogic.conc line 41:4 Variable x has been decalred as val and cannot be reassigned
-x107nestedfinalclasslogic.conc line 42:4 Variable y has been decalred as val and cannot be reassigned
+x107nestedfinalclasslogic.conc line 41:4 Variable x has been declared as val and cannot be reassigned
+x107nestedfinalclasslogic.conc line 42:4 Variable y has been declared as val and cannot be reassigned
  
 ~~~~~
 //##110. ppp  abstract no privates
@@ -3135,7 +3135,7 @@ x341trywresroucesvardecl.conc line 34:6 The variable b may not have been initial
  
 ~~~~~
 //##342. try w resrouces var decl respected
-x342trywresroucesvardeclrespected.conc line 27:2 Variable c has been decalred as val and cannot be reassigned
+x342trywresroucesvardeclrespected.conc line 27:2 Variable c has been declared as val and cannot be reassigned
  
 ~~~~~
 //##343. try w resrouces must impl close
@@ -3160,7 +3160,7 @@ x347multicatchoneeachplease.conc line 25:19 Attempted to catch Type: x347multica
  
 ~~~~~
 //##348. potential reassignment of val in loop not permitted
-x348potentialreassignmentofvalinloopnotpermitted.conc line 8:3 The field a has been decalred as val and cannot be reassigned
+x348potentialreassignmentofvalinloopnotpermitted.conc line 8:3 The field a has been declared as val and cannot be reassigned
  
 ~~~~~
 //##349. is cannot reuse same type name
@@ -3416,12 +3416,12 @@ x401bugfixnastyblowup.conc line 10:15 Unable to resolve reference to variable na
   
 ~~~~~
 //##402. match assign final cannot be reassigned
-x402matchassignfinalcannotbereassigned.conc line 7:3 Variable a has been decalred as val and cannot be reassigned
+x402matchassignfinalcannotbereassigned.conc line 7:3 Variable a has been declared as val and cannot be reassigned
  
 ~~~~~
 //##403. cannot use increment decrement on vals
-x403cannotuseincrementdecrementonvals.conc line 7:1 Variable a has been decalred as val and cannot be incremented or decremented
-x403cannotuseincrementdecrementonvals.conc line 10:3 Variable a has been decalred as val and cannot be incremented or decremented
+x403cannotuseincrementdecrementonvals.conc line 7:1 Variable a has been declared as val and cannot be incremented or decremented
+x403cannotuseincrementdecrementonvals.conc line 10:3 Variable a has been declared as val and cannot be incremented or decremented
  
 ~~~~~
 //##404. ref thing captures all
@@ -4475,8 +4475,8 @@ x608errorsconcerninggpuconstants2.conc line 17:1 GPU constant variable: hh may o
 ~~~~~
 //##609. constant like val no reassign
 x609constantlikevalnoreassign.conc line 6:1 GPU constant variable: tstdsf may only be defined at top level
-x609constantlikevalnoreassign.conc line 10:1 Variable sdf has been decalred as constant and cannot be reassigned
-x609constantlikevalnoreassign.conc line 14:1 Variable sdf has been decalred as constant and cannot be reassigned
+x609constantlikevalnoreassign.conc line 10:1 Variable sdf has been declared as constant and cannot be reassigned
+x609constantlikevalnoreassign.conc line 14:1 Variable sdf has been declared as constant and cannot be reassigned
 
 ~~~~~
 //##610. import star scopes
@@ -4493,5 +4493,5 @@ x612missingtypedusedtoblowup.conc line 18:10 Unable to find method with matching
 
 ~~~~~
 //##613. cannot double assign to final field
-x613cannotdoubleassigntofinalfield.conc line 15:3 Variable len has been decalred as val and cannot be reassigned
+x613cannotdoubleassigntofinalfield.conc line 15:3 Variable len has been declared as val and cannot be reassigned
  

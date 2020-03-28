@@ -1867,7 +1867,7 @@ class NotAllowed<FF> extends A<FF<String>>{} //FAIL!!! u cannot do this, who kno
 
 class Oops extends Oops {}//FAIL NO
 
-class Oops2<X> extends Oops2<X> {} //FAIL cannot imp subtype of course because not yet decalred in scope
+class Oops2<X> extends Oops2<X> {} //FAIL cannot imp subtype of course because not yet declared in scope
 
 
 class OopsMore<X> extends ArrayList<OopsMore<X>>{} //this is fine

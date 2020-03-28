@@ -382,7 +382,7 @@ public class MethodInvokationWeaver implements Opcodes {
      */
     static String fiberArg = D_FIBER + ')';
     
-    private boolean isfinalObjectMethod(MethodInsnNode mi){//these methods are decalared at object level but are final so cannot/dont need to be be fiberized
+    private boolean isfinalObjectMethod(MethodInsnNode mi){//these methods are declared at object level but are final so cannot/dont need to be be fiberized
     	String name = mi.name;
     	String desc = mi.desc;
     	if(name.equals("getClass") && desc.equals("()Ljava/lang/Class;")){
