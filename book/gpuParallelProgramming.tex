@@ -58,7 +58,7 @@ def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) g
 	}
 }
 
-gps GPU = gpus.GPU()
+gps = gpus.GPU()
 deviceGrp gpus.DeviceGroup= chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
 device gpus.Device = deviceGrp.devices[0]
 \end{lstlisting}
