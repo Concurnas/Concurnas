@@ -78,7 +78,7 @@ Concurnas offers a powerful and concise API (exposed under: \lstinline{com.concu
 	\item \textbf{Intermediate code generation (optional)}. Transcompiling our previous data structure to another format for easier working in downstream phases.
 	\item \textbf{Bytecode generation}. The final stage of the Concurnas compiler outputs \textit{executable} bytecode.
 	\item \textbf{Code optimization}. The Concurnas runtime (operating on the JVM) verifies the integrity of the previously output bytecode whilst performing some runtime transformations and optimizations.
-	\item \textbf{Machine code generation}. The JVM creates optimized machine code from the previous bytecode and executes this machine code upon the CPU and GPU's available.
+	\item \textbf{Machine code generation}. The JVM creates optimized machine code from the previous bytecode and executes this machine code upon the CPU and GPUs available.
 \end{enumerate}
 
 \textit{Aside: We see above that there are a large number of phases to the compilation process, in fact, within the Concurnas compiler (and most other compilers) these steps are often themselves broken down into further sub phases. Execution of these phases takes a non epsilon amount of time. It is for this reason (amongst others) that, in the interests of the high performance computing which Concurnas offers, steps 1-5 of 7 are performed at compilation time, once only, and the steps 6 and 7 are performed only infrequently and in a highly optimized manner, at runtime. This approach of course gives a natural performance boost over a runtime based scripting language which if naively implemented would implement all 7 of these stages (and perhaps not even implementing the final stage if it were a fully interpreted language) at runtime.}
