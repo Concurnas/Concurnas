@@ -8,7 +8,7 @@
 \doquote{9cm}{35pt}{6cm}{8cm}{9.2cm}{footnotesize}{Time to wake up\\Refill new destiny\\Through this}{The Whitest of Lies from Prototype by NeuroWulf (2005)}
 
 
-Concurnas has built in first class citizen support for programming GPUs and associated parallel computing constructs. GPU's are massively data parallel computation devices which are perfect for solving SIMD (single instruction, multiple data) and normally CPU bound problems. Compared to a single CPU core algorithm implementation, in solving a computation bound problem, it is common to be able to obtain up to a 100x speed improvement (two orders of magnitude) when using a GPU! And this is with a far reduced energy and hardware cost per gigaflop relative to CPU based computation. All modern graphics cards have a built in GPU and there exist dedicated GPU computation devices. In fact some of the world's leading supercomputers achieve their parallelization through the use of dedicated GPU hardware. With Concurnas this power is your as well.
+Concurnas has built in first class citizen support for programming GPUs and associated parallel computing constructs. GPUs are massively data parallel computation devices which are perfect for solving SIMD (single instruction, multiple data) and normally CPU bound problems. Compared to a single CPU core algorithm implementation, in solving a computation bound problem, it is common to be able to obtain up to a 100x speed improvement (two orders of magnitude) when using a GPU! And this is with a far reduced energy and hardware cost per gigaflop relative to CPU based computation. All modern graphics cards have a built in GPU and there exist dedicated GPU computation devices. In fact some of the world's leading supercomputers achieve their parallelization through the use of dedicated GPU hardware. With Concurnas this power is your as well.
 
 Support is provided via interfacing to OpenCL - an excellent multiplatform API for GPU computing. OpenCL is supported by the big three GPU manufacturers - NVidia, AMD and Intel. However, even with conventional, raw OpenCL (or any GPU computing platform for that matter) one must write a lot of boilerplate code and perform a lot of non work related management in order to get computation done on the GPU. A such, authoring large applications can be an intimidating prospect. With Concurnas you will see that this boilerplate code is minimized, allowing the developer to focus on solving real business problems. Additionally there is no need to learn (and have to paradigm shift into) C or C++ which is the native language used by OpenCL for expressing parallel functions on the GPU as functions marked as parallel in Concurnas are automatically translated into a form understandable by the GPU/OpenCL. GPU computing is for everyone.
 
@@ -25,12 +25,12 @@ In order to make use of the Concurnas GPU parallel programming solution the foll
 \end{itemize}
 
 
-Concurnas enables parallel computation on GPU's, FPGA accelerators and conventional CPUs. Although OpenCL natively supports execution on the CPU, we do not encourage use of this in Concurnas for solving anything but strictly data based parallel problems.
+Concurnas enables parallel computation on GPUs, FPGA accelerators and conventional CPUs. Although OpenCL natively supports execution on the CPU, we do not encourage use of this in Concurnas for solving anything but strictly data based parallel problems.
 
 To see if one has access to any GPU devices one can use the \lstinline{getGPUDevices} command as part of the GPU API:
 
 \begin{lstlisting}
-From com.concurnas.lang import gpus
+from com.concurnas.lang import gpus
 
 gps = gpus.GPU()
 gpudevices = gps.getGPUDevices()
@@ -42,7 +42,7 @@ deviceDetails = firstDevice.toString()
 
 Note that \lstinline{com.concurnas.lang.gpus} is an auto import, therefore it is not necessary to explicitly import \lstinline{gpus}, and we shall cease to do so in the subsequent examples.
 
-Note that a machine may have more than one GPU (in fact this is common with machines having integrated graphics processors either on the motherboard or CPU - often being Intel HD graphics). But, if no GPU devices are available it can be useful for some problems to 'fall back' on to CPU based computation. The interface/compute model is the same and one will still obtain the advantages of the SIMD instruction set whilst processing on the CPU which is quicker for data parallel problems than the alternatives provided in Concurnas (which are more oriented towards task parallelism). One can select the CPU's available on one's machine via the \lstinline{getCPUDevices}, example:
+Note that a machine may have more than one GPU (in fact this is common with machines having integrated graphics processors either on the motherboard or CPU - often being Intel HD graphics). But, if no GPU devices are available it can be useful for some problems to 'fall back' on to CPU based computation. The interface/compute model is the same and one will still obtain the advantages of the SIMD instruction set whilst processing on the CPU which is quicker for data parallel problems than the alternatives provided in Concurnas (which are more oriented towards task parallelism). One can select the CPUs available on one's machine via the \lstinline{getCPUDevices}, example:
 
 \begin{lstlisting}
 def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) gpus.Device {
@@ -58,7 +58,7 @@ def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) g
 	}
 }
 
-gps GPU = gpus.GPU()
+gps = gpus.GPU()
 deviceGrp gpus.DeviceGroup= chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
 device gpus.Device = deviceGrp.devices[0]
 \end{lstlisting}
@@ -133,7 +133,7 @@ However, when one is working with GPUs, although there are many optimizations in
 \end{itemize}
 
 \section{Events}
-It is advantageous for computation on the GPU to take place on an concurrent basis, both for performance reasons - in allowing the GPU to reorganise execution, and for practical reasons - as we can move data to, from and between gpu's (a relatively slow operation) at the same time as they are performing execution, thus enabling us to create mini pipelines of work for our GPU, always keeping it busy, maximising throughput.
+It is advantageous for computation on the GPU to take place on an concurrent basis, both for performance reasons - in allowing the GPU to reorganise execution, and for practical reasons - as we can move data to, from and between GPUs (a relatively slow operation) at the same time as they are performing execution, thus enabling us to create mini pipelines of work for our GPU, always keeping it busy, maximising throughput.
 
 In Concurnas we make use of OpenCL events to support control of asynchronous computing on the GPU. These are wrapped within refs and exposed as GPURef's. Many of the core GPU operations operate on an asynchronous, non blocking basis: reading, writing and copying data between the GPU and program execution.
 
@@ -401,7 +401,7 @@ All kernel parameters must be of primitive time or boxed equivalent (Integer, Fl
 	\item BLANK - Indicates that the parameter is private to the kernel instance and may not be shared amongst work group items. Changes can be made but they are not visible outside of the work item.
 \end{itemize}
 
-Kernel parameters marked as global may optionally be marked with the type of buffer capability they expect. This further enhances the type safety provided by Concurnas when working with GPU's:
+Kernel parameters marked as global may optionally be marked with the type of buffer capability they expect. This further enhances the type safety provided by Concurnas when working with GPUs:
 
 \begin{itemize}
 	\item \lstinline{in} - indicating that only an in or mixed buffer may be used as an invocation argument.
@@ -793,7 +793,7 @@ Essentially we are just providing the type and buffer size information. Local bu
 The amount of local memory available to a work group executing on a compute unit is limited - generally it is no more than 64Kb, to be shared across multiple buffers. To see how much local memory is available the \lstinline{device.getLocalMemSize()} function can be called.
 
 \subsection{Barriers}
-Since we are working very close to the metal with GPU's, synchronization of parallel work items running on a GPU compute unit is slightly more involved than what we are used to elsewhere in Concurnas. We use barriers in order to ensure that all work items executing on a processing element have finished writing to local (or global) memory. This is essential for algorithms which use local memory on a reductive/iterative basis.
+Since we are working very close to the metal with GPUs, synchronization of parallel work items running on a GPU compute unit is slightly more involved than what we are used to elsewhere in Concurnas. We use barriers in order to ensure that all work items executing on a processing element have finished writing to local (or global) memory. This is essential for algorithms which use local memory on a reductive/iterative basis.
 
 We achieve this by using the barrier gpudef function:
 \begin{itemize}
@@ -1160,7 +1160,7 @@ The GPU interaction related classes under \lstinline{com.concurnas.lang.gpus} (i
 In cases where multiple iso's require access to the GPUs at the same time, using an actor is advised, this permits one a fine degree of control over the GPUs available both from the perspective of pipelining of requests to them, and from the perspective of easily managing memory.
 
 \section{Notes}
-The reader who is aware of the inner workings OpenCL will no doubt find many aspects of the structure of the Concurnas implementation of GPU computing very familiar. This is deliberate. By not deviating to far away from "the way things are done" currently with the API exposed in raw OpenCL we hope to make GPU computing something which is natural to do for both OpenCL veterans, whilst simplifying the implementation details enough to make working with GPU's easy for newcomers.
+The reader who is aware of the inner workings OpenCL will no doubt find many aspects of the structure of the Concurnas implementation of GPU computing very familiar. This is deliberate. By not deviating to far away from "the way things are done" currently with the API exposed in raw OpenCL we hope to make GPU computing something which is natural to do for both OpenCL veterans, whilst simplifying the implementation details enough to make working with GPUs easy for newcomers.
 
 Additionally, in the interests portability, we have omitted the tools and techniques exposed in OpenCL from version 2.0 onwards due, mainly to lack of compatibility with NVidia drivers, which for most of the older GPUs are only OpenCL 1.2 compliant.
 
