@@ -23,7 +23,6 @@ public class ConccSemanticsTests {
 		String got = concc.validateConccInstance(concc.getConccInstance()).validationErrs;
 		
 		String expect = "There must be at least one source file or source directory specified\n" + 
-				"Output directory 'c:/work' does not exist\n" + 
 				"No .conc files found to compile. Use: concc -help or concc --help for assistance.";
 		
 		TestCase.assertEquals(expect, got);

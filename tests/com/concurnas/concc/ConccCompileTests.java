@@ -426,6 +426,30 @@ public class ConccCompileTests {
 		TestCase.assertNotNull(copiedResource);
 	}
 	
+	@Test
+	public void makeOutputdir() throws Throwable {
+		ConccTestMockFileLoader mockFL = new ConccTestMockFileLoader();
+		ConccTestMockFileWriter mockWriter = new ConccTestMockFileWriter(mockFL);
+		
+		Path root = mockFL.fs.getPath("/work/hg");
+		Files.createDirectory(root);
+
+		
+		Path myClass = root.resolve("MyClass.conc"); 
+		Files.write(myClass, ListMaker.make("def doings() => 'hi there'"), StandardCharsets.UTF_8);
+
+		Concc concc = new Concc("-d /bin -a /work", mockFL, mockWriter);
+		
+		TestCase.assertEquals("", concc.doit());
+		
+		byte[] code = Files.readAllBytes(mockFL.fs.getPath("/bin/hg/MyClass.class"));
+		String res = new Executor().execute("hg.MyClass", code);
+		TestCase.assertEquals("hi there", res);
+
+		TestCase.assertTrue(Files.exists(mockFL.fs.getPath("/bin")));
+	}
+	
+	
 	public static Pair<List<ZipEntry>, String> extractZipEntries(byte[] content) throws IOException {
 		List<ZipEntry> entries = new ArrayList<>();
 		
