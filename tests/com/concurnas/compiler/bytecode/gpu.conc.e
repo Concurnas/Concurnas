@@ -373,3 +373,12 @@ nice: [103 206 309 412 515 618 721 824 927 1030]
 ~~~~~
 //##87. constants defined at top level
 ok[201 202 203 204 205 206 207 208 209 210]
+
+~~~~~
+//##88. fix gpu pow operator for int
+nice: [12 16 20 28 38 47 61 75 93 111]
+
+~~~~~
+//##89. err on gen type returned from deref
+nice: [12, 16, 20, 28, 38, 47, 60, 75, 93, 110]
+

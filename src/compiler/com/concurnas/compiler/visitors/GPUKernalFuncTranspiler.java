@@ -1734,12 +1734,60 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		if(powOperator.getFoldedConstant() != null) {
 			this.addItem(powOperator.getFoldedConstant().toString());
 		}else {
-			//visitList.add("PostfixOp");
-			this.addItem("pow(");
-			powOperator.expr.accept(this);
-			this.addItem(", ");
-			powOperator.raiseTo.accept(this);
-			this.addItem(")");
+			PrimativeTypeEnum castTo = null;
+			
+			PrimativeTypeEnum expPrimT = null;
+			PrimativeTypeEnum raiseTypeT = null;
+			
+			Type expType = powOperator.expr.getTaggedType();
+			if(expType instanceof PrimativeType) {
+				expPrimT = ((PrimativeType) expType).type;
+				
+				castTo = expPrimT == PrimativeTypeEnum.FLOAT?PrimativeTypeEnum.FLOAT:PrimativeTypeEnum.DOUBLE;
+			}else {
+				this.raiseError(powOperator.expr.getLine(), powOperator.expr.getColumn(), "non primative type in power operator");
+			}
+			
+			Type raiseType = powOperator.raiseTo.getTaggedType();
+			if(raiseType instanceof PrimativeType) {
+
+				raiseTypeT = ((PrimativeType) expType).type;
+				
+				if(!(null != castTo && castTo == PrimativeTypeEnum.DOUBLE)) {
+					castTo = raiseTypeT == PrimativeTypeEnum.FLOAT?PrimativeTypeEnum.FLOAT:PrimativeTypeEnum.DOUBLE;
+				}
+			}else {
+				this.raiseError(powOperator.raiseTo.getLine(), powOperator.raiseTo.getColumn(), "non primative type in  power operator");
+			}
+			
+			if(null != expPrimT && null != raiseTypeT) {
+				//visitList.add("PostfixOp");
+				
+				if(castTo != null) {
+					//this.addItem(String.format("((%s)pow(((%s)%s), ((%s)%s)))",  ));
+					this.addItem("((");
+					Type castBack = TypeCheckUtils.bestPrim((PrimativeType)expType, (PrimativeType)raiseType);
+					castBack.accept(this);
+					this.addItem(")pow(((");
+					new PrimativeType(castTo).accept(this);
+					this.addItem(")");
+					powOperator.expr.accept(this);
+					this.addItem("), ((");
+					new PrimativeType(castTo).accept(this);
+					this.addItem(")");
+					powOperator.raiseTo.accept(this);
+					this.addItem(")))");
+					
+				}else {
+					this.addItem("pow(");
+					powOperator.expr.accept(this);
+					this.addItem(", ");
+					powOperator.raiseTo.accept(this);
+					this.addItem(")");
+				}
+				
+			}
+			
 		}
 		
 		

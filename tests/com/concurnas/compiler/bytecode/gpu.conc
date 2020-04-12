@@ -1267,8 +1267,8 @@ def doings(){
 	gps = gpus.GPU()
 	cpus = gps.getCPUDevices()
 	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
-	device = deviceGrp.devices[0]
-	device2 = cpus[0].devices[0]
+	device = device2 = deviceGrp.devices[0]
+	//device2 = cpus[0].devices[0]
 	intoutGPU1 = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
 	intoutGPU2 = device2.makeOffHeapArrayMixed<int[]>(int[].class, 10)
 	c1 := intoutGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
@@ -4246,3 +4246,103 @@ def doings(){
 	"ok" + ret
 }
 
+~~~~~
+//##88. fix gpu pow operator for int
+gpukernel 1 twoArrayOp(global in A int[], global in B int[], global out result int[]) {
+  idx = get_global_id(0)
+  norm = 5.**3.
+  result[idx] = A[idx]**2 + B[idx] + 10
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def thingx() void {}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn(int[].class, 10)
+	result = device.makeOffHeapArrayOut(int[].class, 10)
+
+	
+	c1 := inGPU1.writeToBuffer([ 1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([ 1 2 1 2 3 1 2 1 2 1])
+	
+	inst = twoArrayOp(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+
+~~~~~
+//##89. err on gen type returned from deref
+
+gpukernel 1 twoArrayOp(global in A float[], global in B float[], global out result float[]) {
+  idx = get_global_id(0)
+  result[idx] = A[idx]**2 + B[idx] + 10
+}
+
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def asdsasd() => [ 1.f 2 3 4 5 6 7 8 9 10]
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn(float[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn(float[].class, 10)
+	result = device.makeOffHeapArrayOut(float[].class, 10)
+		
+	c1 := inGPU1.writeToBuffer([ 1.f 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([ 1.f 2 1 2 3 1 2 1 2 1])
+	
+	inst = twoArrayOp(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	'nice: ' + (xu as int for xu in ret)
+}
