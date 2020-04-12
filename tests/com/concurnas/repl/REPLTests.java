@@ -23,7 +23,6 @@ public class REPLTests {
 	
 	//////////////////////////////////////////////////////////
 	
-	
 	@Test
 	public void createVar()  {
 		assertEquals("x ==> 10", repl.processInput("x = 10"));
@@ -263,14 +262,6 @@ public class REPLTests {
 		assertEquals("|  redefined function foo(int, int)", repl.processInput("def foo(a int, b int) => a ** b as double"));
 	}
 	 
-	@Test
-	public void extFunc() throws Exception {
-		assertEquals("|  created extension function int.pow(int, int)", repl.processInput("def int pow(a int) => this ** a"));
-		assertEquals("$0 ==> 100", repl.processInput("10 pow 2"));
-		assertEquals("|  redefined extension function int.pow(int, int)", repl.processInput("def int pow(a int) => this ** (a + 1)"));
-		assertEquals("$1 ==> 1000", repl.processInput("10 pow 2"));
-	}
-	
 	
 	@Test
 	public void funcCallsAnother() throws Exception {
@@ -1172,7 +1163,7 @@ public class REPLTests {
 	@Test
 	public void dontremovePrevOKVarDuetoFaultyAssign() throws Exception {
 		assertEquals("v ==> hi", repl.processInput("v String = 'hi'"));
-		assertEquals("|  ERROR 0:0 in v - Assingment can be null, but assignment type is not nullable", repl.processInput("v=null"));
+		assertEquals("|  ERROR 0:0 in v - Assignment can be null, but assignment type is not nullable", repl.processInput("v=null"));
 		assertEquals("v ==> hi", repl.processInput("v"));
 	}
 	
@@ -1528,4 +1519,27 @@ public class REPLTests {
 		
 		assertEquals("|  redefined function myfunction(int)\n\n$0 ==> [10, 11, 12, 13, 14]",repl.processInput(okVersoin));
 	}
+	@Test
+	public void extFunc() throws Exception {
+		assertEquals("|  created extension function int.pow(int, int)", repl.processInput("def int pow(a int) => this ** a"));
+		assertEquals("$0 ==> 100", repl.processInput("10 pow 2"));
+		assertEquals("|  redefined extension function int.pow(int, int)", repl.processInput("def int pow(a int) => this ** (a + 1)"));
+		assertEquals("$1 ==> 1000", repl.processInput("10 pow 2"));
+	}
+
+
+	@Test
+	public void testTrans() throws Exception {
+		String op = "counter := 0;\r\n" + 
+				"\r\n" + 
+				"every(counter){ System.out.println(\"\"+ counter)}\r\n" + 
+				"\r\n" + 
+				"for(x in 1 to 10){\r\n" + 
+				"	trans{counter += x}!\r\n" + 
+				"}";
+
+		assertEquals("counter ==> 0:",repl.processInput(op));
+	}
+	
+	
 }

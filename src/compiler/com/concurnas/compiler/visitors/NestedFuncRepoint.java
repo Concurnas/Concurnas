@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -792,6 +791,27 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 			inNestedFunction=prev_inNestedFunction;
 			
 
+			externalParamsReferencedInBlock.pop();
+			localVarStack.pop();
+			netedFuncToAddedArgs.pop();
+			nestedLevel--;
+			
+		}
+	}
+	
+	private class InAsyncBlockInOutWrapper{
+		
+		public void enter(){
+			externalParamsReferencedInBlock.add(new LinkedHashMap<String, FuncParam>());
+			localVarStack.add(new BrandedStack<HashMap<String, Pair<Boolean, FuncParam>>>(BrandedStack.Type.LOCAL_CLASS));
+			localVarStack.peek().add(new HashMap<String, Pair<Boolean, FuncParam>>());//initial layer
+			netedFuncToAddedArgs.add(new HashMap<String, LinkedHashMap<String, FuncParam>>());
+			nestedLevel++;
+
+									
+		}
+		
+		public void exit(){
 			externalParamsReferencedInBlock.pop();
 			localVarStack.pop();
 			netedFuncToAddedArgs.pop();
@@ -1821,7 +1841,21 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 			 addForAsyncWriteReturn = new FuncParam(0,0,"ret$", asyncBlock.getTaggedType(), false);
 		}
 		
+		InAsyncBlockInOutWrapper inoutWrapper = null;
+		if(!inFunction) {
+			inoutWrapper = new InAsyncBlockInOutWrapper();
+		}
+				
+		
+		if(null != inoutWrapper) {
+			inoutWrapper.enter();
+		}
+		
 		processHasExtraCaps(asyncBlock, asyncBlock.getLine(), asyncBlock.getColumn(), true, addForAsyncWriteReturn);//tag in the type here
+		
+		if(null != inoutWrapper) {
+			inoutWrapper.exit();
+		}
 		
 		if(asyncBlock.fakeLambdaDef !=null){
 			asyncBlock.fakeLambdaDef.body.accept(this);
@@ -2045,10 +2079,10 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 	
 	@Override
 	public Object visit(ForBlock forblock) {
-		FuncDefIInOutWrapper inoutWrapper = null;
+		LocalClassDefInOutWrapper inoutWrapper = null;
 		
 		if(!inFunction) {
-			inoutWrapper = new FuncDefIInOutWrapper();
+			inoutWrapper = new LocalClassDefInOutWrapper();
 		}
 				
 		
@@ -2058,7 +2092,6 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 		
 		
 		//if(inFunction){
-		
 		
 		
 			FuncParam fp = new FuncParam(forblock.getLine(), forblock.getColumn(), forblock.localVarName + "$n" + nestedLevel, forblock.localVarTypeToAssign, false, nestedLevel);
@@ -2076,7 +2109,15 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 		//FuncDefIInOutWrapper inoutWrapper = new FuncDefIInOutWrapper();
 		//inoutWrapper.enter();
 		
+		/*
+		 * boolean attopLevel = nestedLevel==1; if(attopLevel) { nestedLevel++; }
+		 */
+		
 		Object ret= super.visit(forblock);
+		
+		/*
+		 * if(attopLevel) { nestedLevel--; }
+		 */
 		
 		//inoutWrapper.exit();
 		

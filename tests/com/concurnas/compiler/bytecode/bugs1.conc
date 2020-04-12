@@ -4063,3 +4063,19 @@ def java.util.List<X> map2<X>(func (X) X) => xx java.util.List<X> = this; func(x
 def doings(){
 	"" + [1, 2, 3, 4].map(x => x+10).map2(x => x+10)
 }
+
+~~~~~
+//##220. top level nesting of for loop within isolate
+
+def log(formatString String, args Object...) => 1//System.out.println(String.format(formatString, args))
+
+for(x in [1 2 3 4 5]){
+	{for(z in [1 2 3 4 5]){ 
+		p = z 
+	  }
+	log "hello world %s" x}!
+}
+
+def doings(){
+	"ok"
+}

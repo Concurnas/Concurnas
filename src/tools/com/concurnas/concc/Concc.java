@@ -48,10 +48,11 @@ public class Concc {
 	
 	public final static String helpMeErrorMsg = genericErrorMsg + "\r\n\r\n" + 
 			"-d directory: \r\n"
-			+ "   Override the directory where .class files will be output.\r\n"
+			+ "   Override the directory where .class files will be output. concc will try to create\r\n"
+			+ "   this directory if it does not already exist.\r\n"
 			+ "-a or -all:\r\n"
-			+ "   Copy all non .conc files from source directories to \r\n" 
-			+ "   provided output directory overridden with the -d option.\r\n"
+			+ "   Copy all non .conc files from source directories to \r\n"
+			+ "   provided output directory (output overridden with the -d option.)\r\n"
 			+ "-jar jarName[entryPoint]?:\r\n"
 			+ "   Creates a jar file from all generated/copied files. Optional entryPoint class \r\n"
 			+ "   name may be specified which will be used to populate a META-INF/MANIFEST.MF \r\n"
@@ -61,8 +62,8 @@ public class Concc {
 			+ "   with -jar option. Any generated jar files will not be removed.\r\n"
 			+ "-classpath path or -cp path: \r\n"
 			+ "   The classpath option enables one to override the CLASSPATH environment variable.\r\n"
-			+ "   Elements are delimited via ';' under Windows and ':' under Linux. Elements may \r\n"
-			+ "   consist of .class file references directories or .jar file references.\r\n" 
+			+ "   Elements are delimited via ';' and must be surrounded by \" \" under Unix based operating systems.\r\n"
+			+ "   Elements may consist of .class file references directories or .jar file references.\r\n" 
 			+ "-verbose: \r\n"
 			+ "   Provide additional compilation information including bytecode output.\r\n"
 			+ "-root directory: \r\n"
@@ -80,7 +81,6 @@ public class Concc {
 			+ "   underlying JVM. e.g. -Dcom.mycompany.mysetting=108.\r\n"
 			+ "--help: \r\n"
 			+ "   List documentation for options above.";
-	
 	
 	//0 is ok
 	public static void main(String[] args) {
@@ -433,9 +433,24 @@ public class Concc {
 			Path outputDirOverride = null;
 			if(null != concInstance.outputDirectory) {
 				outputDirOverride = this.fileLoader.getPath(concInstance.outputDirectory);
+				
+				/*
+				 * if(outputDirOverride == null) { this.fileLoader. }
+				 */
+				
 				if(outputDirOverride == null || !Files.isDirectory(outputDirOverride)) {
-					validationErrs.add(String.format("Output directory '%s' does not exist", concInstance.outputDirectory));
-					outputDirOverride=null;
+					if(Files.exists(outputDirOverride)) {
+						validationErrs.add(String.format("Cannot write to output directory '%s' - it is a file", concInstance.outputDirectory));
+						outputDirOverride=null;
+					}else {
+						try {
+							Files.createDirectories(outputDirOverride);
+						}catch(Exception e){
+							validationErrs.add(String.format("Cannot create output directory '%s' - %s", concInstance.outputDirectory, e.getMessage()));
+							outputDirOverride=null;
+						}
+						
+					}
 				}
 				
 				if(concInstance.copyall) {

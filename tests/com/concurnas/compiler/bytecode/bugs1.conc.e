@@ -883,3 +883,7 @@ k
 ~~~~~
 //##219. nice little map function
 [21, 22, 23, 24]
+
+~~~~~
+//##220. top level nesting of for loop within isolate
+ok

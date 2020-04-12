@@ -302,7 +302,7 @@ public class LabelAllocator extends AbstractVisitor implements Unskippable{
 		//if(forBlockOld.postExpr != null){ - always have postop //lol, 'postop'
 		
 		Type tta = forBlockNew.expr.getTaggedType();
-		if(!tta.hasArrayLevels() || TypeCheckUtils.isLocalArray(tta))
+		if(null != tta && (!tta.hasArrayLevels() || TypeCheckUtils.isLocalArray(tta)))
 		{
 			forBlockNew.hasNextLabel = new Label();
 			if(forBlockNew.getShouldBePresevedOnStackAndImmediatlyUsed()){

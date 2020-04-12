@@ -9383,6 +9383,11 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	@Override
 	public Object visit(AsyncBlock asyncBlock) {
 
+
+		if(this.currentScopeFrame.paThisIsModule) {
+			this.level++;
+		}
+		
 		createOrDeferLambdaDef(asyncBlock.fakeLambdaDef);
 
 		// doCopy(Type tagged, Expression expr){
@@ -9531,6 +9536,11 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			bcoutputter.visitVarInsn(ALOAD, newRefSlot);// shudder
 		}
 
+
+		if(this.currentScopeFrame.paThisIsModule) {
+			this.level--;
+		}
+		
 		return asyncBlock.getTaggedType();
 	}
 	

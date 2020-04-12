@@ -355,7 +355,21 @@ public class FuncType  extends AbstractType  implements Comparable<FuncType> {
 	@Override
 	public String toString()
 	{
-		return String.format(getFormatStringWithPalceholderforMethName(false, false), "")  + isVectorizedToString() + (this.getNullStatus() == NullStatus.NULLABLE?"?":"");
+		boolean ifNullable = this.getNullStatus() == NullStatus.NULLABLE;
+		
+		StringBuilder sb = new StringBuilder();
+		
+		if(ifNullable) {
+			sb.append("(");
+		}
+		sb.append(String.format(getFormatStringWithPalceholderforMethName(false, false), ""));
+		sb.append(isVectorizedToString());
+		
+		if(ifNullable) {
+			sb.append(")?");
+		}
+		
+		return sb.toString();
 	}
 	
 	public String getFormatStringWithPalceholderforMethName( )

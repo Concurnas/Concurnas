@@ -3250,7 +3250,10 @@ public class TypeCheckUtils {
 		if(lhsPrim.thrown || rhsPrim.thrown){
 			return null;
 		}
-			
+		
+		if(lhsPrim.type == PrimativeTypeEnum.VOID || rhsPrim.type == PrimativeTypeEnum.VOID){
+			return null;
+		}
 		
 		if(lhsPrim.hasArrayLevels() || rhsPrim.hasArrayLevels() )
 		{
@@ -3311,7 +3314,7 @@ public class TypeCheckUtils {
 		
 	}
 
-	private static PrimativeType bestPrim(PrimativeType lhsPrim, PrimativeType rhsPrim)
+	public static PrimativeType bestPrim(PrimativeType lhsPrim, PrimativeType rhsPrim)
 	{
 		if(lhsPrim.type == rhsPrim.type)
 		{

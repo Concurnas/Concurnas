@@ -10,7 +10,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,6 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import com.concurnas.compiler.DirectFileLoader;
 import com.concurnas.compiler.FileLoader;
 import com.concurnas.compiler.SchedulerRunner;
-import com.concurnas.repl.REPL;
 import com.concurnas.repl.REPLShell;
 import com.concurnas.runtime.ClassPathUtils;
 //warpper:
@@ -47,8 +45,8 @@ public class Conc {
 	public final static String helpMeErrorMsg = genericErrorMsg + "\r\n\r\n" 
 			+ "-classpath path or -cp path: \r\n"
 			+ "   The classpath option enables one to override the CLASSPATH environment variable.\r\n"
-			+ "   Elements are delimited via ';' under Windows and ':' under Linux. Elements may \r\n"
-			+ "   consist of .class file references directories or .jar file references.\r\n" 
+			+ "   Elements are delimited via ';' and must be surrounded by \" \" under Unix based operating systems.\r\n"
+			+ "   Elements may consist of .class file references directories or .jar file references.\r\n" 
 			+ "-s\r\n"
 			+ "   Server mode. When running in non interactive mode (i.e an entry point is provided)\r\n"
 			+ "   Concurnas will not terminate the process upon the entry point main method (or \r\n"

@@ -1584,6 +1584,12 @@ public class PrintSourceVisitor implements Visitor {
 	public Object visit(FuncType funcType) {
 		//visitList.add("FuncType");
 		
+		String nullableComp = getNullableStatus(funcType);
+		
+		if(!nullableComp.isEmpty()) {
+			this.addItemNoPreString("(");
+		}
+		
 		printInOutGenModi(funcType);
 		
 		if(funcType.getLocalGenerics() != null && !funcType.getLocalGenerics().isEmpty())
@@ -1629,7 +1635,9 @@ public class PrintSourceVisitor implements Visitor {
 			this.addItem(")");
 		}
 		
-		addNullableStatus(funcType);
+		if(!nullableComp.isEmpty()) {
+			this.addItemNoPreString(")"+nullableComp);
+		}
 		
 		return null;
 	}
@@ -2046,21 +2054,34 @@ public class PrintSourceVisitor implements Visitor {
 		
 		return null;
 	}
-	
-	private void addNullableStatus(Type namedType) {
+
+	private String getNullableStatus(Type namedType) {
+		StringBuilder sb = new StringBuilder();
+		
 		if(namedType.hasArrayLevels()) {
 			List<NullStatus> nsarlevel = namedType.getNullStatusAtArrayLevel();
 			for(int n = 0; n < namedType.getArrayLevels(); n++)
 			{
 				if(nsarlevel.get(n) == NullStatus.NULLABLE) {
-					this.addItem("?");
+					sb.append("?");
 				}
-				this.addItem("[]");
+				sb.append("[]");
 			}
 		}
 		
 		if(namedType.getNullStatus() == NullStatus.NULLABLE) {
-			this.addItemNoPreString("?");
+			sb.append("?");
+		}
+		
+		
+		return sb.toString();
+	}
+	
+	
+	private void addNullableStatus(Type namedType) {
+		String toAdd = getNullableStatus(namedType);
+		if(!toAdd.isEmpty()) {
+			this.addItemNoPreString(toAdd);
 		}
 	}
 	
@@ -2088,8 +2109,9 @@ public class PrintSourceVisitor implements Visitor {
 	@Override
 	public Object visit(NotExpression notExpression) {
 		//visitList.add("NotExpression");
-		this.addItem("not");
+		this.addItem("not(");
 		notExpression.expr.accept(this);
+		this.addItem(")");
 		return null;
 	}
 
