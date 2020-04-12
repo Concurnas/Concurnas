@@ -29,7 +29,7 @@ The syntax for the \lstinline[language=None]{conc} tool is as follows:
 Let us now look in detail at what is taking place above:
 
 \section{Running code with Concurnas}
-Compiled Concurnas code can be run with Concurnas via the \lstinline[language=None]{conc} command which comes as standard as part of the Concurnas distribution. We can also run \lstinline[language=None]{conc} in interactive Read-Evaluate-Print Loop (REPL) mode, this is explored \hyperref[ch:repl]{in the REPL chapter}. Here we focus upon non-interactive execution of pre compiled code. \lstinline[language=None]{conc} can be found under: \lstinline[language=None]{conc-home}. If this tool has not been added to the path, the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
+Compiled Concurnas code can be run with Concurnas via the \lstinline[language=None]{conc} command which comes as standard as part of the Concurnas distribution. We can also run \lstinline[language=None]{conc} in interactive Read-Evaluate-Print Loop (REPL) mode, this is explored \hyperref[ch:repl]{in the REPL chapter}. Here we focus upon non-interactive execution of pre compiled code. If \lstinline[language=None]{conc} has not been added to the path (the default during installation), the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
 
 We use the \lstinline[language=None]{conc} command with an entry-point class or jar file reference in order to start \lstinline[language=None]{conc} in non-interactive execution mode:
 
@@ -60,7 +60,7 @@ The \lstinline{main} method declaration will receive any command line parameters
 \label{sec:cmdlineparams}
 There can be zero to many options specified on a call to \lstinline[language=None]{conc}:
 \begin{itemize}
-	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline{;} under Windows, and \lstinline{:} under Linux. Elements may consist of directories, \lstinline{.class} file references or \lstinline{.jar} file references.
+	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline[language=None]{;} and must be surrounded by \lstinline[language=None]{""} under Unix based operating systems. Elements may consist of directories, \lstinline{.class} file references or \lstinline{.jar} file references.
 	\item \textbf{-s}: Server mode. When running in non interactive mode (i.e an entry point is provided) Concurnas will not terminate the process upon the entry point main method (or alternative) completing execution.
 	\item \textbf{-bc}: Print bytecode. This option is applicable when running in REPL mode. Print the bytecode generated from the provided input.
 	\item \textbf{-J}: JVM argument. Prefix jvm arguments with -J in order to pass them to the underlying JVM. e.g. \lstinline{-J-Xms2G -J-Xmx5G}.
@@ -189,7 +189,7 @@ D:\work>
 \end{lstlisting}
 
 \section{Adding conc to the path}
-It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit \lstinline[language=None]{/conc} to be run from any directory. Check your operating system documentation for details of how to do this.
+It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit \lstinline[language=None]{/conc} to be run from any directory. Check your operating system documentation for details of how to do this. The \href{https://concurnas.com/download.html}{Windows installer} for Concurnas will perform this automatically, as will installation via the \href{https://sdkman.io/sdks#concurnas}{SDKMAN! platform}.
 
 \section{Notes}
 The first time the \lstinline[language=None]{conc} tool is executed, or when a new JVM environment upon which is its being executed is detected, an 'installation' will take place wherein Concurnas will set itself up to execute efficiently upon said JVM environment by caching a copy of the JDK. This can take up to a few minutes to complete.

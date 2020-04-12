@@ -7,7 +7,7 @@
 Concurnas offers a lightweight tool for programming and executing with Concurnas code. The standard Concurnas runtime distribution can be run in either non-interactive or interactive Read-Evaluate-Print Loop (REPL) mode via the command line tool: \lstinline[language=None]{conc}. Here we shall examine this REPL mode. The Concurnas REPL is a handy tool for learning about Concurnas and trying out ideas in a scriptable manner. It evaluates declarations, statements, and expressions as they are entered and immediately shows the results in an interactive fashion.	
 
 \section{Running the Concurnas REPL}
-The Concurnas REPL is included as standard as part of the Concurnas distribution. We can start it using the same command as we use for executing compiled code in a non-interactive manner: \lstinline[language=None]{conc} which can be found under: \lstinline[language=None]{conc-home}. If this tool has not been added to the path, the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
+The Concurnas REPL is included as standard as part of the Concurnas distribution. We can start it using the same command as we use for executing compiled code in a non-interactive manner: \lstinline[language=None]{conc}. If \lstinline[language=None]{conc} has not been added to the path, the tool may be started from within that directory. If Concurnas has not already completed its installation for the detected JDK which it is being run under, it will first complete that process (this may take a few minutes).
 
 We use the \lstinline[language=None]{conc} command without an entry-point class or jar reference in order to start \lstinline[language=None]{conc} in REPL mode:
 
@@ -249,6 +249,6 @@ conc>
 \end{lstlisting}
 
 \section{Adding the REPL to the path}
-It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit the Concurnas REPL via \lstinline[language=None]{conc} to be run from any directory. Check your operating system documentation for details of how to do this.
+It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit the Concurnas REPL via \lstinline[language=None]{conc} to be run from any directory. The \href{https://concurnas.com/download.html}{Windows installer} for Concurnas will perform this automatically, as will installation via the \href{https://sdkman.io/sdks#concurnas}{SDKMAN! platform}.
 	
 \end{document}

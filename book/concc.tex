@@ -21,7 +21,7 @@ There must be at least one sourcefile or directory provided as an argument. Sour
 
 If any \lstinline[language=None]{.conc} file has a dependency on a \lstinline[language=None]{.conc} file listed in the same directory, then the dependant \lstinline[language=None]{.conc} file will also be compiled.
 
-By default the \lstinline[language=None]{.conc} files will be compiled in to one or more .class file per source file input, into the same directory as the original sourcefile. To override the output directory of the .class files, use the -d option described below.
+By default the \lstinline[language=None]{.conc} files will be compiled in to one or more .class file per source file input, into the same directory as the original sourcefile. To override the output directory of the .class files, use the -d option described below. Where the output directory has been overridden, if it does not already exist, Concurnas will attempt to create it.
 
 The directory hierarchy relative to the working directory of the \lstinline[language=None]{concc} call denotes the package name of the output .class files for \lstinline[language=None]{.conc} files specified in the sourcefiles. The root directory is the current working directory in which \lstinline[language=None]{concc} is run. The root working directory can be overridden using the -root option described below. All referenced source files are taken to be relative to this directory.
 
@@ -39,11 +39,11 @@ Using an element specific root is generally the easiest method by which one can 
 \section{Options}
 There can be zero to many options specified on a call to \lstinline[language=None]{concc}
 \begin{itemize}
-	\item \textbf{-d directory}: Override the directory where .class files will be output.
-	\item \textbf{-a} or \textbf{-all}: Copy all non .conc files from source directories to provided output directory overridden with the \textbf{-d} option.
+	\item \textbf{-d directory}: Override the directory where .class files will be output. concc will try to create this directory if it does not already exist.
+	\item \textbf{-a} or \textbf{-all}: Copy all non .conc files from source directories to provided output directory (output directory is overridden with the \textbf{-d} option).
 	\item \textbf{-jar jarName[entryPoint]?}: Creates a jar file from all generated/copied files. Optional entryPoint class name may be specified which will be used to populate a META-INF/MANIFEST.MF file within the jar. Can only be used in conjunction with the \textbf{-d} option.
 	\item \textbf{-c} or \textbf{-clean}. Remove all generated files from output directory. Useful in conjunction with -jar option. Any generated jar files will not be removed.	
-	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline[language=None]{;} under Windows, and \lstinline[language=None]{:} under Linux. Elements may consist of directories, \lstinline[language=None]{.class} file references or \lstinline[language=None]{.jar} file references.
+	\item \textbf{-classpath path} or \textbf{-cp path}: The classpath option enables one to override the CLASSPATH environment variable. Elements are delimited via \lstinline[language=None]{;} and must be surrounded by \lstinline[language=None]{""} under Unix based operating systems. Elements may consist of directories, \lstinline[language=None]{.class} file references or \lstinline[language=None]{.jar} file references.
 	\item \textbf{-verbose}: Provide additional compilation information including bytecode output.
 	\item \textbf{-root directory}: Override the root directory of \lstinline[language=None]{javacc}. Package names for \lstinline[language=None]{.conc} files will be generated relative to this.
 	\item \textbf{-werror}: Normally, warnings do not prevent class file generation, setting this tag will treat warnings as errors, thus preventing class file generation warnings are generated for the input \lstinline[language=None]{.conc} source file in question.
@@ -115,7 +115,7 @@ concc -Dcom.mycompany.mysetting=108 ./src ./extrasrc/Mycode.conc
 \end{lstlisting}
 
 \section{Adding concc to the path}
-It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit \lstinline[language=None]{concc} to be run from any path. Check your operating system documentation for details of how to do this.
+It is recommended that the \lstinline[language=None]{<installDir>/bin} be added to the system path in order to permit \lstinline[language=None]{concc} to be run from any path. Check your operating system documentation for details of how to do this. The \href{https://concurnas.com/download.html}{Windows installer} for Concurnas will perform this automatically, as will installation via the \href{https://sdkman.io/sdks#concurnas}{SDKMAN! platform}.
 
 \section{Jar files}
 Jar's are an excellent way of packaging code for organization and distribution. As seen above the \lstinline[language=None]{concc} tool is able to create these as described previously. Additionally \href{https://docs.oracle.com/javase/tutorial/deployment/jar/build.html}{the jar tool provided as part of the JDK} can be used to achieve this objective.
