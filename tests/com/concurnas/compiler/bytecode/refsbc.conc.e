@@ -639,7 +639,7 @@ newValue: newValue:
 [6:, 4:, 10:]
 
 ~~~~~
-//##45.d simple inc - string concatination
+//##45.d simple inc - string concatenation
 5hi
 
 ~~~~~
@@ -1261,7 +1261,7 @@ newValue: newValue::
 [6::, 4::, 10::]
 
 ~~~~~
-//##83.d simple inc - string concatination
+//##83.d simple inc - string concatenation
 5hi
 
 ~~~~~
@@ -1360,7 +1360,7 @@ newValue: newValue::
 [6:::, 4:::, 10:::]
 
 ~~~~~
-//##383.d simple inc - string concatination
+//##383.d simple inc - string concatenation
 5hi
 
 ~~~~~

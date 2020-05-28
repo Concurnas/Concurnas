@@ -3784,7 +3784,7 @@ def doings() String{
 }
 
 ~~~~~
-//##45.d simple inc - string concatination
+//##45.d simple inc - string concatenation
 
 def getRef() String:{
 	return "5":
@@ -8356,7 +8356,7 @@ def doings() String{
 }
 
 ~~~~~
-//##83.d simple inc - string concatination
+//##83.d simple inc - string concatenation
 
 def getRef() String::{
 	return "5"::
@@ -9200,7 +9200,7 @@ def doings() String{
 }
 
 ~~~~~
-//##383.d simple inc - string concatination
+//##383.d simple inc - string concatenation
 
 def getRef() String:::{
 	return "5":::

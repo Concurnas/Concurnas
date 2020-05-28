@@ -30,11 +30,11 @@ c
 true
 
 ~~~~~
-//##2. expr - 1. basic string concatination
+//##2. expr - 1. basic string concatenation
 Hello world
 
 ~~~~~
-//##2. expr - 2. basic string concatination with non string
+//##2. expr - 2. basic string concatenation with non string
 Hello 12
 
 ~~~~~
