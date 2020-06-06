@@ -182,14 +182,25 @@ assert nullObj is Integer
 assert nullObj is String
 \end{lstlisting}
 
-\section{Casting Arrays}
+\section{Checking for multiple types}
+Multiple types may be checked for at the same time by using the \lstinline{or} keyword to chain the types together as follows:
+\begin{lstlisting}
+open class A
+trait TT
+class B < A
 
+an Object = new B()
+
+inst = an is A or TT
+\end{lstlisting}
+
+\section{Casting Arrays}
 Although it is not possible to directly cast an n dimensional array of primitive type to a differing n dimensional array of primitive type. The effect can nevertheless be achieved via use of vectorization. This will of course create a new n dimensional array:
 \begin{lstlisting}
 vec = [ 1.0 2.0 ; 3.0 4.0]
 res = vec^ as int
-/
-res = > [ 1 2; 3 4 ]
+
+//res == [ 1 2; 3 4 ]
 \end{lstlisting}
 
 \section{Is with automatic cast}
