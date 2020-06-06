@@ -142,8 +142,8 @@ GPURefs have their status set upon completion of the task which created them.
 The typical workflow of execution involves first copying data to the gpu, performing execution, and then copying back the result to heap managed memory. We can wait, via the /await/ keyword, on the GPURefs returned from the data writing call to ensure that execution only begins after data copying is complete, similarly, we can wait on the GPURef returned from execution before continuing to copy the result to main memory. Following on from our previous example:
 
 \begin{lstlisting}
-intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
-copyComplete boolean:gps.GPURef = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+inoutGPU = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+copyComplete boolean:gpus.GPURef = inoutGPU.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
 await(copyComplete)
 //rest of program will execute only when copyComplete has been set..
 got = inoutGPU.readFromBuffer()
@@ -154,8 +154,8 @@ In the above example, had we not waited for the \lstinline{copyComplete} ref to 
 There is a way to perform the above synchronization which is generally preferred from a performance and elegance of code perspective. All the non blocking GPU operations take a vararg of GPURef's to wait for before continuing execution:
 
 \begin{lstlisting}
-intoGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
-copyComplete boolean:gps.GPURef = intoGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+inoutGPU = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+copyComplete boolean:gpus.GPURef = inoutGPU.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
 got = inoutGPU.readFromBuffer(copyComplete)//readFromBuffer will execute when coyComplete has been set
 \end{lstlisting}
 

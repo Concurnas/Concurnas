@@ -529,9 +529,9 @@ inst2 = new AssignOPOverload(100)
 
 inst1 = new AssignOPOverload(22)
 inst2 \= new AssignOPOverload(22) //bypass overloaded = operator
-/
-inst1  => AssignOPOverload: 10022
-inst2  => AssignOPOverload: 22
+
+//inst1  == AssignOPOverload: 10022
+//inst2  == AssignOPOverload: 22
 \end{lstlisting}
 
 Overloading of the assignment operator is used to great effect with off heap memory and gpu memory interaction.
@@ -548,8 +548,8 @@ class MyUnassignable{
 inst = MyUnassignable()
 inst  = 56
 res = inst 
-/
-res => 56
+
+//res == 56
 \end{lstlisting}
 
 If we wish to suppress the unassignment operation this can be achieved by using the \lstinline{:} operator as follows:
@@ -567,10 +567,11 @@ inst  = 56
 res1 = ''+ inst 
 res2 = '' + inst: //suppress calling of unassign()
 res3 = inst:tostring() //suppress calling of unassign()
-/
-res1 => '56'
-res2 => 'MyUnassignable 56'
-res3 => 'MyUnassignable 56'
+
+
+//res1 == '56'
+//res2 == 'MyUnassignable 56'
+//res3 == 'MyUnassignable 56'
 \end{lstlisting}
 
 If we wish to create a ref to a variable of type implementing the \lstinline{unassign()} method, and we wish to avoid 'unassigning' it then we must use an extra \lstinline{:}.
