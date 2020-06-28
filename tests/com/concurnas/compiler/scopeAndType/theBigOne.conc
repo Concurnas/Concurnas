@@ -725,7 +725,7 @@ def main(args String[] ) void {
 
 
 ~~~~~
-//##5.3. Method Invocation Conversion
+//##5.3. Method Invocation Conversion 
 //basically these tests ensure that the correct method is getting called
 //TODO: superclass or subclass method getting called?
 class Test {
@@ -748,7 +748,7 @@ class Test {
 def m(o String) void { return ; } //good
 def mo(o String) void { return 5; } //bad
 def moo(o String) void { return null; } //bad
-def mooo(o String) String { return null; } //ok
+def mooo(o String) String? { return null; } //ok
 def moooo(o String) String { return new Object(); } //obj not subtype
 def mooo0o(o String) Object { return new String(); } //ok
 def mooo00o(o String) String { return 12; } //not ok
@@ -762,12 +762,12 @@ s boolean = something(3) //better error message
 
 
 def cho(a int, o Object) boolean { return false; } 
-def cho(aa int, o String) String { return null; } 
+def cho(aa int, o String) String? { return null; } 
 
 def main2(a int) void
 {
 	res boolean = cho(12, new Object());
-	res boolean = cho(12, ""); //this should correctly give an error indicating that the correct method is being selected
+	res Boolean? = cho(12, ""); //this should correctly give an error indicating that the correct method is being selected
 }
 
 def nullarg() String {return "";}//this should be ok
@@ -775,10 +775,10 @@ def nullarg() String {return "";}//this should be ok
 from java.util import List, ArrayList
 def cahpo( o Object?) String { return ""; } 
 def cahpo( o List<String>?) boolean { return false; } 
-res boolean = cahpo( null);//this is not ambious, null resolves to List<String>
+res Boolean? = cahpo( null);//this is not ambious, null resolves to List<String>
 
 def cho2( o Object, b String) boolean { return false; } 
-def cho2( o String, a Object) String { return null; } 
+def cho2( o String, a Object) String? { return null; } 
 
 res2 boolean = cho2( null, null); //this is still ambigous, ok...
 
@@ -1791,7 +1791,7 @@ class Child extends Sup
 //##CONC check supclass pass through generics ok
 open class Sup<XXX, Z>
 {
-	def get() XXX { return null;} 
+	def get() XXX? { return null;} 
 }
 
 open class Uh<G, KKK> extends Sup<G, Boolean>
@@ -1799,7 +1799,7 @@ open class Uh<G, KKK> extends Sup<G, Boolean>
 
 class Child extends Uh<String, Float>
 {
-	override def get() String { return null;} //this is ok because it gets passed up through refs 
+	override def get() String? { return null;} //this is ok because it gets passed up through refs 
 }
 
 
@@ -1827,8 +1827,8 @@ alsoOK    Child<Float[], Integer[]> = new Child<Float[], Integer[]>()
 //##CONC even more def with generics etc
 from java.util import ArrayList
 
-class Bpp<X>{ def foo() ArrayList<X> { return null; } }
-got ArrayList<String> = (new Bpp<String>()).foo()
+class Bpp<X>{ def foo() ArrayList<X>? { return null; } }
+got ArrayList<String>? = (new Bpp<String>()).foo()
 //generic child qualificaiton - ok
 
 
@@ -1836,29 +1836,29 @@ got ArrayList<String> = (new Bpp<String>()).foo()
 open class A<X>
 {
 	x X?
-	def getX() X { return null;}
+	def getX() X? { return null;}
 }
 
-class Z<X>
+class Z<X?>
 {}
 
 class B<AAA> extends A<Z<AAA>> //JPT: if Z is not immediatly resolveable this may be a problem...
 {}
 
 b = new B<String>()
-comeon Z<String> = b.getX()
+comeon Z<String>? = b.getX()
 comeon  = b.x
 
 class B2<Y> extends A<ArrayList<Y>> {}
 
 b2 = new B2<String>()
-comeon2 ArrayList<String> = b2.getX()
+comeon2 ArrayList<String>? = b2.getX()
 comeon2  = b2.x
 
 //need explicit override
 class Bo<AAA> extends A<Z<AAA>>
 {
-	override def getX() Z<AAA> { return null;} //omg it works!
+	override def getX() Z<AAA>? { return null;} //omg it works!
 }
 
 
@@ -2209,17 +2209,17 @@ open class Sup<X>
 
 class Childa<X> extends Sup<String>
 {
-	def doing(x String ) X { return null; }
+	def doing(x String ) X? { return null; }
 }
 
 ~~~~~
 //##CONC generic override in child, prevents accidental - very cool
 open class OKPArent<X>{
-	def gg(x X) X { return null; }
+	def gg(x X) X? { return null; }
 }
 
 class ChildOK extends OKPArent<String>{
-	override def gg(x String) String { return null; } //cool, must be override, that's a nice quality
+	override def gg(x String) String? { return null; } //cool, must be override, that's a nice quality
 }
 
 ~~~~~
@@ -2227,7 +2227,7 @@ class ChildOK extends OKPArent<String>{
 
 open class GenClass<Q1, Q2>
 {
-	def xxx(x Q1) Q1 { return null; }
+	def xxx(x Q1) Q1? { return null; }
 }
 
 class ConstAreFines<X,Y> extends GenClass<X,Y>
@@ -2237,17 +2237,17 @@ class ConstAreFines<X,Y> extends GenClass<X,Y>
 
 class ChildCls<X,Y> extends GenClass<X,Y>
 {
-	override def xxx(x X) X { return null; } //ok as same erasure, exists already, but overrides
+	override def xxx(x X) X? { return null; } //ok as same erasure, exists already, but overrides
 }
 
 class ChildClsFail<ZZ,Y> extends GenClass<String,String>
 {
-	def xxx(x ZZ) ZZ { return null; } //FAIL as same erasure, exists already
+	def xxx(x ZZ) ZZ? { return null; } //FAIL as same erasure, exists already
 }
 
 class ChildClsFailAlso<X,Y> extends GenClass<Y, X>
 {
-	def xxx(x X) Y { return null; } //FAIL as same erasure, exists already
+	def xxx(x X) Y? { return null; } //FAIL as same erasure, exists already
 }
 
 ~~~~~
@@ -2272,12 +2272,12 @@ from java.util import ArrayList
 
 open class GenClass
 {
-	def xxx(x ArrayList<String>) String { return null; }
+	def xxx(x ArrayList<String>) String? { return null; }
 }
 
 class ConstAreFines extends GenClass
 {
-	def xxx(x ArrayList<Integer>) String { return null; }
+	def xxx(x ArrayList<Integer>) String? { return null; }
 }
 
 
@@ -2349,7 +2349,7 @@ class Child extends Sup{
 ~~~~~
 //##CONC this-super classes functions and variables - 3 - choose from this and superdef functions
 open class Sup{
-	def xxx() String {return null; }
+	def xxx() String? {return null; }
 }
 
 class Child extends Sup{
@@ -2359,7 +2359,7 @@ class Child extends Sup{
 	{
 		g float = this.xxx2()
 		g2 float = xxx2() //defaults to this.x
-		g3 String = super.xxx()
+		g3 String? = super.xxx()
 		
 	}
 }
@@ -2368,7 +2368,7 @@ class Child extends Sup{
 //##CONC this-super classes functions and variables - 4 - choose from this and superdef functions generics
 
 open class Sup<PPP>{
-	def xxx() PPP {return null; }
+	def xxx() PPP? {return null; }
 }
 
 class Child extends Sup<String>{
@@ -2378,7 +2378,7 @@ class Child extends Sup<String>{
 	{
 		g float = this.xxx2()
 		g2 float = xxx2() //defaults to this.x
-		g3 String = super.xxx()
+		g3 String? = super.xxx()
 		
 	}
 }
@@ -2388,7 +2388,7 @@ class Child extends Sup<String>{
 //##CONC this-super classes functions and variables - 5 - choose from this and superdef functions generics unqualified
 
 open class Sup<PPP>{
-	def xxx() PPP {return null; }
+	def xxx() PPP? {return null; }
 }
 
 class Child<XPPP> extends Sup<XPPP>{
@@ -2398,8 +2398,8 @@ class Child<XPPP> extends Sup<XPPP>{
 	{
 		g float = this.xxx2()
 		g2 float = xxx2() //defaults to this.x
-		g3 XPPP = super.xxx()
-		g4 Object = super.xxx()//yeah, ok...
+		g3 XPPP? = super.xxx()
+		g4 Object? = super.xxx()//yeah, ok...
 		
 	}
 }
@@ -2577,7 +2577,7 @@ class Pair<T, S> {
 
 class Seq<T> { 
 	head T ;
-	tail Seq<T>;
+	tail Seq<T>?;
 
     this() { this(null, null); } 
     
@@ -2589,15 +2589,17 @@ class Seq<T> {
     def isEmpty() boolean { return tail == null; }
 
     public class Zipper<S> { 
-        def zip(that Seq<S>) Seq<Pair<T,S>>
+        def zip(that Seq<S>) Seq<Pair<T,S>>?
         { 
             if (isEmpty() or that.isEmpty()) {
                 return new Seq<Pair<T,S>>(); 
             } else {
-                tailZipper Seq<T>.Zipper<S> = tail.new Zipper<S>();
+                tailZipper Seq<T>.Zipper<S> = tail??.new Zipper<S>();
                 //return new Seq<Pair<T,S>>( new Pair<T,S>(head, that.head), tailZipper.zip(that.tail));
                 return null;
-            }        }    }
+            }        
+       }    
+   }
 }
 
 
@@ -2607,7 +2609,7 @@ def main(args String[]) {
 
     zipper Seq<String>.Zipper<Number> = strs.new Zipper<Number>();
 
-    combined  Seq<Pair<String,Number>> = zipper.zip(nums);
+    combined  Seq<Pair<String,Number>>? = zipper.zip(nums);
 }
 
 
@@ -2865,7 +2867,7 @@ manyobjnullok  Integer[]?[] = [[1 2] ; null];//should be fine
 
 manyobjnullfail  int[] = [null null];//not ok
 
-manyobjnullalright2  Integer[] = [null as Integer null];//ok
+manyobjnullalright2  Integer?[] = [null as Integer? null];//ok
 
 manyobjnullalright3  int[3] = [null null];//ok
 
@@ -3818,12 +3820,12 @@ class Test3 {
    def main() void {
         index int  = 1;
         try {
-            nada()[2]++;
+            nada()??[2]++;
         } catch (e Exception ) {
             System.out.println(e + ", index=" + index);
         }
     }
-    def nada() int[] { return null; }
+    def nada() int[]? { return null; }
 }
 
 
@@ -3949,11 +3951,11 @@ e = "The integer " + Long.MAX_VALUE + " is mighty big."
 
 ~~~~~
 //##15.16. no threads for you
-def rightThrow() Thread {
+def rightThrow() Thread? {
     return null;
 }
 
-t Thread = rightThrow()
+t Thread? = rightThrow()
 
 
 
@@ -3972,7 +3974,7 @@ class RightHandSideThrow  extends RuntimeException { }
  objects Object[] = [ new Object() "" ];
 threads Integer[] = [ new Integer(2) 6 ];
 
-def arrayThrow() Object[]  {
+def arrayThrow() Object[]?  {
     return null; //throw new ArrayReferenceThrow();
 }
 def indexThrow() int {
@@ -3988,7 +3990,7 @@ def name(q Object) String {
 }
 
 def testFour( x Object[]?, j int, y Object ) {
-     sx String = "null" if x == null else name(x??[0]) + "s";
+     sx String = "null" if x == null else name(x[0]) + "s";
      sy String= name(y);
     System.out.println();
     try {
@@ -4016,22 +4018,22 @@ def testFour( x Object[]?, j int, y Object ) {
 def main(args String[] ) {
     try {
         System.out.print("throw[throw]=throw => ");
-        arrayThrow()[indexThrow()] = rightThrow();
+        arrayThrow()??[indexThrow()] = rightThrow();
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[throw]=Integer => ");
-        arrayThrow()[indexThrow()] = new Integer(1);
+        arrayThrow()??[indexThrow()] = new Integer(1);
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[1]=throw => ");
-        arrayThrow()[1] = rightThrow();
+        arrayThrow()??[1] = rightThrow();
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[1]=Integer => ");
-        arrayThrow()[1] = new Integer(1);
+        arrayThrow()??[1] = new Integer(1);
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
 
@@ -4130,16 +4132,16 @@ class RightHandSideThrow  extends RuntimeException { }
 strings String[] = [ "Simon" "Garfunkel" ];
 doubles double[] = [ Math.E Math.PI ];
 
-def stringsThrow() String[] {
+def stringsThrow() String[]? {
     return null; //throw new ArrayReferenceThrow();
 }
-def doublesThrow() double[] {
+def doublesThrow() double[]? {
     return null; //throw new ArrayReferenceThrow();
 }
 def indexThrow() int {
     return 5; //throw new IndexThrow();
 }
-def stringThrow() String {
+def stringThrow() String? {
     return null; //throw new RightHandSideThrow();
 }
 def doubleThrow() double {
@@ -4200,42 +4202,42 @@ def testEight(x String[]?, z double[]?, j int ) {
 def main(args String[] ) {
     try {
         System.out.print("throw[throw]+=throw => ");
-        stringsThrow()[indexThrow()] += stringThrow();
+        stringsThrow()??[indexThrow()] += stringThrow();
         System.out.println("Okay!");
     } catch ( e Throwable) { System.out.println(name(e)); }
     try {
         System.out.print("throw[throw]+=throw => ");
-        doublesThrow()[indexThrow()] += doubleThrow();
+        doublesThrow()??[indexThrow()] += doubleThrow();
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[throw]+=\"heh\" => ");
-        stringsThrow()[indexThrow()] += "heh";
+        stringsThrow()??[indexThrow()] += "heh";
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[throw]+=12345 => ");
-        doublesThrow()[indexThrow()] += 12345;
+        doublesThrow()??[indexThrow()] += 12345;
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[1]+=throw => ");
-        stringsThrow()[1] += stringThrow();
+        stringsThrow()??[1] += stringThrow();
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[1]+=throw => ");
-        doublesThrow()[1] += doubleThrow();
+        doublesThrow()??[1] += doubleThrow();
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     try {
         System.out.print("throw[1]+=\"heh\" => ");
-        stringsThrow()[1] += "heh";
+        stringsThrow()??[1] += "heh";
         System.out.println("Okay!");
     } catch ( e Throwable) { System.out.println(name(e)); }
     try {
         System.out.print("throw[1]+=12345 => ");
-        doublesThrow()[1] += 12345;
+        doublesThrow()??[1] += 12345;
         System.out.println("Okay!");
     } catch (e Throwable ) { System.out.println(name(e)); }
     testEight(null, null, 1);
@@ -5160,8 +5162,8 @@ shoulderr =  h1.get(0)
 //##98. def with null lists
 
 def doings() String{
-	ok String[] = [null as String  null   ]
-	ok2 Object[] = [null  null   ]
+	ok String[] = [null as String?  null   ]
+	ok2 Object?[] = [null  null   ]
 	notOk = [null  null]  //abscence of type information means that we should consider this as Object[]
 	notOk2 String[] = [null  null] 
 	
@@ -8815,7 +8817,7 @@ class MyClass<X>(~x X){
 		return ""
 	}
 	
-	def thisIsOK<H>() H{
+	def thisIsOK<H>() H?{
 		return null//this is ok
 	}
 }
@@ -12292,7 +12294,7 @@ from java.util import ArrayList
 
 class MyGen<X>{
 	public x X?
-	public def get(ank X) X{
+	public def get(ank X) X?{
 		return null;
 	}
 }
@@ -14196,15 +14198,15 @@ def doings(){
 ~~~~~
 //##522. something to non local ref implicit not permitted
 
-class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+class GPURef<X?>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
 }
 
 
-def ok<Typex>(a Typex) Typex: {
+def ok<Typex>(a Typex) Typex?: {
 	null
 }
 
-def fail<Typex>(a Typex) Typex:GPURef {
+def fail<Typex?>(a Typex) Typex?:GPURef {
 	null//no cannot do this//error thrown at runtime
 }
 
@@ -14913,13 +14915,13 @@ class MyClass{
 		a2 PrivClass = t1 as PrivClass//no, not accessible
 		a2.hashCode()
 		
-		b2 PackageClass = t2 as PackageClass//ok
-		b2v2 com.myorg.code.PackageClass = t2 as com.myorg.code.PackageClass//ok
+		b2 PackageClass = t2?? as PackageClass//ok
+		b2v2 com.myorg.code.PackageClass = t2?? as com.myorg.code.PackageClass//ok
 		b PackageClass = new PackageClass(1)//no, constructor not vis
 		bv2 com.myorg.code.PackageClass = new com.myorg.code.PackageClass(1)//no, constructor not vis
 		
 		c PackageClasspackageThis = new PackageClasspackageThis(1)//ok
-		c2 PackageClasspackageThis = t3 as PackageClasspackageThis//ok
+		c2 PackageClasspackageThis = t3?? as PackageClasspackageThis//ok
 	}
 }
 
@@ -14968,7 +14970,7 @@ class IntSequence<T>(fromx int, tox int) ~ Iterable<Integer>{
 		
 	}
 	
-	def iterator() Iterator<T>{
+	def iterator() Iterator<T>?{
 		ret = class with Iterator<Integer>{
 			
 		}
@@ -15011,7 +15013,7 @@ def doings(){
 //##555. tuples rhs must be tuple in decomp
 
 def doings(){
-	(x, y) = 12
+	x, y = 12
 	"" 
 }
 
@@ -15019,8 +15021,8 @@ def doings(){
 //##556. tuples rhs no
 
 def doings(){
-	(a, b) += 1, 2
-	(c, d int) += 1, 2
+	a, b += 1, 2
+	c, d int += 1, 2
 		
 	""
 }
@@ -15032,7 +15034,7 @@ gpukernel 1 myFunc(global A int[], global B int[], global ret int[]) void {
 	gid = get_global_id(0)
 	
 	x = 1,2
-	(a, b) = x
+	a, b = x
 	
 	ret[gid] = a + b
 }
@@ -15986,4 +15988,124 @@ def String iterator() Iterator<Character> {
   	}
 
   	new Iter(this)
+}
+
+~~~~~
+//##614. no void for pow operator
+gpudef thing() void {}
+
+gpukernel 1 twoArrayOp(global in A int[], global in B int[], global out result int[]) {
+  idx = get_global_id(0)
+  x = thing() ** 2.
+  result[idx] = A[idx]**2 + B[idx] + 10
+}
+
+d = thingx() ** 2
+
+~~~~~
+//##615. null test only for nullable types
+def something(nullable String?){
+	notNull = "ok"
+	
+	no1 = notNull == null
+	no1b = null == notNull
+	no2 = notNull &== null
+	no3 = notNull <>  null
+	no4 = notNull &<> null
+	
+	no5 = null  ==  notNull
+	no6 = null  &== notNull
+	no7 = null  <>  notNull
+	no8 = null  &<> notNull
+	
+	
+	//noop1 = notNull?.length()
+	//noop2 = (notNull?:"").length()
+	//noop3 = notNull??.length()
+	
+	X=if(notNull == null){
+		"error"//not permitted
+	}else{
+		"ok"
+	}
+	//above are not ok as thing not nullable so null check makes no sense
+	
+	
+	//fine:
+	ok1 = nullable ==  null
+	ok2 = nullable &== null
+	ok3 = nullable <>  null
+	ok4 = nullable &<> null
+	
+	ok5 = null  ==  nullable
+	ok6 = null  &== nullable
+	ok7 = null  <>  nullable
+	ok8 = null  &<> nullable
+	
+	okop1 = nullable?.length()
+	okop2 = (nullable?:"").length()
+	okop3 = nullable??.length()
+	
+	Y=if(nullable == null){
+		"ok"//this is fine
+	}else{
+		"ok"
+	}
+
+	"OK"
+}
+
+def doings(){
+	"ok" + something("ok")
+}
+
+~~~~~
+//##616. no tuple decomp for you
+closedItems = new java.util.ArrayList<String>()
+
+class ClosableTracker(name String) ~ AutoCloseable{
+	def close() void{
+		closedItems.add( this.toString() )
+	}
+	
+	override toString() => String.format("Closable(%s)", name)
+}
+
+
+def doings(){
+	
+	try(a, b = ClosableTracker("A"); ClosableTracker("C")){
+		lines = ClosableTracker("B")
+	}
+
+	"{closedItems}"//should be A, not B
+}
+
+~~~~~
+//##617. tuple variable def vs func invoke
+def subOp(fromx int, tox int, towrite Object) => 12
+
+def subAssignx(fromx int, tox int, towrite Object ) {
+	subOp(fromx, tox, towrite)[0]//yes error
+}
+
+def subAssign(fromx int, tox int, towrite Object ) {
+	subOp(fromx, tox, towrite)[0]//yes error - was being mapped incorrectly before
+	y=subOp(fromx, tox, towrite)[1]
+	z=subOp(fromx, tox, towrite):
+	subOp(fromx, tox, towrite)[2]:[4]
+	thing (String, Object):
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##618. multi assign to shared variables
+public shared var1 = public shared var2 =  "ok" //not ok
+
+def doings(){
+	shared var1x = shared var2x =  "ok" //this is ok
+	"ok"
 }

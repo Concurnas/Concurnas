@@ -147,7 +147,7 @@ works [47, 11]
 
 ~~~~~
 //##1.14. catch exceptions - ret something
-got exception: oops: java.lang.RuntimeException: java.lang.Exception: uh oh
+got exception: oops: java.lang.Exception: uh oh
 
 ~~~~~
 //##1.15. catch exceptions - no ret something

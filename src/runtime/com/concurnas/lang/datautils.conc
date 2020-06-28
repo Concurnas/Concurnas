@@ -88,7 +88,7 @@ def enumerate<X>(what Iterable<X>) List<(Integer, X)> {
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2>(a1 List<A1>, a2 List<A2>) List<(A1, A2)> {
+def zip<A1, A2>(a1 List<A1>?, a2 List<A2>?) List<(A1, A2)> {
 	assert a1 &<> null
 	assert a2 &<> null
 	sa1 = a1.size()
@@ -104,9 +104,9 @@ def zip<A1, A2>(a1 List<A1>, a2 List<A2>) List<(A1, A2)> {
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
+def zip<A1, A2, A3>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
 ) List<(A1, A2, A3)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -128,10 +128,10 @@ def zip<A1, A2, A3>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
+def zip<A1, A2, A3, A4>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
 ) List<(A1, A2, A3, A4)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -156,11 +156,11 @@ def zip<A1, A2, A3, A4>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4, A5>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
-	a5 List<A5>,
+def zip<A1, A2, A3, A4, A5>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
+	a5 List<A5>?,
 ) List<(A1, A2, A3, A4, A5)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -188,12 +188,12 @@ def zip<A1, A2, A3, A4, A5>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4, A5, A6>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
-	a5 List<A5>,
-	a6 List<A6>,
+def zip<A1, A2, A3, A4, A5, A6>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
+	a5 List<A5>?,
+	a6 List<A6>?,
 ) List<(A1, A2, A3, A4, A5, A6)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -224,13 +224,13 @@ def zip<A1, A2, A3, A4, A5, A6>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4, A5, A6, A7>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
-	a5 List<A5>,
-	a6 List<A6>,
-	a7 List<A7>,
+def zip<A1, A2, A3, A4, A5, A6, A7>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
+	a5 List<A5>?,
+	a6 List<A6>?,
+	a7 List<A7>?,
 ) List<(A1, A2, A3, A4, A5, A6, A7)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -264,14 +264,14 @@ def zip<A1, A2, A3, A4, A5, A6, A7>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4, A5, A6, A7, A8>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
-	a5 List<A5>,
-	a6 List<A6>,
-	a7 List<A7>,
-	a8 List<A8>,
+def zip<A1, A2, A3, A4, A5, A6, A7, A8>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
+	a5 List<A5>?,
+	a6 List<A6>?,
+	a7 List<A7>?,
+	a8 List<A8>?,
 ) List<(A1, A2, A3, A4, A5, A6, A7, A8)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -308,15 +308,15 @@ def zip<A1, A2, A3, A4, A5, A6, A7, A8>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
-	a5 List<A5>,
-	a6 List<A6>,
-	a7 List<A7>,
-	a8 List<A8>,
-	a9 List<A9>,
+def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
+	a5 List<A5>?,
+	a6 List<A6>?,
+	a7 List<A7>?,
+	a8 List<A8>?,
+	a9 List<A9>?,
 ) List<(A1, A2, A3, A4, A5, A6, A7, A8, A9)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -356,16 +356,16 @@ def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9>(a1 List<A1>,
  * Example: 
  * zip([1, 2, 3], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6)]
  * zip([1, 2, 3, 8, 7], [4, 5, 6]) => [(1, 4), (2, 5), (3, 6), (8, 4), (7, 5)]*/
-def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(a1 List<A1>,
-	a2 List<A2>,
-	a3 List<A3>,
-	a4 List<A4>,
-	a5 List<A5>,
-	a6 List<A6>,
-	a7 List<A7>,
-	a8 List<A8>,
-	a9 List<A9>,
-	a10 List<A10>,
+def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(a1 List<A1>?,
+	a2 List<A2>?,
+	a3 List<A3>?,
+	a4 List<A4>?,
+	a5 List<A5>?,
+	a6 List<A6>?,
+	a7 List<A7>?,
+	a8 List<A8>?,
+	a9 List<A9>?,
+	a10 List<A10>?,
 ) List<(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)> {
 	assert a1 &<> null
 	assert a2 &<> null
@@ -404,34 +404,30 @@ def zip<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(a1 List<A1>,
 
 //Operations on Strings...
 
-/**get retruns the character at the specified index.
+/**get returns the character at the specified index.
  * Can be used as an operator: myStr[n]
  * @returns: character at specified index*/
 def String get(idx int)            => this.charAt(idx)
 
-/**sub retruns the substring between the specified indexes
+/**sub returns the substring between the specified indexes
  * Can be used as an operator: "abcdefgh"[1 ... 3] ==> "bc"
  * @returns: A String substring*/
 def String sub(fromx int, tox int) => this.substring(fromx, tox)
 
-/**subfrom retruns the substring from specified index to the end of the String
+/**subfrom returns the substring from specified index to the end of the String
  * Can be used as an operator: "abcdefgh"[3 ...] ==> "defgh"
  * @returns: A String substring*/
 def String subfrom(fromx int)      => this.substring(fromx)
 
-/**subfrom retruns the substring from the start to specified index of the String
+/**subfrom returns the substring from the start to specified index of the String
  * Can be used as an operator: "abcdefgh"[... 3] ==> "abc"
  * @returns: A String substring*/
 def String subto(tox int)          => this.substring(0, tox)
 
-/**iterator retruns an iterator over the characters of the String
+/**iterator returns an iterator over the characters of the String
  * Can be used as an operator: x for x in "abcdef"
  * @returns: A Character iterator: Iterator<Character>*/
 def String iterator() Iterator<Character> {
-	if(this == null){
-		throw new NullPointerException();
-	}
-
 	class Iter(string String) ~ Iterator<Character>{
     	index = 0
     	val len int
@@ -451,3 +447,11 @@ def String iterator() Iterator<Character> {
 
   	new Iter(this)
 }
+
+/**Will print a beautified version of the inputed object to console - stdout
+*/
+def print(toOutput Object) => System.out.println(com.concurnas.bootstrap.lang.Stringifier.stringify(toOutput))
+
+/**Will print a beautified version of the inputed object to console - stderr
+*/
+def error(toOutput Object) => System.err.println(com.concurnas.bootstrap.lang.Stringifier.stringify(toOutput))

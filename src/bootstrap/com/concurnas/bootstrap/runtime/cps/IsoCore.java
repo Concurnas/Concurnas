@@ -12,7 +12,7 @@ public class IsoCore extends Iso {
     	this.func = func;
     }
     
-    protected void _runExecute(Transaction unused, boolean alsoUnused){
+    protected void _runExecute(Transaction unused, boolean alsoUnused) throws Throwable{
     	this.fiber.down();
     	this.func.apply();//add in fiber at runtime
     	

@@ -10,16 +10,18 @@ import com.concurnas.runtime.Pair;
 public class VectorizedNew extends AbstractExpression implements Expression, HasDepth, CanBeInternallyVectorized {
 	public final boolean doubledot;
 	public final boolean nullsafe;
+	public final boolean noNullAssertion;
 	public final Expression lhs;
 	public Expression constru;
 	private Block vectorizedRedirect=null;
 
-	public VectorizedNew(int line, int col, Expression lhs, Expression constru, boolean doubledot, boolean nullsafe) {
+	public VectorizedNew(int line, int col, Expression lhs, Expression constru, boolean doubledot, boolean nullsafe, boolean noNullAssertion) {
 		super(line, col);
 		this.lhs = lhs;
 		this.constru = constru;
 		this.doubledot = doubledot;
 		this.nullsafe = nullsafe;
+		this.noNullAssertion = noNullAssertion;
 	}
 
 	private Expression preceedingExpression;
@@ -49,7 +51,7 @@ public class VectorizedNew extends AbstractExpression implements Expression, Has
 
 	@Override
 	public Node copyTypeSpecific() {
-		VectorizedNew ret = new VectorizedNew(line, column, (Expression)lhs.copy(), (Expression)constru.copy(), doubledot, nullsafe);
+		VectorizedNew ret = new VectorizedNew(line, column, (Expression)lhs.copy(), (Expression)constru.copy(), doubledot, nullsafe, noNullAssertion);
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		return ret;
 	}

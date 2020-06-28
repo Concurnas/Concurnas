@@ -8,7 +8,7 @@ public class SyncTracker {
 
 	private ArrayList<Ref<Boolean>> toAwait = new ArrayList<Ref<Boolean>>();
 	
-	public void awaitAll() {
+	public void awaitAll() throws Throwable {
 		for(Ref<Boolean> loc : toAwait){
 			loc.waitUntilSet();
 		}

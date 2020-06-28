@@ -243,10 +243,16 @@ def doings() String {
 
 class MyCls{
 public masterSimple = def (a int, b int, c int) int {
-try{	if(a==4){		throw new Exception("fail")	}}
-catch(e Exception){ return 56 }
-return a+b+c; 
-}
+	try{
+		if(a==4){
+			throw new Exception("fail")	
+		}			
+	} catch(e Exception){ 
+		return 56 
+	}
+	
+	return a+b+c; 
+	}
 }
 
 def doings() String {

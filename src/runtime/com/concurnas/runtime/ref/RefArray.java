@@ -58,7 +58,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}*/
 	
 	@Override
-	public synchronized void set(X[] x) {
+	public synchronized void set(X[] x) throws Throwable {
 		int size = x==null?0:x.length;
 		
 		if(this.value == null){
@@ -106,7 +106,11 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 		if( obj instanceof RefArray){
 			RefArray<?> objAsLocal = (RefArray<?>)obj;
 			//Class<?>[] decTypes, Class<?> isInstanceOf
-			return InstanceofGeneric.isGenericInstnaceof(objAsLocal.type, this.type) && this.get().equals(objAsLocal.get());
+			try {
+				return InstanceofGeneric.isGenericInstnaceof(objAsLocal.type, this.type) && this.get().equals(objAsLocal.get());
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return false;
 	}
@@ -263,7 +267,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}
 	
 
-	public synchronized void put(int i, X x) {
+	public synchronized void put(int i, X x) throws Throwable {
 		if(x!=null){InstanceofGeneric.assertGenericInstnaceof(x, this.type);}
 		put(i, x, true);
 	}
@@ -338,7 +342,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}
 
 	@Override
-	public X get(int i, boolean withNoWait) {
+	public X get(int i, boolean withNoWait) throws Throwable {
 		if(withNoWait){
 			return getNoWait(i); 
 		}else{
@@ -346,7 +350,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 		}
 	}
 	@Override
-	public X get(int i)  {
+	public X get(int i) throws Throwable  {
 		Fiber currentFiber = Fiber.getCurrentFiber();//gets rewritten to fiber argument on command line
 		if(!isSet[i]){
 			while(!isSet[i]){
@@ -374,7 +378,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}
 	
 	@Override
-	public synchronized X getNoWait(int i){
+	public synchronized X getNoWait(int i) throws Throwable{
 		Fiber currentFiber = Fiber.getCurrentFiber();
 		//System.err.println("get no wait: " + i);
 		RefArrayState thestate;
@@ -388,7 +392,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 				if(null != initalAndLatest){
 					State lat = initalAndLatest.latest;
 					if(lat.exception !=null){
-						throw new RuntimeException(lat.exception);
+						throw  lat.exception;
 					}
 					
 					if(((RefArrayState)lat).xOverride.containsKey(i)){
@@ -398,7 +402,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 			}
 			
 			if(exception !=null){
-				throw new RuntimeException(exception);
+				throw exception;
 			}
 			
 			FiberStateQueue<X> fsq = this.fiberStateQuese.get(currentFiber);
@@ -413,7 +417,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 		}
 		
 		if(thestate.exception !=null){
-			throw new RuntimeException(thestate.exception);
+			throw thestate.exception;
 		}
 		
 		if(thestate.xOverride.containsKey(i)){
@@ -459,7 +463,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}
 	
 	@Override
-	public X[] get(boolean withNoWait) {
+	public X[] get(boolean withNoWait) throws Throwable {
 		if(withNoWait){
 			return getNoWait();
 		}else{
@@ -467,7 +471,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 		}
 	}
 	
-	private X[] getReallyNoWait() {
+	private X[] getReallyNoWait() throws Throwable {
 		X[] ret = (X[])Array.newInstance(this.type[0], this.size);
 		
 		for(int n = 0; n < ret.length; n++){
@@ -478,12 +482,12 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}
 	
 	@Override
-	public X[] get() {//if missing a value -i.e. not set, return null in its place
+	public X[] get() throws Throwable {//if missing a value -i.e. not set, return null in its place
 		return getNoWait();//TODO: this seems like strange functionality, call getReallyNoWait?
 	}
 
 	@Override
-	public X[] getNoWait() {
+	public X[] getNoWait() throws Throwable {
 		X[] ret = (X[])Array.newInstance(this.type[0], this.size);
 		
 		for(int n = 0; n < ret.length; n++){
@@ -504,7 +508,7 @@ public class RefArray<X> extends AbstractRef<X> implements DirectlyArrayAssignab
 	}
 
 	@Override
-	public void waitUntilSet() {
+	public void waitUntilSet() throws Throwable {
 		int sz = this.size;
 		for(int n = 0; n < sz; n++){
 			get(n);

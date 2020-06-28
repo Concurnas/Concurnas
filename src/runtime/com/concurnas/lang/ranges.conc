@@ -1,10 +1,9 @@
-/** This module is auto imported*/
 from java.util import Iterator
 from java.util.stream import Stream
 
 class SequenceException(msg String) < Exception(msg)
 
-class IntSequence(fromx int, tox Integer) ~ Iterable<Integer>{
+class IntSequence(fromx int, tox Integer?) ~ Iterable<Integer>{
 	step Integer? = null
 	ascending = true
 			
@@ -31,7 +30,7 @@ class IntSequence(fromx int, tox Integer) ~ Iterable<Integer>{
 		}else{
 			ret = IntSequence(tox, fromx)
 			if(step <> null){
-				ret.step(step??)
+				ret.step(step)
 			}
 			ret
 		}
@@ -52,7 +51,7 @@ class IntSequence(fromx int, tox Integer) ~ Iterable<Integer>{
 	}
 	
 	def iterator() Iterator<Integer>{
-		ret = class(currentx int, tox Integer, stepx int, ascending boolean) ~ Iterator<Integer>{
+		ret = class(currentx int, tox Integer?, stepx int, ascending boolean) ~ Iterator<Integer>{
 			def hasNext(){
 				if(tox == null){
 					true
@@ -67,7 +66,7 @@ class IntSequence(fromx int, tox Integer) ~ Iterable<Integer>{
 				retx
 			}
 		}
-		ret(fromx, tox, 1 if not step else step??, ascending)
+		ret(fromx, tox, 1 if not step else step, ascending)
 	}
 	
 	def stream() Stream<Integer> => (x for x in this).stream()
@@ -82,7 +81,7 @@ class IntSequence(fromx int, tox Integer) ~ Iterable<Integer>{
 	}
 }
 
-class LongSequence(fromx long, tox Long) ~ Iterable<Long>{
+class LongSequence(fromx long, tox Long?) ~ Iterable<Long>{
 	step Long? = null
 	ascending = true
 			
@@ -109,7 +108,7 @@ class LongSequence(fromx long, tox Long) ~ Iterable<Long>{
 		}else{
 			ret = LongSequence(tox, fromx)
 			if(step <> null){
-				ret.step(step??)
+				ret.step(step)
 			}
 			ret
 		}
@@ -130,7 +129,7 @@ class LongSequence(fromx long, tox Long) ~ Iterable<Long>{
 	}
 	
 	def iterator() Iterator<Long>{
-		ret = class(currentx long, tox Long, stepx long, ascending boolean) ~ Iterator<Long>{
+		ret = class(currentx long, tox Long?, stepx long, ascending boolean) ~ Iterator<Long>{
 			def hasNext(){
 				if(tox == null){
 					true
@@ -145,7 +144,7 @@ class LongSequence(fromx long, tox Long) ~ Iterable<Long>{
 				retx
 			}
 		}
-		ret(fromx, tox, 1 if not step else step??, ascending)
+		ret(fromx, tox, 1 if not step else step, ascending)
 	}
 	
 	def stream() Stream<Long> => (x for x in this).stream()
@@ -162,12 +161,12 @@ class LongSequence(fromx long, tox Long) ~ Iterable<Long>{
 
 //extension functions...
 //ints
-public def int to(tox Integer = null) {
+public def int to(tox Integer? = null) {
 	IntSequence(this, tox)
 }
 
 //longs
-public def long to(tox Long = null) {
+public def long to(tox Long? = null) {
 	LongSequence(this, tox)
 }
 
@@ -178,4 +177,3 @@ public def int to(tox Long) {
 public def long to(tox Integer) {
 	LongSequence(this, tox as long)
 }
-

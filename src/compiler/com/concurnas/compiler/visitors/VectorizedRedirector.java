@@ -529,7 +529,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 						for(String aa : arrayArgs){
 							item.add(new ArrayRefElement(line, col, new RefName(line, col, aa)));
 						}
-						arrayLevelElements.add(false, item);
+						arrayLevelElements.add(false, false, item);
 						expr = new ArrayRef(line, col, expr, arrayLevelElements);
 						
 						vectorize(arg, arrayArgs, null);//incrrements x correctly
@@ -562,7 +562,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 			return ret;
 		}
 		
-		private Expression processFuncVect(ArrayList<String> arrayArgs, Expression expr, Expression funcRefOrInvoke, boolean nullsafe) {
+		private Expression processFuncVect(ArrayList<String> arrayArgs, Expression expr, Expression funcRefOrInvoke, boolean nullsafe, boolean noNullAssertion) {
 			//VectorizedFuncInvoke asvfi = (VectorizedFuncInvoke)exprx;
 			
 			expr = extractExprFromDot(expr);
@@ -574,13 +574,13 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 				item.add(new ArrayRefElement(line, col, new RefName(line, col, aa)));
 			}
 			
-			arrayLevelElements.add(false, item);
+			arrayLevelElements.add(false, false, item);
 			
 			Expression lhs;
 			if(expr instanceof VectorizedFuncInvoke || expr instanceof VectorizedFuncRef || expr instanceof VectorizedNew || expr instanceof VectorizedFieldRef || expr instanceof CanBeInternallyVectorized){
 				lhs = vectorize(expr, arrayArgs, null);
 				x++;
-				exprx = DotOperator.buildDotOperatorOneNonDirectNullSafe(line, col, lhs, vectorize(funcRefOrInvoke, arrayArgs, null), nullsafe);
+				exprx = DotOperator.buildDotOperatorOneNonDirectNullSafe(line, col, lhs, vectorize(funcRefOrInvoke, arrayArgs, null), nullsafe, noNullAssertion);
 			}else{
 				if(tempArgs.containsKey(x) && !this.toignore.contains(x) ){
 					lhs = new ArrayRef(line, col, new RefName(line, col, tempArgs.get(x).getA()), arrayLevelElements);
@@ -589,7 +589,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 					lhs = vectorize(expr, arrayArgs, null);
 				}
 				x++;
-				exprx = DotOperator.buildDotOperatorOneNonDirectNullSafe(line, col, lhs, vectorize(funcRefOrInvoke, arrayArgs, null), nullsafe);
+				exprx = DotOperator.buildDotOperatorOneNonDirectNullSafe(line, col, lhs, vectorize(funcRefOrInvoke, arrayArgs, null), nullsafe, noNullAssertion);
 			}
 			return exprx;
 		}
@@ -703,16 +703,16 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 				exprx = asFuncRefCop;
 			}else if(exprx instanceof VectorizedFuncInvoke){
 				VectorizedFuncInvoke asvfi = (VectorizedFuncInvoke)exprx;
-				exprx = processFuncVect(arrayArgs, asvfi.expr, asvfi.funcInvoke, asvfi.nullsafe);
+				exprx = processFuncVect(arrayArgs, asvfi.expr, asvfi.funcInvoke, asvfi.nullsafe, asvfi.noNullAssertion);
 			}else if(exprx instanceof VectorizedFuncRef){
 				VectorizedFuncRef asvfi = (VectorizedFuncRef)exprx;
-				exprx = processFuncVect(arrayArgs, asvfi.expr, asvfi.funcRef, asvfi.nullsafe);
+				exprx = processFuncVect(arrayArgs, asvfi.expr, asvfi.funcRef, asvfi.nullsafe, asvfi.noNullAssertion);
 			}else if(exprx instanceof VectorizedNew){
 				VectorizedNew asvfi = (VectorizedNew)exprx;
-				exprx = processFuncVect(arrayArgs, asvfi.lhs, asvfi.constru, asvfi.nullsafe);
+				exprx = processFuncVect(arrayArgs, asvfi.lhs, asvfi.constru, asvfi.nullsafe, asvfi.noNullAssertion);
 			}else if(exprx instanceof VectorizedFieldRef){
 				VectorizedFieldRef asvfi = (VectorizedFieldRef)exprx;
-				exprx = processFuncVect(arrayArgs, asvfi.expr, asvfi.name, asvfi.nullsafe);
+				exprx = processFuncVect(arrayArgs, asvfi.expr, asvfi.name, asvfi.nullsafe, asvfi.noNullAssertion);
 			}else if(exprx instanceof CastExpression){
 				CastExpression cop = (CastExpression)exprx.copy();
 				cop.vectorizedExpr=null;
@@ -725,7 +725,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 						item.add(new ArrayRefElement(line, col, new RefName(line, col, aa)));
 					}
 					
-					arrayLevelElements.add(false, item);
+					arrayLevelElements.add(false, false, item);
 					expr = new ArrayRef(line, col, new RefName(line, col, tempArgs.get(x).getA()), arrayLevelElements);
 					x++;
 				}else{
@@ -782,7 +782,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 				}
 
 				ArrayRefLevelElementsHolder arrayLevelElementHolder = new ArrayRefLevelElementsHolder();
-				arrayLevelElementHolder.add(false, allelementsNew);
+				arrayLevelElementHolder.add(false, false, allelementsNew);
 				arrret.arrayLevelElements = arrayLevelElementHolder;
 				
 			/*	PrintSourceVisitor psv = new PrintSourceVisitor();
@@ -1614,7 +1614,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 				((Vectorized)lhs).doubledot=true;
 			}
 		}else {
-			lhs = new Vectorized(lhs.getLine(), lhs.getColumn(), lhs, true, false);
+			lhs = new Vectorized(lhs.getLine(), lhs.getColumn(), lhs, true, false, false);
 		}
 		
 		Expression rhs = ass.expr;
@@ -1905,12 +1905,16 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 				
 				ArrayList<Boolean> safeAccess = dotOperator.safeCall;
 				ArrayList<Boolean> newSafeAccess = new ArrayList<Boolean>();
+				
+				ArrayList<Boolean> noNullAssertion = dotOperator.noNullAssertion;
+				ArrayList<Boolean> newnoNullAssertion = new ArrayList<Boolean>();
 
 				int remapCnt = 0;
 				Boolean isDirect=null;
 				Boolean isReturn=null;
 				Boolean isSafe=null;
-				Boolean isunSafe=null;
+				Boolean isNna=null;
+				//Boolean isunSafe=null;
 				int sz = ele.size();
 				Expression prevExpr = null;
 				for(int n=0; n < sz; n++){//iterate through oirgonals until we arrive at an instance to vectorize
@@ -1920,6 +1924,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 						isDirect = directAccess.get(n);
 						isReturn = returnAccess.get(n);
 						isSafe = safeAccess.get(n);
+						isNna = noNullAssertion.get(n);
 					}
 					
 					if(orig.hasBeenVectorized() && n > 0){
@@ -1928,7 +1933,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 						if(newElements.size() == 1){
 							lhs = newElements.get(0);
 						}else{
-							lhs = new DotOperator(line, col,  newElements, newDirectAccess, newReturnAccess, newSafeAccess);
+							lhs = new DotOperator(line, col,  newElements, newDirectAccess, newReturnAccess, newSafeAccess, newnoNullAssertion);
 						}
 						
 						
@@ -1965,6 +1970,7 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 							newDirectAccess.add(isDirect);
 							newReturnAccess.add(isReturn);
 							newSafeAccess.add(isSafe);
+							newnoNullAssertion.add(isNna);
 							if(n != sz-1){
 								isDirect=isReturn=null;
 							}
@@ -1977,9 +1983,9 @@ public class VectorizedRedirector extends AbstractErrorRaiseVisitor {
 				Expression vecRedir = vecMappedBlk;
 				if(!newElements.isEmpty()){//add remainder to a new dop
 					if(null == vecMappedBlk){
-						vecRedir = new DotOperator(line, col, newElements.remove(0), newElements, newDirectAccess, newReturnAccess, newSafeAccess);
+						vecRedir = new DotOperator(line, col, newElements.remove(0), newElements, newDirectAccess, newReturnAccess, newSafeAccess, newnoNullAssertion);
 					}else{
-						vecRedir = new DotOperator(line, col, vecMappedBlk, newElements, newDirectAccess, newReturnAccess, newSafeAccess); 
+						vecRedir = new DotOperator(line, col, vecMappedBlk, newElements, newDirectAccess, newReturnAccess, newSafeAccess, newnoNullAssertion); 
 					}
 				}
 				

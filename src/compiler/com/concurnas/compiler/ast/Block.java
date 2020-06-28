@@ -162,6 +162,11 @@ public class Block extends CompoundStatement{
 		if(lh != null){
 			Line l = lh.l;
 			if(l instanceof Block){
+				
+				if(l instanceof AsyncBlock) {
+					return lh;
+				}
+				
 				return ((Block)l).getLastLogical();
 			}
 		}
@@ -176,6 +181,11 @@ public class Block extends CompoundStatement{
 	public LineHolder getFirstLogical(){
 		LineHolder lh = getFirst();
 		if(lh != null && lh.l instanceof Block){
+			
+			if(lh.l instanceof AsyncBlock) {
+				return lh;
+			}
+			
 			return ((Block)lh.l).getFirstLogical();
 		}
 		return lh;
@@ -441,7 +451,13 @@ public class Block extends CompoundStatement{
 		this.shouldBePresevedOnStack=should;
 		//super.setShouldBePresevedOnStack(should);
 		if(!lines.isEmpty()){
-			lines.get(lines.size()-1).setShouldBePresevedOnStack(should);
+			int sz = lines.size();
+			for(int n=0; n < sz-1; n++) {
+				LineHolder lh = lines.get(n);
+				lh.setShouldBePresevedOnStack(false);
+			}
+			
+			lines.get(sz-1).setShouldBePresevedOnStack(should);
 		}
 	}
 	

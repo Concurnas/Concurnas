@@ -13,6 +13,7 @@ public class ClassDefArg extends Node implements HasAnnotations{
 	public Annotations annotations;
 	public Expression defaultValue = null;
 	public boolean isVararg=false;
+	public boolean isNullableVarArg=false;
 	public boolean isTransient=false;
 	public Boolean isShared=false;
 	public Boolean isLazy=false;

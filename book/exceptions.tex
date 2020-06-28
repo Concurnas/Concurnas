@@ -97,6 +97,22 @@ def multicatch(an int) String{
 }
 \end{lstlisting}
 
+
+\section{Handle-less catching of exceptions}
+Sometimes it can be beneficial to handle exceptions without declaring a variable to hold them within the catch block. For instance, if we wish to take a default action but otherwise ignore the exception thrown. To this effect we may choose define a catch handler as follows:
+
+\begin{lstlisting}
+def tt() => true
+def getThing() => "ok" if tt() else null
+
+res1 = try{
+	"" + getThing()??.length()//use of ?? might throw a NullPointerException
+}catch{
+	'fail ok'
+}
+\end{lstlisting}
+ 
+
 \section{Finally blocks}
 In the situation where there is no appropriate handler for an exception thrown within a try block, the exception will be passed up the callstack. Often we need to ensure that a piece of code is run after a try block has regardless of whether an exception has been thrown/catched (for instance, to clean up/close resources used prior to and within the try block). To this end we can use a finally block to guarantee the code is run regardless of whether our try block has run normally or thrown any exceptions (which have been caught or not caught and rethrown):
 

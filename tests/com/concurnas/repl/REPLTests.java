@@ -1072,7 +1072,7 @@ public class REPLTests {
 		assertEquals("|  created Person", repl.processInput("class Person(name String, age int)"));
 		assertEquals("|  created StringFello", repl.processInput("typedef StringFello = Fella<String>"));
 		assertEquals("", repl.processInput("from java.util import List, ArrayList"));
-		assertEquals("", repl.processInput("from java.util import *"));
+		assertEquals("|    update modified Fella, Person", repl.processInput("from java.util import *"));
 		
 		assertEquals("a\nb\nc", repl.cmdHandler("vars"));
 		assertEquals("thing() int\nthing(int) int\nthing(int, int) int\nthing(int, java.lang.String) java.lang.String", repl.cmdHandler("defs"));
@@ -1127,23 +1127,23 @@ public class REPLTests {
 	@Test
 	public void fwdRefTupleDeref() throws Exception {
 		assertEquals("|  ERROR 0:13 in foo() - a cannot be resolved to a variable", repl.processInput("def foo() => a+b"));
-		assertEquals("|    update modified foo()\n\na ==> 1\nb ==> 2", repl.processInput("(a, b) = (1, 2)"));
-		assertEquals("", repl.processInput("(a, b) = (1, 2);"));
+		assertEquals("|    update modified foo()\n\na ==> 1\nb ==> 2", repl.processInput("a, b = (1, 2)"));
+		assertEquals("", repl.processInput("a, b = (1, 2);"));
 		assertEquals("$0 ==> 3", repl.processInput("foo()"));
 	}
 	
 	@Test
 	public void delTupleDecomp() throws Exception {
-		assertEquals("", repl.processInput("(a, b) = (1,2);"));
+		assertEquals("", repl.processInput("a, b = (1,2);"));
 		assertEquals("", repl.processInput("del a"));
 		assertEquals("|  ERROR variable a does not exist", repl.processInput("a"));
 		assertEquals("b ==> 2", repl.processInput("b"));
-		assertEquals("a ==> 91\nb ==> 29", repl.processInput("(a, b) = (91,29)"));
+		assertEquals("a ==> 91\nb ==> 29", repl.processInput("a, b = 91,29"));
 	}
 	
 	@Test
 	public void tuplederefAssign() throws Exception {
-		assertEquals("a ==> 1\nb ==> 2", repl.processInput("(a, b) = (1, 2)"));
+		assertEquals("a ==> 1\nb ==> 2", repl.processInput("a, b = (1, 2)"));
 	}
 	
 	
@@ -1382,7 +1382,7 @@ public class REPLTests {
 	public void parfor() throws Exception {
 		String gcd = "def gcd(x int, y int){//greatest common divisor of two integers\n" + 
 				"  while(y){\n" + 
-				"    (x, y) = (y, x mod y)\n" + 
+				"    x, y = (y, x mod y)\n" + 
 				"  }\n" + 
 				"  x\n" + 
 				"}";
@@ -1541,5 +1541,37 @@ public class REPLTests {
 		assertEquals("counter ==> 0:",repl.processInput(op));
 	}
 	
+	@Test
+	public void testRedefInst() throws Exception {
+		String op = "def gcd(x int, y = 25){\r\n" + 
+				"		  while(y){log(y)\r\n" + 
+				"		    x, y = y, x mod y\r\n" + 
+				"		  }\r\n" + 
+				"		  x\r\n" + 
+				"		}";
+		
+		assertEquals("moan",repl.processInput(op));
+		assertEquals("ok",repl.processInput("def log(a int) => System.\\out.println(a)"));
+		
+		
+		assertEquals("ok",repl.processInput("gcd(67)"));
+	}
 	
+	@Test
+	public void delWDefault() throws Exception {
+		String op = "def gcd(x int, y = 25){\r\n" + 
+				"		  while(y){log(y)\r\n" + 
+				"		    x, y = y, x mod y\r\n" + 
+				"		  }\r\n" + 
+				"		  x\r\n" + 
+				"		}";
+
+		assertEquals("|  ERROR 1:13 in gcd(int, int) - Unable to find method with matching name: log",repl.processInput(op));
+		assertEquals("ok",repl.processInput("del gcd"));
+	}
+	
+	@Test
+	public void defaultObjectNullable() throws Exception {
+		assertEquals("should be ok",repl.processInput("aString = null"));
+	}
 }

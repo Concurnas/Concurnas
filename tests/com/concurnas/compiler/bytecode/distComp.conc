@@ -113,7 +113,7 @@ class TestRemote{
 	}	
 }
 
-class RemoteFailureContext(error Throwable){
+class RemoteFailureContext(err Throwable){
 	+isoExecutor Executor?
 	
 	def retry(){
@@ -124,7 +124,7 @@ class RemoteFailureContext(error Throwable){
 		
 	}
 	
-	def reason() => error
+	def reason() => err
 }
 
 trait FailHandler{
@@ -151,7 +151,7 @@ class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
 				throw new Exception("")
 			}
 			
-			(task as () Void)()
+			(task?? as () Void)()
 		}catch(e){
 			rf = new RemoteFailureContext(e)
 			rf.isoExecutor = this
@@ -222,7 +222,7 @@ class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
 				throw new Exception("")
 			}
 			
-			(task as () Void)()
+			(task?? as () Void)()
 		}catch(e){
 			rf = new RemoteFailureContext(e)
 			rf.isoExecutor = this

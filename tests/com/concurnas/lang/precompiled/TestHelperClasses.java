@@ -17,7 +17,7 @@ public class TestHelperClasses {//cheat because deful test classloader uses syst
 		public void sdfsdf() { somethng();}
 	}
 	
-	public static int countRefLevels(Object o){
+	public static int countRefLevels(Object o) throws Throwable{
 		int x=0;
 		
 		while(o instanceof Local<?>){

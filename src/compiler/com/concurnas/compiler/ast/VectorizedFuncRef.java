@@ -10,21 +10,23 @@ import com.concurnas.runtime.Pair;
 public class VectorizedFuncRef extends AbstractExpression implements Expression, HasDepth, CanBeInternallyVectorized {
 	public final boolean doubledot;
 	public final boolean nullsafe;
+	public final boolean noNullAssertion;
 	public final Expression expr;
 	public FuncRef funcRef;
 	private Block vectorizedRedirect=null;
 
-	public VectorizedFuncRef(int line, int col, Expression name, FuncRefArgs funcRefArgs, ArrayList<Type> genTypes, Expression expr, boolean doubledot, boolean nullsafe) {
+	public VectorizedFuncRef(int line, int col, Expression name, FuncRefArgs funcRefArgs, ArrayList<Type> genTypes, Expression expr, boolean doubledot, boolean nullsafe, boolean noNullAssertion) {
 		super(line, col);
 		funcRef = new FuncRef(line, col, name, funcRefArgs);
 		funcRef.genTypes = genTypes;
 		this.expr=expr;
 		this.doubledot=doubledot;
 		this.nullsafe=nullsafe;
+		this.noNullAssertion=noNullAssertion;
 	}
 	
-	public VectorizedFuncRef(FuncRef from, Expression expr, boolean doubledot, boolean nullsafe) {
-		this(from.getLine(), from.getColumn(), from.functo, from.args == null?null:(FuncRefArgs)from.args.copy(), from.genTypes==null?null:new ArrayList<Type>(from.genTypes), expr, doubledot, nullsafe);
+	public VectorizedFuncRef(FuncRef from, Expression expr, boolean doubledot, boolean nullsafe, boolean nna) {
+		this(from.getLine(), from.getColumn(), from.functo, from.args == null?null:(FuncRefArgs)from.args.copy(), from.genTypes==null?null:new ArrayList<Type>(from.genTypes), expr, doubledot, nullsafe, nna);
 	}
 
 	private Expression preceedingExpression;
@@ -54,7 +56,7 @@ public class VectorizedFuncRef extends AbstractExpression implements Expression,
 
 	@Override
 	public Node copyTypeSpecific() {
-		VectorizedFuncRef ret = new VectorizedFuncRef(line, column, funcRef.functo, funcRef.args == null?null:(FuncRefArgs)funcRef.args.copy(), funcRef.genTypes==null?null:(ArrayList<Type>) Utils.cloneArrayList(funcRef.genTypes), (Expression)expr.copy(), doubledot, nullsafe);
+		VectorizedFuncRef ret = new VectorizedFuncRef(line, column, funcRef.functo, funcRef.args == null?null:(FuncRefArgs)funcRef.args.copy(), funcRef.genTypes==null?null:(ArrayList<Type>) Utils.cloneArrayList(funcRef.genTypes), (Expression)expr.copy(), doubledot, nullsafe, noNullAssertion);
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		return ret;
 	}

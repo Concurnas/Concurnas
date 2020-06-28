@@ -22,6 +22,7 @@ import com.concurnas.compiler.TypedCaseExpression;
 import com.concurnas.compiler.ast.*;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.util.JustLoad;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.visitors.util.MactchCase;
 import com.concurnas.runtime.Pair;
 
@@ -128,11 +129,13 @@ public class PrintSourceVisitor implements Visitor {
 	}
 	
 	public void processArrayRefElements(ArrayRefLevelElementsHolder elements){
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> bracksetx : elements.getAll())
+		for(NullableArrayElementss bracksetx : elements.getAll())
 		{
-			ArrayList<ArrayRefElement> brackset = bracksetx.getB();
-			if(bracksetx.getA()) {
+			ArrayList<ArrayRefElement> brackset = bracksetx.elements;
+			if(bracksetx.nullsafe) {
 				this.addItem("?");
+			}else if(bracksetx.nna) {
+				this.addItem("??");
 			}
 			this.addItem("[");
 			for(int n = 0; n < brackset.size(); n++)
@@ -1090,6 +1093,7 @@ public class PrintSourceVisitor implements Visitor {
 				boolean isDirect = isDirectAccess.get(n);
 				boolean retSelf = dotOperator.returnCalledOn.get(n);
 				boolean issafe = dotOperator.safeCall.get(n);
+				boolean nna = dotOperator.noNullAssertion.get(n);
 				
 				if(isDirect)
 				{
@@ -1099,6 +1103,8 @@ public class PrintSourceVisitor implements Visitor {
 				{
 					if(issafe) {
 						this.addItemNoPreString("?.");
+					}if(nna) {
+						this.addItemNoPreString("??.");
 					}else {
 						this.addItemNoPreString(retSelf?"..":".");
 					}
@@ -1463,6 +1469,10 @@ public class PrintSourceVisitor implements Visitor {
 		}
 		if(funcParam.isVararg){
 			this.addItem("...");
+		}
+		
+		if(funcParam.isNullableVarArg){
+			this.addItem("?");
 		}
 		
 		if(funcParam.defaultValue != null){
@@ -2578,6 +2588,9 @@ public class PrintSourceVisitor implements Visitor {
 		if(vectorized.nullsafe) {
 			this.addItemNoPreString("?");
 		}
+		if(vectorized.noNullAssertion) {
+			this.addItemNoPreString("??");
+		}
 		
 		if(vectorized.doubledot){
 			this.addItemNoPreString("^^");
@@ -2594,6 +2607,9 @@ public class PrintSourceVisitor implements Visitor {
 
 		if(arrayRef.nullsafe) {
 			this.addItemNoPreString("?");
+		}
+		if(arrayRef.noNullAssertion) {
+			this.addItemNoPreString("??");
 		}
 		
 		if(arrayRef.doubledot){
@@ -2616,6 +2632,10 @@ public class PrintSourceVisitor implements Visitor {
 			this.addItemNoPreString("?");
 		}
 		
+		if(vectorizedFieldRef.noNullAssertion) {
+			this.addItemNoPreString("??");
+		}
+		
 		if(vectorizedFieldRef.doubledot){
 			this.addItemNoPreString("^^");
 		}else{
@@ -2633,6 +2653,9 @@ public class PrintSourceVisitor implements Visitor {
 		
 		if(vectorizedFuncInvoke.nullsafe) {
 			this.addItemNoPreString("?");
+		}
+		if(vectorizedFuncInvoke.noNullAssertion) {
+			this.addItemNoPreString("??");
 		}
 		
 		if(vectorizedFuncInvoke.doubledot){
@@ -2653,6 +2676,9 @@ public class PrintSourceVisitor implements Visitor {
 		if(vectorizedFuncRef.nullsafe) {
 			this.addItemNoPreString("?");
 		}
+		if(vectorizedFuncRef.noNullAssertion) {
+			this.addItemNoPreString("??");
+		}
 		
 		if(vectorizedFuncRef.doubledot){
 			this.addItemNoPreString("^^");
@@ -2671,6 +2697,9 @@ public class PrintSourceVisitor implements Visitor {
 		
 		if(vectorizedNew.nullsafe) {
 			this.addItemNoPreString("?");
+		}
+		if(vectorizedNew.noNullAssertion) {
+			this.addItemNoPreString("??");
 		}
 		
 		if(vectorizedNew.doubledot){

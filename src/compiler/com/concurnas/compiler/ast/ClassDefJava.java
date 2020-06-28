@@ -170,7 +170,7 @@ public class ClassDefJava extends ClassDef {
 			if(null != nn) {
 				When when = nn.when();
 				if( when == When.ALWAYS) {
-					gen.setNullStatus(NullStatus.NONNULL);
+					gen.setNullStatus(NullStatus.NOTNULL);
 				}else if(when == When.NEVER) {
 					gen.setNullStatus(NullStatus.NULLABLE);
 				}

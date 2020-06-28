@@ -20,7 +20,7 @@ public class RefHelper {
 		return null;
 	}
 	
-	public static RefArray<Integer> getRealRefArray(int size){
+	public static RefArray<Integer> getRealRefArray(int size) throws Throwable{
 		
 		RefArray<Integer> ret = new RefArray<Integer>(new Class<?>[]{Integer.class}, size);
 		ret.put(0, 55);
@@ -40,19 +40,19 @@ public class RefHelper {
 		return null;//TODO: support for ? is needed in generics
 	}
 	
-	public static Local<Integer> getIntegerRef(int g){
+	public static Local<Integer> getIntegerRef(int g) throws Throwable{
 		Local<Integer> ret = new Local<Integer>(new Class<?>[]{Integer.class});
 		ret.set(g);
 		return ret;
 	}
 	
-	public static Object getIntegerRefAsObject(int g){
+	public static Object getIntegerRefAsObject(int g) throws Throwable{
 		Local<Integer> ret = new Local<Integer>(new Class<?>[]{Integer.class});
 		ret.set(g);
 		return ret;
 	}
 	
-	public static Ref<Integer> getThingAsRef(int g){
+	public static Ref<Integer> getThingAsRef(int g) throws Throwable{
 		Local<Integer> ret = new Local<Integer>(new Class<?>[]{Integer.class});
 		ret.set(g);
 		return ret;
@@ -64,7 +64,7 @@ public class RefHelper {
 	}
 	
 	
-	public static LocalArray<Local<Integer>> getRefArray(){
+	public static LocalArray<Local<Integer>> getRefArray() throws Throwable{
 		Local<Integer> ref1 = new Local<Integer>(new Class<?>[]{Integer.class});
 		ref1.set(44);
 		

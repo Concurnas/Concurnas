@@ -34,7 +34,7 @@ public class IsoRegistrationSetAsync {
 		
 	}
 
-	public void unregisterAll() {
+	public void unregisterAll() throws Throwable {
 		// children - iterate through all children and
 		for (IsoRegistrationSetAsyncChild child : children) {
 			child.unregisterAll();

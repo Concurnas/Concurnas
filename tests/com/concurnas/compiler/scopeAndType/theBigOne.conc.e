@@ -124,7 +124,7 @@ x3107TheNullLiteral.conc line 4:0 Variable d has already been defined in current
 
 ~~~~~
 //##4. Types, Values, and Variables
-x4TypesValuesandVariables.conc line 3:9 extraneous input '=' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
+x4TypesValuesandVariables.conc line 3:9 extraneous input '=' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', ',', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, NATNUM, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
 x4TypesValuesandVariables.conc line 3:16 missing ';' at '\n'
  
 ~~~~~
@@ -138,7 +138,7 @@ x42PrimitiveTypesandValues.conc line 7:0 Variable tolong has already been define
 
 ~~~~~
 //##4.2. Primitive Types and Values  no void 4u
-x42PrimitiveTypesandValuesnovoid4u.conc line 3:2 extraneous input 'void' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
+x42PrimitiveTypesandValuesnovoid4u.conc line 3:2 extraneous input 'void' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', ',', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, NATNUM, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
  
 ~~~~~
 //##4.2.1. Integral Types and Values
@@ -460,7 +460,7 @@ x53MethodInvocationConversion.conc line 24:25 void methods cannot return a value
 x53MethodInvocationConversion.conc line 26:29 java.lang.Object is not a subtype of java.lang.String
 x53MethodInvocationConversion.conc line 28:31 int is not a subtype of java.lang.String
 x53MethodInvocationConversion.conc line 35:12 void is not an instantiable type
-x53MethodInvocationConversion.conc line 44:15 incompatible type: boolean vs java.lang.String
+x53MethodInvocationConversion.conc line 44:16 java.lang.String? is not a subtype of java.lang.Boolean?
 x53MethodInvocationConversion.conc line 57:15 Ambiguous method detected 'cho2'. More than one indirect match made
 x53MethodInvocationConversion.conc line 62:0 Variable res has already been defined in current scope
  
@@ -533,13 +533,14 @@ x562BinaryNumericPromotion.conc line 17:18 Type mismatch: cannot convert from fl
 
 ~~~~~
 //##6.4. Shadowing and Obscuring
-x64ShadowingandObscuring.conc line 4:0 Variable definitions cannot override classneames. String has already been defined as an imported class
-x64ShadowingandObscuring.conc line 5:0 Variable definitions cannot override classneames. Object has already been defined as an imported class
 x64ShadowingandObscuring.conc line 8:8 Class: java.util.List<java.lang.String> is not instantiable
-x64ShadowingandObscuring.conc line 9:0 Variable definitions cannot override classneames. List has already been defined as an imported class
+x64ShadowingandObscuring.conc line 9:9 Class: java.util.List<java.lang.String> is not instantiable
 x64ShadowingandObscuring.conc line 15:1 Variable a has already been defined in current scope
 x64ShadowingandObscuring.conc line 16:1 Variable a has already been defined in current scope
- 
+x64ShadowingandObscuring.conc WARN line 4:0 Variable definition overrides import: String
+x64ShadowingandObscuring.conc WARN line 5:0 Variable definition overrides import: Object
+x64ShadowingandObscuring.conc WARN line 9:0 Variable definition overrides import: List
+  
 ~~~~~
 //##6.4.1. Shadowing
 x641Shadowing.conc line 14:1 Variable z has already been defined in current scope
@@ -945,15 +946,15 @@ xCONCgenericconstandmethoderasure3simplegenclash.conc line 25:1 Method xxx with 
  
 ~~~~~
 //##CONC generic must be totally formalized
-xCONCgenericmustbetotallyformalized.conc line 11:1 The return type of method 'def doing(java.lang.String) X' in class xCONCgenericmustbetotallyformalized.Childa cannot be matched with method: 'def doing(java.lang.String) java.lang.String' in superclass: xCONCgenericmustbetotallyformalized.Sup
+xCONCgenericmustbetotallyformalized.conc line 11:1 The return type of method 'def doing(java.lang.String) X?' in class xCONCgenericmustbetotallyformalized.Childa cannot be matched with method: 'def doing(java.lang.String) java.lang.String' in superclass: xCONCgenericmustbetotallyformalized.Sup
  
 ~~~~~
 //##CONC generic override in child, prevents accidental  very cool
 
 ~~~~~
 //##CONC generic const and method erasure 4  complex with supertypes erasure
-xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.conc line 21:1 The return type of method 'def xxx(ZZ) ZZ' in class xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.ChildClsFail is incompatible with method: 'def xxx(java.lang.String) java.lang.String' in superclass: xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.GenClass
-xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.conc line 26:1 Method def (X) Y with matching argument definition exists already in supertype or traits as: def (Y) Y - generic types are erased at runtime
+xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.conc line 21:1 The return type of method 'def xxx(ZZ) ZZ?' in class xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.ChildClsFail is incompatible with method: 'def xxx(java.lang.String) java.lang.String?' in superclass: xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.GenClass
+xCONCgenericconstandmethoderasure4complexwithsupertypeserasure.conc line 26:1 Method def (X) Y? with matching argument definition exists already in supertype or traits as: def (Y) Y? - generic types are erased at runtime
  
 ~~~~~
 //##CONC generic const and method erasure 4  complex with supertypes erasure part 2 with 3 levels
@@ -961,8 +962,8 @@ xCONCgenericconstandmethoderasure4complexwithsupertypeserasurepart2with3levels.c
  
 ~~~~~
 //##CONC generic const and method erasure 4  complex with supertypes erasure part 3  qualifcation of generics
-xCONCgenericconstandmethoderasure4complexwithsupertypeserasurepart3qualifcationofgenerics.conc line 12:1 Method def (java.util.ArrayList<java.lang.Integer>) java.lang.String with matching argument definition exists already in supertype or traits as: def (java.util.ArrayList<java.lang.String>) java.lang.String - generic types are erased at runtime
- 
+xCONCgenericconstandmethoderasure4complexwithsupertypeserasurepart3qualifcationofgenerics.conc line 12:1 Method def (java.util.ArrayList<java.lang.Integer>) java.lang.String? with matching argument definition exists already in supertype or traits as: def (java.util.ArrayList<java.lang.String>) java.lang.String? - generic types are erased at runtime
+  
 ~~~~~
 //##CONC just check some more override and abstract
 xCONCjustchecksomemoreoverrideandabstract.conc line 8:0 Class 'xCONCjustchecksomemoreoverrideandabstract.ChildFails' is missing implementations of abstract method definitions inherited: xCONCjustchecksomemoreoverrideandabstract.SupAbst:{def toString() java.lang.String}
@@ -1609,9 +1610,9 @@ x69Miscgenericsarrays.conc line 14:28 Generic Type argument type mismatch: int[6
  
 ~~~~~
 //##70  Withable 1
-x70Withable1.conc line 3:4 Resource specified in try with resource block must implement close method, '89' does not
+x70Withable1.conc line 3:4 Resource specified in try with resource block must implement close method, '{ 89 ; }' does not
 x70Withable1.conc line 5:0 WW cannot resolve reference to trait: com.concurnas.lang.Withable
-x70Withable1.conc line 9:4 Resource specified in try with resource block must implement close method, '89' does not
+x70Withable1.conc line 9:4 Resource specified in try with resource block must implement close method, '{ 89 ; }' does not
  
 ~~~~~
 //##70  misc -1trycatch
@@ -2432,9 +2433,9 @@ x210classrefohno1.conc line 7:8 Unable to resolve type corresponding to name: ll
  
 ~~~~~
 //##211. class ref oh no 2
-x211classrefohno2.conc line 5:5 extraneous input '=' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
+x211classrefohno2.conc line 5:5 extraneous input '=' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', ',', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, NATNUM, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
 x211classrefohno2.conc line 7:1 no viable alternative at input '{\ngot=class\n\n""'
-x211classrefohno2.conc line 8:0 extraneous input '}' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
+x211classrefohno2.conc line 8:0 extraneous input '}' expecting {<EOF>, ';', 'transient', 'shared', 'lazy', ',', 'override', '-', '+', '~', 'assert', 'del', 'break', 'continue', 'throw', 'return', 'import', 'using', '*', 'from', 'typedef', '<', 'await', 'def', 'gpudef', 'gpukernel', '**', '++', '--', 'not', 'comp', 'global', 'local', 'constant', 'out', 'this', 'provider', 'abstract', 'open', 'closed', 'class', 'trait', 'actor', 'of', 'with', 'new', 'annotation', 'enum', 'for', 'parfor', 'parforsync', 'match', 'if', 'async', 'while', 'loop', 'try', 'trans', 'init', 'sync', 'onchange', 'every', '@', 'boolean', 'bool', 'size_t', 'int', 'long', 'float', 'double', 'byte', 'short', 'char', 'lambda', 'sizeof', 'super', 'changed', 'null', 'true', 'false', 'val', 'var', 'private', 'public', 'inject', 'protected', 'package', LONGINT, SHORTINT, NATNUM, INT, FLOAT, DOUBLE, NAME, STRING_ITMcit, STRING_ITMquot, REGEX_STRING_ITM, NEWLINE, '(', '[', 'a[', '{'}
  
 ~~~~~
 //##212. couple of errors now gracefuly handlered
@@ -2798,6 +2799,7 @@ x281operatoroverloadererrormessages.conc line 32:6 numerical operation cannot be
 x281operatoroverloadererrormessages.conc line 34:8 numerical operation cannot be performed on type x281operatoroverloadererrormessages.Complex. No overloaded 'mul' operator found for type x281operatoroverloadererrormessages.Complex with signature: '(x281operatoroverloadererrormessages.Complex)'
 x281operatoroverloadererrormessages.conc line 35:8 numerical operation cannot be performed on type x281operatoroverloadererrormessages.Complex. No overloaded 'div' operator found for type x281operatoroverloadererrormessages.Complex with signature: '(x281operatoroverloadererrormessages.Complex)'
 x281operatoroverloadererrormessages.conc line 36:8 numerical operation cannot be performed on type x281operatoroverloadererrormessages.Complex. No overloaded 'mod' operator found for type x281operatoroverloadererrormessages.Complex with signature: '(x281operatoroverloadererrormessages.Complex)'
+x281operatoroverloadererrormessages.conc line 38:11 arguments to pow operator must both be numerical, not x281operatoroverloadererrormessages.Complex vs x281operatoroverloadererrormessages.Complex
 x281operatoroverloadererrormessages.conc line 44:11 numerical operation cannot be performed on type x281operatoroverloadererrormessages.Complex. No overloaded 'compareTo' operator found for type x281operatoroverloadererrormessages.Complex with signature: '(x281operatoroverloadererrormessages.Complex) int'
 x281operatoroverloadererrormessages.conc line 45:15 numerical operation cannot be performed on type x281operatoroverloadererrormessages.Complex. No overloaded 'compareTo' operator found for type x281operatoroverloadererrormessages.Complex with signature: '(x281operatoroverloadererrormessages.Complex) int'
 x281operatoroverloadererrormessages.conc line 46:11 numerical operation cannot be performed on type x281operatoroverloadererrormessages.Complex. No overloaded 'compareTo' operator found for type x281operatoroverloadererrormessages.Complex with signature: '(x281operatoroverloadererrormessages.Complex) int'
@@ -3131,7 +3133,6 @@ x340trywresrouces.conc line 27:3 Resource specified in try with resource block m
  
 ~~~~~
 //##341. try w resrouces var decl
-x341trywresroucesvardecl.conc line 34:6 The variable b may not have been initialized
  
 ~~~~~
 //##342. try w resrouces var decl respected
@@ -3139,12 +3140,12 @@ x342trywresroucesvardeclrespected.conc line 27:2 Variable c has been declared as
  
 ~~~~~
 //##343. try w resrouces must impl close
-x343trywresroucesmustimplclose.conc line 7:3 Resource specified in try with resource block must implement close method, 'assert true' does not
+x343trywresroucesmustimplclose.conc line 7:3 block must return something
 x343trywresroucesmustimplclose.conc line 8:4 Resource specified in try with resource block must implement close method, type: x343trywresroucesmustimplclose.MyClass does not
  
 ~~~~~
 //##344. try w assign existing must resolve to refname
-x344trywassignexistingmustresolvetorefname.conc line 20:3 assignment specified in try with resource block must resolve to a variable, 'uhoh [ 0 ]' is not a variable
+x344trywassignexistingmustresolvetorefname.conc line 20:3 void is not an instantiable type
  
 ~~~~~
 //##345. exception caught must be of exception type
@@ -3698,7 +3699,7 @@ x460ambigiousthankstogenericqualificationmethodcalls.conc line 17:11 Ambiguous m
  
 ~~~~~
 //##461. type error on match
-x461typeerroronmatch.conc line 15:8 Incompatible operand types java.lang.String and int
+x461typeerroronmatch.conc line 16:8 Incompatible operand types java.lang.String and int
  
 ~~~~~
 //##462. classloaders return type Object
@@ -4190,7 +4191,7 @@ x550thisshouldfailaswrongtype.conc line 9:8 Unable to find method with matching 
 
 ~~~~~
 //##551. better error message
-x551bettererrormessage.conc line 11:1 The return type of method 'def iterator() java.util.Iterator<T>' in class x551bettererrormessage.IntSequence cannot be matched with method: 'def iterator() java.util.Iterator<java.lang.Integer>' in superclass: java.lang.Object or traits: java.lang.Iterable
+x551bettererrormessage.conc line 11:1 The return type of method 'def iterator() java.util.Iterator<T>?' in class x551bettererrormessage.IntSequence cannot be matched with method: 'def iterator() java.util.Iterator<java.lang.Integer>' in superclass: java.lang.Object or traits: java.lang.Iterable
 x551bettererrormessage.conc line 12:8 Local class is missing implementations of abstract method definitions inherited: java.util.Iterator:{def hasNext() boolean, def next() java.lang.Integer}
 x551bettererrormessage.conc WARN line 6:0 Class name overwrites imported class: IntSequence
  
@@ -4216,12 +4217,12 @@ x555tuplesrhsmustbetupleindecomp.conc line 5:1 Right hand side of tuple decompos
  
 ~~~~~
 //##556. tuples rhs no
-x556tuplesrhsno.conc line 5:2 a cannot be resolved to a variable
-x556tuplesrhsno.conc line 6:2 c cannot be resolved to a variable
+x556tuplesrhsno.conc line 5:1 a cannot be resolved to a variable
+x556tuplesrhsno.conc line 6:1 c cannot be resolved to a variable
  
 ~~~~~
 //##557. no tuples in gpu 
-x557notuplesingpu.conc line 3:14 non primative types may not be used within a gpudef or gpukernel
+x557notuplesingpu.conc line 3:16 non primative types may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 7:5 tuples may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 8:1 tuple decomposition may not be used within a gpudef or gpukernel
  
@@ -4493,5 +4494,40 @@ x612missingtypedusedtoblowup.conc line 18:10 Unable to find method with matching
 
 ~~~~~
 //##613. cannot double assign to final field
+x613cannotdoubleassigntofinalfield.conc line 6:4 Nullability may only be tested for nullable types
 x613cannotdoubleassigntofinalfield.conc line 15:3 Variable len has been declared as val and cannot be reassigned
+
+~~~~~
+//##614. no void for pow operator
+x614novoidforpowoperator.conc line 7:6 arguments to pow operator must both be numerical, not void vs double
+x614novoidforpowoperator.conc line 11:4 Unable to find method with matching name: thingx
  
+~~~~~
+//##615. null test only for nullable types
+x615nulltestonlyfornullabletypes.conc line 6:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 7:8 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 8:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 9:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 10:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 12:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 13:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 14:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 15:7 Nullability may only be tested for nullable types
+x615nulltestonlyfornullabletypes.conc line 22:6 Nullability may only be tested for nullable types
+ 
+~~~~~
+//##616. no tuple decomp for you
+x616notupledecompforyou.conc line 16:5 Tuple decomposition many not be used within try with resources
+ 
+~~~~~
+//##617. tuple variable def vs func invoke
+x617tuplevariabledefvsfuncinvoke.conc line 6:28 Array index operation can only be performed on object that is an array, Map, List or object having approperiate operator overloading 'get' method not: int
+x617tuplevariabledefvsfuncinvoke.conc line 10:1 Expression cannot appear on its own line
+x617tuplevariabledefvsfuncinvoke.conc line 10:28 Array index operation can only be performed on object that is an array, Map, List or object having approperiate operator overloading 'get' method not: int
+x617tuplevariabledefvsfuncinvoke.conc line 11:30 Array index operation can only be performed on object that is an array, Map, List or object having approperiate operator overloading 'get' method not: int
+x617tuplevariabledefvsfuncinvoke.conc line 13:1 Expression cannot appear on its own line
+x617tuplevariabledefvsfuncinvoke.conc line 13:28 Array index operation can only be performed on object that is an array, Map, List or object having approperiate operator overloading 'get' method not: int
+
+~~~~~
+//##618. multi assign to shared variables
+bytecodeSandbox.conc line 18:0 top level multi assign variables may not be shared

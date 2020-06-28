@@ -5,7 +5,7 @@ import com.concurnas.runtime.ref.Local;
 
 public class Returner {
 
-	public static LocalArray<Local<?>> getMeALocalArray(){
+	public static LocalArray<Local<?>> getMeALocalArray() throws Throwable{
 		Local<Integer> lll = new Local<Integer>(new Class[]{Integer.class});
 		lll.set(99);
 		
@@ -15,7 +15,7 @@ public class Returner {
 		return refArrayHolder;
 	}
 	
-	public static LocalArray< LocalArray<Local<?>>> getMeALocalArrayL2(){
+	public static LocalArray< LocalArray<Local<?>>> getMeALocalArrayL2() throws Throwable{
 		LocalArray<Local<?>> l1 = getMeALocalArray();
 		
 		LocalArray< LocalArray<Local<?>>> ret = new LocalArray< LocalArray<Local<?>>>(new Class[]{LocalArray.class, Local.class, Integer.class});
@@ -24,7 +24,7 @@ public class Returner {
 		return ret;
 	}
 	
-	public static Local<Local<Integer>> getLocalL2(){
+	public static Local<Local<Integer>> getLocalL2() throws Throwable{
 		Local<Local<Integer>> ret = new Local<Local<Integer>>(new Class<?>[]{Local.class, Integer.class});
 		Local<Integer> retl2 = new Local<Integer>(new Class<?>[]{Integer.class});
 		retl2.set(99);

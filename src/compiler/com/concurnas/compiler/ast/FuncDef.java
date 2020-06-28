@@ -231,6 +231,8 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 				if(null != nt) {
 					gt.upperBound = nt;
 					gt.setNullStatus(nt.getNullStatus());
+				}else {
+					gt.setNullStatus(NullStatus.UNKNOWN);
 				}
 				
 				localGenerics.add(gt);

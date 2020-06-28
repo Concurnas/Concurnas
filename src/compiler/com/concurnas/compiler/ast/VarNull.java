@@ -168,7 +168,7 @@ public class VarNull extends AbstractType implements Expression {
 
 	public NullStatus getNullStatus() {
 		if(this.hasArrayLevels()) {
-			return NullStatus.NONNULL;
+			return NullStatus.NOTNULL;
 		}
 		return NullStatus.NULLABLE;
 	}

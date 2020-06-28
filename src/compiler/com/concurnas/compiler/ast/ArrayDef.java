@@ -61,7 +61,16 @@ public class ArrayDef extends AbstractExpression implements Expression, ArrayEle
 			ct.setArrayLevels(ct.getArrayLevels()-1);
 			
 			for(Expression e : arrayElements){//ensure that the components know their type (place)
-				e.setTaggedType(ct);
+				Type setTo = ct;
+				Type already = e.getTaggedType();
+				if(already != null) {
+					if(already.getNullStatus() != setTo.getNullStatus()) {
+						setTo = (Type)setTo.copy();
+						setTo.setNullStatus(already.getNullStatus());
+					}
+				}
+				
+				e.setTaggedType(setTo);
 			}
 		}
 		return super.setTaggedType(tt);
@@ -70,6 +79,7 @@ public class ArrayDef extends AbstractExpression implements Expression, ArrayEle
 	@Override
 	public Node copyTypeSpecific() {
 		ArrayDef ret = new ArrayDef(super.line, super.column, (ArrayList<Expression>) Utils.cloneArrayList(arrayElements));
+		ret.disambiguatedArrayElements = (ArrayList<Expression>) Utils.cloneArrayList(disambiguatedArrayElements);
 		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
 		ret.notes = notes==null?null:new HashSet<String>(notes);
 		ret.isArray=isArray;

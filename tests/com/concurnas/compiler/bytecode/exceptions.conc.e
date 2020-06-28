@@ -1033,3 +1033,7 @@ fine
 ~~~~~
 //##64. finally blocks dont return anything
 ok
+
+~~~~~
+//##65 catch params are optional
+[fail ok, 2]

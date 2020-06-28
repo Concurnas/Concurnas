@@ -10723,3 +10723,22 @@ def doings() String{
 	sxt();
 	return "ok"
 }
+
+~~~~~
+//##65 catch params are optional
+ok = false
+
+def tt() => ok
+def getThing() =>	"ok" if tt() else null
+
+def doings(){
+	res1 = try{
+		"" + getThing()??.length()
+	}catch{
+		'fail ok'
+	}
+	
+	ok = true
+
+	"" + [res1, getThing()??.length()]
+}

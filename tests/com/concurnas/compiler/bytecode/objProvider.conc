@@ -178,7 +178,7 @@ def doings(){
 	cp = new ClientProvider("msg prefix: ")
 	cl Client = cp.Client()
 	cl.doperation()
-	"ok" + (cl.service as MessageCapture).items
+	"ok" + (cl.service?? as MessageCapture).items
 }
 
 ~~~~~
@@ -234,7 +234,7 @@ def doings(){
 	cp = new ClientProvider("msg prefix: ")
 	cl Client = cp.Client()
 	cl.doperation()
-	"ok" + (cl.service as MessageCapture).items
+	"ok" + (cl.service?? as MessageCapture).items
 }
 
 ~~~~~
@@ -333,7 +333,7 @@ def doings(){
 	cp = new ClientProvider("msg prefix: ")
 	cl Client = cp.Client()
 	cl.doperation()
-	"ok" + (cl.service as MessageCapture).items
+	"ok" + (cl.service?? as MessageCapture).items
 }
 
 ~~~~~
@@ -390,7 +390,7 @@ def doings(){
 	cp = new ClientProvider("msg prefix: ")
 	cl Client = cp.Client()
 	cl.doperation()
-	"ok" + (cl.service as MessageCapture).items
+	"ok" + (cl.service?? as MessageCapture).items
 }
 
 ~~~~~
@@ -2639,11 +2639,11 @@ cnt = 0
 
 from java.util import Optional
 
-inject class MyClass(an Optional<String>){
-	inject an2 Optional<String>?
-	private an3 Optional<String>?
+inject class MyClass(an Optional<String?>){
+	inject an2 Optional<String?>?
+	private an3 Optional<String?>?
 	
-	inject def SetThingamy(an3 Optional<String>){
+	inject def SetThingamy(an3 Optional<String?>){
 		this.an3 = an3
 	}
 	
@@ -2652,7 +2652,7 @@ inject class MyClass(an Optional<String>){
 
 provider MCPRovider{
 	provide MyClass
-	String => null
+	String? => null
 }
 
 def doings(){
@@ -3231,7 +3231,7 @@ trait MessageSender{
 
 inject class MessageProcessor(lazy obtainer MessageGetter, sender MessageSender){
 	public def processMessage(){//processing
-		this.sender.sendMessage('proc: ' + this.obtainer.getMessage())//double this on the ast redirect was causing a bug
+		this.sender.sendMessage('proc: ' + this.obtainer??.getMessage())//double this on the ast redirect was causing a bug
 	}
 }
 

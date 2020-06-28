@@ -12,7 +12,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import com.concurnas.compiler.ast.*;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
-import com.concurnas.compiler.utils.Fourple;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
+import com.concurnas.compiler.utils.Fiveple;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
@@ -115,33 +116,33 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		Expression expr = (Expression) ctx.expr_stmt_tuple().accept(this);
 		return new DuffAssign(ctx.start.getLine(), ctx.start.getCharPositionInLine(), expr);
 	}
-	
+
 	@Override
 	public Thruple<Boolean, Boolean, Boolean> visitTransientAndShared(ConcurnasParser.TransientAndSharedContext ctx) {
 		boolean trans = ctx.trans != null;
 		boolean shared = ctx.shared != null;
 		boolean lazy = ctx.lazy != null;
-		
+
 		return new Thruple<Boolean, Boolean, Boolean>(trans, shared, lazy);
 	}
 
 	@Override
 	public Object visitAssignmentTupleDereflhs(ConcurnasParser.AssignmentTupleDereflhsContext ctx) {
-		
+
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
-		
+
 		AccessModifier accessModi = (AccessModifier) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-		
+
 		boolean isTransien;
 		boolean isShared;
 		boolean isLazy;
-		if(null != ctx.transAndShared) {
-			Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>)ctx.transAndShared.accept(this);
+		if (null != ctx.transAndShared) {
+			Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>) ctx.transAndShared.accept(this);
 			isTransien = transAndShared.getA();
 			isShared = transAndShared.getB();
 			isLazy = transAndShared.getC();
-		}else {
+		} else {
 			isTransien = false;
 			isShared = false;
 			isLazy = false;
@@ -198,9 +199,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public Object visitAssignmentTupleDereflhsOrNothing(ConcurnasParser.AssignmentTupleDereflhsOrNothingContext ctx) {
-		return ctx.assignmentTupleDereflhs() != null?ctx.assignmentTupleDereflhs().accept(this):null;
+		return ctx.assignmentTupleDereflhs() != null ? ctx.assignmentTupleDereflhs().accept(this) : null;
 	}
-	
+
 	@Override
 	public Object visitAssignment(ConcurnasParser.AssignmentContext ctx) {
 		int line = ctx.start.getLine();
@@ -209,11 +210,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		Assign ass;
 		AssignWithRHSExpression rhsassissgment = null;
 		Expression assignment;
-		
-		if(!ctx.assignmentTupleDereflhsOrNothing().isEmpty()) {
+
+		if (!ctx.assignmentTupleDereflhsOrNothing().isEmpty()) {
 			ArrayList<Assign> lhss = new ArrayList<Assign>();
-			ctx.assignmentTupleDereflhsOrNothing().forEach(a -> lhss.add((Assign)a.accept(this)));
-			
+			ctx.assignmentTupleDereflhsOrNothing().forEach(a -> lhss.add((Assign) a.accept(this)));
+
 			AssignStyleEnum assignStyle;
 			if (ctx.onchangeEveryShorthand() != null) {
 				assignStyle = AssignStyleEnum.EQUALS;
@@ -228,32 +229,32 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 					assignment = ctx.rhsExpr == null ? null : (Expression) ctx.rhsExpr.accept(this);//
 				}
 			}
-			
+
 			ass = new AssignTupleDeref(line, col, lhss, assignStyle, assignment);
-		}else {
+		} else {
 
 			if (ctx.lonleyannotation != null) {
 				return new DuffAssign(line, col, (Annotation) ctx.lonleyannotation.accept(this));
 			}
 
-			Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>)(ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-			
-			AccessModifier accessModi = accessModifierAndInject==null?null:accessModifierAndInject.getA();
-			
+			Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
+
+			AccessModifier accessModi = accessModifierAndInject == null ? null : accessModifierAndInject.getA();
+
 			boolean isTransien;
 			boolean isShared;
 			boolean isLazy;
-			if(null != ctx.transAndShared) {
-				Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>)ctx.transAndShared.accept(this);
+			if (null != ctx.transAndShared) {
+				Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>) ctx.transAndShared.accept(this);
 				isTransien = transAndShared.getA();
 				isShared = transAndShared.getB();
 				isLazy = transAndShared.getC();
-			}else {
+			} else {
 				isTransien = false;
 				isShared = false;
 				isLazy = false;
 			}
-			
+
 			boolean hasValVar = ctx.valvar != null;
 			boolean isFinal = hasValVar && (ctx.valvar.getText().equals("val"));
 
@@ -263,17 +264,17 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 			if (ctx.refname != null) {
 				assignee = new RefName(line, col, ctx.refname.getText());
-			} else if(ctx.assignee != null ){
+			} else if (ctx.assignee != null) {
 				assignee = (Expression) ctx.assignee.accept(this);
-			}else {
+			} else {
 				assignee = null;
 			}
 
 			Type type = null;
-			if(null != ctx.typeNoNTTuple()) {
+			if (null != ctx.typeNoNTTuple()) {
 				type = (Type) ctx.typeNoNTTuple().accept(this);
 			}
-			
+
 			AssignStyleEnum assignStyle;
 			if (ctx.onchangeEveryShorthand() != null) {
 				assignStyle = AssignStyleEnum.EQUALS;
@@ -327,12 +328,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			if (null != ctx.gpuVarQualifier()) {
 				ass.gpuVarQualifier = (GPUVarQualifier) ctx.gpuVarQualifier().accept(this);
 			}
-			
-			ass.isInjected = accessModifierAndInject==null?false:accessModifierAndInject.getB();
+
+			ass.isInjected = accessModifierAndInject == null ? false : accessModifierAndInject.getB();
 		}
-		
+
 		ass.isOverride = ctx.override != null;
-		
+
 		if (rhsassissgment != null) {
 			AssignMulti newOne = new AssignMulti(line, col, assignment);
 			// ass.setRHSExpression(null);
@@ -348,13 +349,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				// multi.assignments.forEach(a -> a.setRHSExpression(null));
 				newOne.assignments.addAll(multi.assignments);
 			}
-			
+
 			return newOne;
 		}
-		
+
 		return ass;
 	}
-
 
 	@Override
 	public Object visitAssignmentForcedRHS(ConcurnasParser.AssignmentForcedRHSContext ctx) {
@@ -364,11 +364,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		Assign ass;
 		AssignWithRHSExpression rhsassissgment = null;
 		Expression assignment;
-		
-		if(!ctx.assignmentTupleDereflhsOrNothing().isEmpty()) {
+
+		if (!ctx.assignmentTupleDereflhsOrNothing().isEmpty()) {
 			ArrayList<Assign> lhss = new ArrayList<Assign>();
-			ctx.assignmentTupleDereflhsOrNothing().forEach(a -> lhss.add((Assign)a.accept(this)));
-			
+			ctx.assignmentTupleDereflhsOrNothing().forEach(a -> lhss.add((Assign) a.accept(this)));
+
 			AssignStyleEnum assignStyle;
 			if (ctx.onchangeEveryShorthand() != null) {
 				assignStyle = AssignStyleEnum.EQUALS;
@@ -383,31 +383,31 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 					assignment = ctx.rhsExpr == null ? null : (Expression) ctx.rhsExpr.accept(this);//
 				}
 			}
-			
+
 			ass = new AssignTupleDeref(line, col, lhss, assignStyle, assignment);
-		}else {
+		} else {
 
 			if (ctx.lonleyannotation != null) {
 				return new DuffAssign(line, col, (Annotation) ctx.lonleyannotation.accept(this));
 			}
 
-			Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>)(ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-			AccessModifier accessModi = accessModifierAndInject == null?null:accessModifierAndInject.getA();
-			
+			Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
+			AccessModifier accessModi = accessModifierAndInject == null ? null : accessModifierAndInject.getA();
+
 			boolean isTransien;
 			boolean isShared;
 			boolean isLazy;
-			if(null != ctx.transAndShared) {
-				Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>)ctx.transAndShared.accept(this);
+			if (null != ctx.transAndShared) {
+				Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>) ctx.transAndShared.accept(this);
 				isTransien = transAndShared.getA();
 				isShared = transAndShared.getB();
 				isLazy = transAndShared.getC();
-			}else {
+			} else {
 				isTransien = false;
 				isShared = false;
 				isLazy = false;
 			}
-			
+
 			boolean hasValVar = ctx.valvar != null;
 			boolean isFinal = hasValVar && (ctx.valvar.getText().equals("val"));
 
@@ -422,10 +422,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			}
 
 			Type type = null;
-			if(null != ctx.type()) {
+			if (null != ctx.type()) {
 				type = (Type) ctx.type().accept(this);
 			}
-			
+
 			AssignStyleEnum assignStyle;
 			if (ctx.onchangeEveryShorthand() != null) {
 				assignStyle = AssignStyleEnum.EQUALS;
@@ -445,7 +445,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			}
 
 			int refCnt = ctx.refCnt.size();
-			if ((accessModi != null || isTransien || isLazy || isShared|| hasValVar || prefix != null || type != null || assignStyle == AssignStyleEnum.EQUALS) && assignee instanceof RefName && (hasValVar || isTransien || isShared || isFinal || type != null || prefix != null || accessModi != null)) {// AssignNew
+			if ((accessModi != null || isTransien || isLazy || isShared || hasValVar || prefix != null || type != null || assignStyle == AssignStyleEnum.EQUALS) && assignee instanceof RefName && (hasValVar || isTransien || isShared || isFinal || type != null || prefix != null || accessModi != null)) {// AssignNew
 
 				if (type == null && assignment == null && refCnt > 0) {
 					type = new NamedType(line, col, new ClassDefJava(Object.class));
@@ -472,8 +472,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				Annotations annots = (Annotations) ctx.annotations().accept(this);
 				ass.setAnnotations(annots);
 			}
-			
-			ass.isInjected = accessModifierAndInject == null?false:accessModifierAndInject.getB();
+
+			ass.isInjected = accessModifierAndInject == null ? false : accessModifierAndInject.getB();
 
 			ass.isTransient = isTransien;
 			ass.isShared = isShared;
@@ -482,9 +482,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				ass.gpuVarQualifier = (GPUVarQualifier) ctx.gpuVarQualifier().accept(this);
 			}
 		}
-		
+
 		ass.isOverride = ctx.override != null;
-		
+
 		if (rhsassissgment != null) {
 			AssignMulti newOne = new AssignMulti(line, col, assignment);
 			// ass.setRHSExpression(null);
@@ -505,9 +505,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		}
 
 		return ass;
-		
+
 	}
-	
+
 	@Override
 	public DeleteStatement visitDelete_stmt(ConcurnasParser.Delete_stmtContext ctx) {
 		ArrayList<Expression> exprs = new ArrayList<Expression>(ctx.expr_stmt().size());
@@ -551,9 +551,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	@Override
 	public ImportStatement visitImport_stmt_from(ConcurnasParser.Import_stmt_fromContext ctx) {
 		boolean normalImport = ctx.using == null;
-		if(ctx.star != null) {
+		if (ctx.star != null) {
 			return new ImportStar(ctx.start.getLine(), ctx.start.getCharPositionInLine(), normalImport, (String) ctx.dotted_name().accept(this));
-		}else {
+		} else {
 			ImportFrom ret = new ImportFrom(ctx.start.getLine(), ctx.start.getCharPositionInLine(), normalImport, (String) ctx.dotted_name().accept(this));
 
 			for (ConcurnasParser.Import_as_nameContext ian : ctx.import_as_name()) {
@@ -578,9 +578,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	@Override
 	public ImportStatement visitImport_stmt_impot(ConcurnasParser.Import_stmt_impotContext ctx) {
 		boolean normalImport = ctx.using == null;
-		if(ctx.star != null) {
+		if (ctx.star != null) {
 			return new ImportStar(ctx.start.getLine(), ctx.start.getCharPositionInLine(), normalImport, (String) ctx.dotted_name().accept(this));
-		}else {
+		} else {
 			ImportImport ret = new ImportImport(ctx.start.getLine(), ctx.start.getCharPositionInLine(), normalImport);
 			DottedAsName primdasn = (DottedAsName) ctx.prim.accept(this);
 			ret.add(primdasn);
@@ -722,6 +722,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	}
 
 	@Override
+	public Expression visitNatNumNode(ConcurnasParser.NatNumNodeContext ctx) {
+		return (Expression) parseLongOrInt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.getText());
+	}
+
+	@Override
 	public Expression visitLongNode(ConcurnasParser.LongNodeContext ctx) {
 		String llongs = ctx.getText();
 		return (Expression) new VarLong(ctx.start.getLine(), ctx.start.getCharPositionInLine(), Long.parseLong(llongs.substring(0, llongs.length() - 1)));
@@ -768,12 +773,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			return new VarString(ctx.start.getLine(), ctx.start.getCharPositionInLine(), subx);
 		}
 	}
-	
-	
+
 	@Override
 	public Expression visitLangExtNode(ConcurnasParser.LangExtNodeContext ctx) {
 		String bbody = ctx.body.getText();
-		return new LangExt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.name.getText(), bbody.substring(2, bbody.length()-2));
+		return new LangExt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.name.getText(), bbody.substring(2, bbody.length() - 2));
 	}
 
 	@Override
@@ -790,7 +794,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	@Override
 	public AccessModifier visitPppNoInject(ConcurnasParser.PppNoInjectContext ctx) {
 		ParseTree whichone = ctx.getChild(0);
-		
+
 		if (whichone == ctx.PRIVATE()) {
 			return AccessModifier.PRIVATE;
 		} else if (whichone == ctx.PUBLIC()) {
@@ -800,16 +804,17 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		} else if (whichone == ctx.PACKAGE()) {
 			return AccessModifier.PACKAGE;
 		}
-		
+
 		return null;
 	}
+
 	@Override
 	public Pair<AccessModifier, Boolean> visitPpp(ConcurnasParser.PppContext ctx) {
 		boolean inject = ctx.inject != null;
-		
-		String pp = ctx.pp == null?null:ctx.pp.getText();
+
+		String pp = ctx.pp == null ? null : ctx.pp.getText();
 		AccessModifier am = AccessModifier.PUBLIC;
-		if(null != pp) {
+		if (null != pp) {
 			if (pp.equals("private")) {
 				am = AccessModifier.PRIVATE;
 			} else if (pp.equals("public")) {
@@ -820,7 +825,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				am = AccessModifier.PACKAGE;
 			}
 		}
-		
+
 		return new Pair<AccessModifier, Boolean>(am, inject);
 	}
 
@@ -830,40 +835,39 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ArrayList<Pair<String, NamedType>> ret = new ArrayList<Pair<String, NamedType>>(2);
 
 		for (ConcurnasParser.NameAndUpperBoundContext tn : ctx.nameAndUpperBound()) {
-			ret.add((Pair<String, NamedType>)tn.accept(this));
+			ret.add((Pair<String, NamedType>) tn.accept(this));
 		}
 
 		return ret;
 	}
-	
+
 	@Override
 	public Pair<String, NamedType> visitNameAndUpperBound(ConcurnasParser.NameAndUpperBoundContext ctx) {
-		
+
 		String name = ctx.NAME().getText();
-		NamedType nt = null != ctx.namedType()?(NamedType)ctx.namedType().accept(this):null;
-		
+		NamedType nt = null != ctx.namedType() ? (NamedType) ctx.namedType().accept(this) : null;
+
 		boolean nullable = ctx.nullable != null;
-		if(nullable) {
-			if(null == nt) {
+		if (nullable) {
+			if (null == nt) {
 				nt = ScopeAndTypeChecker.const_object.copyTypeSpecific();
 			}
 			nt.setNullStatus(NullStatus.NULLABLE);
 		}
-		
+
 		return new Pair<String, NamedType>(name, nt);
 	}
-	
 
 	@Override
 	public List<String> visitTypedefArgs(ConcurnasParser.TypedefArgsContext ctx) {
 		return ctx.NAME().stream().map(a -> a.getText()).collect(Collectors.toList());
-		
+
 	}
 
 	@Override
 	public TypedefStatement visitTypedef_stmt(ConcurnasParser.Typedef_stmtContext ctx) {
-		AccessModifier accessModifier = (AccessModifier)(ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
-		
+		AccessModifier accessModifier = (AccessModifier) (ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
+
 		List<String> typedefargs = ctx.typedefArgs() == null ? new ArrayList<String>(0) : (List<String>) ctx.typedefArgs().accept(this);
 
 		Type type = (Type) ctx.type().accept(this);
@@ -891,17 +895,16 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		return ret;
 	}
-	
+
 	@Override
 	public Block visitSingle_line_block(ConcurnasParser.Single_line_blockContext ctx) {
 		Block ret = new Block(ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		
+
 		// ret.addAll((List<LineHolder>) ctx.line().accept(this));
 		ctx.single_line_element().forEach(a -> ret.add((LineHolder) a.accept(this)));
-		
+
 		return ret;
 	}
-
 
 	/*
 	 * @Override public Object
@@ -1040,10 +1043,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public FuncDefI visitFuncdef(ConcurnasParser.FuncdefContext ctx) {
-		//AccessModifier accessModi = (AccessModifier) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-		Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>)(ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-		AccessModifier accessModi = accessModifierAndInject == null?null:accessModifierAndInject.getA();
-		
+		// AccessModifier accessModi = (AccessModifier) (ctx.ppp() != null ?
+		// ctx.ppp().accept(this) : null);
+		Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
+		AccessModifier accessModi = accessModifierAndInject == null ? null : accessModifierAndInject.getA();
+
 		String funcName = ctx.funcDefName() == null ? null : (String) ctx.funcDefName().accept(this);
 		boolean override = ctx.override != null;
 		boolean isFinal = ctx.DOT() != null;
@@ -1052,12 +1056,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		Type retType = ctx.retTypeIncVoid() == null ? null : (Type) ctx.retTypeIncVoid().accept(this);
 		boolean aabstract;
-		
+
 		Block body = null;
-		if(ctx.blockOrBlock() != null) {
-			body = (Block)ctx.blockOrBlock().accept(this);
+		if (ctx.blockOrBlock() != null) {
+			body = (Block) ctx.blockOrBlock().accept(this);
 			aabstract = false;
-		}else {
+		} else {
 			aabstract = true;
 		}
 
@@ -1095,8 +1099,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		if (gpuitem != null) {
 			ret.isGPUKernalOrFunction = GPUFuncVariant.valueOf(gpuitem);
 		}
-		
-		ret.isInjected = accessModifierAndInject==null?false:accessModifierAndInject.getB();
+
+		ret.isInjected = accessModifierAndInject == null ? false : accessModifierAndInject.getB();
 		return ret;
 	}
 
@@ -1114,7 +1118,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	@Override
 	public LambdaDef visitLambdadef(ConcurnasParser.LambdadefContext ctx) {
 		ArrayList<Pair<String, NamedType>> methodGenricList = null != ctx.genericQualiList() ? (ArrayList<Pair<String, NamedType>>) ctx.genericQualiList().accept(this) : new ArrayList<Pair<String, NamedType>>();
-		
+
 		Type retType = ctx.retTypeIncVoid() == null ? null : (Type) ctx.retTypeIncVoid().accept(this);
 		Block body;
 		if (ctx.block() != null) {
@@ -1124,12 +1128,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		} else {
 			body = null;
 		}
-		
+
 		FuncParams params = ctx.funcParams() != null ? (FuncParams) ctx.funcParams().accept(this) : new FuncParams(ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		
+
 		return new LambdaDef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), null, params, body, retType, methodGenricList);
 	}
-	
+
 	@Override
 	public LambdaDef visitLambdadefOneLine(ConcurnasParser.LambdadefOneLineContext ctx) {
 		ArrayList<Pair<String, NamedType>> methodGenricList = null != ctx.genericQualiList() ? (ArrayList<Pair<String, NamedType>>) ctx.genericQualiList().accept(this) : new ArrayList<Pair<String, NamedType>>();
@@ -1159,9 +1163,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		FuncParam ret = new FuncParam(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.NAME() == null ? null : ctx.NAME().getText(), type, isFinal);
 
 		ret.annotations = ctx.annotations() == null ? null : (Annotations) ctx.annotations().accept(this);
-		ret.isVararg = ctx.isvararg != null;
+		ret.isVararg = ctx.isvararg != null || ctx.isvarargAndPrevNullable != null;
+		ret.isNullableVarArg = ctx.nullable != null;
 		if (ctx.expr_stmt() != null) {
 			ret.defaultValue = (Expression) ctx.expr_stmt().accept(this);
+		}
+
+		if (ctx.isvarargAndPrevNullable != null) {
+			type.setNullStatus(NullStatus.NULLABLE);
 		}
 
 		if (null != ctx.gpuVarQualifier()) {
@@ -1171,10 +1180,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		if (null != ctx.gpuInOutFuncParamModifier()) {
 			ret.gpuInOutFuncParamModifier = (GPUInOutFuncParamModifier) ctx.gpuInOutFuncParamModifier().accept(this);
 		}
-		
-		if(ctx.sharedOrLazy() != null) {
-			Pair<Boolean, Boolean> sl = (Pair<Boolean, Boolean>)ctx.sharedOrLazy().accept(this);
-			
+
+		if (ctx.sharedOrLazy() != null) {
+			Pair<Boolean, Boolean> sl = (Pair<Boolean, Boolean>) ctx.sharedOrLazy().accept(this);
+
 			ret.isShared = sl.getA();
 			ret.isLazy = sl.getB();
 		}
@@ -1184,10 +1193,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public Pair<Boolean, Boolean> visitSharedOrLazy(ConcurnasParser.SharedOrLazyContext ctx) {
-		return new Pair<Boolean, Boolean>(ctx.shared!=null, ctx.lazy!=null);
+		return new Pair<Boolean, Boolean>(ctx.shared != null, ctx.lazy != null);
 	}
-	
-	
+
 	@Override
 	public GPUInOutFuncParamModifier visitGpuInOutFuncParamModifier(ConcurnasParser.GpuInOutFuncParamModifierContext ctx) {
 		return GPUInOutFuncParamModifier.valueOf(ctx.getText());
@@ -1200,23 +1208,30 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	}
 
-	private ArrayList<Fourple<RefOrArryEnum, Object, Integer, Integer>> getMutators(List<?> mutators) {
-		ArrayList<Fourple<RefOrArryEnum, Object, Integer, Integer>> ret = new ArrayList<Fourple<RefOrArryEnum, Object, Integer, Integer>>(mutators.size());
-		mutators.forEach(a -> ret.add( (Fourple<RefOrArryEnum, Object, Integer, Integer>)((ParserRuleContext)a).accept(this)  ));
+	private ArrayList<Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>> getMutators(List<?> mutators) {
+		ArrayList<Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>> ret = new ArrayList<Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>>(mutators.size());
+		mutators.forEach(a -> ret.add((Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>) ((ParserRuleContext) a).accept(this)));
 		return ret;
 	}
-	
-	//private Type applyMutators(Type ret, List<ConcurnasParser.TrefOrArrayRefContext> mutators) {
-	private Type applyMutators(Type ret, List<Fourple<RefOrArryEnum, Object, Integer, Integer>> mutators) {
-		if(mutators == null) {
+
+	// private Type applyMutators(Type ret,
+	// List<ConcurnasParser.TrefOrArrayRefContext> mutators) {
+	private Type applyMutators(Type ret, List<Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>> mutators) {
+		if (mutators == null) {
 			return ret;
 		}
-		
-		//for (ConcurnasParser.TrefOrArrayRefContext mutator : mutators) {
-			//Fourple<RefOrArryEnum, Object, Integer, Integer> muta = (Fourple<RefOrArryEnum, Object, Integer, Integer>) mutator.accept(this);
 
-		for (Fourple<RefOrArryEnum, Object, Integer, Integer> muta : mutators) {
+		// for (ConcurnasParser.TrefOrArrayRefContext mutator : mutators) {
+		// Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean> muta =
+		// (Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>)
+		// mutator.accept(this);
+
+		for (Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean> muta : mutators) {
 			RefOrArryEnum what = muta.getA();
+
+			if (muta.getE()) {
+				ret.setNullStatus(NullStatus.NULLABLE);
+			}
 
 			if (what == RefOrArryEnum.ARRAY) {
 				Expression specLevels = (Expression) muta.getB();
@@ -1227,29 +1242,31 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				}
 				ret = (Type) ret.copy();
 				ret.setArrayLevels(((VarInt) specLevels).inter);
-				if(ret.getNullStatus() == NullStatus.NULLABLE) {
-					ret.setNullStatus(NullStatus.NONNULL);
+				if (ret.getNullStatus() == NullStatus.NULLABLE) {
+					ret.setNullStatus(NullStatus.NOTNULL);
 					ret.setNullStatusAtArrayLevel(NullStatus.NULLABLE);
 				}
 			} else if (what == RefOrArryEnum.REF) {
 				ret = new NamedType(muta.getC(), muta.getD(), ret);
 			} else if (what == RefOrArryEnum.NAMED_REF) {
 				ret = new NamedType(muta.getC(), muta.getD(), (String) muta.getB(), ret);
-			}else if(what == RefOrArryEnum.NULLABLE) {
-				if(ret.getNullStatus() == NullStatus.NULLABLE && !ret.hasArrayLevels()) {
+			} else if (what == RefOrArryEnum.NULLABLE) {
+				if (ret.getNullStatus() == NullStatus.NULLABLE && !ret.hasArrayLevels()) {
 					parserErrors.errors.add(new ErrorHolder(sourceName, muta.getC(), muta.getD(), "? may not be used consecutively"));
 				}
-				if(ret instanceof PrimativeType && !ret.hasArrayLevels()) {
-					//parserErrors.errors.add(new ErrorHolder(sourceName, muta.getC(), muta.getD(), "primative types may not be nullable"));
+				if (ret instanceof PrimativeType && !ret.hasArrayLevels()) {
+					// parserErrors.errors.add(new ErrorHolder(sourceName, muta.getC(), muta.getD(),
+					// "primative types may not be nullable"));
 				}
-				
-				/*if(ret.hasArrayLevels()) {
-					//add nullable array level
-					ret.setNullStatusAtArrayLevel(NullStatus.NULLABLE);
-				}else {*/
-					ret.setNullStatus(NullStatus.NULLABLE);
-				//}
+
+				/*
+				 * if(ret.hasArrayLevels()) { //add nullable array level
+				 * ret.setNullStatusAtArrayLevel(NullStatus.NULLABLE); }else {
+				 */
+				ret.setNullStatus(NullStatus.NULLABLE);
+				// }
 			}
+
 		}
 		return ret;
 	}
@@ -1259,34 +1276,33 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	}
 
 	@Override
-	public Fourple<RefOrArryEnum, Object, Integer, Integer> visitTrefOrArrayRef(ConcurnasParser.TrefOrArrayRefContext ctx) {
+	public Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean> visitTrefOrArrayRef(ConcurnasParser.TrefOrArrayRefContext ctx) {
 		if (ctx.hasAr != null) {
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.ARRAY, ctx.arLevels == null ? new VarInt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), 1) : ctx.arLevels.accept(this), ctx.start.getLine(), ctx.start.getCharPositionInLine());
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.ARRAY, ctx.arLevels == null ? new VarInt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), 1) : ctx.arLevels.accept(this), ctx.start.getLine(), ctx.start.getCharPositionInLine(), false);
 		} else if (!ctx.hasArAlt.isEmpty()) {
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.ARRAY, new VarInt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.hasArAlt.size()), ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		} else if(ctx.refOrNullable() != null) {
-			return (Fourple<RefOrArryEnum, Object, Integer, Integer>)ctx.refOrNullable().accept(this) ;
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.ARRAY, new VarInt(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.hasArAlt.size()), ctx.start.getLine(), ctx.start.getCharPositionInLine(), false);
+		} else if (ctx.refOrNullable() != null) {
+			return (Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>) ctx.refOrNullable().accept(this);
 		}
-		
+
 		else {
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.REF, null, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.REF, null, ctx.start.getLine(), ctx.start.getCharPositionInLine(), false);
 		}
 	}
-	
+
 	@Override
-	public Fourple<RefOrArryEnum, Object, Integer, Integer> visitRefOrNullable(ConcurnasParser.RefOrNullableContext ctx) {
+	public Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean> visitRefOrNullable(ConcurnasParser.RefOrNullableContext ctx) {
 		if (ctx.dotted_name() != null) {
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.NAMED_REF, ctx.dotted_name().accept(this), ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		} else if(ctx.nullable != null){
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.NULLABLE, null, ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		} else if(ctx.nullableErr != null){
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.NAMED_REF, ctx.dotted_name().accept(this), ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.nullableContent != null);
+		} else if (ctx.nullable != null) {
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.NULLABLE, null, ctx.start.getLine(), ctx.start.getCharPositionInLine(), false);
+		} else if (ctx.nullableErr != null) {
 			parserErrors.errors.add(new ErrorHolder(sourceName, ctx.start.getLine(), ctx.start.getCharPositionInLine(), "? may not be used consecutively"));
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.NULLABLE, null, ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		}else {
-			return new Fourple<RefOrArryEnum, Object, Integer, Integer>(RefOrArryEnum.REF, null, ctx.start.getLine(), ctx.start.getCharPositionInLine());
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.NULLABLE, null, ctx.start.getLine(), ctx.start.getCharPositionInLine(), false);
+		} else {
+			return new Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>(RefOrArryEnum.REF, null, ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.nullableContent != null);
 		}
 	}
-	
 
 	@Override
 	public FuncType visitFuncType(ConcurnasParser.FuncTypeContext ctx) {
@@ -1304,12 +1320,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		Type retType = (Type) ctx.retTypeIncVoid().accept(this);
 
-		
 		ArrayList<Type> inputsB = new ArrayList<Type>(inputs.size());
-		for(Type tt: inputs) {
+		for (Type tt : inputs) {
 			inputsB.add(TypeCheckUtils.boxTypeIfPrimative(tt, false));
 		}
-		
+
 		FuncType ret = new FuncType(line, col, inputsB, TypeCheckUtils.boxTypeIfPrimative(retType, false, false));
 
 		if (ctx.constr != null) {
@@ -1324,11 +1339,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			for (Pair<String, NamedType> gg : gens) {
 				GenericType gh = new GenericType(line, col, gg.getA(), 0);
 				NamedType nt = gg.getB();
-				if(null != nt) {
+				if (null != nt) {
 					gh.upperBound = nt;
 					gh.setNullStatus(nt.getNullStatus());
 				}
-				
+
 				localGens.add(gh);
 			}
 
@@ -1344,8 +1359,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		int col = ctx.start.getCharPositionInLine();
 
 		Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-		AccessModifier accessModifier = accessModifierAndInject == null?null:accessModifierAndInject.getA();
-		
+		AccessModifier accessModifier = accessModifierAndInject == null ? null : accessModifierAndInject.getA();
+
 		boolean isActor = ctx.isactor != null;
 
 		@SuppressWarnings("unchecked")
@@ -1375,7 +1390,6 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			}
 		}
 
-		
 		Block classBlock = ctx.block() == null ? new Block(line, col) : (Block) ctx.block().accept(this);
 
 		ArrayList<Expression> acteeClassExpressions = ctx.typeActeeExprList == null ? new ArrayList<Expression>() : (ArrayList<Expression>) ctx.typeActeeExprList.accept(this);
@@ -1393,10 +1407,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		boolean isTrait = ctx.istrait != null;
 		boolean isTransient = ctx.trans != null;
 		boolean isShared = ctx.shared != null;
-		
+
 		ClassDef cd = new ClassDef(line, col, accessModifier, false, isActor, className, classGenricList, classDefArgs, superclass, superClassGenricList, superClassExpressions, impls, classBlock, isAbstract, isFinalDefined, typedActorOn, istypedActor, acteeClassExpressions, isTransient, isShared, isTrait);
-		cd.injectClassDefArgsConstructor = accessModifierAndInject==null?false:accessModifierAndInject.getB();
-		
+		cd.injectClassDefArgsConstructor = accessModifierAndInject == null ? false : accessModifierAndInject.getB();
+
 		return cd;
 	}
 
@@ -1449,14 +1463,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		boolean isTransient = ctx.trans != null;
 		boolean isShared = ctx.shared != null;
-		
+
 		ClassDef cd = new ClassDef(line, col, null, false, isActor, null, classGenricList, classDefArgs, superclass, superClassGenricList, superClassExpressions, impls, classBlock, isAbstract, isFinalDefined, typedActorOn, istypedActor, acteeClassExpressions, isTransient, isShared, false);
 
 		cd.isLocalClassDef = true;
 
 		return new LocalClassDef(line, col, cd);
 	}
-	
+
 	@Override
 	public Block visitAnonclassdef(ConcurnasParser.AnonclassdefContext ctx) {
 
@@ -1464,7 +1478,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		int col = ctx.start.getCharPositionInLine();
 
 		boolean isActor = ctx.isactor != null;
-		
+
 		String superclass = ctx.superCls == null ? null : (String) ctx.superCls.accept(this);
 
 		String isFinalDefined = null;
@@ -1480,55 +1494,52 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		if (!ctx.implInstance().isEmpty()) {
 			ctx.implInstance().forEach(a -> impls.add((ImpliInstance) a.accept(this)));
 		}
-		
 
 		Block ret = new Block(line, col);
 		ret.isolated = true;
-		
+
 		ClassDef cd = new ClassDef(line, col, null, false, false, "AnonClassTmp$", new ArrayList<Pair<String, NamedType>>(), null, superclass, superClassGenricList, new ArrayList<Expression>(), impls, classBlock, isAbstract, isFinalDefined, null, false, new ArrayList<Expression>(), false, false, false);
 		cd.isAnonClass = true;
 		ret.add(cd);
-		
+
 		NamedType typeee = new NamedType(line, col, "AnonClassTmp$");
-		
-		if(isActor) {
+
+		if (isActor) {
 			ClassDef actorClass = new ClassDef(line, col, null, false, true, "AnonClassTmp$Actor$", new ArrayList<Pair<String, NamedType>>(), null, null, new ArrayList<Type>(), new ArrayList<Expression>(), new ArrayList<ImpliInstance>(), new Block(line, col), false, null, typeee, true, new ArrayList<Expression>(), false, false, false);
 			actorClass.isAnonClass = true;
 			ret.add(actorClass);
 			typeee = new NamedType(line, col, "AnonClassTmp$Actor$");
 		}
-		
+
 		New nn = new New(line, col, typeee, new FuncInvokeArgs(line, col), true);
-		
+
 		ret.add(new DuffAssign(nn));
 		ret.setShouldBePresevedOnStack(true);
 		return ret;
-		
-		/*ClassDef cd = new ClassDef(line, col, null, false, false, null, new ArrayList<Tuple<String, NamedType>>(), null, superclass, superClassGenricList, new ArrayList<Expression>(), impls, classBlock, isAbstract, isFinalDefined, null, false, new ArrayList<Expression>(), false, false, false);
-		cd.isLocalClassDef = true;
 
-		AssignExisting ae = new AssignExisting(line, col, "anonClassTmp$", AssignStyleEnum.EQUALS, new LocalClassDef(line, col, cd));
-		
-		Block ret = new Block(line, col);
-		ret.add(ae);
-		ret.isolated = true;
+		/*
+		 * ClassDef cd = new ClassDef(line, col, null, false, false, null, new
+		 * ArrayList<Tuple<String, NamedType>>(), null, superclass,
+		 * superClassGenricList, new ArrayList<Expression>(), impls, classBlock,
+		 * isAbstract, isFinalDefined, null, false, new ArrayList<Expression>(), false,
+		 * false, false); cd.isLocalClassDef = true;
+		 * 
+		 * AssignExisting ae = new AssignExisting(line, col, "anonClassTmp$",
+		 * AssignStyleEnum.EQUALS, new LocalClassDef(line, col, cd));
+		 * 
+		 * Block ret = new Block(line, col); ret.add(ae); ret.isolated = true;
+		 * 
+		 * NamedType typeee = new NamedType(line, col, "anonClassTmp$"); if(isActor) {
+		 * NamedType actType = ScopeAndTypeChecker.const_typed_actor.copyTypeSpecific();
+		 * actType.setLine(line); actType.setColumn(col); actType.setGenTypes(typeee);
+		 * actType.isDefaultActor = true; typeee = actType; }
+		 * 
+		 * New nn = new New(line, col, typeee, new FuncInvokeArgs(line, col), true);
+		 * 
+		 * ret.add(new DuffAssign(nn)); ret.setShouldBePresevedOnStack(true); return
+		 * ret;
+		 */
 
-		NamedType typeee = new NamedType(line, col, "anonClassTmp$");
-		if(isActor) {
-			NamedType actType = ScopeAndTypeChecker.const_typed_actor.copyTypeSpecific();
-			actType.setLine(line);
-			actType.setColumn(col);
-			actType.setGenTypes(typeee);
-			actType.isDefaultActor = true;
-			typeee = actType;
-		}
-		
-		New nn = new New(line, col, typeee, new FuncInvokeArgs(line, col), true);
-		
-		ret.add(new DuffAssign(nn));
-		ret.setShouldBePresevedOnStack(true);
-		return ret;*/
-		
 	}
 
 	@Override
@@ -1563,7 +1574,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
 
-		AccessModifier accessModi = (AccessModifier)(ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : AccessModifier.PROTECTED);
+		AccessModifier accessModi = (AccessModifier) (ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : AccessModifier.PROTECTED);
 
 		boolean isFinal = ctx.isFinal != null;
 
@@ -1580,23 +1591,28 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ClassDefArg ret = new ClassDefArg(line, col, accessModi, isFinal, prefix, ctx.NAME().getText(), type);
 
 		ret.annotations = ctx.annotations() == null ? null : (Annotations) ctx.annotations().accept(this);
-		ret.isVararg = ctx.isvararg != null;
+		ret.isVararg = ctx.isvararg != null || ctx.isvarargAndPrevNullable != null;
+		ret.isNullableVarArg = ctx.nullablevararg != null;
+
+		if (ctx.isvarargAndPrevNullable != null) {
+			type.setNullStatus(NullStatus.NULLABLE);
+		}
+
 		if (ctx.expr_stmt() != null) {
 			ret.defaultValue = (Expression) ctx.expr_stmt().accept(this);
 		}
-		
-		
-		if(null != ctx.transAndShared) {
-			Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>)ctx.transAndShared.accept(this);
+
+		if (null != ctx.transAndShared) {
+			Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>) ctx.transAndShared.accept(this);
 			ret.isTransient = transAndShared.getA();
 			ret.isShared = transAndShared.getB();
 			ret.isLazy = transAndShared.getC();
-		}else {
+		} else {
 			ret.isTransient = false;
 			ret.isShared = false;
 			ret.isLazy = false;
 		}
-		
+
 		ret.isOverride = ctx.override != null;
 
 		return ret;
@@ -1748,7 +1764,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public EnumDef visitEnumdef(ConcurnasParser.EnumdefContext ctx) {
-		AccessModifier accessModi = (AccessModifier)(ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
+		AccessModifier accessModi = (AccessModifier) (ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
 		EnumBlock enumblock = (EnumBlock) ctx.enumblock().accept(this);
 
 		ClassDefArgs classDefArgs = ctx.classdefArgs() == null ? null : (ClassDefArgs) ctx.classdefArgs().accept(this);
@@ -1818,9 +1834,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			expr = ctx.type().accept(this);
 		} else if (ctx.funcType() != null) {
 			expr = ctx.funcType().accept(this);
-		} else if(ctx.namedType() != null) {
+		} else if (ctx.namedType() != null) {
 			expr = ctx.namedType().accept(this);
-		} else if(ctx.tupleType() != null) {
+		} else if (ctx.tupleType() != null) {
 			expr = ctx.tupleType().accept(this);
 		} else {
 			int line = ctx.start.getLine();
@@ -1831,12 +1847,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				expr = new NamedType(line, col, expr == null ? NamedType.ntObj : (Type) expr);
 			}
 		}
-		if(ctx.lazy != null) {
-			expr = Utils.convertToLazyType((Type)expr);
+		if (ctx.lazy != null) {
+			expr = Utils.convertToLazyType((Type) expr);
 		}
-		
-		if(ctx.nullable != null) {
-			((Type)expr).setNullStatus(NullStatus.NULLABLE);
+
+		if (ctx.nullable != null) {
+			((Type) expr).setNullStatus(NullStatus.NULLABLE);
 		}
 
 		return new Pair<String, Object>(ctx.NAME() == null ? null : ctx.NAME().getText(), expr);
@@ -1866,13 +1882,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			expr = (Expression) ctx.expr_stmt().accept(this);
 		} else if (ctx.primitiveType() != null) {
 			expr = new TypeReturningExpression((Type) ctx.primitiveType().accept(this));
+		} else if (ctx.tupleType() != null) {
+			expr = new TypeReturningExpression((Type) ctx.tupleType().accept(this));
 		} else {
 			expr = new TypeReturningExpression((Type) ctx.funcType().accept(this));
 		}
 
 		return new Pair<String, Expression>(ctx.NAME() == null ? null : ctx.NAME().getText(), expr);
 	}
-
 
 	@Override
 	public Block visitBlockOrBlock(ConcurnasParser.BlockOrBlockContext ctx) {
@@ -1890,16 +1907,16 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
 
-		Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>)(ctx.ppp() != null ? ctx.ppp().accept(this) : null);
-		AccessModifier accessModi = accessModifierAndInject == null?null:accessModifierAndInject.getA();
-		
+		Pair<AccessModifier, Boolean> accessModifierAndInject = (Pair<AccessModifier, Boolean>) (ctx.ppp() != null ? ctx.ppp().accept(this) : null);
+		AccessModifier accessModi = accessModifierAndInject == null ? null : accessModifierAndInject.getA();
+
 		FuncParams params = ctx.funcParams() == null ? new FuncParams(line, col) : (FuncParams) ctx.funcParams().accept(this);
-		
-		Block bbk = (Block)ctx.blockOrBlock().accept(this);
+
+		Block bbk = (Block) ctx.blockOrBlock().accept(this);
 
 		ConstructorDef cd = new ConstructorDef(line, col, accessModi, params, bbk);
-		cd.isInjected = accessModifierAndInject==null?false:accessModifierAndInject.getB();
-		
+		cd.isInjected = accessModifierAndInject == null ? false : accessModifierAndInject.getB();
+
 		return cd;
 	}
 
@@ -1928,8 +1945,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		if (null != ctx.elseblock) {
 			ret.elseblock = (Block) ctx.elseblock.accept(this);
 		}
-		
-		if(pfv != null) {
+
+		if (pfv != null) {
 			return convertForIfParfor(line, col, pfv, ret);
 		}
 
@@ -1945,33 +1962,33 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public Pair<String, Type> visitForVarTupleOrNothing(ConcurnasParser.ForVarTupleOrNothingContext ctx) {
-		ConcurnasParser.ForVarTupleContext tt = ctx.forVarTuple() ;
-		if(tt == null) {
+		ConcurnasParser.ForVarTupleContext tt = ctx.forVarTuple();
+		if (tt == null) {
 			return null;
-		}else {
-			return (Pair<String, Type>)tt.accept(this);
+		} else {
+			return (Pair<String, Type>) tt.accept(this);
 		}
 	}
 
 	@Override
 	public Pair<String, Type> visitForVarTuple(ConcurnasParser.ForVarTupleContext ctx) {
 		String name = ctx.localVarName.getText();
-		Type tt = ctx.localVarType == null?null:(Type)ctx.localVarType.accept(this);
+		Type tt = ctx.localVarType == null ? null : (Type) ctx.localVarType.accept(this);
 		return new Pair<String, Type>(name, tt);
 	}
 
 	private AssignTupleDeref makeAssignTupleDerefForLoop(int line, int col, List<ConcurnasParser.ForVarTupleOrNothingContext> inputs) {
 		ArrayList<Assign> lhss = new ArrayList<Assign>();
-		for(ConcurnasParser.ForVarTupleOrNothingContext tupComp: inputs) {
-			Pair<String, Type> inst = (Pair<String, Type>)tupComp.accept(this);
+		for (ConcurnasParser.ForVarTupleOrNothingContext tupComp : inputs) {
+			Pair<String, Type> inst = (Pair<String, Type>) tupComp.accept(this);
 			Assign ass = null;
-			if(inst != null) {
+			if (inst != null) {
 				String name = inst.getA();
 				Type type = inst.getB();
-				
-				if(type == null) {
+
+				if (type == null) {
 					ass = new AssignExisting(line, col, name, null, null);
-				}else {
+				} else {
 					ass = new AssignNew(null, line, col, name, type);
 				}
 			}
@@ -1979,49 +1996,53 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		}
 		return new AssignTupleDeref(line, col, lhss, AssignStyleEnum.EQUALS, null);
 	}
-	
+
 	@Override
 	public CompoundStatement visitFor_stmt(ConcurnasParser.For_stmtContext ctx) {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
 
 		ForBlockVariant pfv = (ForBlockVariant) ctx.forblockvariant().accept(this);
-		
+
 		ForBlock ret;
-		if(!ctx.forVarTupleOrNothing().isEmpty()) {
-			AssignTupleDeref assignTup =  makeAssignTupleDerefForLoop(line, col, ctx.forVarTupleOrNothing());
+		if (!ctx.forVarTupleOrNothing().isEmpty()) {
+			AssignTupleDeref assignTup = makeAssignTupleDerefForLoop(line, col, ctx.forVarTupleOrNothing());
 			ret = new ForBlock(line, col, assignTup, (Expression) ctx.expr.accept(this), (Block) ctx.mainblock.accept(this), pfv);
-		}else {
+		} else {
 			ret = new ForBlock(line, col, ctx.localVarName.getText(), ctx.localVarType == null ? null : (Type) ctx.localVarType.accept(this), (Expression) ctx.expr.accept(this), (Block) ctx.mainblock.accept(this), pfv);
 		}
-		
+
 		if (null != ctx.elseblock) {
 			ret.elseblock = (Block) ctx.elseblock.accept(this);
 		}
 
 		if (ctx.idxName != null) {
-			if(ctx.idxType == null && ctx.idxExpr == null) {
+			if (ctx.idxType == null && ctx.idxExpr == null) {
 				ret.idxVariableAssignment = new RefName(line, col, ctx.idxName.getText());
-			}else {
-				Expression expr = ctx.idxExpr == null ?  new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
-				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
-				
-				if(ctx.idxType != null) {
+			} else {
+				Expression expr = ctx.idxExpr == null ? new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
+				// ret.idxVariableCreator = new AssignNew(null, line, col, false, false,
+				// ctx.idxName.getText(), ctx.idxType == null ? null : (Type)
+				// ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+
+				if (ctx.idxType != null) {
 					Type tt = (Type) ctx.idxType.accept(this);
 					expr = new CastExpression(line, col, tt, expr);
 				}
-				
+
 				AssignExisting ae = new AssignExisting(line, col, ctx.idxName.getText(), AssignStyleEnum.EQUALS, expr);
 				ret.idxVariableCreator = ae;
-				
-				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+
+				// ret.idxVariableCreator = new AssignNew(null, line, col, false, false,
+				// ctx.idxName.getText(), ctx.idxType == null ? null : (Type)
+				// ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
 			}
 		}
-		
-		if(pfv != null) {
+
+		if (pfv != null) {
 			return convertForIfParfor(line, col, pfv, ret);
 		}
-		
+
 		return ret;
 	}
 
@@ -2029,31 +2050,31 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		Block contents = ret.getMainBlock();
 		int linex = contents.getLine();
 		int colx = contents.getColumn();
-		
+
 		Block newContents = new Block(linex, colx);
-		
+
 		Block asyncBlockBody = new Block(linex, colx);
 		asyncBlockBody.isolated = true;
-		asyncBlockBody.isAsyncBody=true;
+		asyncBlockBody.isAsyncBody = true;
 		asyncBlockBody.addAll(contents.lines);
-		
+
 		newContents.add(new AsyncBlock(line, col, asyncBlockBody));
-		
+
 		ret.setMainBlock(newContents);
-		
-		CompoundStatement toretrun = (CompoundStatement)ret;
-		
-		if(pfv == ForBlockVariant.PARFORSYNC) {
+
+		CompoundStatement toretrun = (CompoundStatement) ret;
+
+		if (pfv == ForBlockVariant.PARFORSYNC) {
 			Block syncBlock = new Block(linex, colx);
-			syncBlock.add((Line)ret);
-			toretrun = createSyncBlock( line,  col,  syncBlock);
+			syncBlock.add((Line) ret);
+			toretrun = createSyncBlock(line, col, syncBlock);
 		}
-		
-		toretrun.setShouldBePresevedOnStack(((Node)ret).getShouldBePresevedOnStack());
-		
+
+		toretrun.setShouldBePresevedOnStack(((Node) ret).getShouldBePresevedOnStack());
+
 		return toretrun;
 	}
-	
+
 	@Override
 	public MatchStatement visitMatch_stmt(ConcurnasParser.Match_stmtContext ctx) {
 		ArrayList<MactchCase> cases = new ArrayList<MactchCase>();
@@ -2061,10 +2082,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ctx.match_case_stmt().forEach(a -> cases.add((MactchCase) a.accept(this)));
 
 		Block elseblock = null;
-		if(ctx.elseb != null) {
-			elseblock = (Block)ctx.elseb.accept(this);
+		if (ctx.elseb != null) {
+			elseblock = (Block) ctx.elseb.accept(this);
 		}
-		
+
 		return new MatchStatement(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Statement) ctx.simple_stmt().accept(this) /* RefName matchon */, cases, elseblock);
 	}
 
@@ -2075,22 +2096,22 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public MactchCase visitMatch_case_stmt_case(ConcurnasParser.Match_case_stmt_caseContext ctx) {
-		Block blk = (Block)ctx.blockOrBlock().accept(this);
+		Block blk = (Block) ctx.blockOrBlock().accept(this);
 
 		CaseExpression ce;
 		if (ctx.match_case_stmt_assign() != null) {
 			ce = (CaseExpression) ctx.match_case_stmt_assign().accept(this);
-		} else if(ctx.match_case_assign_typedObjectAssign() != null) { 
+		} else if (ctx.match_case_assign_typedObjectAssign() != null) {
 			ce = (CaseExpression) ctx.match_case_assign_typedObjectAssign().accept(this);
-		}else if (ctx.match_case_stmt_typedCase() != null) {
+		} else if (ctx.match_case_stmt_typedCase() != null) {
 			ce = (CaseExpression) ctx.match_case_stmt_typedCase().accept(this);
 		} else if (null != ctx.case_expr_chain_or()) {
 			ce = (CaseExpression) ctx.case_expr_chain_or().accept(this);
-		} else if(null !=  ctx.match_case_stmt_assignTuple()){	
-			ce = (CaseExpression) ctx.match_case_stmt_assignTuple().accept(this);		
-		}else if(null != ctx.case_expr_chain_Tuple()) {
+		} else if (null != ctx.match_case_stmt_assignTuple()) {
+			ce = (CaseExpression) ctx.match_case_stmt_assignTuple().accept(this);
+		} else if (null != ctx.case_expr_chain_Tuple()) {
 			ce = (CaseExpression) ctx.case_expr_chain_Tuple().accept(this);
-		}else {
+		} else {
 			Expression alsoCond = (Expression) ctx.justAlso.accept(this);
 			ce = new JustAlsoCaseExpression(alsoCond.getLine(), alsoCond.getColumn(), alsoCond);
 		}
@@ -2104,22 +2125,22 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public MactchCase visitMatch_case_stmt_nocase(ConcurnasParser.Match_case_stmt_nocaseContext ctx) {
-		Block blk = (Block)ctx.blockOrBlock().accept(this);
+		Block blk = (Block) ctx.blockOrBlock().accept(this);
 
 		CaseExpression ce;
 		if (ctx.match_case_stmt_assign() != null) {
 			ce = (CaseExpression) ctx.match_case_stmt_assign().accept(this);
-		} else if(ctx.match_case_assign_typedObjectAssign() != null) { 
+		} else if (ctx.match_case_assign_typedObjectAssign() != null) {
 			ce = (CaseExpression) ctx.match_case_assign_typedObjectAssign().accept(this);
-		}else if (ctx.match_case_stmt_typedCase() != null) {
+		} else if (ctx.match_case_stmt_typedCase() != null) {
 			ce = (CaseExpression) ctx.match_case_stmt_typedCase().accept(this);
 		} else if (null != ctx.case_expr_chain_or()) {
 			ce = (CaseExpression) ctx.case_expr_chain_or().accept(this);
-		}else if(null !=  ctx.match_case_stmt_assignTuple()){	
+		} else if (null != ctx.match_case_stmt_assignTuple()) {
 			ce = (CaseExpression) ctx.match_case_stmt_assignTuple().accept(this);
-		}else if(null != ctx.case_expr_chain_Tuple()) {
+		} else if (null != ctx.case_expr_chain_Tuple()) {
 			ce = (CaseExpression) ctx.case_expr_chain_Tuple().accept(this);
-		}else {
+		} else {
 			Expression alsoCond = (Expression) ctx.justAlso.accept(this);
 			ce = new JustAlsoCaseExpression(alsoCond.getLine(), alsoCond.getColumn(), alsoCond);
 		}
@@ -2130,18 +2151,18 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		return new MactchCase(ce, blk);
 	}
-	
+
 	@Override
 	public CaseExpressionObjectTypeAssign visitMatch_case_assign_typedObjectAssign(ConcurnasParser.Match_case_assign_typedObjectAssignContext ctx) {
-		
+
 		String varname = ctx.NAME().getText();
-		Expression expr = (Expression)ctx.bitwise_or().accept(this);
+		Expression expr = (Expression) ctx.bitwise_or().accept(this);
 
 		boolean forceNew = ctx.var != null || ctx.isfinal != null;
 
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
-		
+
 		return new CaseExpressionObjectTypeAssign(line, col, varname, new CaseExpressionWrapper(line, col, expr), forceNew, ctx.isfinal != null);
 	}
 
@@ -2156,67 +2177,64 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		return new CaseExpressionAssign(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.NAME().getText(), ctx.expr_stmt() == null ? null : (Expression) ctx.expr_stmt().accept(this), types, forceNew, ctx.isfinal != null);
 	}
 
-	
 	@Override
 	public Pair<String, Type> visitMatchTupleAsignOrNone(ConcurnasParser.MatchTupleAsignOrNoneContext ctx) {
 		ConcurnasParser.MatchTupleAsignContext inst = ctx.matchTupleAsign();
-		return inst == null?null:(Pair<String, Type>)inst.accept(this);
+		return inst == null ? null : (Pair<String, Type>) inst.accept(this);
 	}
 
 	@Override
 	public Pair<String, Type> visitMatchTupleAsign(ConcurnasParser.MatchTupleAsignContext ctx) {
-		String name =ctx.NAME().getText();
-		Type type = /*ctx.type()==null?null:*/(Type)ctx.type().accept(this);
-		
+		String name = ctx.NAME().getText();
+		Type type = /* ctx.type()==null?null: */(Type) ctx.type().accept(this);
+
 		return new Pair<String, Type>(name, type);
 	}
-	
-	
+
 	@Override
 	public CaseExpressionAssignTuple visitMatch_case_stmt_assignTuple(ConcurnasParser.Match_case_stmt_assignTupleContext ctx) {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
-		
+
 		ArrayList<Assign> lhss = new ArrayList<Assign>();
-		for(ConcurnasParser.MatchTupleAsignOrNoneContext tupComp: ctx.matchTupleAsignOrNone()) {
-			Pair<String, Type> inst = (Pair<String, Type>)tupComp.accept(this);
+		for (ConcurnasParser.MatchTupleAsignOrNoneContext tupComp : ctx.matchTupleAsignOrNone()) {
+			Pair<String, Type> inst = (Pair<String, Type>) tupComp.accept(this);
 			Assign ass = null;
-			if(inst != null) {
+			if (inst != null) {
 				String name = inst.getA();
 				Type type = inst.getB();
-				
-				/*if(type == null) {
-					ass = new AssignExisting(line, col, name, null, null);
-				}else {*/
-					ass = new AssignNew(null, line, col, name, type);
-				//}
+
+				/*
+				 * if(type == null) { ass = new AssignExisting(line, col, name, null, null);
+				 * }else {
+				 */
+				ass = new AssignNew(null, line, col, name, type);
+				// }
 			}
 			lhss.add(ass);
 		}
-		
+
 		return new CaseExpressionAssignTuple(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.expr_stmt() == null ? null : (Expression) ctx.expr_stmt().accept(this), lhss);
 	}
-	
-	
+
 	@Override
 	public CaseExpression visitCase_expr_chain_Tuple(ConcurnasParser.Case_expr_chain_TupleContext ctx) {
 		List<ConcurnasParser.Case_expr_chain_orOrNoneContext> itemsz = ctx.case_expr_chain_orOrNone();
 		ArrayList<CaseExpression> caseOrs = new ArrayList<CaseExpression>(itemsz.size());
-		
-		for(ConcurnasParser.Case_expr_chain_orOrNoneContext inst : itemsz) {
-			caseOrs.add((CaseExpression)inst.accept(this));
+
+		for (ConcurnasParser.Case_expr_chain_orOrNoneContext inst : itemsz) {
+			caseOrs.add((CaseExpression) inst.accept(this));
 		}
-		
+
 		return new CaseExpressionTuple(ctx.start.getLine(), ctx.start.getCharPositionInLine(), caseOrs);
 	}
-	
-	
+
 	@Override
 	public CaseExpression visitCase_expr_chain_orOrNone(ConcurnasParser.Case_expr_chain_orOrNoneContext ctx) {
 		ConcurnasParser.Case_expr_chain_orContext item = ctx.case_expr_chain_or();
-		return item == null?null:(CaseExpression)item.accept(this);
+		return item == null ? null : (CaseExpression) item.accept(this);
 	}
-	
+
 	@Override
 	public TypedCaseExpression visitMatch_case_stmt_typedCase(ConcurnasParser.Match_case_stmt_typedCaseContext ctx) {
 		ArrayList<Type> types = new ArrayList<Type>();
@@ -2224,14 +2242,15 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ctx.type().forEach(a -> types.add((Type) a.accept(this)));
 
 		CaseExpression caseExpression = null;
-		
-		if(ctx.case_expr_chain_Tuple() != null) {
+
+		if (ctx.case_expr_chain_Tuple() != null) {
 			caseExpression = (CaseExpression) ctx.case_expr_chain_Tuple().accept(this);
-		}else if(ctx.case_expr_chain_or() != null) {
+		} else if (ctx.case_expr_chain_or() != null) {
 			caseExpression = (CaseExpression) ctx.case_expr_chain_or().accept(this);
 		}
-		
-		//CaseExpression caseExpression = ctx.case_expr_chain_Tuple() == null ? null : (CaseExpression) ctx.case_expr_chain_Tuple().accept(this);
+
+		// CaseExpression caseExpression = ctx.case_expr_chain_Tuple() == null ? null :
+		// (CaseExpression) ctx.case_expr_chain_Tuple().accept(this);
 
 		return new TypedCaseExpression(ctx.start.getLine(), ctx.start.getCharPositionInLine(), types, caseExpression);
 	}
@@ -2334,21 +2353,25 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		}
 
 		if (ctx.idxName != null) {
-			if(ctx.idxType == null && ctx.idxExpr == null) {
+			if (ctx.idxType == null && ctx.idxExpr == null) {
 				ret.idxVariableAssignment = new RefName(line, col, ctx.idxName.getText());
-			}else {
-				Expression expr = ctx.idxExpr == null ?  new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
-				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
-				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
-				
-				if(ctx.idxType != null) {
+			} else {
+				Expression expr = ctx.idxExpr == null ? new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
+				// ret.idxVariableCreator = new AssignNew(null, line, col, false, false,
+				// ctx.idxName.getText(), ctx.idxType == null ? null : (Type)
+				// ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+				// ret.idxVariableCreator = new AssignNew(null, line, col, false, false,
+				// ctx.idxName.getText(), ctx.idxType == null ? null : (Type)
+				// ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+
+				if (ctx.idxType != null) {
 					Type tt = (Type) ctx.idxType.accept(this);
 					expr = new CastExpression(line, col, tt, expr);
 				}
-				
+
 				AssignExisting ae = new AssignExisting(line, col, ctx.idxName.getText(), AssignStyleEnum.EQUALS, expr);
 				ret.idxVariableCreator = ae;
-				
+
 			}
 		}
 
@@ -2362,17 +2385,19 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		WhileBlock ret = new WhileBlock(line, col, new RefBoolean(line, col, true), (Block) ctx.mainBlock.accept(this));
 
 		if (ctx.idxName != null) {
-			if(ctx.idxType == null && ctx.idxExpr == null) {
+			if (ctx.idxType == null && ctx.idxExpr == null) {
 				ret.idxVariableAssignment = new RefName(line, col, ctx.idxName.getText());
-			}else {
-				Expression expr = ctx.idxExpr == null ?  new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
-				//ret.idxVariableCreator = new AssignNew(null, line, col, false, false, ctx.idxName.getText(), ctx.idxType == null ? null : (Type) ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
-				
-				if(ctx.idxType != null) {
+			} else {
+				Expression expr = ctx.idxExpr == null ? new VarInt(line, col, 0) : (Expression) ctx.idxExpr.accept(this);
+				// ret.idxVariableCreator = new AssignNew(null, line, col, false, false,
+				// ctx.idxName.getText(), ctx.idxType == null ? null : (Type)
+				// ctx.idxType.accept(this), AssignStyleEnum.EQUALS, expr);
+
+				if (ctx.idxType != null) {
 					Type tt = (Type) ctx.idxType.accept(this);
 					expr = new CastExpression(line, col, tt, expr);
 				}
-				
+
 				AssignExisting ae = new AssignExisting(line, col, ctx.idxName.getText(), AssignStyleEnum.EQUALS, expr);
 				ret.idxVariableCreator = ae;
 			}
@@ -2399,7 +2424,15 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ArrayList<Type> caughtTypes = new ArrayList<Type>();
 		ctx.type().forEach(a -> caughtTypes.add((Type) a.accept(this)));
 
-		return new CatchBlocks(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.NAME().getText(), caughtTypes, (Block) ctx.block().accept(this));
+		String vname;
+		TerminalNode tn = ctx.NAME();
+		if (null != tn) {
+			vname = tn.getText();
+		} else {// support this case: try{} catch{}
+			vname = "catchAll$";
+		}
+
+		return new CatchBlocks(ctx.start.getLine(), ctx.start.getCharPositionInLine(), vname, caughtTypes, (Block) ctx.block().accept(this));
 	}
 
 	@Override
@@ -2423,7 +2456,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public WithBlock visitWith_stmt(ConcurnasParser.With_stmtContext ctx) {
-		return new WithBlock(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Expression)ctx.expr_stmt().accept(this), (Block) ctx.block().accept(this));
+		return new WithBlock(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Expression) ctx.expr_stmt().accept(this), (Block) ctx.block().accept(this));
 	}
 
 	@Override
@@ -2465,7 +2498,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ret.isReallyA = "sync";
 		return ret;
 	}
-	
+
 	@Override
 	public TryCatch visitSync_block(ConcurnasParser.Sync_blockContext ctx) {
 		int line = ctx.start.getLine();
@@ -2473,36 +2506,34 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		Block b = (Block) ctx.block().accept(this);
 
-		return createSyncBlock( line,  col,  b);
+		return createSyncBlock(line, col, b);
 	}
 
 	@Override
 	public OnChange visitOnchange(ConcurnasParser.OnchangeContext ctx) {
 		List<String> extraArgs = ctx.opts.stream().map(a -> a.getText()).collect(Collectors.toList());
-		
-		/*Block body;
-		if(null != ctx.block()) {
-			body = (Block) ctx.block().accept(this);
-		}else {
-			body = (Block)ctx.single_line_block().accept(this);
-		}*/
+
+		/*
+		 * Block body; if(null != ctx.block()) { body = (Block)
+		 * ctx.block().accept(this); }else { body =
+		 * (Block)ctx.single_line_block().accept(this); }
+		 */
 		Block body = (Block) ctx.block().accept(this);
-		
+
 		return new OnChange(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.onChangeEtcArgs() == null ? new ArrayList<Node>() : (ArrayList<Node>) ctx.onChangeEtcArgs().accept(this), body, extraArgs);
 	}
 
 	@Override
 	public OnEvery visitEvery(ConcurnasParser.EveryContext ctx) {
 		List<String> extraArgs = ctx.opts.stream().map(a -> a.getText()).collect(Collectors.toList());
-		
-		/*Block body;
-		if(null != ctx.block()) {
-			body = (Block) ctx.block().accept(this);
-		}else {
-			body = (Block)ctx.single_line_block().accept(this);
-		}*/
+
+		/*
+		 * Block body; if(null != ctx.block()) { body = (Block)
+		 * ctx.block().accept(this); }else { body =
+		 * (Block)ctx.single_line_block().accept(this); }
+		 */
 		Block body = (Block) ctx.block().accept(this);
-		
+
 		return new OnEvery(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.onChangeEtcArgs() == null ? new ArrayList<Node>() : (ArrayList<Node>) ctx.onChangeEtcArgs().accept(this), body, extraArgs);
 	}
 
@@ -2556,12 +2587,13 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ArrayList<Boolean> isDirectAccess = new ArrayList<Boolean>();
 		ArrayList<Boolean> returnCalledOn = new ArrayList<Boolean>();
 		ArrayList<Boolean> isSafeCall = new ArrayList<Boolean>();
+		ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
 
 		String superQuali = null;
-		if(ctx.superQuali != null) {
+		if (ctx.superQuali != null) {
 			superQuali = ctx.superQuali.getText();
 		}
-		
+
 		Expression head = new RefSuper(line, col, superQuali);
 
 		int n = 0;
@@ -2575,10 +2607,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				isDirectAccess.add(dddop.equals("\\."));
 				returnCalledOn.add(dddop.equals(".."));
 				isSafeCall.add(dddop.equals("?."));
+				noNullAssertion.add(dddop.equals("??."));
 			}
 		}
-		
-		return new DotOperator(line, col, head, elements, isDirectAccess, returnCalledOn, isSafeCall);
+
+		return new DotOperator(line, col, head, elements, isDirectAccess, returnCalledOn, isSafeCall, noNullAssertion);
 	}
 
 	@Override
@@ -2681,16 +2714,16 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	}
 
 	@Override
-	public Expression visitConstructorInvoke(ConcurnasParser.ConstructorInvokeContext ctx){
-		if(ctx.primNamedOrFuncType() != null) {
-			Type tt = (Type)ctx.primNamedOrFuncType().accept(this);
+	public Expression visitConstructorInvoke(ConcurnasParser.ConstructorInvokeContext ctx) {
+		if (ctx.primNamedOrFuncType() != null) {
+			Type tt = (Type) ctx.primNamedOrFuncType().accept(this);
 			tt = applyMutators(tt, getMutators(ctx.refOrNullable()));
-			
-			return new New(ctx.start.getLine(), ctx.start.getCharPositionInLine(), tt , null, true);
+
+			return new New(ctx.start.getLine(), ctx.start.getCharPositionInLine(), tt, null, true);
 		}
-		return (Expression)visitChildren(ctx);
+		return (Expression) visitChildren(ctx);
 	}
-	
+
 	@Override
 	public Expression visitNamedConstructor(ConcurnasParser.NamedConstructorContext ctx) {
 		FuncRefArgs funcrefargs = null;
@@ -2700,11 +2733,13 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			funcinvokeargs = (FuncInvokeArgs) ctx.pureFuncInvokeArgs().accept(this);
 		}
 
-		Type tt = (Type)ctx.type().accept(this);
-		/*ArrayList<Fourple<RefOrArryEnum, Object, Integer, Integer>>  mutators = getMutators(ctx.refOrNullable());
-		tt = applyMutators(tt, mutators);*/
-		
-		New ret = new New(ctx.start.getLine(), ctx.start.getCharPositionInLine(), tt , funcinvokeargs, true);
+		Type tt = (Type) ctx.type().accept(this);
+		/*
+		 * ArrayList<Fiveple<RefOrArryEnum, Object, Integer, Integer, Boolean>> mutators
+		 * = getMutators(ctx.refOrNullable()); tt = applyMutators(tt, mutators);
+		 */
+
+		New ret = new New(ctx.start.getLine(), ctx.start.getCharPositionInLine(), tt, funcinvokeargs, true);
 
 		if (ctx.isConsRef != null) {
 			if (ctx.funcRefArgs() != null) {
@@ -2723,11 +2758,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			ArrayList<Expression> arrayLevels = new ArrayList<Expression>();
 			arrayLevels.add(new VarInt(line, col, levels));
 
-			return new ArrayConstructor(line, col, ret.typeee, arrayLevels, funcinvokeargs == null? null:funcinvokeargs.asnames.get(0));
-		}else {
-			/*if(!TypeCheckUtils.hasRefLevels(tt)) {
-				parserErrors.errors.add(new ErrorHolder(sourceName, ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Constructor parameters must be specified"));
-			}*/
+			return new ArrayConstructor(line, col, ret.typeee, arrayLevels, funcinvokeargs == null ? null : funcinvokeargs.asnames.get(0));
+		} else {
+			/*
+			 * if(!TypeCheckUtils.hasRefLevels(tt)) { parserErrors.errors.add(new
+			 * ErrorHolder(sourceName, ctx.start.getLine(),
+			 * ctx.start.getCharPositionInLine(),
+			 * "Constructor parameters must be specified")); }
+			 */
 		}
 
 		return ret;
@@ -2817,8 +2855,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		}
 
 		Type type = (Type) ctx.primitiveType().accept(this);
-		
-		//type = applyMutators(type, getMutators(ctx.refOrNullable()));
+
+		// type = applyMutators(type, getMutators(ctx.refOrNullable()));
 
 		Expression defaultValue = null != ctx.expr_stmt_tuple() ? (Expression) ctx.expr_stmt_tuple().accept(this) : null;
 
@@ -2870,61 +2908,58 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public Expression visitCopyExpr(ConcurnasParser.CopyExprContext ctx) {
-		if(ctx.isCopy != null) {
+		if (ctx.isCopy != null) {
 			List<CopyExprItem> copyItems = null;
-			
-			if(ctx.hasCopier != null) {
-				copyItems = ctx.copyExprItem().stream().map(a -> (CopyExprItem)a.accept(this)).collect(Collectors.toList());
+
+			if (ctx.hasCopier != null) {
+				copyItems = ctx.copyExprItem().stream().map(a -> (CopyExprItem) a.accept(this)).collect(Collectors.toList());
 			}
-			
+
 			List<String> modifiers = ctx.modifier.stream().map(a -> a.getText()).collect(Collectors.toList());
-			
-			return new CopyExpression(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Expression) ctx.expr_stmt_BelowDot().accept(this), copyItems, modifiers);
+
+			return new CopyExpression(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Expression) ctx.notNullAssertion().accept(this), copyItems, modifiers);
 		}
-		
-		return (Expression)ctx.expr_stmt_BelowDot().accept(this);
+
+		return (Expression) ctx.notNullAssertion().accept(this);
 	}
 
-	
 	@Override
 	public CopyExprItem visitCopyExprItem(ConcurnasParser.CopyExprItemContext ctx) {
-		if(ctx.ename != null) {
-			//CopyExprAssign
-			return new CopyExprAssign(ctx.ename.getText(), (Expression)ctx.expr_stmt().accept(this));
-		}else if(ctx.incName != null) {
-			return new CopyExprIncOnly( ctx.incName.getText() );
-		}else if(!ctx.exclName.isEmpty()) {
-			return new CopyExprExclOnly( ctx.exclName.stream().map(a -> a.getText()).collect(Collectors.toList()) );
-		}else if(ctx.copyName != null) {
-			//ctx.unchecked
-			List<CopyExprItem> copyItems = ctx.copyExprItem().stream().map(a -> (CopyExprItem)a.accept(this)).collect(Collectors.toList());
-			
+		if (ctx.ename != null) {
+			// CopyExprAssign
+			return new CopyExprAssign(ctx.ename.getText(), (Expression) ctx.expr_stmt().accept(this));
+		} else if (ctx.incName != null) {
+			return new CopyExprIncOnly(ctx.incName.getText());
+		} else if (!ctx.exclName.isEmpty()) {
+			return new CopyExprExclOnly(ctx.exclName.stream().map(a -> a.getText()).collect(Collectors.toList()));
+		} else if (ctx.copyName != null) {
+			// ctx.unchecked
+			List<CopyExprItem> copyItems = ctx.copyExprItem().stream().map(a -> (CopyExprItem) a.accept(this)).collect(Collectors.toList());
 
 			List<String> modifiers = ctx.modifier.stream().map(a -> a.getText()).collect(Collectors.toList());
-			
-			return new CopyExprNested(ctx.copyName.getLine(), ctx.copyName.getCharPositionInLine(), ctx.copyName.getText(), copyItems,modifiers);
-		}else if(ctx.superCopy != null) {
-			List<CopyExprItem> copyItems = ctx.copyExprItem().stream().map(a -> (CopyExprItem)a.accept(this)).collect(Collectors.toList());
-			
+
+			return new CopyExprNested(ctx.copyName.getLine(), ctx.copyName.getCharPositionInLine(), ctx.copyName.getText(), copyItems, modifiers);
+		} else if (ctx.superCopy != null) {
+			List<CopyExprItem> copyItems = ctx.copyExprItem().stream().map(a -> (CopyExprItem) a.accept(this)).collect(Collectors.toList());
 
 			List<String> modifiers = ctx.modifier.stream().map(a -> a.getText()).collect(Collectors.toList());
-			
+
 			return new CopyExprSuper(ctx.superCopy.getLine(), ctx.superCopy.getCharPositionInLine(), copyItems, modifiers);
 		}
-		
-		return null;//visitChildren(ctx);
+
+		return null;// visitChildren(ctx);
 	}
-	
+
 	@Override
 	public Expression visitAsyncSpawnExpr(ConcurnasParser.AsyncSpawnExprContext ctx) {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
 
 		if (ctx.isAsync == null) {
-			return (Expression) ctx.notNullAssertion().accept(this);
+			return (Expression) ctx.elvisOperator().accept(this);
 		} else {
 			Block body = new Block(line, col);
-			body.add(new LineHolder(line, col, new DuffAssign(line, col, (Expression) ctx.notNullAssertion().accept(this))));
+			body.add(new LineHolder(line, col, new DuffAssign(line, col, (Expression) ctx.elvisOperator().accept(this))));
 			body.setShouldBePresevedOnStack(true);
 			body.isolated = true;
 
@@ -3012,13 +3047,13 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		boolean forceArrayConst = false;
 		for (ConcurnasParser.ArrayRefElementsContext a : ctx.arrayRefElements()) {
-			Pair<Boolean, ArrayList<ArrayRefElement>> nullAndLevels = (Pair<Boolean, ArrayList<ArrayRefElement>>) a.accept(this);
-			ArrayList<ArrayRefElement> level = nullAndLevels.getB();
+			NullableArrayElementss nullAndLevels = (NullableArrayElementss) a.accept(this);
+			ArrayList<ArrayRefElement> level = nullAndLevels.elements;
 			Integer trails = level.get(level.size() - 1).trailingCommas;
 			if (null != trails && trails >= 2) {
 				forceArrayConst = true;
 			}
-			arrayLevelElements.add(nullAndLevels.getA(), level);
+			arrayLevelElements.add(nullAndLevels.nullsafe, nullAndLevels.nna, level);
 		}
 
 		Expression lhs = (Expression) ctx.expr_stmt_BelowDot().accept(this);
@@ -3039,7 +3074,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	}
 
 	@Override
-	public Pair<Boolean, ArrayList<ArrayRefElement>> visitArrayRefElements(ConcurnasParser.ArrayRefElementsContext ctx) {
+	public NullableArrayElementss visitArrayRefElements(ConcurnasParser.ArrayRefElementsContext ctx) {
 		ArrayList<ArrayRefElement> elements = new ArrayList<ArrayRefElement>();
 		ctx.arrayRefElement().forEach(a -> elements.add((ArrayRefElement) a.accept(this)));
 
@@ -3047,9 +3082,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			elements.get(elements.size() - 1).trailingCommas = ctx.trailcomma.size();
 		}
 
-		boolean nullsafe = ctx.nullSafe != null;
-		
-		return new Pair<>(nullsafe, elements);
+		boolean nullsafe = ctx.nullsafe != null;
+		boolean nna = ctx.nna != null;
+
+		return new NullableArrayElementss(nullsafe, nna, elements);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3089,6 +3125,8 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			ret = (Type) ctx.primitiveType().accept(this);
 		} else if (ctx.namedType() != null) {
 			ret = (Type) ctx.namedType().accept(this);
+		/*} else if (ctx.tupleType() != null) {
+			ret = (Type) ctx.tupleType().accept(this);*/
 		} else {
 			ret = (Type) ctx.funcType().accept(this);
 		}
@@ -3107,13 +3145,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	public Expression visitExpr_list(ConcurnasParser.Expr_listContext ctx) {
 		if (ctx.lambdadef() != null) {
 			return (Expression) ctx.lambdadef().accept(this);
-		}else if(ctx.anonLambdadef() != null) {
+		} else if (ctx.anonLambdadef() != null) {
 			return (Expression) ctx.anonLambdadef().accept(this);
-		}else if(ctx.lambdadefOneLine() != null) {
+		} else if (ctx.lambdadefOneLine() != null) {
 			return (Expression) ctx.lambdadefOneLine().accept(this);
-		}/*else if(ctx.block_async() != null) {
-			return (Expression) ctx.block_async().accept(this);
-		}*/
+		} /*
+			 * else if(ctx.block_async() != null) { return (Expression)
+			 * ctx.block_async().accept(this); }
+			 */
 
 		/*
 		 * if(ctx.for_list_comprehension() != null){ return
@@ -3164,28 +3203,29 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				int colx = flcsttm.col;
 
 				ForBlock component;
-				if(flcsttm.assignTup != null) {
+				if (flcsttm.assignTup != null) {
 					component = new ForBlock(linex, colx, flcsttm.assignTup, flcsttm.expr, isLast ? mainBlock : new Block(linex, colx), flcsttm.pfv);
-				}else {
+				} else {
 					component = new ForBlock(linex, colx, flcsttm.localVarName, flcsttm.localVarType, flcsttm.expr, isLast ? mainBlock : new Block(linex, colx), flcsttm.pfv);
 				}
-				
+
 				component.setShouldBePresevedOnStack(true);
 				component.isListcompri = true;
 
-				if (flcsttm.pfv != null && ctx.condexpr != null) {// it's an error to have a if condition and use a parfor or parforsync (since itoperates on every element)
+				if (flcsttm.pfv != null && ctx.condexpr != null) {// it's an error to have a if condition and use a parfor or parforsync (since
+																	// itoperates on every element)
 					component.flagErrorListCompri = true;
 				}
 
 				Expression componentE = component;
-				if(flcsttm.pfv != null) {
+				if (flcsttm.pfv != null) {
 					componentE = convertForIfParfor(line, col, flcsttm.pfv, component);
 				}
-				
+
 				if (null == toreturn) {
 					toreturn = componentE;
 				} else {
-					blcokAddTo.add((Line)componentE);
+					blcokAddTo.add((Line) componentE);
 				}
 
 				blcokAddTo = component.block;
@@ -3210,8 +3250,9 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			this.pfv = pfv;
 			this.assignTup = assignTup;
 			this.expr = expr;
-			
+
 		}
+
 		public FLCForStmt(int line, int col, ForBlockVariant pfv, String localVarName, Type localVarType, Expression expr) {
 			this.line = line;
 			this.col = col;
@@ -3225,16 +3266,16 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	@Override
 	public FLCForStmt visitFlc_forStmt_(ConcurnasParser.Flc_forStmt_Context ctx) {
 		ForBlockVariant pfv = (ForBlockVariant) ctx.forblockvariant().accept(this);
-		
+
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
 
 		Expression expr = (Expression) ctx.expr.accept(this);
-		
-		if(!ctx.forVarTupleOrNothing().isEmpty()) {
-			AssignTupleDeref assignTup =  makeAssignTupleDerefForLoop(line, col, ctx.forVarTupleOrNothing());
+
+		if (!ctx.forVarTupleOrNothing().isEmpty()) {
+			AssignTupleDeref assignTup = makeAssignTupleDerefForLoop(line, col, ctx.forVarTupleOrNothing());
 			return new FLCForStmt(line, col, pfv, assignTup, expr);
-		}else {
+		} else {
 			String localVarName = ctx.localVarName.getText();
 			Type localVarType = ctx.localVarType == null ? null : (Type) ctx.localVarType.accept(this);
 			return new FLCForStmt(line, col, pfv, localVarName, localVarType, expr);
@@ -3562,36 +3603,37 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		}
 	}
 
+	
 	@Override
 	public Expression visitNotNullAssertion(ConcurnasParser.NotNullAssertionContext ctx) {
-		Expression rhs = (Expression) ctx.elvisOperator().accept(this);
+		Expression rhs = (Expression) ctx.expr_stmt_BelowDot().accept(this);
 		if (null == ctx.nna) {
 			return rhs;
-		}else {
+		} else {
 			return new NotNullAssertion(ctx.start.getLine(), ctx.start.getCharPositionInLine(), rhs);
 		}
 	}
-	
+
 	@Override
 	public Expression visitNotNullAssertion2(ConcurnasParser.NotNullAssertion2Context ctx) {
 		Expression rhs = (Expression) ctx.atom().accept(this);
 		if (null == ctx.nna) {
 			return rhs;
-		}else {
+		} else {
 			return new NotNullAssertion(ctx.start.getLine(), ctx.start.getCharPositionInLine(), rhs);
 		}
 	}
-	
+
 	@Override
 	public Expression visitElvisOperator(ConcurnasParser.ElvisOperatorContext ctx) {
 		Expression lhsExpr = (Expression) ctx.lhsExpr.accept(this);
 		if (null == ctx.elsExpr) {
 			return lhsExpr;
-		}else {
+		} else {
 			return new ElvisOperator(ctx.start.getLine(), ctx.start.getCharPositionInLine(), lhsExpr, (Expression) ctx.elsExpr.accept(this));
 		}
 	}
-	
+
 	@Override
 	public Expression visitNotExpr(ConcurnasParser.NotExprContext ctx) {
 		Expression rhs = (Expression) ctx.containsExpr().accept(this);
@@ -3637,6 +3679,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ArrayList<Boolean> isDirectAccess = new ArrayList<Boolean>();
 		ArrayList<Boolean> returnCalledOn = new ArrayList<Boolean>();
 		ArrayList<Boolean> safeCall = new ArrayList<Boolean>();
+		ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
 		int n = 0;
 		for (ConcurnasParser.CopyExprContext itm : ctx.copyExpr()) {
 			Expression expr = (Expression) itm.accept(this);
@@ -3648,6 +3691,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				isDirectAccess.add(dddop.equals("\\."));
 				returnCalledOn.add(dddop.equals(".."));
 				safeCall.add(dddop.equals("?."));
+				noNullAssertion.add(dddop.equals("??."));
 			}
 		}
 		Expression ret;
@@ -3655,7 +3699,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		if (elements.size() == 0) {
 			ret = head;
 		} else {
-			ret = new DotOperator(line, col, head, elements, isDirectAccess, returnCalledOn, safeCall);
+			ret = new DotOperator(line, col, head, elements, isDirectAccess, returnCalledOn, safeCall, noNullAssertion);
 		}
 
 		if (ctx.address != null) {
@@ -3694,26 +3738,26 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 				if (ele.isFuncRefOrFuncInvoke) {
 					if (ele.pureFuncInvokeArgs != null) {
-						ret = new VectorizedFuncInvoke(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (ele.afterVecExpr).name, ele.pureFuncInvokeArgs, ele.genTypes, ret, ele.doubleDot, ele.nullsafe);
+						ret = new VectorizedFuncInvoke(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (ele.afterVecExpr).name, ele.pureFuncInvokeArgs, ele.genTypes, ret, ele.doubleDot, ele.nullsafe, ele.nna);
 					} else if (null != ele.funcRefArgs) {
-						ret = new VectorizedFuncRef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ele.afterVecExpr, ele.funcRefArgs, ele.genTypes, ret, ele.doubleDot, ele.nullsafe);
+						ret = new VectorizedFuncRef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ele.afterVecExpr, ele.funcRefArgs, ele.genTypes, ret, ele.doubleDot, ele.nullsafe, ele.nna);
 					} else {// vectorizedFieldRef
-						ret = new VectorizedFieldRef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ele.afterVecExpr, ret, ele.doubleDot, ele.nullsafe);
+						ret = new VectorizedFieldRef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ele.afterVecExpr, ret, ele.doubleDot, ele.nullsafe, ele.nna);
 					}
 				} else if (ele.arrayRefElementsHolder != null) {
-					if(ele.nullsafe) {
+					if (ele.nullsafe) {
 						parserErrors.errors.add(new ErrorHolder(sourceName, ctx.start.getLine(), ctx.start.getCharPositionInLine(), "null safe vectorization amy not be applied to array references"));
 					}
-					
-					ret = new VectorizedArrayRef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ret, ele.arrayRefElementsHolder, ele.doubleDot, ele.nullsafe);
+
+					ret = new VectorizedArrayRef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ret, ele.arrayRefElementsHolder, ele.doubleDot, ele.nullsafe, ele.nna);
 				} else if (null != ele.constru) {
-					ret = new VectorizedNew(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ret, ele.constru, ele.doubleDot, ele.nullsafe);
+					ret = new VectorizedNew(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ret, ele.constru, ele.doubleDot, ele.nullsafe, ele.nna);
 				} else {
-					if(ele.nullsafe) {
+					if (ele.nullsafe) {
 						parserErrors.errors.add(new ErrorHolder(sourceName, ctx.start.getLine(), ctx.start.getCharPositionInLine(), "null safe vectorization amy not be applied to element"));
 					}
-					
-					ret = new Vectorized(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ret, ele.doubleDot, ele.nullsafe);
+
+					ret = new Vectorized(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ret, ele.doubleDot, ele.nullsafe, ele.nna);
 				}
 
 			}
@@ -3725,10 +3769,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	private static class VecElement {
 		public final boolean doubleDot;
 		public final boolean nullsafe;
+		public final boolean nna;
 
-		public VecElement(final boolean doubleDot, final boolean nullsafe) {
+		public VecElement(final boolean doubleDot, final boolean nullsafe, final boolean nna) {
 			this.doubleDot = doubleDot;
 			this.nullsafe = nullsafe;
+			this.nna = nna;
 		}
 
 		public boolean isFuncRefOrFuncInvoke;
@@ -3742,7 +3788,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public VecElement visitVectorize_element(ConcurnasParser.Vectorize_elementContext ctx) {
-		VecElement ret = new VecElement(ctx.doubledot != null, ctx.nullsafe != null);
+		VecElement ret = new VecElement(ctx.doubledot != null, ctx.nullsafe != null, ctx.nna != null);
 
 		if (ctx.afterVecExpr != null) {
 			ret.isFuncRefOrFuncInvoke = true;
@@ -3762,15 +3808,14 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		} else if (!ctx.arrayRefElements().isEmpty()) {
 			ArrayRefLevelElementsHolder arrayRefElementsHolder = new ArrayRefLevelElementsHolder();
 
-			boolean forceArrayConst = false;
 			for (ConcurnasParser.ArrayRefElementsContext a : ctx.arrayRefElements()) {
-				Pair<Boolean, ArrayList<ArrayRefElement>> nullAndLevels = (Pair<Boolean, ArrayList<ArrayRefElement>>) a.accept(this);
-				ArrayList<ArrayRefElement> level = nullAndLevels.getB();
-				Integer trails = level.get(level.size() - 1).trailingCommas;
-				if (null != trails && trails >= 2) {
-					forceArrayConst = true;
-				}
-				arrayRefElementsHolder.add(nullAndLevels.getA(), level);
+				NullableArrayElementss nullAndLevels = (NullableArrayElementss) a.accept(this);
+				ArrayList<ArrayRefElement> level = nullAndLevels.elements;
+				// Integer trails = level.get(level.size() - 1).trailingCommas;
+				// if (null != trails && trails >= 2) {
+				// forceArrayConst = true;
+				// }
+				arrayRefElementsHolder.add(nullAndLevels.nullsafe, nullAndLevels.nna, level);
 			}
 
 			ret.arrayRefElementsHolder = arrayRefElementsHolder;
@@ -3781,13 +3826,6 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		return ret;
 	}
 
-	public static void sdfsdf() {
-		Integer[] thing = null;
-				
-		Integer res = thing[0];
-	}
-	
-	
 	@Override
 	public Type visitBareTypeParamTuple(ConcurnasParser.BareTypeParamTupleContext ctx) {
 		Type ret;
@@ -3809,7 +3847,6 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		return ret;
 	}
-	
 
 	@Override
 	public Integer visitPointerQualifier(ConcurnasParser.PointerQualifierContext ctx) {
@@ -3826,15 +3863,15 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 			}
 
 		} else {
-			if(null != ctx.namedType()) {
-				tt = (Type)ctx.namedType().accept(this);
-			}else if(null != ctx.funcType()) {
-				tt = (Type)ctx.funcType().accept(this);
-			}else{// if(null != ctx.tupleType()) {
-				tt = (Type)ctx.tupleType().accept(this);
+			if (null != ctx.namedType()) {
+				tt = (Type) ctx.namedType().accept(this);
+			} else if (null != ctx.funcType()) {
+				tt = (Type) ctx.funcType().accept(this);
+			} else {// if(null != ctx.tupleType()) {
+				tt = (Type) ctx.tupleType().accept(this);
 			}
 		}
-		
+
 		return applyMutators(tt, getMutators(ctx.refOrNullable()));
 	}
 
@@ -3860,60 +3897,53 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		ArrayList<Pair<String, ArrayList<Type>>> nestorSegments = new ArrayList<Pair<String, ArrayList<Type>>>();
 		return new NamedType(ctx.start.getLine(), ctx.start.getCharPositionInLine(), "Tuple" + genTypes.size(), genTypes, nestorSegments);
 	}
-	
+
 	@Override
 	public Type visitBareButTuple(ConcurnasParser.BareButTupleContext ctx) {
 		Type ret;
-		if(ctx.primitiveType() != null) {
-			ret = (Type)ctx.primitiveType().accept(this);
-		}else if(ctx.namedType() != null) {
-			ret = (Type)ctx.namedType().accept(this);
-		}else {//if(ctx.funcType() != null) {
-			ret = (Type)ctx.funcType().accept(this);
+		if (ctx.primitiveType() != null) {
+			ret = (Type) ctx.primitiveType().accept(this);
+		} else if (ctx.namedType() != null) {
+			ret = (Type) ctx.namedType().accept(this);
+		} else {// if(ctx.funcType() != null) {
+			ret = (Type) ctx.funcType().accept(this);
 		}
-		
+
 		return applyMutators(ret, getMutators(ctx.trefOrArrayRef()));
 	}
-	
 
 	@Override
 	public AnonLambdaDef visitAnonLambdadef(ConcurnasParser.AnonLambdadefContext ctx) {
 		ArrayList<String> paramNames = new ArrayList<String>();
 		ArrayList<Type> paramTypes = new ArrayList<Type>();
-		
-		
-		if(!ctx.typeAnonParam().isEmpty()) {
-			for( ConcurnasParser.TypeAnonParamContext anonCtxt : ctx.typeAnonParam() ) {
-				Pair<String, Type> anonParam = (Pair<String, Type>)anonCtxt.accept(this);
+
+		if (!ctx.typeAnonParam().isEmpty()) {
+			for (ConcurnasParser.TypeAnonParamContext anonCtxt : ctx.typeAnonParam()) {
+				Pair<String, Type> anonParam = (Pair<String, Type>) anonCtxt.accept(this);
 				paramNames.add(anonParam.getA());
 				paramTypes.add(anonParam.getB());
-				
+
 			}
-		}else {
+		} else {
 			ctx.NAME().forEach(a -> paramNames.add(a.getText()));
 		}
-		
-		
-		Type retType = null;
-		if(ctx.retType != null) {
-			retType = (Type)ctx.retType.accept(this);
-		}
-		
 
-		Block body = (Block)ctx.single_line_block().accept(this);
-		
+		Type retType = null;
+		if (ctx.retType != null) {
+			retType = (Type) ctx.retType.accept(this);
+		}
+
+		Block body = (Block) ctx.single_line_block().accept(this);
+
 		return new AnonLambdaDef(ctx.start.getLine(), ctx.start.getCharPositionInLine(), paramNames, body, paramTypes, retType);
 	}
 
 	@Override
 	public Pair<String, Type> visitTypeAnonParam(ConcurnasParser.TypeAnonParamContext ctx) {
-		return new Pair<String, Type>(ctx.NAME().getText(), ctx.type() != null?(Type)ctx.type().accept(this) : null);
+		return new Pair<String, Type>(ctx.NAME().getText(), ctx.type() != null ? (Type) ctx.type().accept(this) : null);
 	}
 
-	
-	/////types/////////
-	
-	
+	///// types/////////
 
 	@Override
 	public Type visitType(ConcurnasParser.TypeContext ctx) {
@@ -3932,7 +3962,6 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		return applyMutators(ret, getMutators(ctx.trefOrArrayRef()));
 	}
-	
 
 	@Override
 	public Type visitTypeNoNTTuple(ConcurnasParser.TypeNoNTTupleContext ctx) {
@@ -3968,7 +3997,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				ret.setPointer(pp);
 			}
 		}
-		
+
 		return ret;
 	}
 
@@ -3984,24 +4013,17 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 	@Override
 	public ObjectProvider visitObjectProvider(ConcurnasParser.ObjectProviderContext ctx) {
-		
+
 		@SuppressWarnings("unchecked")
 		ArrayList<Pair<String, NamedType>> classGenricList = ctx.genericQualiList() == null ? new ArrayList<Pair<String, NamedType>>() : (ArrayList<Pair<String, NamedType>>) ctx.genericQualiList().accept(this);
-		
-		return new ObjectProvider(ctx.start.getLine(), ctx.start.getCharPositionInLine(), 
-				ctx.pppNoInject() == null ? null: (AccessModifier)ctx.pppNoInject().accept(this),
-				ctx.providerName.getText(), 
-				null == ctx.objectProviderArgs() ? null:(ClassDefArgs)ctx.objectProviderArgs().accept(this), 
-				ctx.trans != null, 
-				ctx.shared != null,
-				(ObjectProviderBlock)ctx.objectProviderBlock().accept(this),
-				classGenricList);
+
+		return new ObjectProvider(ctx.start.getLine(), ctx.start.getCharPositionInLine(), ctx.pppNoInject() == null ? null : (AccessModifier) ctx.pppNoInject().accept(this), ctx.providerName.getText(), null == ctx.objectProviderArgs() ? null : (ClassDefArgs) ctx.objectProviderArgs().accept(this), ctx.trans != null, ctx.shared != null, (ObjectProviderBlock) ctx.objectProviderBlock().accept(this), classGenricList);
 	}
 
 	@Override
 	public ObjectProviderBlock visitObjectProviderBlock(ConcurnasParser.ObjectProviderBlockContext ctx) {
 		ObjectProviderBlock ret = new ObjectProviderBlock(ctx.start.getLine(), ctx.start.getCharPositionInLine());
-		ctx.linex.forEach(a -> ret.addLine((ObjectProviderLine)a.accept(this)));
+		ctx.linex.forEach(a -> ret.addLine((ObjectProviderLine) a.accept(this)));
 		return ret;
 	}
 
@@ -4009,101 +4031,96 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	public ObjectProviderLine visitObjectProviderLine(ConcurnasParser.ObjectProviderLineContext ctx) {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
-		
-		
-		if(ctx.provide != null) {
+
+		if (ctx.provide != null) {
 			ObjectProviderLineProvide ret;
-			
-			Type tt = (Type)ctx.provide.accept(this);
-			if(ctx.lazy != null) {
-				tt = Utils.convertToLazyType((Type)tt);
+
+			Type tt = (Type) ctx.provide.accept(this);
+			if (ctx.lazy != null) {
+				tt = Utils.convertToLazyType((Type) tt);
 			}
-			
-			if(ctx.provName != null) {
-				ret = new ObjectProviderLineProvide(line, col, tt, ctx.provName.getText()); 
-			}else {
+
+			if (ctx.provName != null) {
+				ret = new ObjectProviderLineProvide(line, col, tt, ctx.provName.getText());
+			} else {
 				ret = new ObjectProviderLineProvide(line, col, tt);
 			}
-			
-			if(ctx.fieldName != null) {
-				ret.fieldName=fieldNameString((Expression)ctx.fieldName.accept(this));
+
+			if (ctx.fieldName != null) {
+				ret.fieldName = fieldNameString((Expression) ctx.fieldName.accept(this));
 			}
-			
-			if(ctx.provideExpr != null) {
+
+			if (ctx.provideExpr != null) {
 				ret.provideExpr = new Block(line, col);
-				ret.provideExpr.isolated=true;
+				ret.provideExpr.isolated = true;
 				ret.provideExpr.setShouldBePresevedOnStack(true);
-				
-				ret.provideExpr.add(new LineHolder(new DuffAssign((Expression)ctx.provideExpr.accept(this))));
-			}else if(ctx.objectProviderNestedDeps() != null) {
-				ArrayList<ObjectProviderLineDepToExpr> nestedDeps = (ArrayList<ObjectProviderLineDepToExpr>)ctx.objectProviderNestedDeps().accept(this);
+
+				ret.provideExpr.add(new LineHolder(new DuffAssign((Expression) ctx.provideExpr.accept(this))));
+			} else if (ctx.objectProviderNestedDeps() != null) {
+				ArrayList<ObjectProviderLineDepToExpr> nestedDeps = (ArrayList<ObjectProviderLineDepToExpr>) ctx.objectProviderNestedDeps().accept(this);
 				ret.nestedDeps = nestedDeps;
 			}
-			
+
 			ArrayList<Pair<String, NamedType>> localGens = null != ctx.genericQualiList() ? (ArrayList<Pair<String, NamedType>>) ctx.genericQualiList().accept(this) : new ArrayList<Pair<String, NamedType>>();
 			ret.setLocalGens(localGens);
-			
-			if(null != ctx.pppNoInject()) {
-				ret.accessModi= (AccessModifier)ctx.pppNoInject().accept(this);
+
+			if (null != ctx.pppNoInject()) {
+				ret.accessModi = (AccessModifier) ctx.pppNoInject().accept(this);
 			}
-			
-			if(ctx.single != null) {
+
+			if (ctx.single != null) {
 				ret.single = true;
 			}
-			
-			if(ctx.shared != null) {
+
+			if (ctx.shared != null) {
 				ret.shared = true;
 			}
-			
+
 			return ret;
-			
-		}else {
-			return (ObjectProviderLineDepToExpr)ctx.opdl.accept(this);
+
+		} else {
+			return (ObjectProviderLineDepToExpr) ctx.opdl.accept(this);
 		}
 	}
-	
+
 	@Override
 	public ArrayList<ObjectProviderLineDepToExpr> visitObjectProviderNestedDeps(ConcurnasParser.ObjectProviderNestedDepsContext ctx) {
 		ArrayList<ObjectProviderLineDepToExpr> nestedDeps = new ArrayList<ObjectProviderLineDepToExpr>(ctx.nestedDep.size());
-		for(ConcurnasParser.ObjectProviderLineDepContext dc : ctx.nestedDep) {
-			nestedDeps.add((ObjectProviderLineDepToExpr)dc.accept(this));
+		for (ConcurnasParser.ObjectProviderLineDepContext dc : ctx.nestedDep) {
+			nestedDeps.add((ObjectProviderLineDepToExpr) dc.accept(this));
 		}
 		return nestedDeps;
 	}
-	
-	
+
 	private String fieldNameString(Expression what) {
-		if(what instanceof VarString) {
-			return ((VarString)what).str;
-		}else {//what instanceof VarChar
-			return ((VarChar)what).chr;
+		if (what instanceof VarString) {
+			return ((VarString) what).str;
+		} else {// what instanceof VarChar
+			return ((VarChar) what).chr;
 		}
-		
+
 	}
-	
+
 	@Override
 	public ObjectProviderLineDepToExpr visitObjectProviderLineDep(ConcurnasParser.ObjectProviderLineDepContext ctx) {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
-		
-		Type tt = (Type)ctx.nameFrom.accept(this);
-		if(ctx.lazy != null) {
-			tt = Utils.convertToLazyType((Type)tt);
+
+		Type tt = (Type) ctx.nameFrom.accept(this);
+		if (ctx.lazy != null) {
+			tt = Utils.convertToLazyType((Type) tt);
 		}
-		
-		
-		
-		ObjectProviderLineDepToExpr ret = new ObjectProviderLineDepToExpr(line, col, tt, ctx.exprTo != null ? (Expression)ctx.exprTo.accept(this):null, ctx.single != null, ctx.shared != null, ctx.fieldName != null?fieldNameString((Expression)ctx.fieldName.accept(this)):null, ctx.typeOnlyRHS != null?(Type)ctx.typeOnlyRHS.accept(this):null);
-		
-		if(ctx.objectProviderNestedDeps() != null) {
-			ArrayList<ObjectProviderLineDepToExpr> nestedDeps = (ArrayList<ObjectProviderLineDepToExpr>)ctx.objectProviderNestedDeps().accept(this);
-			ret.nestedDeps=nestedDeps;
+
+		ObjectProviderLineDepToExpr ret = new ObjectProviderLineDepToExpr(line, col, tt, ctx.exprTo != null ? (Expression) ctx.exprTo.accept(this) : null, ctx.single != null, ctx.shared != null, ctx.fieldName != null ? fieldNameString((Expression) ctx.fieldName.accept(this)) : null, ctx.typeOnlyRHS != null ? (Type) ctx.typeOnlyRHS.accept(this) : null);
+
+		if (ctx.objectProviderNestedDeps() != null) {
+			ArrayList<ObjectProviderLineDepToExpr> nestedDeps = (ArrayList<ObjectProviderLineDepToExpr>) ctx.objectProviderNestedDeps().accept(this);
+			ret.nestedDeps = nestedDeps;
 		}
-		
-		return ret; 
+
+		return ret;
 	}
-	
-	
+
 	@Override
 	public ClassDefArgs visitObjectProviderArgs(ConcurnasParser.ObjectProviderArgsContext ctx) {
 		ArrayList<ClassDefArg> args = new ArrayList<ClassDefArg>();
@@ -4112,13 +4129,13 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		return new ClassDefArgs(ctx.start.getLine(), ctx.start.getCharPositionInLine(), args);
 	}
-	
+
 	@Override
 	public ClassDefArg visitObjectProviderArg(ConcurnasParser.ObjectProviderArgContext ctx) {
 		int line = ctx.start.getLine();
 		int col = ctx.start.getCharPositionInLine();
 
-		AccessModifier accessModi = (AccessModifier)(ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
+		AccessModifier accessModi = (AccessModifier) (ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
 
 		boolean isFinal = ctx.isFinal != null;
 
@@ -4130,23 +4147,29 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				type = new NamedType(line, col, type == null ? NamedType.ntObj : type);
 			}
 		}
-		
-		String name = ctx.NAME()==null?null:ctx.NAME().getText();
+
+		String name = ctx.NAME() == null ? null : ctx.NAME().getText();
 
 		ClassDefArg ret = new ClassDefArg(line, col, accessModi, isFinal, null, name, type);
 
 		ret.annotations = ctx.annotations() == null ? null : (Annotations) ctx.annotations().accept(this);
-		ret.isVararg = ctx.isvararg != null;
+		ret.isVararg = ctx.isvararg != null || ctx.isvarargAndPrevNullable != null;
+		ret.isNullableVarArg = ctx.nullablevararg != null;
+
+		if (ctx.isvarargAndPrevNullable != null) {
+			type.setNullStatus(NullStatus.NULLABLE);
+		}
+
 		if (ctx.expr_stmt() != null) {
 			ret.defaultValue = (Expression) ctx.expr_stmt().accept(this);
 		}
-		
-		if(null != ctx.transAndShared) {
-			Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>)ctx.transAndShared.accept(this);
+
+		if (null != ctx.transAndShared) {
+			Thruple<Boolean, Boolean, Boolean> transAndShared = (Thruple<Boolean, Boolean, Boolean>) ctx.transAndShared.accept(this);
 			ret.isTransient = transAndShared.getA();
 			ret.isShared = transAndShared.getB();
 			ret.isLazy = transAndShared.getC();
-		}else {
+		} else {
 			ret.isTransient = false;
 			ret.isShared = false;
 			ret.isLazy = false;
@@ -4154,5 +4177,5 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 		return ret;
 	}
-	
+
 }

@@ -229,7 +229,7 @@ public abstract class AbstractType extends Node implements Type {
 		return ignoreForLocalGenericInference;
 	}
 	
-	protected NullStatus nullStatus = NullStatus.NONNULL;
+	protected NullStatus nullStatus = NullStatus.NOTNULL;
 	
 	public NullStatus getNullStatus() {
 		return this.nullStatus;
@@ -268,7 +268,7 @@ public abstract class AbstractType extends Node implements Type {
 		if(null == nsforArrayLevels) {
 			nsforArrayLevels = new ArrayList<NullStatus>(len);
 			for(int n=0; n < len; n++) {
-				nsforArrayLevels.add(NullStatus.NONNULL);
+				nsforArrayLevels.add(NullStatus.NOTNULL);
 			}
 		}else {
 			int clen=0;
@@ -283,7 +283,7 @@ public abstract class AbstractType extends Node implements Type {
 				nsforArrayLevels = new ArrayList<NullStatus>(nsforArrayLevels.subList(0, clen-1));
 			}else if(clen < len) {//extend
 				for(; clen < len; clen++) {
-					nsforArrayLevels.add(NullStatus.NONNULL);
+					nsforArrayLevels.add(NullStatus.NOTNULL);
 				}
 			}
 		}
@@ -299,7 +299,7 @@ public abstract class AbstractType extends Node implements Type {
 				if(0 == n) {
 					nsforArrayLevels.add(nullable);
 				}else {
-					nsforArrayLevels.add(NullStatus.NONNULL);
+					nsforArrayLevels.add(NullStatus.NOTNULL);
 				}
 			}
 			
@@ -310,7 +310,7 @@ public abstract class AbstractType extends Node implements Type {
 				nsforArrayLevels = new ArrayList<NullStatus>(nsforArrayLevels.subList(0, clen-1));
 			}else if(clen < len) {//extend
 				for(; clen < len; clen++) {
-					nsforArrayLevels.add(NullStatus.NONNULL);
+					nsforArrayLevels.add(NullStatus.NOTNULL);
 				}
 			}
 			nsforArrayLevels.set(len-1, nullable);

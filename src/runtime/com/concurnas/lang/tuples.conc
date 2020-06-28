@@ -17,32 +17,6 @@ private abstract class Tuple(val -type Class<?>[], val elms Object...) ~ com.con
 	def iterator() Iterator<Object>{
 		new Itr()
 	}
-	/* 
-	override hashCode(){
-		ret = 0
-		if(type){
-			for(x in type){
-				ret += x.hashCode() if x &<> null else 0
-			}
-		}	
-		
-		if(elms){
-			for(x in elms){
-				ret += x.hashCode() if x &<> null else 0
-			}
-		}	
-		
-		ret
-	}
-	
-	override equals(another Object){
-		if(another is Tuple){
-			this.type == another.type and this.elms == another.elms
-		}else{
-			false
-		}
-	}*/
-	
 }
 
 class Tuple2<F0, F1>(public val type Class<?>[], val -f0 F0, val -f1 F1) < Tuple(type, f0, f1){override equals(an Object) => super.equals(an)}

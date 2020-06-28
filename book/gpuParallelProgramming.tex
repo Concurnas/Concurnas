@@ -413,15 +413,15 @@ Kernel arguments may be specified as arrays of dimensionality greater than 1, ho
 
 \textbf{Type erasure}. Due to the fact that generic types are erased at runtime it is not possible for Concurnas to differentiate between gpukernel function signatures differing by global/local/constant parameter qualification or in kernel dimensions. Hence the following three definitions are ambiguous:
 \begin{lstlisting}
-gppukernel 1 kfunc(global A int[]){... }
-gppukernel 1 kfunc(local A int[]){... }//ambiguous
-gppukernel 2 kfunc(global A int[]){... }//ambiguous
+gpukernel 1 kfunc(global A int[]){... }
+gpukernel 1 kfunc(local A int[]){... }//ambiguous
+gpukernel 2 kfunc(global A int[]){... }//ambiguous
 \end{lstlisting}
 
 But Concurnas is able to differentiate between signatures differing in terms of in/out parameter qualification. Hence the following is not ambiguous:
 \begin{lstlisting}
-gppukernel 1 kfunc(global in A int[]){... }
-gppukernel 1 kfunc(global out A int[]){... }//NOT ambiguous!
+gpukernel 1 kfunc(global in A int[]){... }
+gpukernel 1 kfunc(global out A int[]){... }//NOT ambiguous!
 \end{lstlisting}
 
 \subsection{Calling functions from kernels}

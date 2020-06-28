@@ -763,10 +763,10 @@ def doings(){//method is too long, meh, cheat and make it Uninterruptible!
 			offHeapMap.put(s1, mcs1);
 			offHeapMap.put(s2, mcs2);
 			
-			got = offHeapMap.remove(s1);
-			ret.add(String.format("tricky removed: %s == 101.2" , got.adouble));
-			got1 = offHeapMap.get(s2);
-			ret.add(String.format("tricky still here: %s == 693.2" , got1.adouble));
+			got Myclass? = offHeapMap.remove(s1);
+			ret.add(String.format("tricky removed: %s == 101.2" , got?.adouble));
+			got1 Myclass? = offHeapMap.get(s2);
+			ret.add(String.format("tricky still here: %s == 693.2" , got1?.adouble));
 		}
 		
 		{//contains key
@@ -922,7 +922,7 @@ def doings(){//method is too long, meh, cheat and make it Uninterruptible!
 		
 		ramMap.put("hi", "there");
 		
-		assert ramMap.get("hi").equals("there");
+		assert ramMap.get("hi")??.equals("there");
 		ret.add(String.format("ram one works ok: %s" , ramMap.sizeLong()));
 	}
 	
@@ -1782,7 +1782,7 @@ class MyArrayList<X>{
 	override equals(a Object) => false
 	
 	private def substr(){
-		what = (trasitems if useTrans else items)
+		what Object[]? = (trasitems if useTrans else items)
 		what[0 ... highwatermark] if what  <> null else 'its null'
 	}
 	
@@ -1916,7 +1916,7 @@ class MyArrayList<X> ~ Serializable{
 	}
 	
 	private def substr(){
-		what = (trasitems if useTrans else items)
+		what Object[]? = (trasitems if useTrans else items)
 		what[0 ... highwatermark] if what  <> null else 'its null'
 	}
 	
@@ -3072,7 +3072,7 @@ class MyArrayList ~ java.io.Externalizable{
 	}
 	
 	private def substr(){
-		items[0 ... highwatermark] if items  <> null else 'its null'
+		items[0 ... highwatermark]// if items  <> null else 'its null'
 	}
 	
 	override toString() => "" + substr()
@@ -3157,7 +3157,7 @@ class MyArrayList ~ java.io.Serializable{
 	}
 	
 	private def substr(){
-		items[0 ... highwatermark] if items  <> null else 'its null'
+		items[0 ... highwatermark]// if items  <> null else 'its null'
 	}
 		
 	private def writeObject(s java.io.ObjectOutputStream) void{

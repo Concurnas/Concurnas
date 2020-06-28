@@ -22,6 +22,7 @@ public class AssignNew extends Assign implements REPLTopLevelComponent{
 	public boolean preStoreDup = false;
 	
 	private boolean insistNew = false;
+	public boolean isSharedClass = false;
 	public boolean isClassField=false;
 	public AccessModifier accessModifier;
 	public boolean createRefInitializer = false;
@@ -45,6 +46,7 @@ public class AssignNew extends Assign implements REPLTopLevelComponent{
 		ret.origprefix=origprefix;
 		
 		ret.insistNew =insistNew;
+		ret.isSharedClass =isSharedClass;
 		ret.isClassField =isClassField;
 		ret.accessModifier=accessModifier;
 		ret.createRefInitializer=createRefInitializer;
@@ -242,4 +244,13 @@ public class AssignNew extends Assign implements REPLTopLevelComponent{
 	public boolean getSupressErrors() {
 		return supressErrors;
 	}
+	
+	public boolean isSharedVariableStrict() {
+		//and not just shared class
+		if(this.isShared) {
+			return !this.isSharedClass;
+		}
+		return false;
+	}
+	
 }

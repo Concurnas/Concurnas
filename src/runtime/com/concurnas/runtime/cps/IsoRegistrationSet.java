@@ -48,7 +48,7 @@ public class IsoRegistrationSet {
 		return refs.containsKey(x) || childsubscriptions.containsKey(x);
 	}
 	
-	public boolean register(Ref<?> x){
+	public boolean register(Ref<?> x) throws Throwable{
 		if(childsubscriptions.containsKey(x)){
 			return x.isSet();//already subscribed
 		}
@@ -58,7 +58,7 @@ public class IsoRegistrationSet {
 		}
 	}
 	
-	public boolean register(Ref<?> x, ReferenceSet child, boolean isInitialsubscription){
+	public boolean register(Ref<?> x, ReferenceSet child, boolean isInitialsubscription) throws Throwable{
 		if(refs.containsKey(x)){
 			return x.isSet();
 		}
@@ -91,8 +91,9 @@ public class IsoRegistrationSet {
 	
 	/**
 	 * @param xs returns idexes of those items having already been set
+	 * @throws Throwable 
 	 */
-	public ArrayList<Integer> register(Ref<?>[] xs){
+	public ArrayList<Integer> register(Ref<?>[] xs) throws Throwable{
 		//not stricly necisary to have these two?
 		ArrayList<Integer> ret = new ArrayList<Integer>(xs.length);
 		for(int n=0; n < xs.length; n++){
@@ -104,7 +105,7 @@ public class IsoRegistrationSet {
 		return ret;
 	}
 	
-	public ArrayList<Integer> register(LocalArray<Ref<?>> la){
+	public ArrayList<Integer> register(LocalArray<Ref<?>> la) throws Throwable{
 		Ref<?>[] xs = la.ar;
 		ArrayList<Integer> ret = new ArrayList<Integer>(xs.length);
 		for(int n=0; n < xs.length; n++){
@@ -126,7 +127,7 @@ public class IsoRegistrationSet {
 		return false;
 	}
 
-	public List<Ref<?>> register(ReferenceSet child){
+	public List<Ref<?>> register(ReferenceSet child) throws Throwable{
 		if(!this.children.contains(child)){
 			this.children.add(child);
 			return child.addMaster(this);
@@ -138,8 +139,9 @@ public class IsoRegistrationSet {
 	/**
 	 * ok to be unregistered twice
 	 * @param x
+	 * @throws Throwable 
 	 */
-	public void unregister(Ref<?> x){
+	public void unregister(Ref<?> x) throws Throwable{
 		if(refs.containsKey(x)) {
 			childRefCount--;
 			x.unregister(getToNotify(), 1);
@@ -147,7 +149,7 @@ public class IsoRegistrationSet {
 		}
 	}
 	
-	public void unregister(Ref<?> x, ReferenceSet child){
+	public void unregister(Ref<?> x, ReferenceSet child) throws Throwable{
 		Set<ReferenceSet> kids = this.childsubscriptions.get(x);
 		if(null != kids && kids.contains(child)){
 			kids.remove(child);
@@ -158,7 +160,7 @@ public class IsoRegistrationSet {
 		}
 	}
 	
-	public void unregisterAll(){
+	public void unregisterAll() throws Throwable{
 		for(ReferenceSet child : children){
 			child.removeMaster(this);
 			children.remove(child);

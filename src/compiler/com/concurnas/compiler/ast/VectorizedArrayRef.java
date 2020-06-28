@@ -10,16 +10,18 @@ import com.concurnas.runtime.Pair;
 public class VectorizedArrayRef extends AbstractExpression implements Expression, HasDepth {
 	public final boolean doubledot;
 	public final boolean nullsafe;
+	public final boolean noNullAssertion;
 	public final Expression expr;
 	public ArrayRefLevelElementsHolder arrayLevelElements=null;
 	public ArrayRef astOverridearrayRef;
 	
-	public VectorizedArrayRef(int line, int col, Expression expr, ArrayRefLevelElementsHolder arrayLevelElements, boolean doubledot, boolean nullsafe) {
+	public VectorizedArrayRef(int line, int col, Expression expr, ArrayRefLevelElementsHolder arrayLevelElements, boolean doubledot, boolean nullsafe, boolean noNullAssertion) {
 		super(line, col);
 		this.expr=expr;
 		this.arrayLevelElements=arrayLevelElements;
 		this.doubledot=doubledot;
 		this.nullsafe=nullsafe;
+		this.noNullAssertion=noNullAssertion;
 	}
 
 	private Expression preceedingExpression;
@@ -49,7 +51,7 @@ public class VectorizedArrayRef extends AbstractExpression implements Expression
 
 	@Override
 	public Node copyTypeSpecific() {
-		return new VectorizedArrayRef(line, column, (Expression)expr.copy(), arrayLevelElements.clone(), doubledot, nullsafe);
+		return new VectorizedArrayRef(line, column, (Expression)expr.copy(), arrayLevelElements.clone(), doubledot, nullsafe, noNullAssertion);
 	}
 	
 	
@@ -73,7 +75,6 @@ public class VectorizedArrayRef extends AbstractExpression implements Expression
 	*/
 
 	
-	private boolean hasErrored=false;
 	public boolean validAtThisLocation=false;
 	/*
 	@Override

@@ -24,8 +24,9 @@ public class ReferenceSet{
 	
 	/**
 	 * Returns refs which have already been set
+	 * @throws Throwable 
 	 */
-	List<Ref<?>> addMaster(IsoRegistrationSet master){
+	List<Ref<?>> addMaster(IsoRegistrationSet master) throws Throwable{
 		Set<Ref<?>> refset = refs.keySet();
 		ArrayList<Ref<?>> ret = new ArrayList<Ref<?>>(refs.size());
 		masters.add(master);
@@ -40,13 +41,13 @@ public class ReferenceSet{
 		return ret;
 	}
 	
-	private void registerWithMasters(Ref<?> x){
+	private void registerWithMasters(Ref<?> x) throws Throwable{
 		for(IsoRegistrationSet master: masters){
 			master.register(x, this, false);
 		}
 	}
 	
-	void removeMaster(IsoRegistrationSet master){
+	void removeMaster(IsoRegistrationSet master) throws Throwable{
 		if(masters.remove(master)){
 			for(Ref<?> x : refs.keySet()){
 				master.unregister(x, this);
@@ -62,7 +63,7 @@ public class ReferenceSet{
 	}
 
 	
-	public boolean add(Ref<?> x){
+	public boolean add(Ref<?> x) throws Throwable{
 		
 		if(!refs.containsKey(x)){
 			refs.put(x, x);
@@ -76,35 +77,36 @@ public class ReferenceSet{
 	
 	/**
 	 * @param xs returns idexes of those items having already been set
+	 * @throws Throwable 
 	 */
-	public void addAll(Ref<?>[] xs){
+	public void addAll(Ref<?>[] xs) throws Throwable{
 		//not stricly necisary to have these two?
 		for(int n=0; n < xs.length; n++){
 			add(xs[n]);
 		}
 	}
 	
-	public void addAll(Collection<? extends Ref<?>> xs){
+	public void addAll(Collection<? extends Ref<?>> xs) throws Throwable{
 		//not stricly necisary to have these two?
 		for(Ref<?> x : xs){
 			add(x);
 		}
 	}
 	
-	public void addAll(LocalArray<Ref<?>> la){
+	public void addAll(LocalArray<Ref<?>> la) throws Throwable{
 		Ref<?>[] xs = la.ar;
 		for(int n=0; n < xs.length; n++){
 			add(xs[n]);
 		}
 	}
 	
-	public void remove(Transaction trans){
+	public void remove(Transaction trans) throws Throwable{
 		for(Ref<?> change : trans.getChanged().ar){
 			this.remove(change);
 		}
 	}
 	
-	public void remove(Ref<?> x){
+	public void remove(Ref<?> x) throws Throwable{
 		//Sytesm.out.println("preform register");
 		boolean removed = false;
 		if(null!=refs.remove(x)){
@@ -125,22 +127,23 @@ public class ReferenceSet{
 	
 	/**
 	 * @param xs returns idexes of those items having already been set
+	 * @throws Throwable 
 	 */
-	public void remove(Ref<?>[] xs){
+	public void remove(Ref<?>[] xs) throws Throwable{
 		//not stricly necisary to have these two?
 		for(int n=0; n < xs.length; n++){
 			remove(xs[n]);
 		}
 	}
 	
-	public void remove(LocalArray<Ref<?>> la){
+	public void remove(LocalArray<Ref<?>> la) throws Throwable{
 		Ref<?>[] xs = la.ar;
 		for(int n=0; n < xs.length; n++){
 			remove(xs[n]);
 		}
 	}
 
-	public void removeAll() {
+	public void removeAll() throws Throwable {
 		Set<Ref<?>> ks = refs.keySet();
 		
 		for(Ref<?> r : ks.toArray(new Ref<?>[ks.size()])){

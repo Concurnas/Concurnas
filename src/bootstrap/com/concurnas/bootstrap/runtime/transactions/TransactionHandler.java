@@ -28,7 +28,7 @@ public class TransactionHandler {
 		return isComplete;
 	}
 	
-	public  final void comit(){
+	public  final void comit() throws Throwable{
 		Transaction trans = new LocalTransaction();
 		HashSet<Fiber> toNotify = new HashSet<Fiber>();
 		HashSet<Ref<?>> nochange = new HashSet<Ref<?>>();

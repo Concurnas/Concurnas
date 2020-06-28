@@ -64,7 +64,7 @@ public class GenericTypeUtils {
 				}
 				
 				NullStatus origNullS = input.getNullStatus();
-				if(origNullS != NullStatus.NONNULL) {
+				if(origNullS != NullStatus.NOTNULL) {
 					if(ret.getNullStatus() != NullStatus.NULLABLE) {
 						ret.setNullStatus(origNullS);
 					}
@@ -270,7 +270,7 @@ public class GenericTypeUtils {
 				replace.setInOutGenModifier(gen.getInOutGenModifier());
 			}
 			
-			if(gen.getNullStatus() != NullStatus.NONNULL ) {
+			if(gen.getNullStatus() != NullStatus.NOTNULL ) {
 				//replace = (Type)replace.copy();
 				if(isreturnType) {
 					replace.setNullStatus(gen.getNullStatus());

@@ -386,7 +386,8 @@ def doings(){
 //##21. shared multi assignment
 
 //##MODULE com.myorg.code
-public shared var1 = public shared var2 =  "ok" 
+public shared var1 = "ok"
+public shared var2 = "ok" 
 
  var1 = "resset"
 

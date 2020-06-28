@@ -15,7 +15,7 @@ public class BlockingLocalRef<X> extends Local<X>{
 	}
 
 	@Override
-	public  X get()  {
+	public  X get() throws Throwable  {
 		if(!this.isSet()) {
 			synchronized(this) {
 				while(!this.isSet()) {
@@ -31,7 +31,7 @@ public class BlockingLocalRef<X> extends Local<X>{
 	}
 	
 	@Override
-	public void set(X x){
+	public void set(X x) throws Throwable{
 		synchronized(this) {
 			super.set(x);
 			this.notifyAll();

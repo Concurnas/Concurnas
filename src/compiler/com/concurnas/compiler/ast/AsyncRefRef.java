@@ -39,6 +39,8 @@ public class AsyncRefRef extends AbstractExpression implements Expression {
 		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
 		ret.astRedirect = astRedirect==null?null:astRedirect.copy();
 		//ret.followedByRefOperation = this.followedByRefOperation;
+		Type tt = this.getTaggedType();
+		ret.setTaggedType(tt==null?null:(Type)tt.copy());
 		return ret;
 	}
 	private Expression preceedingExpression;

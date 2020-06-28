@@ -1225,7 +1225,9 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 								isDirect.add(true);
 								ArrayList<Boolean> safecall = new ArrayList<Boolean>();
 								safecall.add(false);
-								AssignExisting ae = new AssignExisting(line, col, new DotOperator(line, col, new RefThis(line, col), postDot, isDirect, retself, safecall),  AssignStyleEnum.EQUALS, new RefName(line, col, paramName) );
+								ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
+								noNullAssertion.add(false);
+								AssignExisting ae = new AssignExisting(line, col, new DotOperator(line, col, new RefThis(line, col), postDot, isDirect, retself, safecall, noNullAssertion),  AssignStyleEnum.EQUALS, new RefName(line, col, paramName) );
 								ae.refCnt = TypeCheckUtils.getRefLevels(paramType);
 								fd.getBody().add(ae);
 								setHadMadeRepoints();	
@@ -1997,8 +1999,10 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 						isDirect.add(true);
 						ArrayList<Boolean> safecall = new ArrayList<Boolean>();
 						safecall.add(false);
+						ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
+						noNullAssertion.add(false);
 
-						refName.astRedirectForAll = new DotOperator(line, col, new RefThis(line, col), postDot, isDirect, retself, safecall);
+						refName.astRedirectForAll = new DotOperator(line, col, new RefThis(line, col), postDot, isDirect, retself, safecall, noNullAssertion);
 						this.setHadMadeRepoints();
 					}
 					

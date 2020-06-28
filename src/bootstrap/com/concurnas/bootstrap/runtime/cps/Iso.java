@@ -42,9 +42,9 @@ public abstract class Iso extends CObject {
         throw new RuntimeException("Code must be invoked via concurnas runtime");
     }
     
-    protected abstract void _runExecute(Transaction triggeredOn, boolean isInitial);
+    protected abstract void _runExecute(Transaction triggeredOn, boolean isInitial) throws Throwable;
 
-	public void execute(Transaction triggeredOn, boolean isInitial) {
+	public void execute(Transaction triggeredOn, boolean isInitial) throws Throwable {
 		 _runExecute(triggeredOn, isInitial);
 	}
 

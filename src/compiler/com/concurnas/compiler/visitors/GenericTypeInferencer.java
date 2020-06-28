@@ -42,6 +42,7 @@ import com.concurnas.compiler.ast.TryCatch;
 import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.WhileBlock;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.GenericTypeUtils;
 import com.concurnas.runtime.Pair;
@@ -731,9 +732,9 @@ public class GenericTypeInferencer extends AbstractVisitor {
 					ArrayRef arr = (ArrayRef)lhs;
 					Object lhsItem = arr.expr.accept(this);
 					if(lhsItem instanceof NeedsQualification) {
-						ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> allitems = arr.arrayLevelElements.getAll();
+						ArrayList<NullableArrayElementss> allitems = arr.arrayLevelElements.getAll();
 						if(allitems.size() == 1) {
-							ArrayList<ArrayRefElement> alitems = allitems.get(0).getB();
+							ArrayList<ArrayRefElement> alitems = allitems.get(0).elements;
 							if(alitems.size() == 1) {
 								ArrayRefElement are = alitems.get(0);
 								if(null != are.mapOperationSignature) {

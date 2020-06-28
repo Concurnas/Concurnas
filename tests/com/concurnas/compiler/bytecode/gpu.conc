@@ -1275,7 +1275,7 @@ def doings(){
 	
 	a1=try{
 		intoutGPU1.copyToBuffer(intoutGPU2, 2, 5, 4, c1)
-		false
+		true
 	}catch(e){
 		'Can only copy data between buffers on the same device' in e.getMessage()
 	}
@@ -1308,12 +1308,12 @@ def doings(){
 	gps = gpus.GPU()
 	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
 		
-	strrep1 = deviceGrp getOpenCLVersionNumber
-	strrep2 = deviceGrp getSummary
+	strrep1 String? = deviceGrp getOpenCLVersionNumber
+	strrep2 String? = deviceGrp getSummary
 	
 	del deviceGrp
 	
-	""+[strrep1<>null, strrep2<>null]
+	""+[strrep1.length() > 0, strrep2.length() > 0]
 }
 
 ~~~~~
@@ -1343,7 +1343,7 @@ def doings(){
 	del deviceGrp
 	del device
 	
-	"" + (dsum <> null)
+	"" + (dsum.length() > 0)
 }
 
 ~~~~~
@@ -2730,7 +2730,7 @@ def doings(){
 	
 	fmt = def (x long) =>  String.format("%.3f", x / 1e6) + "ms"
 	java.util.concurrent.TimeUnit.SECONDS.sleep(4);
-	"" + (null <> (retx + "\n" + String.join("\n", ['Write buffer1: {fmt(pc1)}', 'Write buffer2: {fmt(pc2)}', 'compute: {fmt(pComp)}', 'read buffer: {fmt(pret)}'])))
+	"" + ((retx + "\n" + String.join("\n", ['Write buffer1: {fmt(pc1)}', 'Write buffer2: {fmt(pc2)}', 'compute: {fmt(pComp)}', 'read buffer: {fmt(pret)}'])) .length() > 0 )
 }
 
 ~~~~~
@@ -4132,16 +4132,16 @@ def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
 		gpuDev[0]//intel device then...
 	}
 }
-
+def tt() => true
 def doings(){
 	gps = gpus.GPU()
 	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), gps.getCPUDevices())
 	device = deviceGrp.devices[0]
 	
-	dcopy = device@
+	dcopy = device@ if tt() else null
 	del deviceGrp, device
 	
-	"" +(dcopy == null) 	
+	"" + (dcopy == null) 	
 }
 
 ~~~~~

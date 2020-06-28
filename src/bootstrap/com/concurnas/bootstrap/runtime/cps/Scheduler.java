@@ -212,11 +212,11 @@ public class Scheduler {
 		}
 	}
 
-	public void spawnDedicatedWorker(IsoTask<Ref<?>> task, String desc, CopyTracker ct) {
+	public void spawnDedicatedWorker(IsoTask<Ref<?>> task, String desc, CopyTracker ct) throws Throwable {
 		spawnDedicatedWorker(task, desc, ct, Fiber.getCurrentFiber());
 	}
 
-	public synchronized void spawnDedicatedWorker(IsoTask<Ref<?>> task, String desc, CopyTracker ct, Fiber parent) {
+	public synchronized void spawnDedicatedWorker(IsoTask<Ref<?>> task, String desc, CopyTracker ct, Fiber parent) throws Throwable {
 		Worker w = new Worker(this.getSchedulerForNonRootWorker(), "Dedicated Worker for: " + desc, true);
 		w.start();
 
@@ -229,11 +229,11 @@ public class Scheduler {
 		this.dedicatedWorkers.remove(w);
 	}
 
-	public void scheduleTask(IsoCore iso, CopyTracker tracker) {
+	public void scheduleTask(IsoCore iso, CopyTracker tracker) throws Throwable {
 		scheduleTask(iso, tracker, null);
 	}
 
-	public void scheduleTask(IsoCore iso, CopyTracker tracker, Fiber parent) {
+	public void scheduleTask(IsoCore iso, CopyTracker tracker, Fiber parent) throws Throwable {
 		SyncTracker st = parent == null ? null : parent.getCurrentSyncTracker();
 
 		HashSet<String> implicitGlobals = extractIndirectGlobals(tracker);
@@ -259,8 +259,8 @@ public class Scheduler {
 		iso.worker.createTask(iso);
 	}
 
-	public void scheduleTask(AbstractIsoTask func, String desc){	scheduleTask(func, desc, null);}
-	public void scheduleTask(AbstractIsoTask func, String desc, Fiber parent){
+	public void scheduleTask(AbstractIsoTask func, String desc) throws Throwable{	scheduleTask(func, desc, null);}
+	public void scheduleTask(AbstractIsoTask func, String desc, Fiber parent) throws Throwable{
 		scheduleTask(prepare(func, desc, parent), null, parent);
 	}
 	

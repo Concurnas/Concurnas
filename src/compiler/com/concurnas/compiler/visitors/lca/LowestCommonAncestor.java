@@ -363,7 +363,7 @@ public class LowestCommonAncestor {
 
 				int sz = lns.size();
 				for(int n=0; n < sz; n++) {
-					combined.add((lns.get(n)== NullStatus.NULLABLE || rns.get(n)== NullStatus.NULLABLE )? NullStatus.NULLABLE:NullStatus.NONNULL);
+					combined.add((lns.get(n)== NullStatus.NULLABLE || rns.get(n)== NullStatus.NULLABLE )? NullStatus.NULLABLE:NullStatus.NOTNULL);
 				}
 				
 				left.setNullStatusAtArrayLevel(combined);

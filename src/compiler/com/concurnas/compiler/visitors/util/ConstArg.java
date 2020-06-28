@@ -11,16 +11,18 @@ public class ConstArg {
 	public Annotations annotationsForConstructor;
 	public Expression defaultValue;
 	public boolean isVararg;
+	public boolean isNullableVararg;
 	public boolean isLazy;
 	public boolean isShared;
 
-	public ConstArg(String name, Type argType, boolean isFinal, Annotations annotationsForConstructor, Expression defaultValue, boolean isVararg, boolean isLazy, boolean isShared) {
+	public ConstArg(String name, Type argType, boolean isFinal, Annotations annotationsForConstructor, Expression defaultValue, boolean isVararg, boolean isNullableVararg, boolean isLazy, boolean isShared) {
 		this.name = name;
 		this.argType = argType;
 		this.isFinal = isFinal;
 		this.annotationsForConstructor = annotationsForConstructor;
 		this.defaultValue = defaultValue;
 		this.isVararg = isVararg;
+		this.isNullableVararg = isNullableVararg;
 		this.isLazy = isLazy;
 		this.isShared = isShared;
 	}

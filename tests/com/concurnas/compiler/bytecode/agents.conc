@@ -2232,7 +2232,7 @@ def doings(){
 }
 
 ~~~~~
-//##117. actor copy in and out
+//##117. actor copy in and out 
 
 from java.util import Arrays, HashSet
 
@@ -2757,7 +2757,7 @@ def doings(){
 inject class Myclass(pp Providexx){
 	~xxx = 0
 	
-	def setThing(what byte[]){
+	def setThing(what byte[]?){
 		xxx = 344
 	}
 	
@@ -2768,7 +2768,7 @@ inject class Myclass(pp Providexx){
 }
 
 actor Providexx{
-	def something() byte[]: => null
+	def something() byte[]:? => null
 }
 
 provider XXX{
@@ -2789,7 +2789,7 @@ def doings(){
 inject class Myclass(pp Providexx){
 	~xxx = 0
 	
-	def setThing(what byte[2]){
+	def setThing(what byte[2]?){
 		xxx = 344
 	}
 	
@@ -2800,7 +2800,7 @@ inject class Myclass(pp Providexx){
 }
 
 actor Providexx{
-	def something() byte[2]: => null
+	def something() byte[2]:? => null
 }
 
 provider XXX{
@@ -2820,7 +2820,7 @@ def doings(){
 inject class Myclass(pp Providexx){
 	~xxx = 0
 	
-	def setThing(what Byte[]){
+	def setThing(what Byte[]?){
 		xxx = 344
 	}
 	
@@ -2831,7 +2831,7 @@ inject class Myclass(pp Providexx){
 }
 
 actor Providexx{
-	def something() Byte[]: => null
+	def something() Byte[]:? => null
 }
 
 provider XXX{
@@ -2852,7 +2852,7 @@ def doings(){
 inject class Myclass(pp Providexx){
 	~xxx = 0
 	
-	def setThing(what Byte[2]){
+	def setThing(what Byte[2]?){
 		xxx = 344
 	}
 	
@@ -2863,7 +2863,7 @@ inject class Myclass(pp Providexx){
 }
 
 actor Providexx{
-	def something() Byte[2]: => null
+	def something() Byte[2]:? => null
 }
 
 provider XXX{
@@ -2884,7 +2884,7 @@ inject class Myclass(pp Providexx){
 	~xxx = 0
 	
 	
-	def setThing(what byte[]){
+	def setThing(what byte[]?){
 		xxx = 344
 	}
 	
@@ -2895,7 +2895,7 @@ inject class Myclass(pp Providexx){
 }
 
 actor Providexx{
-	def something() byte[]: => null
+	def something() byte[]:? => null
 }
 
 

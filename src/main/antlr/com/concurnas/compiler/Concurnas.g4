@@ -91,7 +91,7 @@ exprListShortcut :
  	a1=refName atype1=mustBeArrayType ( aassStyle=assignStyle arhsExpr = expr_stmt_tuple)? //to deal with cases: myvar Integer[][] = null - which are otherwise picked up by next line...
 	| e1=refName e2=refName (rest=expr_stmt_)+;//to deal with cases such as: thing call arg. But watch out for: thing String[]
 
-mustBeArrayType: (primitiveType | namedType | tupleType) trefOrArrayRef+ | funcType trefOrArrayRef*;
+mustBeArrayType: (primitiveType | namedType /* | tupleType*/) trefOrArrayRef+ | funcType trefOrArrayRef*;
 
 transientAndShared: //can be defined either way around
 	trans='transient'
@@ -112,18 +112,18 @@ transientAndShared: //can be defined either way around
 ;
 
 assignment:
-	 (annotations NEWLINE? )? ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?    (refname = refName typeNoNTTuple) ( assStyle=assignStyle ( rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple ) | onchangeEveryShorthand )?
+	assignmentTupleDereflhsOrNothing (',' assignmentTupleDereflhsOrNothing)+   ( assStyle=assignStyle (  rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple  )   | onchangeEveryShorthand)
+	|  (annotations NEWLINE? )? ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?    (refname = refName typeNoNTTuple) ( assStyle=assignStyle ( rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple ) | onchangeEveryShorthand )?
 	| (annotations NEWLINE? )? ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier?  valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?  refname = refName (refCnt+=':')* ( assStyle=assignStyle (  rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple  )   | onchangeEveryShorthand)
-	| LPARA {setNotInArrayDef();} assignmentTupleDereflhsOrNothing (',' assignmentTupleDereflhsOrNothing)+ RPARA {popInArrayDef();} ( assStyle=assignStyle (  rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple  )   | onchangeEveryShorthand)
 	| ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?  assignee=expr_stmt ( assStyle=assignStyle  (rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple )  | onchangeEveryShorthand)
 	| lonleyannotation = annotation
 	;
 	
 assignmentForcedRHS:
-	 (annotations NEWLINE? )? ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?    (refname = refName type) ( assStyle=assignStyle ( rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple ) | onchangeEveryShorthand )
+	assignmentTupleDereflhsOrNothing (',' assignmentTupleDereflhsOrNothing)+  ( assStyle=assignStyle (  rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple  )   | onchangeEveryShorthand)
+	| (annotations NEWLINE? )? ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?    (refname = refName type) ( assStyle=assignStyle ( rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple ) | onchangeEveryShorthand )
 	| (annotations NEWLINE? )? ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier?  valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?  refname = refName (refCnt+=':')* ( assStyle=assignStyle (  rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple  )   | onchangeEveryShorthand)
-	| LPARA {setNotInArrayDef();} assignmentTupleDereflhsOrNothing (',' assignmentTupleDereflhsOrNothing)+ RPARA {popInArrayDef();} ( assStyle=assignStyle (  rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple  )   | onchangeEveryShorthand)
-	| ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?  assignee=expr_stmt ( assStyle=assignStyle  (rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple )  | onchangeEveryShorthand)
+	|  ppp? (override='override')? transAndShared=transientAndShared? gpuVarQualifier? valvar=(VAL|VAR)? prefix=('-'|'+'|'~')?  assignee=expr_stmt ( assStyle=assignStyle  (rhsAnnotShurtcut = annotation | rhsAssignment = assignmentForcedRHS | rhsExpr = expr_stmt_tuple )  | onchangeEveryShorthand)
 	| lonleyannotation = annotation
 	;
 
@@ -262,9 +262,9 @@ funcParams
 funcParam:
 	annotations? sharedOrLazy? (gpuVarQualifier gpuInOutFuncParamModifier?)? (isFinal=VAL|VAR)? 
 	(
-		NAME ( type isvararg='...'?)? ('=' expr_stmt )
+		NAME ( type ((isvararg='...' | isvarargAndPrevNullable='?...') nullable='?'?)? )?  ('=' expr_stmt )
 		|
-		NAME? ( type isvararg='...'?) ('=' expr_stmt )?
+		NAME? ( type ((isvararg='...' | isvarargAndPrevNullable='?...') nullable='?'?)? )  ('=' expr_stmt )?
 	)
 	;
 
@@ -290,7 +290,7 @@ objectProviderArgs
 
 objectProviderArg:
 	annotations? pppNoInject? transAndShared=transientAndShared?   
-		(isFinal=VAL|VAR)? NAME  ((type | (refCnt+=':')+) isvararg='...'? )? ( '='  expr_stmt )?
+		(isFinal=VAL|VAR)? NAME  ((type | (refCnt+=':')+) ( (isvararg='...' | isvarargAndPrevNullable='?...')  nullablevararg='?'? )? )? ( '='  expr_stmt )?
 	;
 
 
@@ -375,7 +375,7 @@ classdefArgs
 	;
 
 classdefArg:
-	annotations? pppNoInject? (override='override')? transAndShared=transientAndShared? (isFinal=VAL|VAR)? (prefix=('-'|'+'|'~'))? NAME  ((type | (refCnt+=':')+) isvararg='...'? )? ( '='  expr_stmt )?
+	annotations? pppNoInject? (override='override')? transAndShared=transientAndShared? (isFinal=VAL|VAR)? (prefix=('-'|'+'|'~'))? NAME  ((type | (refCnt+=':')+) ( (isvararg='...' | isvarargAndPrevNullable='?...') nullablevararg='?'? )? )? ( '='  expr_stmt )?
 	;
 
 
@@ -553,7 +553,7 @@ try_stmt
 	  ( NEWLINE* 'finally'  finblock=block )?
 	;
 
-catchBlock: NEWLINE* 'catch'  LPARA {setNotInArrayDef();}   NAME  (type   ('or'  type   )* )? RPARA {popInArrayDef();}  block ;
+catchBlock: NEWLINE* 'catch'  (LPARA {setNotInArrayDef();}   NAME  (type   ('or'  type   )* )? RPARA {popInArrayDef();})?  block ;
 
 block_async
   : block_ ( async='!'( LPARA {setNotInArrayDef();} executor=expr_stmt RPARA {popInArrayDef();} )? )?
@@ -655,7 +655,7 @@ funcRefArgs
   ;
 
 funcRefArg
-	: (NAME '=')? ( '?' lazy='lazy'? type | lazy='lazy'? primitiveType | lazy='lazy'? funcType nullable='?'? | lazy='lazy'? LPARA {setNotInArrayDef();} tupleType RPARA {popInArrayDef();} nullable='?'? | lazy='lazy'? namedType nullable='?' | expr_stmt | (refcnt+=':')+ )
+	: (NAME '=')? ( '?' lazy='lazy'? type | lazy='lazy'? primitiveType | lazy='lazy'? funcType nullable='?'? | lazy='lazy'? tupleType nullable='?'? | lazy='lazy'? namedType nullable='?' | expr_stmt | (refcnt+=':')+ )
 	;
 	
 genTypeList 
@@ -670,12 +670,12 @@ genTypeListElemnt
 	
 ///////////// types /////////////
 trefOrArrayRef:
-		hasAr=LBRACK (arLevels=intNode) RBRACK
+		hasAr=LBRACK (arLevels=natNumNode) RBRACK
 	| (hasArAlt+=LBRACK RBRACK)+
 	| refOrNullable
 	;
 
-refOrNullable: ':' dotted_name?
+refOrNullable: (nullableContent='?:'|':') dotted_name?
 	| nullable='?'
 	| nullableErr='??'
 	;
@@ -690,7 +690,7 @@ bareTypeParamTuple:
 	pointerQualifier? primitiveType
 	| namedType
 	| funcType
-	| LPARA {setNotInArrayDef();} tupleType RPARA {popInArrayDef();}
+	| tupleType
 	;
 
 
@@ -731,7 +731,7 @@ namedType_ExActor
   
 nameAndgens : NAME genTypeList?;
 
-tupleType : bareButTuple (',' bareButTuple )+ ;
+tupleType : LPARA {setNotInArrayDef();} bareButTuple (',' bareButTuple )+  RPARA {popInArrayDef();};
 
 bareButTuple: (primitiveType | namedType | funcType ) trefOrArrayRef*;
 
@@ -832,10 +832,9 @@ postfixExpr : sizeOfExpr postfixOp=('++' | '--')?;
 
 sizeOfExpr: (sizeof='sizeof'  ('<' variant=dotted_name '>')? )? asyncSpawnExpr;
 
-asyncSpawnExpr: notNullAssertion (isAsync='!' (LPARA {setNotInArrayDef();} expr_stmt RPARA {popInArrayDef();})? )?;
+asyncSpawnExpr: elvisOperator (isAsync='!' (LPARA {setNotInArrayDef();} expr_stmt RPARA {popInArrayDef();})? )?;
 
 
-notNullAssertion :  elvisOperator ( nna='??')?;
 elvisOperator :  lhsExpr=vectorize ( '?:'  elsExpr=if_expr)?  ;
 
 
@@ -844,12 +843,12 @@ vectorize: primary=vectorize vectorize_element+
 	;
 
 vectorize_element:
-	nullsafe='?'? ('^' (doubledot='^')? ) (constru=constructorInvoke | arrayRefElements+ | afterVecExpr=refName genTypeList? (pureFuncInvokeArgs | '&' funcRefArgs?)? )? 
+	(nna='??' nullsafe='?')? ('^' (doubledot='^')? ) (constru=constructorInvoke | arrayRefElements+ | afterVecExpr=refName genTypeList? (pureFuncInvokeArgs | '&' funcRefArgs?)? )? 
 	;
 
 dotOperatorExpr: ((pntUnrefCnt+='*'|pntUnrefCnt2+='**' )+ | address='~')? copyExpr ( NEWLINE* dotOpArg NEWLINE* copyExpr)*;
 
-copyExpr : expr_stmt_BelowDot (isCopy='@' (hasCopier=LPARA {setNotInArrayDef();} ( (copyExprItem  (',' copyExprItem)* ','?)? (';' modifier+=NAME (',' modifier+=NAME)* ','?  )? ) RPARA {popInArrayDef();} )? )?;
+copyExpr : notNullAssertion (isCopy='@' (hasCopier=LPARA {setNotInArrayDef();} ( (copyExprItem  (',' copyExprItem)* ','?)? (';' modifier+=NAME (',' modifier+=NAME)* ','?  )? ) RPARA {popInArrayDef();} )? )?;
 
 copyExprItem: ename=NAME '=' expr_stmt
 	|  incName=NAME
@@ -857,6 +856,8 @@ copyExprItem: ename=NAME '=' expr_stmt
 	| (copyName=NAME | superCopy='super' )'@' ( hasCopier=LPARA {setNotInArrayDef();} ( (copyExprItem  (',' copyExprItem)* ','?)?  (';' modifier+=NAME (',' modifier+=NAME)* ','? )? ) RPARA {popInArrayDef();} )? 
 	;
 
+
+notNullAssertion :  expr_stmt_BelowDot ( nna='??')?;
 
 expr_stmt_BelowDot //seperate rule for match operations - basically atoms
 	: (isthis='this' pureFuncInvokeArgs | 'super' pureFuncInvokeArgs) #superOrThisConstructorInvoke
@@ -873,7 +874,7 @@ expr_stmt_BelowDot //seperate rule for match operations - basically atoms
 	;
 
 
-arrayRefElements:  (nullSafe='?'? LBRACK arrayRefElement (',' arrayRefElement)* (trailcomma+=',')* RBRACK )  ;
+arrayRefElements:  ((nna='??' | nullsafe='?')? LBRACK arrayRefElement (',' arrayRefElement)* (trailcomma+=',')* RBRACK )  ;
 
 notNullAssertion2 :  atom (NEWLINE* nna='??')?;
 
@@ -914,7 +915,8 @@ changedNode:'changed';
 outNode:'out';
 thisNode:'this' (LBRACK (thisQuali=dotted_name| thisQualiPrim=primitiveType) RBRACK)?;
 nullNode: 'null';
-intNode : INT;
+natNumNode :  NATNUM ;
+intNode : INT | NATNUM;
 longNode : LONGINT;
 shortNode : SHORTINT;
 floatNode : FLOAT;
@@ -938,7 +940,7 @@ refName
 	
 
 dotOpArg
-	: '.'|'\\.'|'..'|'?.'
+	: '.'|'\\.'|'..'|'?.'|'??.'
 	;
 
 arrayDef 
@@ -1072,11 +1074,14 @@ HexIntegerLiteral
 fragment
 DIGITS : ( '0' .. '9' )+ ;
 
+
+NATNUM: ( '1' .. '9' ) DIGITS*;
+
 INT :  HexIntegerLiteral 
     |   (
     	'0' ( 'b' | 'B' ) ( '0' .. '9'  )+
 	    |   '0' DIGITS*
-	    |   '1'..'9' DIGITS* //TODO: starting with as many 0 as you like is ok
+	    |   NATNUM //TODO: starting with as many 0 as you like is ok
 	    )
     ;
 

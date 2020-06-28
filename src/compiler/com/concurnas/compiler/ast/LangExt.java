@@ -11,6 +11,14 @@ public class LangExt extends AbstractExpression implements Expression {
 	public final  String body;
 	public Block astRedirectBlock;
 	
+	private Expression preceedingExpression;
+	public boolean foundSubs = false;
+	public String processed = null;
+	public LanguageExtensionRunner langExtCompiler = null;
+	public Long id = null;
+	public boolean initalized=false;
+	
+	
 	public LangExt(int line, int col, String name, String body) {
 		super(line, col);
 		this.name= name;
@@ -41,15 +49,9 @@ public class LangExt extends AbstractExpression implements Expression {
 	@Override
 	public Node copyTypeSpecific() {
 		LangExt ret = new LangExt(line, column, name, body);
-
+		ret.astRedirectBlock = astRedirectBlock == null?null:(Block)astRedirectBlock.copy();
 		return ret;
 	}
-	private Expression preceedingExpression;
-	public boolean foundSubs = false;
-	public String processed = null;
-	public LanguageExtensionRunner langExtCompiler = null;
-	public Long id = null;
-	public boolean initalized=false;
 	
 	@Override
 	public void setPreceedingExpression(Expression expr) {

@@ -12,15 +12,13 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import com.concurnas.compiler.ConcurnasLexer;
-import com.concurnas.compiler.ConcurnasParser;
 import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.ClassDefJava;
@@ -43,6 +41,7 @@ import com.concurnas.compiler.visitors.GenericTypeInferencer;
 import com.concurnas.compiler.visitors.ImplicitUnrefNeedsDelete;
 import com.concurnas.compiler.visitors.NestedFuncRepoint;
 import com.concurnas.compiler.visitors.NonRefPostfixVisitorTagger;
+import com.concurnas.compiler.visitors.NullableInference;
 import com.concurnas.compiler.visitors.ReturnVisitor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.VectorizedRedirector;
@@ -50,9 +49,9 @@ import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 import com.concurnas.repl.REPLState;
 import com.concurnas.repl.REPLState.REPLTopLevelImports;
+import com.concurnas.repl.REPLVariableState;
 import com.concurnas.runtime.Pair;
 import com.concurnas.runtimeCache.ReleaseInfo;
-import com.concurnas.repl.REPLVariableState;
 
 
 public class ModuleCompiler implements Comparable{
@@ -382,6 +381,8 @@ public class ModuleCompiler implements Comparable{
 					
 					VectorizedRedirector vectorizedRedirector = new VectorizedRedirector(fullPathName/*, scopeTypeChecker1*/);
 					
+					NullableInference nullableInference = new NullableInference(fullPathName/*, scopeTypeChecker1*/);
+					
 					moduleLevelFrame = scopeTypeChecker.moduleLevelFrame;
 					moduleLevelFrame.paThisIsModule=true;
 					if(isREPL) {
@@ -444,6 +445,13 @@ public class ModuleCompiler implements Comparable{
 					if(this.profiler != null) { profiler.mark("Initial Retrun Visitor"); }
 					stcErrs.addAll(returnVisitor.getErrors());
 					
+					//if(stcErrs.isEmpty()){
+						prepareAndSetLastVisitor(nullableInference);
+						nullableInference.visit(lexedAndParsedAST);
+						if(this.profiler != null) { profiler.mark("Initial NullableInference"); }
+						stcErrs.addAll(nullableInference.getErrors());
+					//}
+					
 					prepareAndSetLastVisitor(fieldAccessReport);
 					fieldAccessReport.visit(lexedAndParsedAST);
 					prepareAndSetLastVisitor(defaultActorCreator);
@@ -452,11 +460,14 @@ public class ModuleCompiler implements Comparable{
 					
 					int n=0;
 					boolean visitedModLevelSharevVarGen=false;
-					boolean anychagnes = fieldAccessReport.hadMadeRepoints() || nestedFuncRepoint.hadMadeRepoints() 
-							|| returnVisitor.hadMadeRepoints() || vectorizedRedirector.hadMadeRepoints()
+					boolean anychagnes = fieldAccessReport.hadMadeRepoints() 
+							|| nestedFuncRepoint.hadMadeRepoints() 
+							|| returnVisitor.hadMadeRepoints() 
+							|| vectorizedRedirector.hadMadeRepoints()
 							|| scopeTypeChecker.hasSharedModuleLevelVars
 							|| scopeTypeChecker.attemptGenTypeInference
-							|| defaultActorCreator.changeMade;
+							|| defaultActorCreator.changeMade
+							|| nullableInference.hadMadeRepoints();
 					
 					
 					if(isREPL) {
@@ -526,18 +537,31 @@ public class ModuleCompiler implements Comparable{
 						prepareAndSetLastVisitor(fieldAccessReport);
 						fieldAccessReport.visit(lexedAndParsedAST);
 						if(this.profiler != null) { profiler.mark("Next fieldAccessReport"); }
+						
 						prepareAndSetLastVisitor(returnVisitor);
 						returnVisitor.doOperation(lexedAndParsedAST);
 						if(this.profiler != null) { profiler.mark("Next returnVisitor"); }
-						
-						
 						stcErrs.addAll(returnVisitor.getErrors());
+						
+
+						nullableInference.restart();
+						prepareAndSetLastVisitor(nullableInference);
+						nullableInference.visit(lexedAndParsedAST);
+						if(this.profiler != null) { profiler.mark("Next NullableInference"); }
+						stcErrs.addAll(nullableInference.getErrors());
+						
+						
 						if(n++ > MAX_COMP_INNER_ATTEMPTS) {
 							stcErrs.add(new ErrorHolder(fullPathName, 0,0, "Exceeded max internal compilation cycle attempts: " + MAX_COMP_INNER_ATTEMPTS));//
 							break;
 						}
 						
-						anychagnes = (genTypeInfer != null && genTypeInfer.hadMadeRepoints()) || fieldAccessReport.hadMadeRepoints() || nestedFuncRepoint.hadMadeRepoints() || returnVisitor.hadMadeRepoints() || vectorizedRedirector.hadMadeRepoints();
+						anychagnes = (genTypeInfer != null && genTypeInfer.hadMadeRepoints()) 
+								|| fieldAccessReport.hadMadeRepoints() 
+								|| nestedFuncRepoint.hadMadeRepoints() 
+								|| returnVisitor.hadMadeRepoints() 
+								|| vectorizedRedirector.hadMadeRepoints()
+								|| nullableInference.hadMadeRepoints();
 						
 						if(!anychagnes) {
 							if(scopeTypeChecker.hasSharedModuleLevelVars && !visitedModLevelSharevVarGen) {
@@ -550,7 +574,7 @@ public class ModuleCompiler implements Comparable{
 							}
 						}
 						
-						
+						//System.out.println(String.join("\n ", stcErrs.stream().map(a -> a.toString()).collect(Collectors.toList())) + "\n\n");
 						
 						if(isREPL && !anychagnes) {//see if what we have added to the repl will result in changes to other areas of the graph...
 							//output true if there are things needing recalculation

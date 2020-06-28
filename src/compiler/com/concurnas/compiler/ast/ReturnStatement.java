@@ -59,7 +59,11 @@ public class ReturnStatement extends Statement implements PreEntryCode, CanEndIn
 		
 		Stack<Pair<Label, Block>> addlinesToInactOntry = new Stack<Pair<Label, Block>>();
 		for(Pair<Label, Block> item: linesToInactOntry){
-			addlinesToInactOntry.add(new Pair<Label, Block>(new Label(), (Block)item.getB().copy()));
+			Block b = item.getB();
+			if(b != null) {
+				b  = (Block) b.copy();
+			}
+			addlinesToInactOntry.add(new Pair<Label, Block>(new Label(), (Block)b));
 		}
 		
 		ret.linesToInactOntry=addlinesToInactOntry;

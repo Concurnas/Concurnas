@@ -13,7 +13,7 @@ import com.concurnas.bootstrap.runtime.ReifiedType;
 import com.concurnas.bootstrap.runtime.ref.Ref;
 
 public class InstanceofGeneric {
-	public final static void assertGenericInstnaceof(Object passed, Class<?>[] isInstanceOf) throws ClassCastException{
+	public final static void assertGenericInstnaceof(Object passed, Class<?>[] isInstanceOf) throws Throwable{
 		if(null == passed){
 			ClassCastException cce = new ClassCastException(String.format("null cannot be cast to %s", RefUtils.formatTypeList(isInstanceOf) ));
 			StackTraceElement[] es = cce.getStackTrace();
@@ -37,7 +37,7 @@ public class InstanceofGeneric {
 		
 	}
 	
-	public final static boolean isGenericInstnaceof(Object passed, Class<?>[] isInstanceOf){
+	public final static boolean isGenericInstnaceof(Object passed, Class<?>[] isInstanceOf) throws Throwable{
 		if(null == passed){ return false; } 
 		return isGenericInstnaceof( RefUtils.extractType(passed) , isInstanceOf);
 	}

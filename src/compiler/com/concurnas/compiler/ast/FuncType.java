@@ -416,7 +416,7 @@ public class FuncType  extends AbstractType  implements Comparable<FuncType> {
 					if(ignoreInOUtModi && null != item){
 						item = (Type)item.copy();
 						item.setInOutGenModifier(null);
-						item.setNullStatus(NullStatus.NONNULL);
+						item.setNullStatus(NullStatus.NOTNULL);
 					}
 					
 					sb.append(item);
@@ -435,7 +435,7 @@ public class FuncType  extends AbstractType  implements Comparable<FuncType> {
 			if(ignoreInOUtModi){
 				retType = (Type)retType.copy();
 				retType.setInOutGenModifier(null);
-				retType.setNullStatus(NullStatus.NONNULL);
+				retType.setNullStatus(NullStatus.NOTNULL);
 			}
 			
 			sb.append(retType);

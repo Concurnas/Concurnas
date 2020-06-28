@@ -114,7 +114,9 @@ public class FunctionGenneratorUtils {
 		retself.add(false);
 		ArrayList<Boolean> safecall = new ArrayList<Boolean>();
 		safecall.add(false);
-		ReturnStatement ret = new ReturnStatement(classDef.getLine(), classDef.getColumn(), new DotOperator(classDef.getLine(), classDef.getColumn(),viaSuper? new RefSuper(classDef.getLine(), classDef.getColumn()):new RefThis(classDef.getLine(), classDef.getColumn()), postDot, isDirect, retself, safecall) );
+		ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
+		noNullAssertion.add(false);
+		ReturnStatement ret = new ReturnStatement(classDef.getLine(), classDef.getColumn(), new DotOperator(classDef.getLine(), classDef.getColumn(),viaSuper? new RefSuper(classDef.getLine(), classDef.getColumn()):new RefThis(classDef.getLine(), classDef.getColumn()), postDot, isDirect, retself, safecall, noNullAssertion) );
 		body.add(new LineHolder(classDef.getLine(), classDef.getColumn(), ret));
 		
 		FuncDef getter = new FuncDef(classDef.getLine(), classDef.getColumn(), null, AccessModifier.PUBLIC, funcName, new FuncParams(classDef.getLine(), classDef.getColumn()), body, retrunType, false, false, false, new ArrayList<Pair<String, NamedType>>());
@@ -251,7 +253,9 @@ public class FunctionGenneratorUtils {
 		retself.add(false);
 		ArrayList<Boolean> safecall = new ArrayList<Boolean>();
 		safecall.add(false);
-		AssignExisting ae = new AssignExisting(classDef.getLine(), classDef.getColumn(), new DotOperator(classDef.getLine(), classDef.getColumn(), viaSuper? new RefSuper(classDef.getLine(), classDef.getColumn()): new RefThis(classDef.getLine(), classDef.getColumn()), postDot, isDirect, retself, safecall),  
+		ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
+		noNullAssertion.add(false);
+		AssignExisting ae = new AssignExisting(classDef.getLine(), classDef.getColumn(), new DotOperator(classDef.getLine(), classDef.getColumn(), viaSuper? new RefSuper(classDef.getLine(), classDef.getColumn()): new RefThis(classDef.getLine(), classDef.getColumn()), postDot, isDirect, retself, safecall, noNullAssertion),  
 				AssignStyleEnum.EQUALS, 
 				eqRefName(classDef.getLine(), classDef.getColumn(), name) );
 		
@@ -280,7 +284,10 @@ public class FunctionGenneratorUtils {
 		for(FuncParam fp : funcDef.params.params){
 			String pname = fp.name;
 			String pnameDN = pname + "$defaultNull";
-			fps.add(new FuncParam(line, col, pname, fp.getTaggedType(), false));
+			Type tt = fp.getTaggedType();
+			//tt = (Type)tt.copy();
+			//tt.setNullStatus(NullStatus.NULLABLE);
+			fps.add(new FuncParam(line, col, pname, tt, false));
 			
 			
 			if(null != fp.defaultValue){
@@ -315,7 +322,11 @@ public class FunctionGenneratorUtils {
 				
 				fia.add(ifExpr);
 				
-				fps.add(new FuncParam(line, col, pnameDN, ScopeAndTypeChecker.const_defaultParamUncre, true));
+				Type forDefnarg = (Type)ScopeAndTypeChecker.const_defaultParamUncre.copy();
+				
+				forDefnarg.setNullStatus(NullStatus.NULLABLE);
+				
+				fps.add(new FuncParam(line, col, pnameDN, forDefnarg, true));
 			}
 			else{
 				fia.add(eqRefName(line, col, pname));
@@ -472,7 +483,9 @@ public class FunctionGenneratorUtils {
 				retself.add(false);
 				ArrayList<Boolean> safecall = new ArrayList<Boolean>();
 				safecall.add(false);
-				AssignExisting ae = new AssignExisting(line, col, new DotOperator(line, col, new RefThis(line, col), postDot,isDirect, retself, safecall),  AssignStyleEnum.EQUALS, eqRefName(line, col, name) );
+				ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
+				noNullAssertion.add(false);
+				AssignExisting ae = new AssignExisting(line, col, new DotOperator(line, col, new RefThis(line, col), postDot,isDirect, retself, safecall, noNullAssertion),  AssignStyleEnum.EQUALS, eqRefName(line, col, name) );
 				ae.refCnt = TypeCheckUtils.getRefLevels(type);
 				
 				constructorBody.add(new LineHolder(line, col, ae));
@@ -497,6 +510,7 @@ public class FunctionGenneratorUtils {
 			//fp.accept(errors);
 			fp.annotations = entry.annotationsForConstructor;
 			fp.isVararg=entry.isVararg;
+			fp.isNullableVarArg=entry.isNullableVararg;
 			fp.isLazy = entry.isLazy;
 			fp.isShared = entry.isShared;
 			params.add(fp);
@@ -552,13 +566,16 @@ public class FunctionGenneratorUtils {
 		return null;
 	}
 	
-	private static NamedType object_const = new NamedType(new ClassDefJava(java.lang.Object.class));
+	private static NamedType object_const_Nullable = new NamedType(new ClassDefJava(java.lang.Object.class));
+	static {
+		object_const_Nullable.setNullStatus(NullStatus.NULLABLE);
+	}
 	private static PrimativeType const_boolean = new PrimativeType(PrimativeTypeEnum.BOOLEAN);
 	private static PrimativeType const_int = new PrimativeType(PrimativeTypeEnum.INT);
 	
 	private static boolean isEqualsDefAbstract(ClassDef classDef){
 		ArrayList<Type> inputs = new ArrayList<Type>(1);
-		inputs.add(object_const);
+		inputs.add(object_const_Nullable);
 		FuncType sig = new FuncType(inputs, const_boolean);
 		for(TypeAndLocation tal: classDef.getFuncDef("equals", true, false)){
 			Type t = tal.getType();
@@ -650,13 +667,13 @@ public class FunctionGenneratorUtils {
 			//note when comparing ref types, ensure they are locked in place when being passed around the various equals fuctions
 			
 			List<Sixple<String, Type, Boolean, AccessModifier, Boolean, String>> allVars = getAllVars(satc, classDef, isActor);
-			allVars = allVars.stream().filter(a -> !a.getC()).collect(Collectors.toList());//ignore items which have been set already
+			allVars = allVars.stream().filter(a -> !a.getC() || a.getB().hasArrayLevels() ).collect(Collectors.toList());//ignore items which have been set already
 			
 			
 			//function begins - which needs to be moved to bytecode gen stage lols
 			
 			FuncParams inputs = new FuncParams(line, col);
-			inputs.add(new FuncParam(line, col, "other", object_const, true));
+			inputs.add(new FuncParam(line, col, "other", object_const_Nullable, true));
 			
 			Block mainBlock = new Block(line, col);
 			Block ifNullBlock = new Block(line, col);
@@ -702,7 +719,9 @@ public class FunctionGenneratorUtils {
 			
 			//Expression instExpTest = new InstanceOf(line, col, eqRefName(line, col, "other"), castTo, false);
 			//other.getClass().equals(this.getClass())
-			DotOperator otherGetClass = DotOperator.buildDotOperatorOne(line, col, eqRefName(line, col, "other"), new FuncInvoke(line, col, "getClass"));
+			DotOperator otherGetClass = DotOperator.buildDotOperatorOne(line, col,  eqRefName(line, col, "other"), new FuncInvoke(line, col, "getClass"));
+			
+			
 			DotOperator thisGetClass = DotOperator.buildDotOperatorOne(line, col, new RefThis(line, col), new FuncInvoke(line, col, "getClass"));
 			
 			DotOperator callEQ = DotOperator.buildDotOperatorOne(line, col, thisGetClass, new FuncInvoke(line, col, "equals", otherGetClass));
@@ -768,7 +787,28 @@ public class FunctionGenneratorUtils {
 					
 				}
 				else{
-					//oh it's an object or a func type, either way call equals
+					//oh it's an object or a func type, either way call Objects.equals()
+					
+					//java.util.Objects
+					int refLevels = TypeCheckUtils.getRefLevels(type);//TODO: would be more optimnal to have the ref levels tagged at the top leve of the type
+					
+					Expression mefield    = DotOperator.buildDotOperatorOne(line, col, new RefThis(line, col), isActor?makeAsyncRefRefForFuncInvoke(line, col, name, refLevels):makeAsyncRefRefForName(line, col, name, refLevels)); 
+					Expression otherField = DotOperator.buildDotOperatorOne(line, col, eqRefName(line, col, "theOther"), isActor?makeAsyncRefRefForFuncInvoke(line, col, name, refLevels):makeAsyncRefRefForName(line, col, name, refLevels)); 
+					
+
+					Block  retFalseBlock = new Block(line, col);
+					
+					ArrayList<Expression> objectsEquals = new ArrayList<Expression>();
+					objectsEquals.add(new RefName("java"));
+					objectsEquals.add(new RefName("util"));
+					objectsEquals.add(new RefName("Objects"));
+					objectsEquals.add(FuncInvoke.makeFuncInvoke(line, col, "equals", mefield, otherField));
+					
+					IfStatement fieldEqTest = new IfStatement(line, col, new NotExpression(line, col, new DotOperator(line, col, objectsEquals, false)), retFalseBlock, null);
+
+					retFalseBlock.add(new LineHolder(line, col, new ReturnStatement(line, col, new RefBoolean(line, col, false))));
+					mainBlock.add(new LineHolder(line, col, fieldEqTest));
+					
 					/*
 					if(not (theOther.fieldola &== null and this.fieldola &== null)){//if both null then ok
 						if( theOther.fieldola &== null or this.fieldola &== null or not theOther.fieldola.equals(this.fieldola) ){
@@ -777,7 +817,7 @@ public class FunctionGenneratorUtils {
 					}
 					*/
 					
-					//little ref name gennerator such taht in all ops, name::: us used instead (with approperiate ::: levels
+					/*
 					
 					int refLevels = TypeCheckUtils.getRefLevels(type);//TODO: would be more optimnal to have the ref levels tagged at the top leve of the type
 										  
@@ -835,7 +875,7 @@ public class FunctionGenneratorUtils {
 					/*Expression funInvoke = DotOperator.buildDotOperator(line, col, 
 							DotOperator.buildDotOperatorOne(line, col, eqRefName(line, col, "theOther"), isActor?makeAsyncRefRefForFuncInvoke(line, col, name, refLevels):makeAsyncRefRefForName(line, col, name, refLevels)),
 							new FuncInvoke(line, col, "equals", args)
-							);*/
+							);*
 					
 					ArrayList<Expression> eqItems = new ArrayList<Expression>();
 
@@ -858,6 +898,7 @@ public class FunctionGenneratorUtils {
 					ifoneOrOtherNullOrNotEQBlock.add(new LineHolder(line, col, new ReturnStatement(line, col, new RefBoolean(line, col, false))));
 					
 					onifNotBothNullFail.add(new LineHolder(line, col, ifoneOrOtherNullOrNotEQ)); 
+					*/
 				}
 			}
 			
@@ -981,14 +1022,14 @@ public class FunctionGenneratorUtils {
 	}
 	
 	private static boolean typeIsPotentiallyNull(Type type, ClassDef cd) {
-		if(type.getNullStatus() != NullStatus.NONNULL){
+		if(type.getNullStatus() != NullStatus.NOTNULL){
 			return true;
 		}else if(type instanceof GenericType ) {
 			GenericType gt = (GenericType)type;
 			String name = gt.name;
 			while(cd != null) {
 				if(cd.nameToGenericMap.containsKey(name)) {
-					return cd.nameToGenericMap.get(name).getNullStatus() != NullStatus.NONNULL;
+					return cd.nameToGenericMap.get(name).getNullStatus() != NullStatus.NOTNULL;
 				}
 				
 				cd = cd.getParentNestor();
@@ -1037,7 +1078,7 @@ public class FunctionGenneratorUtils {
 			
 			//ArrayList<Tuple<String, Type>> allVars = getAllVars(satc, classDef, isActor);
 			List<Sixple<String, Type, Boolean, AccessModifier, Boolean, String>> allVars = classDef.getAllFieldsDefined(true);
-			allVars = allVars.stream().filter(a -> !a.getC()).collect(Collectors.toList());//ignore items which have been set already
+			allVars = allVars.stream().filter(a -> !a.getC() || a.getB().hasArrayLevels() ).collect(Collectors.toList());//ignore items which have been set already
 			
 			//function begins - which needs to be moved to bytecode gen stage lols
 			//we put this also into a try catch finally just in case someone manages to throw an exception...
@@ -1145,6 +1186,7 @@ public class FunctionGenneratorUtils {
 						//hash += this.field.hashCode()
 						//hash += this.field&==null?0:this.field.hashCode()
 						
+						//null check only if nullable type
 						
 						int refLevels = TypeCheckUtils.getRefLevels(ttype);
 						
@@ -1154,29 +1196,25 @@ public class FunctionGenneratorUtils {
 						putterExpr.add(makeAsyncRefRefForName(line, col, name, refLevels));
 						DotOperator callfieldHashcodea = new DotOperator(line, col, putterExpr, "\\." );
 						
-
-						ArrayList<Expression> putterExpr2 = new ArrayList<Expression>();
-						
-
 						boolean typeIsPotentiallyNull = typeIsPotentiallyNull(ttype, classDef);
-						
-						putterExpr2.add(typeIsPotentiallyNull?new NotNullAssertion(line, col, callfieldHashcodea):callfieldHashcodea);
-						//putterExpr2.add(callfieldHashcodea);
+						ArrayList<Expression> putterExpr2 = new ArrayList<Expression>();
+						putterExpr2.add(callfieldHashcodea);
 						putterExpr2.add(new FuncInvoke(line, col, "hashCode", new FuncInvokeArgs(line, col)));
 						
 						DotOperator callfieldHashcode = new DotOperator(line, col, putterExpr2, "\\." );
 						
-						
-						ArrayList<Expression> fieldRef = new ArrayList<Expression>();
-						fieldRef.add(new RefThis(line, col));
-						//fieldRef.add(isActor?makeAsyncRefRefForFuncInvoke(line, col, name, refLevels):makeAsyncRefRefForName(line, col, name, refLevels));
-						fieldRef.add(makeAsyncRefRefForName(line, col, name, refLevels));
-						
-						EqReExpression refEQ = new EqReExpression(line, col, new DotOperator(line, col, fieldRef), GrandLogicalOperatorEnum.REFEQ, new VarNull(line, col));
-						
-						//IfExpr ifNullCheck = new IfExpr(line,  col, refEQ, new VarInt(line, col, 0), callfieldHashcode);
-						
-						functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, IfStatement.makeFromTwoExprs(line, col, new VarInt(line, col, 0), callfieldHashcode, refEQ))));
+						if(typeIsPotentiallyNull) {
+							ArrayList<Expression> fieldRef = new ArrayList<Expression>();
+							fieldRef.add(new RefThis(line, col));
+							//fieldRef.add(isActor?makeAsyncRefRefForFuncInvoke(line, col, name, refLevels):makeAsyncRefRefForName(line, col, name, refLevels));
+							fieldRef.add(makeAsyncRefRefForName(line, col, name, refLevels));
+							
+							EqReExpression refEQ = new EqReExpression(line, col, new DotOperator(line, col, fieldRef), GrandLogicalOperatorEnum.REFEQ, new VarNull(line, col));
+							
+							functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, IfStatement.makeFromTwoExprs(line, col, new VarInt(line, col, 0), callfieldHashcode, refEQ))));
+						}else {
+							functionBody.add(new LineHolder(line, col, new AssignExisting( line,  col, "hash$", asStyle, (Expression)callfieldHashcode.copy())));
+						}
 					}
 					
 				}
@@ -1328,6 +1366,7 @@ public class FunctionGenneratorUtils {
 				FuncParam fps = new FuncParam(line, col, name, fType, false);
 				fps.defaultValue = fp.defaultValue;
 				fps.isVararg = fp.isVararg;
+				fps.isNullableVarArg = fp.isNullableVarArg;
 				if(fps.isVararg){//oops, tag one down
 					fType = (Type)fType.copy();
 					fType.setArrayLevels(fType.getArrayLevels()-1);
@@ -1473,6 +1512,7 @@ public class FunctionGenneratorUtils {
 				//fp.accept(errors);//JPT: may need to accept in othe methods defined in this class, force mapping from
 				fp.annotations = argType.annotations;
 				fp.isVararg = argType.isVararg;
+				fp.isNullableVarArg = argType.isNullableVarArg;
 				
 				/*if(fp.isVararg){//oops, tag one down
 					fType = (Type)fType.copy();
@@ -1570,7 +1610,7 @@ public class FunctionGenneratorUtils {
 	      return ret ;
 	    }
 	 */
-	public static void addActorMethod(ErrorRaiseable scopeAndTypeChecker, ScopeAndTypeChecker errors, String funcName, String funcToCall, ClassDef classDef, NamedType actingOnType, FuncType sig, ArrayList<Type> inputs, Type retType, int line, int col, boolean callIsOnActorItself, boolean useExtractor) {
+	public static FuncDef addActorMethod(ErrorRaiseable scopeAndTypeChecker, ScopeAndTypeChecker errors, String funcName, String funcToCall, ClassDef classDef, NamedType actingOnType, FuncType sig, ArrayList<Type> inputs, Type retType, int line, int col, boolean callIsOnActorItself, boolean useExtractor) {
 		int a=0;
 		FuncParams params = new FuncParams(line, col);
 		FuncRefArgs confia = new FuncRefArgs(line, col);
@@ -1610,6 +1650,7 @@ public class FunctionGenneratorUtils {
 					FuncParam fps = new FuncParam(line, col, name, fType, false);
 					fps.defaultValue = fp.defaultValue;
 					fps.isVararg = fp.isVararg;
+					fps.isNullableVarArg = fp.isNullableVarArg;
 					
 					if(fp.isVararg){//oops, tag one down
 						fType = (Type)fType.copy();
@@ -1701,7 +1742,7 @@ public class FunctionGenneratorUtils {
 		}
 		
 		addFunctionToClassDef(errors, classDef, funcName, getter,line,col, false, true);
-		
+		return getter;
 		
 	}
 	

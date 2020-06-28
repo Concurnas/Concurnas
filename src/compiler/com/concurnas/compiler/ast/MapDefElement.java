@@ -49,6 +49,12 @@ public class MapDefElement extends Node implements IsAMapElement {
 	
 	@Override
 	public Node copyTypeSpecific() {
-		return new MapDefElement(super.getLine(), super.getColumn(), (Expression)key.copy(), (Expression)value.copy() );
+		MapDefElement mde = new MapDefElement(super.getLine(), super.getColumn(), (Expression)key.copy(), (Expression)value.copy() );
+		mde.keyType = keyType == null?null:(Type)keyType.copy();
+		mde.valType = valType == null?null:(Type)valType.copy();
+		mde.keyOverride = keyOverride == null?null:(VarString)keyOverride.copy();
+		mde.valueOverride = valueOverride == null?null:(VarString)valueOverride.copy();
+		
+		return mde;
 	}
 }

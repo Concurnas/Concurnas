@@ -439,7 +439,8 @@ public class BytecodeOutputter implements Opcodes {
 		 */
 
 		/*
-		 * if(Opcodes.DUP2 ==dcmpl){ System.err.println("visitInsn AASTORE" ); }
+		 * if (Opcodes.ARRAYLENGTH == dcmpl) { System.err.println("visitInsn AASTORE");
+		 * }
 		 */
 
 		consumeNextLabelIfExists();

@@ -243,18 +243,18 @@ public abstract class AbstractRef<X> extends CObject implements Ref<X> {
 	protected void onRegister(){}
 	
 	@Override
-	public boolean register(){
+	public boolean register() throws Throwable{
 		return register(Fiber.getCurrentFiber(), 1);//gets rewritten
 	}
 	
 	@Override
-	public void unregister(){
+	public void unregister() throws Throwable{
 		unregister(Fiber.getCurrentFiber(), 1 );//gets rewritten
 	}
 	
 
 	@Override
-	public boolean register(Fiber toNotify, int a) {
+	public boolean register(Fiber toNotify, int a) throws Throwable {
 		synchronized(toNotifyOnChange){
 			toNotifyOnChange.add(toNotify);
 			onRegister();
@@ -267,7 +267,7 @@ public abstract class AbstractRef<X> extends CObject implements Ref<X> {
 	}
 
 	@Override
-	public void unregister(Fiber toNotify, int a) {
+	public void unregister(Fiber toNotify, int a) throws Throwable {
 		synchronized(toNotifyOnChange){
 			toNotifyOnChange.remove(toNotify);
 			onUnregister();
@@ -387,7 +387,7 @@ public abstract class AbstractRef<X> extends CObject implements Ref<X> {
 	}
 
 	@Override
-	public abstract void waitUntilSet();
+	public abstract void waitUntilSet() throws Throwable;
 
 	@Override
 	public boolean isClosed(){
@@ -455,7 +455,7 @@ public abstract class AbstractRef<X> extends CObject implements Ref<X> {
 	}
 
 	@Override
-	public DefaultRef<Integer> getListnerCount() {
+	public DefaultRef<Integer> getListnerCount() throws Throwable {
 		//not everyone cares about this, so only create upon demand
 		if(null == listnerCount){
 			synchronized(toNotifyOnChange){
@@ -525,10 +525,10 @@ public abstract class AbstractRef<X> extends CObject implements Ref<X> {
 		}
 	}
 
-	protected abstract void setOnUnlock();
+	protected abstract void setOnUnlock() throws Throwable;
 	
 	@Override
-	public synchronized void unlockAndSet( ){
+	public synchronized void unlockAndSet( ) throws Throwable{
 		isTransLocked=null;
 		
 		setOnUnlock();

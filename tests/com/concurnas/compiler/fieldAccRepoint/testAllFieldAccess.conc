@@ -376,7 +376,7 @@ class AnotherM{}
 
 class Cls{
 	x int = 89
-	def getX() AnotherM
+	def getX() AnotherM?
 	{
 		return null;
 	}

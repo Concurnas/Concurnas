@@ -20,7 +20,7 @@ public abstract class AbstractIsoTask extends Function0<Void> {
 		return null;
 	}
 
-	public abstract DefaultRef<Boolean> getIsInitCompleteFlag();
+	public abstract DefaultRef<Boolean> getIsInitCompleteFlag() throws Throwable;
 
 	public abstract HashSet<String> setupGlobals(Fiber isoFiber, CopyTracker tracker);
 

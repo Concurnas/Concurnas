@@ -554,7 +554,7 @@ inject class DistFetchingClassLoader < ConcurnasClassLoader{
 	}
 	
 	override getBytecode(name String) byte[]{//check parent first
-		fromParent = parent.getBytecode(name)
+		fromParent byte[]? = parent.getBytecode(name)
 		if(fromParent == null){
 			null
 		}else{
@@ -564,7 +564,7 @@ inject class DistFetchingClassLoader < ConcurnasClassLoader{
 	
 	override loadClass(name String) Class<?> {
 		try{
-			what = parent.loadClass(name)
+			what Class<?>? = parent.loadClass(name)
 			if(what <> null){
 				return what
 			}

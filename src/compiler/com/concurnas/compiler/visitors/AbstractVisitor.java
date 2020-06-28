@@ -2,7 +2,6 @@ package com.concurnas.compiler.visitors;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Stack;
 
 import com.concurnas.compiler.CaseExpression;
 import com.concurnas.compiler.CaseExpressionAnd;
@@ -20,6 +19,7 @@ import com.concurnas.compiler.TypedCaseExpression;
 import com.concurnas.compiler.ast.*;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.util.JustLoad;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.visitors.util.MactchCase;
 import com.concurnas.runtime.Pair;
 
@@ -131,8 +131,8 @@ public abstract  class AbstractVisitor implements Visitor {
 	}
 
 	protected void processArrayElements(ArrayRefLevelElementsHolder elements) {
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> levels : elements.getAll()){
-			ArrayList<ArrayRefElement> brackset = levels.getB();
+		for(NullableArrayElementss levels : elements.getAll()){
+			ArrayList<ArrayRefElement> brackset = levels.elements;
 			for(int n = 0; n < brackset.size(); n++)
 			{	
 				brackset.get(n).accept(this);

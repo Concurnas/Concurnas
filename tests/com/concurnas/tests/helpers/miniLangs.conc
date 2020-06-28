@@ -22,7 +22,7 @@ open class ASTNode(-line int, -col int){
 		nodes.add(toAdd)
 	}
 	
-	def accept(visitor Visitor) Object 
+	def accept(visitor Visitor) Object?
 }
 
 class LongNode(line int, col int, along Long) < ASTNode(line, col){
@@ -38,7 +38,7 @@ class MethodCallNode(line int, col int, methodName String) < ASTNode(line, col){
 }
 
 class NamedNode(line int, col int, name String) < ASTNode(line, col){
-	def accept(vis Visitor) Object => vis.visit(this);
+	def accept(vis Visitor) Object? => vis.visit(this);
 }
 
 
@@ -110,7 +110,7 @@ def parse(line int, col int, source String) (ASTNode, Result) {
 trait Visitor{
 	def visit(longNode LongNode) Object
 	def visit(mathNode MathNode) Object
-	def visit(namedNode NamedNode) Object
+	def visit(namedNode NamedNode) Object?
 	def visit(methodNode MethodCallNode) Object
 }
 
@@ -158,7 +158,7 @@ class NodeChecker(ctx Context) ~ Visitor{
 		errors.add(new ErrorOrWarning(line, col, str))
 	}
 	
-	def visit(namedNode NamedNode) Object{
+	def visit(namedNode NamedNode) Object?{
 		vari Variable? = ctx.getVariable(namedNode.name)
 		type = vari?.type
 		
@@ -190,7 +190,7 @@ class NodeChecker(ctx Context) ~ Visitor{
 					found=true
 				}else{
 					//check to see if an arg is an array - then can attempt to vararg in
-					found = margs.stream().anyMatch(a => a <> null and a.startsWith("["))				
+					found = margs.stream().anyMatch(a => a.startsWith("["))				
 				}
 				
 				if(found){
@@ -227,7 +227,7 @@ class SimpleLisp ~ LanguageExtension{
 		this.col = col
 				
 		//build abstract syntax tree...
-		(this.rootNode, result) = parse(line, col, source)
+		this.rootNode, result = parse(line, col, source)
 		
 		result
 	}

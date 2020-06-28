@@ -175,6 +175,7 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 		ret.origName = origName==null?null:(RefName)origName.copy();
 		ret.lhsOfAssignExisting = lhsOfAssignExisting;
 		ret.expressionListOrigin = expressionListOrigin;
+		ret.nameAndLocKey = nameAndLocKey;
 		//ret.copyInArgs = copyInArgs;
 		//ret.vectroizedDegreeAndArgs = vectroizedDegreeAndArgs;
 		
@@ -232,6 +233,7 @@ public class FuncInvoke extends Node implements Expression, CanBeInternallyVecto
 	public RefName origName;
 	public boolean lhsOfAssignExisting=false;
 	public ExpressionListOrigin expressionListOrigin;
+	public Pair<String, Boolean> nameAndLocKey;
 	
 	@Override
 	public boolean hasErroredAlready() {

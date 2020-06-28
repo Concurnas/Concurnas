@@ -46,12 +46,12 @@ private abstract class PulseProcessor(parent RealtimePulsar){
 		//}
 		
 		while(carryOn){
-			(ctime, tasks) = parent.getNextTasks()
+			ctime, tasks = parent.getNextTasks()
 			
 			for(task in tasks){
 				needsScheduling PulseTask? = task.doTask(ctime)
 				if(needsScheduling){
-					parent.addPulseTask(needsScheduling??)
+					parent.addPulseTask(needsScheduling)
 				}
 			}
 			
@@ -72,7 +72,7 @@ private abstract class PulseProcessor(parent RealtimePulsar){
 
 private class RealtimePulseProcessor(parent RealtimePulsar) < PulseProcessor(parent){
 	def waitForNextTask(){
-		(secs long, nanos int) = parent.getSleepInterval()
+		secs long, nanos int = parent.getSleepInterval()
 				
 		if(secs <> 0 or nanos <> 0){
 			try{
@@ -90,7 +90,7 @@ private open class PulseTask(-nextTrigger LocalDateTime, -writeTo LocalDateTime:
 
 	def compareTo(what PulseTask) int => this.nextTrigger.compareTo(what.nextTrigger)
 
-	def doTask(ctime LocalDateTime) PulseTask{
+	def doTask(ctime LocalDateTime) PulseTask?{
 		if(not writeTo:isClosed()){
 			writeTo = ctime
 			writeTo:close()
@@ -101,7 +101,7 @@ private open class PulseTask(-nextTrigger LocalDateTime, -writeTo LocalDateTime:
 }
 
 private abstract class CoreRepeatingPulseTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:) < PulseTask(nextTrigger, writeTo:){
-	override doTask(ctime LocalDateTime) PulseTask {
+	override doTask(ctime LocalDateTime) PulseTask? {
 		if(not writeTo:isClosed()){
 			writeTo = ctime
 			nextTrigger = nextTrigger + interval
@@ -122,7 +122,7 @@ private class RepeatingPulseTask(nextTrigger LocalDateTime, interval Duration, w
 }
 
 private class RepeatingPulseUntilTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:, until LocalDateTime) < CoreRepeatingPulseTask(nextTrigger, interval, writeTo){
-	protected def getNext(ctime LocalDateTime) PulseTask {
+	protected def getNext(ctime LocalDateTime) PulseTask? {
 		if(ctime >== until){
 			writeTo:close()
 			null
@@ -135,7 +135,7 @@ private class RepeatingPulseUntilTask(nextTrigger LocalDateTime, interval Durati
 
 private class RepeatingPulseUntilLimitTask(nextTrigger LocalDateTime, interval Duration, writeTo LocalDateTime:, times long) < CoreRepeatingPulseTask(nextTrigger, interval, writeTo){
 	count = 0L
-	protected def getNext(ctime LocalDateTime) PulseTask {
+	protected def getNext(ctime LocalDateTime) PulseTask? {
 		if(++count >== times){
 			writeTo:close()
 			null

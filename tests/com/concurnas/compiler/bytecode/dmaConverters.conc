@@ -208,7 +208,7 @@ class MyMap<K,V> < AbstractMap<K,V>{
 	def setMyfield(x String){ myfieldx=x ;}
 	def getMyfield() => myfieldx
 	
-	def entrySet() java.util.Set<java.util.Map.Entry<K, V>> => null 
+	def entrySet() java.util.Set<java.util.Map.Entry<K, V>>? => null 
 }
 
 
@@ -1832,13 +1832,13 @@ import java.io.File
 
 11_meg = 11*1024*1024
 
-open class Parent(public aa Parent)
+open class Parent(public aa Parent?)
 
-class MyClass(a String, aa MyClass, b String, c String) < Parent(aa){
+class MyClass(a String, aa MyClass?, b String, c String) < Parent(aa){
 	override toString() => "MyClass "  + [a, aa<>null, b,c]
 }
 
-class MyClass2(a String, aa MyClass, c String) < Parent(aa){
+class MyClass2(a String, aa MyClass?, c String) < Parent(aa){
 	override toString() => "MyClass2 " + [a, aa<>null, c]
 }
 
@@ -2035,6 +2035,7 @@ class MyClass(x String, y long, z X1?){
 
 class MyClass2(x String, y long, z X){
 	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,y]
+	override hashCode() int => x.hashCode() + y as int
 }
 
 def doings(){

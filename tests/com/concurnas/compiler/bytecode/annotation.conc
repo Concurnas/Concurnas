@@ -30,7 +30,7 @@ class MyClass{
 	}
 }
 
-def getMethodFromClass(cls Class<?>, name String) java.lang.reflect.Method {
+def getMethodFromClass(cls Class<?>, name String) java.lang.reflect.Method? {
 	for(m in cls.getMethods()){
 		if(m.name == name){
 			return m
@@ -39,7 +39,7 @@ def getMethodFromClass(cls Class<?>, name String) java.lang.reflect.Method {
 	return null
 }
 
-def showAnnotations(m java.lang.reflect.Method) => "" + for(ma in m.getAnnotations()){ ma.annotationType() }
+def showAnnotations(m java.lang.reflect.Method?) => "" + for(ma in m??.getAnnotations()){ ma.annotationType() }
 
 def doings() {
 	m = getMethodFromClass(MyClass.class, 'simpleAnnot')

@@ -65,9 +65,9 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 		return ret;
 	}
 	
-	private synchronized void set(X x, boolean doNotify){
+	private synchronized void set(X x, boolean doNotify) throws Exception{
 		if(this.isclosed){//latest state
-			throw new RuntimeException("Cannot set ref value as it is closed");
+			throw new Exception("Cannot set ref value as it is closed");
 		}
 		
 
@@ -122,7 +122,7 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 	}
 	
 	@Override
-	public void set(X x){
+	public void set(X x) throws Throwable{
 		//System.err.println(String.format("%s call set: %s of: %s", System.identityHashCode(this), this.type[0], x));
 		//System.err.println("set: " + (x==null?"null":x.getClass().getName()) +" on: " + System.identityHashCode(this) + " item address: " + System.identityHashCode(x));
 		if(x != null) {
@@ -138,12 +138,12 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 	
 	
 	@Override
-	public synchronized void waitUntilSet(){
+	public synchronized void waitUntilSet() throws Throwable{
 		get();
 	}
 		
 	@Override
-	public  X get()  {
+	public  X get() throws Throwable  {
 		if(!isSet){
 			Fiber currentFiber = Fiber.getCurrentFiberWithCreate();//gets rewritten to fiber argument on command line
 			while(!isSet){
@@ -169,12 +169,12 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 	}
 	
 	@Override
-	public X get(boolean withNoWait)  {
+	public X get(boolean withNoWait) throws Throwable  {
 		return withNoWait?getNoWait():get();
 	}
 	
 	@Override
-	protected void setOnUnlock(){
+	protected void setOnUnlock() throws Throwable{
 		set(((LocalState)stateToSetOnUnlock).x, false);
 	}
 	
@@ -185,7 +185,7 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 	}*/
 	
 	@Override
-	public synchronized X getNoWait(){
+	public synchronized X getNoWait() throws Throwable{
 		Fiber currentFiber = Fiber.getCurrentFiberWithCreate();
 		
 		State thestate;
@@ -199,7 +199,7 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 				if(null != initalAndLatest){
 					State lat = initalAndLatest.latest;
 					if(lat.exception !=null){
-						throw new RuntimeException(lat.exception);
+						throw lat.exception;
 					}
 					
 					return ((LocalState)lat).x;
@@ -207,13 +207,13 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 			}
 			
 			if(exception !=null){
-				throw new RuntimeException(exception);
+				throw exception;
 			}
 			return x;
 		}
 		
 		if(thestate.exception !=null){
-			throw new RuntimeException(thestate.exception);
+			throw thestate.exception;
 		}
 		X ret = ((LocalState)thestate).x;
 		//System.err.println("loc state: " + ret);
@@ -222,7 +222,11 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 	
 	@Override
 	public String toString(){
-		return Stringifier.stringify(get())+ ":";
+		try {
+			return Stringifier.stringify(get())+ ":";
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	
@@ -236,17 +240,17 @@ public  class Local<X> extends AbstractRef<X> implements DefaultRef<X>, ReifiedT
 	
 	//remove below...
 	@Override
-	public synchronized X last(){
+	public synchronized X last() throws Throwable{
 		return get();
 	}
 	
 	@Override
-	public synchronized X lastNoWait(){
+	public synchronized X lastNoWait() throws Throwable{
 		return getNoWait();
 	}
 	
 	@Override
-	public X last(boolean withNoWait)  {
+	public X last(boolean withNoWait) throws Throwable{
 		return get(withNoWait);
 	}
 }

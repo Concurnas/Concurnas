@@ -15,8 +15,8 @@ def doings(){
 
 ~~~~~
 //##1. check for null in conditions
-def doings(){
-	a String? = "its fine"
+def doings(){ def maybe() => true
+	a String? = "its fine" if maybe() else null
 	
 	result String = if(a <> null){
 		a	
@@ -29,8 +29,8 @@ def doings(){
 
 ~~~~~
 //##2. null unsafe
-def doings(){
-	a String? = "its fine"
+def doings(){ def maybe() => true
+	a String? = "its fine" if maybe() else null
 	
 	"" + a??.length()
 }
@@ -82,11 +82,11 @@ def doings(){
 
 ~~~~~
 //##6. non conc type defaults to unknown status unless annotated
-def doings(){
+def doings(){ def maybe() => true
 	mylist = new list<String?>()//qualify as nullable
 	mylist2 = new list<String>()//qualify as not nullable
 	
-	maybeNull String? = "its not"
+	maybeNull String? = "its not" if maybe() else null
 	
 	mylist.add(maybeNull)//fine
 	mylist.add(null)//ok
@@ -679,7 +679,8 @@ def doings(){
 
 ~~~~~
 //##36. logic check progressive within if test
-a String? = "hi there"
+def maybe() => true
+a String? = "hi there" if maybe() else null
 
 def doings(){
 	if(a <> null and a.length() > 2){
@@ -692,9 +693,10 @@ def doings(){
 ~~~~~
 //##37. if non null assertion on own no dup
 def x() => false
+def maybe() => true
 
 def doings(){
-	a String? = "thing"
+	a String? = "thing" if maybe() else null
 	if(x()){
 		a??
 	}else{
@@ -737,8 +739,8 @@ def doings(){
  
 ~~~~~
 //##41. not null assertion with array
-def doings(){
- 	maybeNull int[]? = [1 2 3 4]
+def doings(){ def maybe() => true
+ 	maybeNull int[]? = [1 2 3 4]  if maybe() else null
  	
  	got = maybeNull??[0]//also ok
  	
@@ -863,8 +865,8 @@ def doings(){
 ~~~~~
 //##50. null check logic
 xyz=true
-
-thing ((int) int)? = def (a int) => a + 10
+def tt() => true
+thing ((int) int)? = (def (a int) => a + 10) if tt() else null
 
 def f1(){//fail maybe nullable
 	1//thing(1) //FAIL
@@ -895,7 +897,7 @@ def f5b(){//normal implicit non null implicit
 }
 
 def f6(){//ok certain non nullable inverse
-	thing if(xyz and thing == null) else thing(1)  
+	thing if(xyz and thing == null) else thing??(1)  
 }
 
 def f7(){//complex but ok
@@ -926,8 +928,8 @@ def doings(){
 ~~~~~
 //##51. null check logic pt 2
 xyz=true
-
-thing ((int) int)? = def (a int) => a + 10
+def tt() => true
+thing ((int) int)? = (def (a int) => a + 10) if tt() else null
 
 def f2(){//normal
 	if(thing == null){
@@ -965,8 +967,8 @@ def doings(){
 
 ~~~~~
 //##53. null check logic pt 4 - while
-def doings(){
- 	client String? = "ok"
+def doings(){ def tt() => true
+ 	client String? = "ok" if tt() else null
  	lens = while(client <> null){
  		x=client.length()
  		client=null
@@ -1094,3 +1096,149 @@ def doings(){
 	x2 = ["1", "2"] if x() else ["1", null]
 	"ok" + x2[0]?.length()
 }
+
+~~~~~
+//##63. transient classes may be checked for nullability within async block
+transient class Myclass{
+	def hey() => "there"
+}
+
+def doings(){
+	mc = Myclass()
+
+	res1 := try{
+		{ 
+			if(null == mc){
+				'uh oh'
+			}else{
+				mc.hey() 
+			}
+		}!
+	}catch(npe ){
+		'its null' + npe
+	}
+	
+	xx = try{
+		""+res1
+	}catch(npe ){
+		'its nullx ' + npe
+	}
+
+	"result: "  + xx
+}
+
+~~~~~
+//##64. as above but with tricky if else condition
+transient class Myclass{
+	def hey() => "there"
+}
+
+def doings(){
+	mc = Myclass()
+
+	x int:
+	
+	thing = onchange(x){
+		'uh oh' if null == mc else mc.hey()//this was breaking
+	}
+	
+	x = 10
+	
+	"" + thing
+}
+
+~~~~~
+//##65. transient class into isolate
+transient class Myclass{
+	def foo() => "im not null"
+}
+mc = Myclass()
+result = {'uh oh' if null == mc else mc.foo() }!
+
+def doings(){
+
+	"result: "  + result
+}
+
+~~~~~
+//##66. transient field is unknown nullability
+typedef X = String;
+class MyTransHolder{
+	transient trasitems X[] = new X[12]//didnt like operating on arrays
+	items X[] = new X[12]
+	useTrans = true
+	
+	def substr1(){
+		what X[]? = trasitems //of unknown nullability...
+		'null' if what  <> null else 'its null'
+	}
+	
+	def substr2(){
+		what X[]? = (trasitems if useTrans else items) //of unknown nullability...
+		'null' if what  <> null else 'its null'
+	}
+	
+	override toString() => "" + substr1()+substr2()
+}
+
+
+def doings(){
+	"ok" + MyTransHolder()
+}
+
+~~~~~
+//##67. transient class is unknown nullability
+open transient class Myclass{
+	def foo() => "hi"
+}
+
+class Child < Myclass
+
+
+class MyTransHolder{
+	afield = new Child()
+	
+	def thing(){
+		xyz Myclass? = afield
+		xyz.foo() if xyz <> null else "ok"
+	}
+}
+
+def doings(){
+	mth1 = MyTransHolder()
+	mth2 = mth1@
+	"ok" + [mth1 mth2].thing()
+}
+
+~~~~~
+//##68. unknown local generic is ok
+from java.util import Optional
+
+def doings(){//java type may be qualified with nullable generic
+	//even though its generic qualification is not nullable
+	//local generic may be qualified in this way
+	x = Optional.ofNullable<String?>("ok")
+
+	"ok " + x
+}
+
+~~~~~
+//##69. unknown local generic is ok 2
+from java.util import Optional
+
+class HasOpti<Y?>{
+	def thing<X?>(x X) => 12
+}
+
+
+def doings(){//java type may be qualified with nullable generic
+	//even though its generic qualification is not nullable
+	//local generic may be qualified in this way
+	x = Optional.ofNullable<String?>("ok")
+	y = HasOpti<String?>().thing<String?>("ok")
+
+	//check for class level generics
+
+	"ok " + (x, y)
+}
+

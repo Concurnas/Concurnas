@@ -706,9 +706,11 @@ public class LabelAllocator extends AbstractVisitor implements Unskippable{
 						m++;
 					}
 					
-					labelNeedingConsumption.push(new Pair<Label, Label>(null, nextLabel));
-					this.visit(level.getB());
-					labelNeedingConsumption.pop();
+					if(level.getB() != null) {
+						labelNeedingConsumption.push(new Pair<Label, Label>(null, nextLabel));
+						this.visit(level.getB());
+						labelNeedingConsumption.pop();
+					}
 				}
 			}
 			retStmt.setLabelToVisitJustBeforeReturnOpCode(labelAfterInsertedCode);

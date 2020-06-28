@@ -654,7 +654,7 @@ def allsame(items Integer...){
 			prev = i
 			continue
 		}
-		if(i <> prev??){
+		if(i <> prev){
 			alls=false
 		}
 	}

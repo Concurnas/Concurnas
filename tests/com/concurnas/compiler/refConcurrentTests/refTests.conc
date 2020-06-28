@@ -789,7 +789,7 @@ from java.util import List
 
 def sum(a int[]) => {
 	r = 0
-	if(a <> null){
+	if(a){
 		for(b in a){ r+=b}
 	}
 	r
@@ -814,7 +814,7 @@ def doings(){
 
 	x:waitUntilSet()//signal to say that the operation is done effectivly
 
-	"it's done: " + [bo:get(true), x<>null]
+	"it's done: " + [bo:get(true), true]
 }
 
 ~~~~~
@@ -842,7 +842,7 @@ def doings(){
 
 	x:waitUntilSet()
 
-	return "it's done: " + [x<>null, bo:get(false) ]
+	return "it's done: " + [true, bo:get(false) ]
 }
 
 ~~~~~

@@ -11,7 +11,7 @@ nice 2
 
 ~~~~~
 //##4 some more smart actor stuff
-[12, err as expected on second start java.lang.RuntimeException: Actor is already running, err as expected java.lang.Exception: Actor is not running, err as expected on second stop java.lang.RuntimeException: Actor is not running, 20, 28]
+[12, err as expected on second start Actor is already running, err as expected Actor is not running, err as expected on second stop Actor is not running, 20, 28]
 
 ~~~~~
 //##5 misc bugfix
@@ -99,7 +99,7 @@ true
 
 ~~~~~
 //##26. stop when closed already both variants
-[java.lang.RuntimeException: java.lang.Exception: Actor is not running, err]
+[java.lang.Exception: Actor is not running, err]
 
 ~~~~~
 //##27. bring that all together
@@ -499,7 +499,7 @@ k: [[ok, hi, there] [ok, hi, there]]
 
 ~~~~~
 //##133. enmsure error propgated back to caller
-k: java.lang.RuntimeException: java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+k: java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
 
 ~~~~~
 //##134. actors implicit interfaces

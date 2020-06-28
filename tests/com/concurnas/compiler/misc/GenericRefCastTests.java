@@ -21,7 +21,7 @@ public class GenericRefCastTests extends TestCase{
 		}
 	}
 	
-	public static void FromIntToObjFromConc() {
+	public static void FromIntToObjFromConc() throws Throwable {
 		Object asRef = RefHelper.getIntegerRefAsObjectNoSet();
 		//GenericRefCast.genericRefCast(asRef, new Class<?>[]{Local.class, Object.class});//this should be ok
 		//GenericRefCast.genericRefCast(asRef, new Class<?>[]{Local.class, Local.class, Object.class});//this also which is an upcast should be ok
@@ -53,7 +53,7 @@ public class GenericRefCastTests extends TestCase{
 	}
 	
 
-	public static void FromIntToObj2FromConc() {
+	public static void FromIntToObj2FromConc() throws Throwable {
 		//number:: -> int: not ok
 		try{
 			Object numRef = new Local<Number>(new Class<?>[]{Local.class, Number.class});//num::
@@ -66,7 +66,7 @@ public class GenericRefCastTests extends TestCase{
 	}
 	
 	
-	public static void FromIntToObj3FromConc() {
+	public static void FromIntToObj3FromConc() throws Throwable {
 		//number:: -> int: not ok
 		try{
 			Object numRef = new Local<Number>(new Class<?>[]{Integer.class});//num::
@@ -77,12 +77,12 @@ public class GenericRefCastTests extends TestCase{
 		}
 	}
 	
-	public static void RefUpCastFromConc() {
+	public static void RefUpCastFromConc() throws Throwable {
 		Object numRef = new Local<String>(new Class<?>[]{String.class});//Str::
 		GenericRefCast.genericRefCast(numRef, new Class<?>[]{Local.class, Local.class, Object.class});
 	}
 	
-	public static void RefUpCastFromConcWithRef() {
+	public static void RefUpCastFromConcWithRef() throws Throwable {
 		//Str: -> Local Ref Obj
 		Object numRef = new Local<String>(new Class<?>[]{String.class});//Str::
 		GenericRefCast.genericRefCast(numRef, new Class<?>[]{Local.class, Ref.class, Object.class});//should be ok

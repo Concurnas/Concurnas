@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.concurnas.compiler.ast.ArrayRefLevelElementsHolder.ARElementType;
 import com.concurnas.compiler.ast.interfaces.Expression;
+import com.concurnas.compiler.ast.util.NullableArrayElement;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.VectorizedRedirector;
@@ -41,7 +43,7 @@ public class ArrayRef extends AbstractExpression implements Expression, CanBeInt
 		ArrayRefLevelElementsHolder arleh = new ArrayRefLevelElementsHolder();
 		ArrayList<ArrayRefElement> item = new ArrayList<ArrayRefElement>(1);
 		item.add(new ArrayRefElement(line, col, arrayLevelElements));
-		arleh.add(false, item);
+		arleh.add(false, false, item);
 		
 		return new ArrayRef(line, col, expr, arleh);
 	}
@@ -80,22 +82,23 @@ public class ArrayRef extends AbstractExpression implements Expression, CanBeInt
 	public ArrayList<ArrayRefElement> getFlatALE()
 	{
 		ArrayList<ArrayRefElement> ret = new ArrayList<ArrayRefElement>();
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> levelx : arrayLevelElements.getAll())
+		for(NullableArrayElementss levelx : arrayLevelElements.getAll())
 		{
-			ArrayList<ArrayRefElement> level = levelx.getB();
+			ArrayList<ArrayRefElement> level = levelx.elements;
 			ret.addAll(level);
 		}
 		return ret;
 	}
 	
-	public ArrayList<Pair<Boolean, ArrayRefElement>> getFlatALEWithNullSafe()
+	public ArrayList<NullableArrayElement> getFlatALEWithNullSafe()
 	{
-		ArrayList<Pair<Boolean, ArrayRefElement>> ret = new ArrayList<Pair<Boolean, ArrayRefElement>>();
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> levelx : arrayLevelElements.getAll())
+		ArrayList<NullableArrayElement> ret = new ArrayList<NullableArrayElement>();
+		for(NullableArrayElementss levelx : arrayLevelElements.getAll())
 		{
-			boolean nullSafe = levelx.getA();
-			for(ArrayRefElement level : levelx.getB()) {
-				ret.add(new Pair<Boolean, ArrayRefElement>(nullSafe, level));
+			boolean nullSafe = levelx.nullsafe;
+			boolean nna = levelx.nna;
+			for(ArrayRefElement level : levelx.elements) {
+				ret.add(new NullableArrayElement(nullSafe, nna, level));
 				nullSafe=false;
 			}
 		}
@@ -136,8 +139,8 @@ public class ArrayRef extends AbstractExpression implements Expression, CanBeInt
 	}
 
 	public void setlhsOfAssignment(Expression rhsOnAssignmentType, AssignStyleEnum eq) {
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> levelx  : arrayLevelElements.getAll()){
-			ArrayList<ArrayRefElement> level = levelx.getB();
+		for(NullableArrayElementss levelx  : arrayLevelElements.getAll()){
+			ArrayList<ArrayRefElement> level = levelx.elements;
 			for(ArrayRefElement are : level){
 				are.rhsOfAssigmentType=rhsOnAssignmentType;
 				are.rhsOfAssigmentEQ=eq;

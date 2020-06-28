@@ -1930,7 +1930,7 @@ from java.util import ArrayList
 
 class MyGen<X>{
 	public x X?
-	public def get(ank X) X{
+	public def get(ank X) X?{
 		return null;
 	}
 }

@@ -369,8 +369,8 @@ def doings() String{
 from com.concurnas.lang.precompiled import RefHelper
 
 def doings() String{
-	ref3 int:= RefHelper.getNullRef2()
-	ref4 int:= RefHelper.getNullRef2()
+	ref3 Integer?:?= RefHelper.getNullRef2()
+	ref4 Integer?:?= RefHelper.getNullRef2()
 	
 	z = try{
 	 g=[null &== ref3, ref3 &== null]
@@ -3484,14 +3484,14 @@ def doings() String{
 ~~~~~
 //##42. array of ref index operations
 
-module = a[1:, 2:, 3:,4:,5:,6:7:,8:,9:,10:]
+module = a[1:, 2:, 3:,4:,5:,6:,7:,8:,9:,10:]
 
 class AClass{
 	override equals(o Object) boolean {return true;}
 	override hashCode() int {return 6;}
 	
-	public field = a[1:, 2:, 3:,4:,5:,6:7:,8:,9:,10:]
-	~field2 = a[1:, 2:, 3:,4:,5:,6:7:,8:,9:,10:]
+	public field = a[1:, 2:, 3:,4:,5:,6:,7:,8:,9:,10:]
+	~field2 = a[1:, 2:, 3:,4:,5:,6:,7:,8:,9:,10:]
 	
 	def onTheInside() String {
 		item = this.field[0]
@@ -3502,7 +3502,7 @@ class AClass{
 }
 
 def testLocal() String{
-	localx = a[1:, 2:, 3:,4:,5:,6:7:,8:,9:,10:]
+	localx = a[1:, 2:, 3:,4:,5:,6:,7:,8:,9:,10:]
 	
 	item = localx[0]
 	localx[2] = 44
@@ -12216,7 +12216,7 @@ def doings() => "" + [ doings1(), doings2() ]
 from com.concurnas.lang.precompiled import RefHelper
 
 def doings() String{
-	ref3 int:= RefHelper.getNullRef2()
+	ref3 Integer?:?= RefHelper.getNullRef2()
 	
 	//the eq above is based on ref so shouldnt be extracting
 	

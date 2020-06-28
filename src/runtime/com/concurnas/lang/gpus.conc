@@ -275,10 +275,10 @@ public def buildNode(srctoNode HashMap<String, Node>, dclass String, dims int, n
 		throw new GPUException(String.format("Unable to resolve gpu dependency: %s with signature: %s", name, signature))
 	}
 
-	src = inst??.source
+	src = inst.source
 	
 	return if (src not in srctoNode) {
-		deps = inst??.dependancies
+		deps = inst.dependancies
 		childNodes = new Node[deps.length];
 		ret = new Node(dims, name, src, signature, childNodes);
 		srctoNode.put(src, ret);
@@ -679,7 +679,7 @@ class Device(val -deviceid cl_device_id, val -name String, val parent DeviceGrou
 	}
 	
 	@DeleteOnUnusedReturn
-	def exe(kernal Kernel, globalWorkSize int[], localWorkSize int[]?=null, waitingEvents boolean:GPURef...) boolean:GPURef {
+	def exe(kernal Kernel, globalWorkSize int[]?, localWorkSize int[]?=null, waitingEvents boolean:GPURef...) boolean:GPURef {
 		globAsLong long[]? =null
 		if(globalWorkSize <> null){
 			globAsLongX = new long[globalWorkSize.length]
@@ -767,7 +767,7 @@ class Device(val -deviceid cl_device_id, val -name String, val parent DeviceGrou
 		
 		eventWaitList List<cl_event> = new ArrayList<cl_event>(0);
 		 
-		if(waitingEvents <> null){
+		if(waitingEvents){
 			eventWaitList = x:event for x in waitingEvents if x:event <> null
 		}
 		
@@ -796,7 +796,7 @@ class Device(val -deviceid cl_device_id, val -name String, val parent DeviceGrou
 		exeComplete:
 	}
 
-	def apply<X>( kernalFunc () X ) X: {
+	def apply<X>( kernalFunc () X ) X:? {
 		null
 	}
 
@@ -852,7 +852,7 @@ class Device(val -deviceid cl_device_id, val -name String, val parent DeviceGrou
 		if(null == getMaxWorkItemSizesCache){
 			getMaxWorkItemSizesCache = getSizes(deviceid, org.jocl.CL.CL_DEVICE_MAX_WORK_ITEM_SIZES, 3)
 		}
-		getMaxWorkItemSizesCache??
+		getMaxWorkItemSizesCache
 	}
 	
 	  
@@ -985,12 +985,12 @@ class Local<Type>(type Class<Type>, count int) ~ GPUBufferLocal<Type>{
 	}
 	
 	def getByteSize() =>  compsize * count
-	def getBuffer() cl_mem => null
+	def getBuffer() cl_mem? => null
 }
 
 private class GPUSizeof{
 	size = 0
-	def gpusizeof(an Object) int{
+	def gpusizeof(an Object?) int{
 		if(an <> null){
 			type = an.getClass()
 			if(type.isArray()){
@@ -1048,7 +1048,7 @@ private class GPUEncoder(val size int){
 	private nestLevels = 0
 	private buffer ByteBuffer? = null
 
-	def put(an Object) Buffer{
+	def put(an Object) Buffer?{
 		type  Class<?> = an.getClass()
 		rootType Class<?> = getRootComponentCls(type)
 		rootCall=false;
@@ -1135,7 +1135,7 @@ private class GPUEncoder(val size int){
 		buffer??.put((1 if an == true else 0) as byte)
 	}
 
-	private def putIntArray(an Object, type Class<?>) Buffer{
+	private def putIntArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1161,7 +1161,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putLongArray(an Object, type Class<?>) Buffer{
+	private def putLongArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1187,7 +1187,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putShortArray(an Object, type Class<?>) Buffer{
+	private def putShortArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1213,7 +1213,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putFloatArray(an Object, type Class<?>) Buffer{
+	private def putFloatArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1239,7 +1239,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putDoubleArray(an Object, type Class<?>) Buffer{
+	private def putDoubleArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1265,7 +1265,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putCharArray(an Object, type Class<?>) Buffer{
+	private def putCharArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1291,7 +1291,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putByteArray(an Object, type Class<?>) Buffer{
+	private def putByteArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		newBuff = buffer == null
 		if(newBuff){
@@ -1317,7 +1317,7 @@ private class GPUEncoder(val size int){
 		buffer
 	}
 
-	private def putBooleanArray(an Object, type Class<?>) Buffer{
+	private def putBooleanArray(an Object, type Class<?>) Buffer?{
 		compType = type.getComponentType()
 		if(buffer == null){
 			buffer = ByteBuffer.allocateDirect(size)

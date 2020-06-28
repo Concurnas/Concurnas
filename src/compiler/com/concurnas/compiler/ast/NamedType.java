@@ -242,6 +242,7 @@ public class NamedType  extends AbstractType {
 		ret.astredirect=astredirect==null?null:(Type)astredirect.copy();
 		ret.setVectorized(super.getVectorized());
 		ret.nullStatus = this.nullStatus;
+		ret.okToReferenceEvenIfUncreatable = this.okToReferenceEvenIfUncreatable;
 		super.cloneMeTo(ret);
 		return ret;
 	}
@@ -490,7 +491,7 @@ public class NamedType  extends AbstractType {
 			}
 		}
 		
-		return ret;
+		return ret + (this.getNullStatus() == NullStatus.NULLABLE?"?":"");
 	}
 	
 	@Override
@@ -514,7 +515,7 @@ public class NamedType  extends AbstractType {
 			}
 		}
 		
-		return later + isVectorizedToString() + (this.getNullStatus() == NullStatus.NULLABLE?"?":"");
+		return later + isVectorizedToString();
 	}
 	
 	public String toStringNoGeneric()

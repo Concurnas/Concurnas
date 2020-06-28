@@ -418,11 +418,11 @@ inject class DistFetchingClassLoader(store DistClassStore,
 		
 		if(permissions <> null){
 			log("Permissions have been defined for classloader associated with remote server for sid: {sid}")
-			ConcurnasSecurityManager.getInstance().registerClassloader(this, permissions??)
+			ConcurnasSecurityManager.getInstance().registerClassloader(this, permissions)
 		}
 	}
 	
-	override getBytecode(name String) byte[]{//check parent first
+	override getBytecode(name String) byte[]?{//check parent first
 		if(name.endsWith("$Globals$")){
 			return null
 		}
@@ -545,7 +545,7 @@ def sessionIDGennerator() SessionID {//provided by server
 	new SessionID(sid.getMostSignificantBits(), sid.getLeastSignificantBits())
 }
 
-private class ResponseQueueSender(sid SessionID, toSend PausableLinkedQueue<Message>, client SocketChannel:, clientStr String, runState AsyncComponentStatus:, loggerprov LoggerProvider ){
+private class ResponseQueueSender(sid SessionID, toSend PausableLinkedQueue<Message>, client SocketChannel?:, clientStr String, runState AsyncComponentStatus:, loggerprov LoggerProvider ){
 	shared log (String) void
 	init{
 		log = loggerprov.provideLoggerFor(ResponseQueueSender.class)
@@ -602,7 +602,7 @@ inject actor RMServerResponseQueue(sid SessionID, loggerprov LoggerProvider){
 
 	private toSend PausableLinkedQueue<Message> = new PausableLinkedQueue<Message>()
 
- 	private client SocketChannel:? = null
+ 	private client SocketChannel?: = null
  	private shared clientStr String?
  
  	
@@ -622,7 +622,7 @@ inject actor RMServerResponseQueue(sid SessionID, loggerprov LoggerProvider){
  	def startSender(){
 		log("Starting RMServerResponseQueue for: {sid}")
 		rqs = new ResponseQueueSender(sid, toSend, client??, clientStr??, runState, loggerprov )
-		rqs??.send()
+		rqs.send()
 		log("Started RMServerResponseQueue for: {sid}")
 	}
  	
@@ -702,7 +702,7 @@ inject actor TaskStore(sid SessionID, toClient RMServerResponseQueue, loggerprov
 			if(null == taskToStatus){
 				log("Creating new disk based cache of results for: {sid}")
 				taskToStatus = new OffHeapMapDisk<Long, Message>();
-				taskToStatus??.setCapacity(20*(1024**2))//20 meg is probably enough
+				taskToStatus.setCapacity(20*(1024**2))//20 meg is probably enough
 				//TODO: make results buffer size an option
 				taskToStatus??.setRemoveOnClose(true)
 				taskToStatus??.start()
@@ -724,7 +724,7 @@ inject actor TaskStore(sid SessionID, toClient RMServerResponseQueue, loggerprov
 			
 			for(taskId long in taskToStatus??){
 				data Message = taskToStatus??[taskId]
-				msg = new Message(Protocol.sRESPONSE, data??.data, onsent=removeFromStore&(taskId))
+				msg = new Message(Protocol.sRESPONSE, data.data, onsent=removeFromStore&(taskId))
 				
 				sent = toClient.sendMessage(msg)
 				if(not sent){
@@ -900,9 +900,9 @@ private class RemoteServerListner(remServer RemoteServerActor, port int, runStat
 	}
 	
 	def close(){
-		if(selector <> null){
+		//if(selector <> null){
 			selector.close()
-		}
+		//}
 	}
 	
 	private def processRequest(client SocketChannel, key SelectionKey, smc ServerMessageConverter){
@@ -968,7 +968,7 @@ private actor RemoteServerActor(port int, loggerprov LoggerProvider, classLoader
 		}
 		
 		listener = RemoteServerListner(this, port, runStatus, loggerprov)
-		startupError := listener??.listen()
+		startupError := listener.listen()
 		await(runStatus; runStatus == AsyncComponentStatus.RUNNING or runStatus == AsyncComponentStatus.STARTFAIL)
 		
 		if(startupError:isSet()){
@@ -1033,7 +1033,7 @@ private actor RemoteServerActor(port int, loggerprov LoggerProvider, classLoader
 	}
 	
 	def handleClientSubmit(shared client SocketChannel, smc ServerMessageConverter){
-		(requestId, taskName, serizaliedJob, deps) = smc.decodeClientSubmit(client)
+		requestId, taskName, serizaliedJob, deps = smc.decodeClientSubmit(client)
 		sID = chanelToSid.get(client)
 		chanelToLastRequestId[client] = requestId
 		
@@ -1114,7 +1114,7 @@ class RemoteServer(port int = DEFAULT_CONC_PORT,
 			throw new Exception("RemoteServer has not been started")
 		}
 		
-		runStatus := rmServerActor??.close(true)
+		runStatus := rmServerActor.close(true)
 		await(runStatus; runStatus == AsyncComponentStatus.TERMINATED)
 		rmServerActor = null
 	}
@@ -1274,7 +1274,7 @@ actor Remote(hostname String, port = DEFAULT_CONC_PORT, loggerprov LoggerProvide
 						
 			serializedTask = SerializationEncoder.encode(task)
 			
-			(depKeys, mostDeps) = if(clsName not in dependenciesSubmitAlready){
+			depKeys, mostDeps = if(clsName not in dependenciesSubmitAlready){
 				this.getTransDepenedencies(cls, clsName)
 			}else{//if we have already submit a task with the same isolate code to the remote server... No need to submit the code again
 				new HashSet<String>(), new ArrayList<Dependency>() 
@@ -1371,7 +1371,7 @@ actor Remote(hostname String, port = DEFAULT_CONC_PORT, loggerprov LoggerProvide
 		//JPT: apply dependancy analysis here in order
 		log("Server for sid: {sID} has requested class dependency: {className}")
 		
-		(depKeys, mostDeps) = try{
+		depKeys, mostDeps = try{
 			this.getTransDepenedencies(null, className)
 		}catch(e){
 			log("Cannot extract requested bytecode for class: {}className} due to: {e}")
@@ -1386,7 +1386,7 @@ actor Remote(hostname String, port = DEFAULT_CONC_PORT, loggerprov LoggerProvide
 	
 	
 	def handleServerResponse(){
-		(rID, status, data) = cmc??.decodeServerReponse(socketChannel??)
+		rID, status, data = cmc??.decodeServerReponse(socketChannel??)
 		
 		known = rID in idToOutstandingTask
 		
@@ -1511,7 +1511,7 @@ class RemoteExecutor(remConnection Remote, handler RemoteFailureHandler) ~ ISOEx
 		runRemoteTask()
 	}
 	
-	def getResultRef() Object: => task??.getResultRef()
+	def getResultRef() Object:? => task?.getResultRef()
 	
 	def runRemoteTask(){
 		try{
@@ -1525,7 +1525,7 @@ class RemoteExecutor(remConnection Remote, handler RemoteFailureHandler) ~ ISOEx
 			try{
 				handler.handle(rf)
 			}catch(e){
-				res Object: = getResultRef()
+				res Object:? = getResultRef()
 				if(null <> res:){
 					res:setException(e)
 				}

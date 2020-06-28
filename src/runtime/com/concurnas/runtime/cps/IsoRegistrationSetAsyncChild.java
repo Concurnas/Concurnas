@@ -17,13 +17,13 @@ public class IsoRegistrationSetAsyncChild extends IsoRegistrationSet {
 	}
 	
 	@Override
-	public boolean register(Ref<?> x){
+	public boolean register(Ref<?> x) throws Throwable{
 		parent.register(this, x);
 		return super.register(x);
 	}
 	
 	@Override
-	public void unregister(Ref<?> x){
+	public void unregister(Ref<?> x) throws Throwable{
 		parent.unregister(this, x);
 		super.unregister(x);
 	}

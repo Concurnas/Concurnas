@@ -1,7 +1,6 @@
 package com.concurnas.compiler.ast;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
-import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
 
 public class RedirectableExpression  extends AbstractExpression implements Expression {

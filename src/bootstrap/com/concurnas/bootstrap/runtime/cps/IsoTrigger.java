@@ -41,7 +41,7 @@ public abstract class IsoTrigger extends Iso {
 	
 	private LinkedHashSet<Ref<?>> toProc;
 	
-	protected void _runExecute(Transaction trans, boolean isFirst){//gets replaced during install process
+	protected void _runExecute(Transaction trans, boolean isFirst) throws Throwable{//gets replaced during install process
 		if(!initDone){
 			if(toProc == null && this.every){
 				toProc = new LinkedHashSet<Ref<?>>();//set initial stuff to process

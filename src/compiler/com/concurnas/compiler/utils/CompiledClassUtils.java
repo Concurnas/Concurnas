@@ -447,7 +447,7 @@ public class CompiledClassUtils {
 		}
 		
 		if( pos.anInt >= nullables.length) {
-			atype.setNullStatus(NullStatus.NONNULL);
+			atype.setNullStatus(NullStatus.NOTNULL);
 		}
 		else {
 			if(atype.hasArrayLevels()) {
@@ -455,7 +455,7 @@ public class CompiledClassUtils {
 				int sz = atype.getArrayLevels();
 				List<NullStatus> nas = new ArrayList<NullStatus>(sz);
 				for(int n = 0; n < sz; n++) {
-					nas.add(nullables[pos.anInt]?NullStatus.NULLABLE:NullStatus.NONNULL);
+					nas.add(nullables[pos.anInt]?NullStatus.NULLABLE:NullStatus.NOTNULL);
 					pos.anInt++;
 				}
 				atype.setNullStatusAtArrayLevel(nas);
@@ -471,9 +471,9 @@ public class CompiledClassUtils {
 			}
 			
 			if( pos.anInt >= nullables.length) {
-				atype.setNullStatus(NullStatus.NONNULL);
+				atype.setNullStatus(NullStatus.NOTNULL);
 			}else {
-				atype.setNullStatus(nullables[pos.anInt]?NullStatus.NULLABLE:NullStatus.NONNULL);
+				atype.setNullStatus(nullables[pos.anInt]?NullStatus.NULLABLE:NullStatus.NOTNULL);
 			}
 		}
 		
@@ -497,7 +497,7 @@ public class CompiledClassUtils {
 					try {
 						When when = (When)noNullAnotCls.getMethod("when").invoke(anot);
 						if( when == When.ALWAYS) {
-							tt.setNullStatus(NullStatus.NONNULL);
+							tt.setNullStatus(NullStatus.NOTNULL);
 						}else if(when == When.NEVER) {
 							tt.setNullStatus(NullStatus.NULLABLE);
 						}/*else if(when == When.MAYBE) {

@@ -32,9 +32,9 @@ x69Returns4ohyeahlambdas.conc line 4:19 if statement must return something
 ~~~~~
 //##69. Returns - on other special stuff..
 x69Returnsonotherspecialstuff.conc line 5:1 incompatible type: int vs java.util.List<java.lang.Integer>
-x69Returnsonotherspecialstuff.conc line 11:5 Resource specified in try with resource block must implement close method, 'null' does not
-x69Returnsonotherspecialstuff.conc line 17:5 Resource specified in try with resource block must implement close method, 'null' does not
-x69Returnsonotherspecialstuff.conc line 24:5 Resource specified in try with resource block must implement close method, 'null' does not
+x69Returnsonotherspecialstuff.conc line 11:5 Resource specified in try with resource block must implement close method, '{ null ; }' does not
+x69Returnsonotherspecialstuff.conc line 17:5 Resource specified in try with resource block must implement close method, '{ null ; }' does not
+x69Returnsonotherspecialstuff.conc line 24:5 Resource specified in try with resource block must implement close method, '{ null ; }' does not
 x69Returnsonotherspecialstuff.conc line 28:1 Unreachable code after exception thrown
 x69Returnsonotherspecialstuff.conc line 36:1 Unreachable code after exception thrown
  

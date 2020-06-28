@@ -1295,7 +1295,7 @@ class MyClass(a int, b int){
 class MyProvider{
 	override equals(a Object) => false
 	override hashCode() => 1
-	def \new(className String, args Object...) Object{
+	def \new(className String, args Object...) Object?{
 		if(className == 'x56newoorequirescast$MyClass' and args.length == 2){ new MyClass(args[0] as Integer, args[1] as Integer) }
 		elif(className == 'x56newoorequirescast$MyClass'){ new MyClass() }
 		else{ null }
@@ -1323,7 +1323,7 @@ class MyClass(a int, b int){
 class MyProvider{
 	override equals(a Object) => false
 	override hashCode() => 1
-	def \new(className String, args Object...) Object {
+	def \new(className String, args Object...) Object? {
 		if(className == 'bytecodeSandbox.MyClass' and args.length == 2){ new MyClass(args[0] as Integer, args[1] as Integer) }
 		elif(className == 'bytecodeSandbox.MyClass'){ new MyClass() }
 		else{ null }

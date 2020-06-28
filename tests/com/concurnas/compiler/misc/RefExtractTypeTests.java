@@ -21,7 +21,7 @@ public class RefExtractTypeTests extends TestCase{
 	}
 	
 	@Test
-	public void testExtractTypeAndAugmentTypeArray() {
+	public void testExtractTypeAndAugmentTypeArray() throws Throwable {
 		//basic tests to fill in one null arg
 		Class<?>[] got = RefUtils.extractTypeAndAugmentTypeArray(new Class<?>[]{Integer.class, Double.class, Integer.class, null, Double.class}, 1, 234.f, new Class<?>[]{Object.class});
 		super.assertEquals("[Integer, Double, Integer, Float, Double]", pprintArr(got));

@@ -7,18 +7,21 @@ public class Vectorized extends AbstractExpression implements Expression {
 	public  Expression expr;
 	public boolean doubledot;
 	public boolean nullsafe;
+	public boolean noNullAssertion;
 
-	public Vectorized(int line, int column, Expression expr, boolean doubledot, boolean nullsafe) {
+	public Vectorized(int line, int column, Expression expr, boolean doubledot, boolean nullsafe, boolean noNullAssertion) {
 		super(line, column);
 		this.expr=expr;
 		this.doubledot = doubledot;
 		this.nullsafe = nullsafe;
+		this.noNullAssertion = noNullAssertion;
 	}
 	public Vectorized(Expression expr) {
 		super(expr.getLine(), expr.getColumn());
 		this.expr=expr;
 		this.doubledot = false;
 		this.nullsafe = false;
+		this.noNullAssertion = false;
 	}
 
 	private Expression preceedingExpression;
@@ -40,7 +43,7 @@ public class Vectorized extends AbstractExpression implements Expression {
 
 	@Override
 	public Node copyTypeSpecific() {
-		return new Vectorized(line, column, (Expression)expr.copy(), doubledot, nullsafe);
+		return new Vectorized(line, column, (Expression)expr.copy(), doubledot, nullsafe, noNullAssertion);
 	}
 
 }

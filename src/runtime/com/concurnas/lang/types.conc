@@ -18,7 +18,7 @@ class Lazy<X>{
 		this.valueSet=false
 	}
 	
-	def unassign() X{
+	def unassign() X?{
 		if(not this.valueSet){
 			
 			if(this.eval == null){

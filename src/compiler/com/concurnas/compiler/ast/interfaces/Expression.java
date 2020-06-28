@@ -24,4 +24,5 @@ public interface Expression extends Copyable{
 	public  Expression getPreceedingExpression();
 	public boolean hasBeenVectorized();
 	public Type getTaggedTypeRaw();
+	public void setPreceededBySafeCall(boolean safeCallRet);
 }

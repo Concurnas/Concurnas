@@ -29,8 +29,9 @@ public class GenericRefCast {
 	 * @param from
 	 * @param int:: -? [Local, Local, Integer]
 	 * @return 'casted' entity
+	 * @throws Throwable 
 	 */
-	public static Object genericRefCast(Object from, Class<?>[] convertTo){
+	public static Object genericRefCast(Object from, Class<?>[] convertTo) throws Throwable{
 		/*if(from==null){
 			return null;
 		}
@@ -88,7 +89,7 @@ public class GenericRefCast {
 								reta.set(ret);
 							} catch (NoSuchMethodException e) {
 								throw new RuntimeException("no zero arg constructor defined for type: " +  convertTo[0].getCanonicalName() );
-							} catch (Exception e) {
+							} catch (Throwable e) {
 								throw new RuntimeException(e);
 							}
 						
@@ -107,7 +108,11 @@ public class GenericRefCast {
 					int popOff = decRefLevels - constToRefLevels;
 					DirectlyGettable ret = (DirectlyGettable)from;
 					for(int n=0; n < popOff; n++){
-						ret = (DirectlyGettable)ret.get(true);
+						try {
+							ret = (DirectlyGettable)ret.get(true);
+						} catch (Throwable e) {
+							throw new RuntimeException(e);
+						}
 					}
 					
 					if(InstanceofGeneric.isGenericInstnaceof(ret, convertTo)){//e.g. int:: no cast to Obj:: 

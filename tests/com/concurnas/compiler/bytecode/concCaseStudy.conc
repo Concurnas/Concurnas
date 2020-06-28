@@ -204,7 +204,7 @@ actor LongestSoFar{
 			longestLen = candi.length()
 			longest = candi
 			if(DEBUG){
-				System.out.println("longest so far: {longest} [{longest??.length()} chars]")
+				System.out.println("longest so far: {longest} [{longest.length()} chars]")
 			}
 		}
 	}
@@ -227,7 +227,7 @@ private def searcher(prefix String, treestru DictTree?, manager LongestSoFar, gl
 		for(idx in 0 to longestSoFar-1){
 			item char = prefix[idx]
 			charset[item]--
-			treestru = treestru?.children?[item]
+			treestru = treestru??.children[item]
 			if(null == treestru) { return }
     	} 
 	}
@@ -443,7 +443,7 @@ actor LongestSoFar{
 			longestLen = candi.length()
 			longest = candi
 			if(DEBUG){
-				System.out.println("longest so far: {longest} [{longest??.length()} chars]")
+				System.out.println("longest so far: {longest} [{longest.length()} chars]")
 			}
 		}
 	}
@@ -466,7 +466,7 @@ private def searcher(prefix String, treestru DictTree?, manager LongestSoFar, gl
 		for(idx in 0 to longestSoFar-1){
 			item char = prefix[idx]
 			charset[item]--
-			treestru = treestru?.children?[item]
+			treestru = treestru??.children[item]
 			if(null == treestru) { return }
     	} 
 	}

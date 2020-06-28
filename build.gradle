@@ -45,7 +45,7 @@ configurations {
 
 
 dependencies {
-    api 'com.google.jimfs:jimfs:1.1'
+    testImplementation 'com.google.jimfs:jimfs:1.1'
     testImplementation 'junit:junit:4.12'
     libsForRuntime "org.antlr:antlr4:4.7.2"
     libsForRuntime 'org.jline:jline:3.13.3'

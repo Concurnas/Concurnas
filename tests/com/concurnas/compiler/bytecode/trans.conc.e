@@ -59,7 +59,7 @@
 
 ~~~~~
 //##z13 excep is tagged in transaction
-[[2, 98, true, java.lang.RuntimeException: java.lang.RuntimeException: hi, true, true, la eq: [true, true]]]
+[[2, 98, true, java.lang.RuntimeException: hi, true, true, la eq: [true, true]]]
 
 ~~~~~
 //##z14 trans order from getchange respected

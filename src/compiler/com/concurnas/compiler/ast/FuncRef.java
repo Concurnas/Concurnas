@@ -88,6 +88,9 @@ public class FuncRef extends AbstractExpression implements Expression, HasLambda
 		ret.astRedirectnewOperatorOverloaded = astRedirectnewOperatorOverloaded==null?null:(Node)astRedirectnewOperatorOverloaded.copy();
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		ret.lhsHasNewOPOVerload = lhsHasNewOPOVerload;
+		//Type tt = this.getTaggedType();
+		//ret.setTaggedType(tt==null?null:(Type)tt.copy());
+		
 		return ret;
 	}
 	

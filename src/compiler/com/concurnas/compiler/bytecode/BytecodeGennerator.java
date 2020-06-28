@@ -46,6 +46,7 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
 import com.concurnas.compiler.ast.util.GPUKernelFuncDetails;
 import com.concurnas.compiler.ast.util.JustLoad;
+import com.concurnas.compiler.ast.util.NullableArrayElement;
 import com.concurnas.compiler.bytecode.FuncLocation.ClassFunctionLocation;
 import com.concurnas.compiler.bytecode.FuncLocation.StaticFuncLocation;
 import com.concurnas.compiler.bytecode.TopOfStack.VarClassField;
@@ -66,6 +67,7 @@ import com.concurnas.compiler.utils.TypeDefTypeProvider;
 import com.concurnas.compiler.visitors.AbstractErrorRaiseVisitor;
 import com.concurnas.compiler.visitors.ErrorRaiseable;
 import com.concurnas.compiler.visitors.NestedFuncRepoint;
+import com.concurnas.compiler.visitors.PrintSourceVisitor;
 import com.concurnas.compiler.visitors.RhsResolvesToRefTypeVisistor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
@@ -2286,7 +2288,11 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			classDef.classBlock.accept(this);
 			level--;
 		}else{
+			
 			classDef.classBlock.accept(this);
+			
+			
+			
 		}
 		
 		if(addedStackSizeEle) {
@@ -2528,9 +2534,24 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 						
 						bcoutputter.visitVarInsn(ALOAD, 0);
 						//default value here...
-						if(ass instanceof Block){
-							((Block)ass).isClassFieldBlock = true;
+						
+						Block asBlock;
+						if(ass instanceof Block) {
+							asBlock = (Block)ass.copy();
+						}else {
+							ass = (Expression)ass.copy();
+							asBlock = new Block(0,0);
+							asBlock.add(new DuffAssign(ass));
 						}
+
+						asBlock.isClassFieldBlock = true;
+						
+						LabelAllocator preAllocator = new LabelAllocator();
+						preAllocator.visit(asBlock);
+						
+						//if(ass instanceof Block){
+						//	((Block)ass).isClassFieldBlock = true;
+						//}
 						Type rhsResolvesToType = (Type)ass.accept(this);
 						/*if(ass instanceof AssignNew){
 							((AssignNew)ass).expr.accept(this);
@@ -4506,6 +4527,12 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				tempSlot = this.createNewLocalVar(this.getTempVarName(), tt, true);//JPT: dont like having to do this
 				bcoutputter.visitJumpInsn(IFNULL, ifFalse);
 				Utils.applyLoad(bcoutputter, tt, tempSlot);
+				
+				if (TypeCheckUtils.hasRefLevelsAndIsArray(tt)) {
+					// special case: a int:[] = [8! 8!]; z = [a a] //z is int:[2]
+					bcoutputter.visitFieldInsn(GETFIELD, "com/concurnas/bootstrap/runtime/ref/LocalArray", "ar", "[Ljava/lang/Object;");
+				}
+				
 				bcoutputter.visitInsn(ARRAYLENGTH);
 				bcoutputter.visitJumpInsn(IFLE, ifFalse);
 				bcoutputter.visitInsn(ICONST_1);
@@ -5866,7 +5893,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		// typeOfThisLevel = Utils.unref(mv, typeOfThisLevel, this);
 
 		// Type retType = arrayRef.getTaggedType();
-		ArrayList<Pair<Boolean, ArrayRefElement>> arle = arrayRef.getFlatALEWithNullSafe();// arrayLevelElements.getAll();
+		ArrayList<NullableArrayElement> arle = arrayRef.getFlatALEWithNullSafe();// arrayLevelElements.getAll();
 		int sz = arle.size();
 		for (int n = 0; n < sz; n++) {
 			int thingRefLevels = TypeCheckUtils.getRefLevels(typeOfThisLevel);
@@ -5887,11 +5914,11 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			Type typeRetAtThisLevel = typeAndARE.getA();
 			Type castToAtThisLevel = typeAndARE.getB();
 			ARElementType areEle = typeAndARE.getC();
-			Pair<Boolean, ArrayRefElement> elem =  arle.get(n);
-			ArrayRefElement are = elem.getB();
+			NullableArrayElement elem =  arle.get(n);
+			ArrayRefElement are = elem.element;
 			boolean isLast = n == arle.size() - 1;
 			Pair<Label, Label> nullsafeCall = null;
-			if(elem.getA()) {
+			if(elem.nullsafe) {
 				String tempName = this.getTempVarName();
 				bcoutputter.visitInsn(DUP);
 				int tempSlot = this.createNewLocalVar(tempName, typeOfThisLevel, true);
@@ -5900,6 +5927,8 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				bcoutputter.visitJumpInsn(IFNULL, ifNull);
 				nullsafeCall = new Pair<Label, Label>(ifNull, end);
 				bcoutputter.visitVarInsn(ALOAD, tempSlot);
+			}else if(elem.nna) {
+				throwIfNull(true);
 			}
 			
 			if(are.astOverrideOperatorOverload != null) {
@@ -8396,7 +8425,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				ArrayRefElement aree = new ArrayRefElement(line, col, new RefName(line, col, n));
 				aree.setTaggedType(exprAssignmentType);
 				l1.add(aree);
-				arrayLevelElements.add(false, l1);// [n]
+				arrayLevelElements.add(false, false, l1);// [n]
 				// arrayLevelElements.tagType(new
 				// PrimativeType(PrimativeTypeEnum.INT),
 				// ARElementType.ARRAY);//TODO: go through code and remove all
@@ -8442,10 +8471,13 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			retself.add(true);
 			
 			ArrayList<Boolean> safecall = new ArrayList<Boolean>();
-			retself.add(false);
+			safecall.add(false);
+			
+			ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>();
+			noNullAssertion.add(false);
 			
 			ArrayList<GrandLogicalElement> elements = new ArrayList<GrandLogicalElement>();
-			DotOperator dop = new DotOperator(line, col, new RefName(line, col, rhsExprTemp), lengAr, isDirect, retself, safecall);
+			DotOperator dop = new DotOperator(line, col, new RefName(line, col, rhsExprTemp), lengAr, isDirect, retself, safecall, noNullAssertion);
 			dop.setTaggedType(Const_PRIM_INT);// n.length -> INT
 			elements.add(new GrandLogicalElement(line, col, GrandLogicalOperatorEnum.LT, dop));
 
@@ -8771,6 +8803,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			Expression e = elements.get(n);
 			boolean shouldReturnSelf =dotOperator.returnCalledOn == null?false:dotOperator.returnCalledOn.get(n-1);
 			boolean safeCall =dotOperator.safeCall == null?false:dotOperator.safeCall.get(n-1);
+			boolean nna =dotOperator.noNullAssertion == null?false:dotOperator.noNullAssertion.get(n-1);
 			
 			if(shouldReturnSelf){
 				if(processLast && isLast && !shouldBePresevedOnStack) {
@@ -8785,6 +8818,8 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				bcoutputter.visitInsn(DUP);
 				
 				bcoutputter.visitJumpInsn(IFNULL, onNull);
+			}else if(nna) {
+				throwIfNull(true);
 			}
 			
 			

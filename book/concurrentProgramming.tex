@@ -72,7 +72,20 @@ assert n==10//n always remains unchanged
 
 The above code will always provide a consistent output, despite the isolates non deterministic nature, since the \lstinline{n} variable dependency is copied into each of the isolates and is not shared between them. Thus changes made to the variable in one isolate do not affect the other. Notice how we've not had to define anything in the way of a critical section, synchronization, lock management etc.
 
-The dependency copy itself is a default copy in Concurnas, i.e. a deep copy of the isolates dependency, so for object dependencies which are very large, either making use of an actor (see the \hyperref[sec:actors]{Actors} section) or marking the dependant variable as shared (see the \hyperref[sec:shared]{Shared variables and classes} section) may be a more appropriate option.
+The dependency copy itself is a default copy in Concurnas, i.e. a deep copy of the isolates dependency, so for object dependencies which are very large, either making use of an actor (see the \hyperref[sec:actors]{Actors} section) or marking the dependant variable as \lstinline{shared} (see the \hyperref[sec:shared]{Shared variables and classes} section) may be a more appropriate option.
+
+Transient variables and \hyperref[sec:transientClasses]{transient classes} are not copied into isolates. These will have their values set to \lstinline{null} even if they are not declared as being of nullable type. This process will also invalidate any inferences made about the null-ability of an affected variable. Here is an example with a transient class:
+
+\begin{lstlisting}
+transient class Myclass{
+	def foo() => "im not null"
+}
+mc = Myclass()
+result = {'uh oh' if null == mc else mc.foo() }!
+//result == 'uh oh'
+\end{lstlisting}
+
+Note above that normally the \lstinline{null == mc} test would resolve to a compilation error as we've already inferred that \lstinline{mc} cannot be null, but because this comparison occurs within an isolate, on a variable of transient class type, this inference is no longer valid.
 
 \subsubsection{Module level state}
 Variables defined outside of a function/class/actor (termed module level state) are copied in a special manner when it comes to usage within isolates. The rule is that state defined within the module spawning the isolate will be copied, but module level state defined in modules other than that spawning the isolate will be reinitialized (which means running all of the associated top level code to initialize them) within the isolate - i.e. the current state not copied.

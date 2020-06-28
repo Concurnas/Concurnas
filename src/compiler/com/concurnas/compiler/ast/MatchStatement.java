@@ -4,9 +4,8 @@ import java.util.ArrayList;
 
 import com.concurnas.compiler.CaseExpression;
 import com.concurnas.compiler.ast.interfaces.Expression;
-import com.concurnas.compiler.utils.Fourple;
-import com.concurnas.compiler.visitors.CasePatternConverter;
 import com.concurnas.compiler.visitors.ConstantFolding;
+import com.concurnas.compiler.visitors.PrintSourceVisitor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
 import com.concurnas.compiler.visitors.util.MactchCase;
@@ -17,8 +16,21 @@ public class MatchStatement extends CompoundStatement {
 	public ArrayList<MactchCase> cases;
 	public Block elseblok;
 	public Block astRedirect;
+	private String prevASTRedir = null;
 
 	public void setAstRedirect(Block astRedirect) {
+		PrintSourceVisitor psv = new PrintSourceVisitor();
+		astRedirect.accept(psv);
+		String newRep = psv.toString();
+		if(null != prevASTRedir) {
+			if(prevASTRedir.equals(newRep)) {
+				this.astRedirect.setShouldBePresevedOnStack(super.getShouldBePresevedOnStack());
+				return;
+			}
+		}
+		
+		prevASTRedir = newRep;
+		
 		astRedirect.setShouldBePresevedOnStack(super.getShouldBePresevedOnStack());
 		this.astRedirect = astRedirect;
 	}

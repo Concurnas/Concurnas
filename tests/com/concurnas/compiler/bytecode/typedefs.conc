@@ -470,7 +470,7 @@ class MyArrayList{
 	override equals(a Object) => false
 	
 	private def substr(){
-		what = (trasitems if useTrans else items)
+		what X[]? = (trasitems if useTrans else items)
 		what[0 ... highwatermark] if what  <> null else 'its null'
 	}
 	
@@ -541,7 +541,7 @@ class MyArrayList{
 	override equals(a Object) => false
 	
 	private def substr(){
-		what = (trasitems if useTrans else items)
+		what X[]? = (trasitems if useTrans else items)
 		what[0 ... highwatermark] if what  <> null else 'its null'
 	}
 	

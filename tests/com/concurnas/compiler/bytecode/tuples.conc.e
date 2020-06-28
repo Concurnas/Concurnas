@@ -160,3 +160,19 @@ ok
 ~~~~~
 //##41. same ref no accidental unreffing
 [12 13 true]
+
+~~~~~
+//##42. hashcode and equality for tuples 
+[true, true]
+
+~~~~~
+//##43. params are needed
+(1, ok, 1.3, 2jh)
+
+~~~~~
+//##44. better tuple syntax
+[1, 2]
+
+~~~~~
+//##45. tuple decomp both ways round
+[12 13 12 13]

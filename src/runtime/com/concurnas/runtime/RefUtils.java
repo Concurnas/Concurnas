@@ -14,8 +14,9 @@ public class RefUtils {
 	 * @param obj - will figure out the type of this. Works even if ref type etc
 	 * @param ifNull - type to us if object is null, array means that we can have a ref as an upper bound later on
 	 * @return
+	 * @throws Throwable 
 	 */
-	public final static Class<?>[] extractTypeAndAugmentTypeArray(Class<?>[] existing, int slotFromEnd, Object obj, Class<?>[] ifNull){
+	public final static Class<?>[] extractTypeAndAugmentTypeArray(Class<?>[] existing, int slotFromEnd, Object obj, Class<?>[] ifNull) throws Throwable{
 		Class<?>[] found = obj == null?ifNull:extractType(obj);
 		
 		Class<?>[] ret = new Class<?>[existing.length + found.length - 1];
@@ -30,7 +31,7 @@ public class RefUtils {
 		
 	}
 	
-	public final static Class<?>[] extractType(Object obj){
+	public final static Class<?>[] extractType(Object obj) throws Throwable{
 		//cut and paste ugh!
 		Class<?>[] decTypes;
 		

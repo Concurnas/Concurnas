@@ -15,7 +15,7 @@ x69DefoAssignment1forloopsdontresultindefoassignment.conc line 10:8 The variable
 
 ~~~~~
 //##69. DefoAssignment - 2 - nested blocks
-x69DefoAssignment2nestedblocks.conc line 14:5 Resource specified in try with resource block must implement close method, 'null' does not
+x69DefoAssignment2nestedblocks.conc line 14:5 Resource specified in try with resource block must implement close method, '{ null ; }' does not
  
 ~~~~~
 //##69. DefoAssignment - 2 - stuff must be set

@@ -63,6 +63,7 @@ import com.concurnas.compiler.ast.Type.Vectorization;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.interfaces.FuncDefI;
 import com.concurnas.compiler.ast.util.JustLoad;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.bytecode.FuncLocation;
 import com.concurnas.compiler.bytecode.FuncLocation.ClassFunctionLocation;
 import com.concurnas.compiler.bytecode.FuncLocation.StaticFuncLocation;
@@ -77,7 +78,6 @@ import com.concurnas.compiler.utils.Fiveple;
 import com.concurnas.compiler.utils.Fourple;
 import com.concurnas.compiler.utils.GenericTypeUtils;
 import com.concurnas.compiler.utils.ITEM_TYPE;
-import com.concurnas.compiler.utils.Sevenple;
 import com.concurnas.compiler.utils.Sixple;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
@@ -129,7 +129,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private Stack<Type> onchangeRetType = new Stack<Type>();
 	private Stack<String> currentlyInRet = new Stack<String>();
 	public Stack<ClassDef> currentlyInClassDef = new Stack<ClassDef>();
-	private Stack<HashMap<Pair<String, Boolean>, NullStatus>> nullableOverwriteType = new Stack<HashMap<Pair<String, Boolean>, NullStatus>>();
+	//private Stack<HashMap<Pair<String, Boolean>, NullStatus>> nullableOverwriteType = new Stack<HashMap<Pair<String, Boolean>, NullStatus>>();
 		
 	LinkedHashSet<ErrorHolder> errors = new LinkedHashSet<ErrorHolder>();
 	LinkedHashSet<ErrorHolder> warnings = new LinkedHashSet<ErrorHolder>();
@@ -1064,7 +1064,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		String name = input.getName();
 		
 		TypeCheckUtils.assertNotVoid(lhs, this, line, col, name);
-		flagNullableForOperation(line, col, lhs);
+		
+		if(TypeCheckUtils.isBoxedType(lhs)) {
+			flagNullableForOperation(line, col, lhs);//only care about null check if primative (inc boolean)
+		}
 		
 		for(RedirectableExpression i : input.getElems())
 		{
@@ -1089,7 +1092,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				rhs = (Type)i.accept(this);
 				this.dotOperatorLHS.pop();
 			}else {
-				flagNullableForOperation( i.getLine(), i.getColumn(), rhs);
+				if(TypeCheckUtils.isBoxedType(rhs)) {
+					flagNullableForOperation( i.getLine(), i.getColumn(), rhs);//only care about null check if primative (inc boolean)
+				}
 			}
 			i.setTaggedType(rhs);
 			lhs = rhs;
@@ -1253,7 +1258,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				for(String aa : forNs){
 					item.add(new ArrayRefElement(line, col, new RefName(line, col, aa)));
 				}
-				areh.add(false, item);
+				areh.add(false, false, item);
 				ArrayRef assignTo = new ArrayRef(line, col, new RefName(line, col, "ret"), areh);
 				
 				Expression what = valueType instanceof PrimativeType ? new RefName("value") : new CopyExpression( line,  col, new RefName("value"), null, null);
@@ -1264,7 +1269,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				for(String aa : forNs){
 					item.add(new ArrayRefElement(line, col, new RefName(line, col, aa)));
 				}
-				areh.add(false, item);
+				areh.add(false, false, item);
 				extractingFrom = new ArrayRef(line, col, new RefName(line, col, "ret"), areh);
 			}
 		}
@@ -1503,8 +1508,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(!this.maskedErrors() && TypeCheckUtils.isValidType(got)){
 				
 				ArrayList<ArrayRefElement> ares = new ArrayList<ArrayRefElement>();
-				for(Pair<Boolean, ArrayList<ArrayRefElement>> levelx  : arrayRef.arrayLevelElements.getAll()){
-					ares.addAll(levelx.getB());
+				for(NullableArrayElementss levelx  : arrayRef.arrayLevelElements.getAll()){
+					ares.addAll(levelx.elements);
 				}
 				
 				ArrayList<Expression> arrayLevels = new ArrayList<Expression>();
@@ -1559,12 +1564,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		ArrayList<Pair<Boolean, NullStatus>> extractVectorized = null;
 		
-		ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> allelements = holder.getAll();
+		ArrayList<NullableArrayElementss> allelements = holder.getAll();
 		
 		int n0=0;
-		for (Pair<Boolean, ArrayList<ArrayRefElement>> elementsx : allelements) {
-			boolean isNullSafe = elementsx.getA();
-			ArrayList<ArrayRefElement> elements = elementsx.getB();
+		for (NullableArrayElementss elementsx : allelements) {
+			boolean isNullSafe = elementsx.nullsafe;
+			boolean isNoNullAssertion = elementsx.nna;
+			ArrayList<ArrayRefElement> elements = elementsx.elements;
 			
 			boolean isLast1 = n0 == allelements.size() -1;
 			n0++;
@@ -1592,12 +1598,22 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				boolean isNamedType= retSoFar instanceof NamedType;
 				retSoFarOrig = retSoFar;
 				
-				if(retSoFar.getNullStatus() == NullStatus.NULLABLE) {
-					if(!isNullSafe) {
+				if(retSoFar.getNullStatus() == NullStatus.NULLABLE || retSoFar.getNullStatus() == NullStatus.UNKNOWN) {
+					if(!isNullSafe && !isNoNullAssertion && retSoFar.getNullStatus() == NullStatus.NULLABLE) {
 						this.raiseError(line, col, "Array operation cannot be performed, array is nullable and might be null");
 					}
-				}else if(retSoFar.getNullStatus() == NullStatus.NONNULL && isNullSafe) {
-					this.raiseError(line, col, "Null safe array operation may only be performed on array having a nullable type");
+					
+					if(isNoNullAssertion) {
+						retSoFar = (Type)retSoFar.copy();
+						retSoFar.setNullStatus(NullStatus.NOTNULL);
+					}
+					
+				}else if(retSoFar.getNullStatus() == NullStatus.NOTNULL) {
+					if(isNullSafe) {
+						this.raiseError(line, col, "Null safe array operation may only be performed on array having a nullable type");
+					}else if(isNoNullAssertion) {
+						this.raiseError(line, col, "Non null asserted array operation may only be performed on array having a nullable type");
+					}
 				}
 				
 				if(isNamedType){
@@ -2020,6 +2036,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	public Object visit(ArrayRef arrayRef) {//asyncref problem maybe
 		this.maskErrors(true);
 		Type retSoFar = (Type) arrayRef.expr.accept(this);
+		if(arrayRef.getPreceededBySafeCall()) {
+			retSoFar = (Type)retSoFar.copy();
+			retSoFar.setNullStatus(NullStatus.NULLABLE);
+		}
+		
+		
 		ArrayList<CapMaskedErrs> errs = this.getmaskedErrors();
 		if(!errs.isEmpty() || null != arrayRef.arrayConstructorExtraEmptyBracks){//Integer[2] - doesnt resolve to anything, see if it can be accessed as an array constructor
 			int extraTarailingEmptyBRacks = arrayRef.arrayConstructorExtraEmptyBracks==null?0:arrayRef.arrayConstructorExtraEmptyBracks;//for this: Integer[2][][]//bit of an edge case...
@@ -2425,7 +2447,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						
 						ret.setArrayLevels(ret.getArrayLevelsRefOVerride() + 1 /*+ extraLevelsDueToVarNullArray*/);
 						if(ret.getNullStatus() == NullStatus.NULLABLE) {
-							ret.setNullStatus(NullStatus.NONNULL);
+							ret.setNullStatus(NullStatus.NOTNULL);
 							ret.setNullStatusAtArrayLevel(NullStatus.NULLABLE);
 						}
 						
@@ -2466,10 +2488,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(expr instanceof ArrayRef){
 			ArrayRef ar =(ArrayRef)expr;
 			ret.add(ar.expr);
-			ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> ares = ar.arrayLevelElements.getAll();//[1, 2, 3...5][2,3//etc
+			ArrayList<NullableArrayElementss> ares = ar.arrayLevelElements.getAll();//[1, 2, 3...5][2,3//etc
 
-			for(Pair<Boolean, ArrayList<ArrayRefElement>> item : ares){
-				ArrayList<ArrayRefElement> are = item.getB();
+			for(NullableArrayElementss item : ares){
+				ArrayList<ArrayRefElement> are = item.elements;
 				if(are.stream().anyMatch(a -> !a.isSingleElementRefEle())){
 					ret = null;
 					break;//we process this as [1 ... 2] etc MUST be an arrayref
@@ -2874,10 +2896,16 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	//Tuple[0-9][0-9]*
 	
 	public Pair<Type, Expression> convertExpressionToNewLazy(int line, int col, Type lhsType, Type rhsType, Expression rhsExpr, boolean justLambda){
+		if(rhsExpr instanceof JustReturnType) {//for this to be on the rhs of an assignment indicates a multi-assign which is not supported for this construct
+			return new Pair<Type, Expression>((Type)rhsExpr.accept(this), rhsExpr);
+		}
 		Expression ret = Utils.createNewLazyObject(this, line, col, lhsType, rhsType, rhsExpr, justLambda);
 		return new Pair<Type, Expression>((Type)ret.accept(this), ret);
 	}
 	public Pair<Type, Expression> convertExprToArgLessLambda(int line, int col, Type toType, Type rhsType, Expression rhsExpr){
+		if(rhsExpr instanceof JustReturnType) {//for this to be on the rhs of an assignment indicates a multi-assign which is not supported for this construct
+			return new Pair<Type, Expression>((Type)rhsExpr.accept(this), rhsExpr);
+		}
 		Expression ret = Utils.createNewNoArgLambda(line, col, toType, rhsType, rhsExpr);
 		return new Pair<Type, Expression>((Type)ret.accept(this), ret);
 	}
@@ -2896,49 +2924,70 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		setForceCastIfVarNull(assignNew.expr, assignNew.type);
 		
 		//see if we map directly onto an expression list...
+		//also cater for: subOp(fromx, tox, towrite): => 
 		if(assignNew.isFinal == false && assignNew.isVolatile == false && assignNew.prefix == null && !assignNew.isOverride && assignNew.accessModifier==null){
 			Type tt = assignNew.type;
-			if(tt instanceof NamedType && !tt.hasArrayLevels()){
-				this.maskErrors();
-				tt.accept(this);
-				if(this.maskedErrors()){//unknown type, try to convert to expr list
-					
-					if(assignNew.expr == null) {
-						int line = assignNew.getLine();
-						int col = assignNew.getColumn();
+			
+			if(tt instanceof NamedType) {
+				if(!tt.hasArrayLevels()){
+					this.maskErrors();
+					tt.accept(this);
+					if(this.maskedErrors()){//unknown type, try to convert to expr list
 						
-						ArrayList<Expression> exprs = new ArrayList<Expression>();
-						exprs.add(new RefName(assignNew.name));
-						exprs.add(new RefName(((NamedType)tt).namedType ) );
-						ExpressionList exprList = new ExpressionList(line, col, exprs);
-						this.maskErrors();
-						exprList.accept(this);
-						if(!this.maskedErrors()){//TODO: notice how we are visiting assignNew.astRedirect twice, let's visit only once!
-							assignNew.astRedirect = exprList;
-							return assignNew.astRedirect.accept(this);
-						}
-					}else{
-						if(null != assignNew.astRedirect) {//dont need to regenerate as structure will not change (besides, its not copied...)
-							return assignNew.astRedirect.accept(this);
-						}else {
+						if(assignNew.expr == null) {
+							int line = assignNew.getLine();
+							int col = assignNew.getColumn();
+							
 							ArrayList<Expression> exprs = new ArrayList<Expression>();
 							exprs.add(new RefName(assignNew.name));
 							exprs.add(new RefName(((NamedType)tt).namedType ) );
-							ExpressionList exprList = new ExpressionList(assignNew.getLine(), assignNew.getColumn(), exprs);
-							
-							AssignExisting asse = new AssignExisting(assignNew.getLine(), assignNew.getColumn(), exprList, assignNew.eq, assignNew.expr);
-							asse.setShouldBePresevedOnStack(false);
-									
-							this.maskErrors(true);
-							Object ret = asse.accept(this);
-							if(!this.maskedErrors()){
-								assignNew.astRedirect = asse;
-								return ret;
+							ExpressionList exprList = new ExpressionList(line, col, exprs);
+							exprList.setShouldBePresevedOnStack(assignNew.getShouldBePresevedOnStack());
+							this.maskErrors();
+							exprList.accept(this);
+							if(!this.maskedErrors()){//TODO: notice how we are visiting assignNew.astRedirect twice, let's visit only once!
+								assignNew.astRedirect = exprList;
+								return assignNew.astRedirect.accept(this);
+							}
+						}else{
+							if(null != assignNew.astRedirect) {//dont need to regenerate as structure will not change (besides, its not copied...)
+								return assignNew.astRedirect.accept(this);
+							}else {
+								ArrayList<Expression> exprs = new ArrayList<Expression>();
+								exprs.add(new RefName(assignNew.name));
+								exprs.add(new RefName(((NamedType)tt).namedType ) );
+								ExpressionList exprList = new ExpressionList(assignNew.getLine(), assignNew.getColumn(), exprs);
+								
+								AssignExisting asse = new AssignExisting(assignNew.getLine(), assignNew.getColumn(), exprList, assignNew.eq, assignNew.expr);
+								asse.setShouldBePresevedOnStack(false);
+										
+								this.maskErrors(true);
+								Object ret = asse.accept(this);
+								if(!this.maskedErrors()){
+									assignNew.astRedirect = asse;
+									return ret;
+								}
 							}
 						}
 					}
 				}
 			}
+			/*
+			NamedType tupType = getTupleNamedType(false);
+			if(tupType != null  ) {
+				//tuple type, it may actually be a function invocation, e.g. subOp (fromx, tox, towrite): => subOp(fromx, tox, towrite):
+				Expression asFuncInvocation = convertTypeToFuncInvokation(assignNew.name, ((NamedType)tt));
+				if(null != asFuncInvocation) {
+					this.maskErrors();
+					Type ret = (Type) asFuncInvocation.accept(this);
+					if(!this.maskedErrors()){
+						assignNew.astRedirect = (Node)asFuncInvocation;
+						return ret;
+					}
+				}
+				
+			}*/
+			
 		}
 		
 		
@@ -2992,8 +3041,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(this.hasImportBeenRegistered(varname))
 		{// e.g. String String = "";
-			this.raiseError(assignNew.getLine(), assignNew.getColumn(), String.format("Variable definitions cannot override classneames. %s has already been defined as an imported class", varname) );
-			return null;
+			this.raiseWarning(assignNew.getLine(), assignNew.getColumn(), String.format("Variable definition overrides import: %s", varname), WarningVariant.REDEFINE_IMPORT);
+			//return null;
 		}
 		
 		tagFieldLevelBlock(assignNew.expr);
@@ -3078,6 +3127,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						for( Annotation annot : annoots.annotations) {
 							if(const_sharedAnnot.equals(annot.getTaggedType() )) {
 								assignNew.isShared=true;
+								assignNew.isSharedClass=true;
 								/*Annotation annotx = new Annotation(assignNew.getLine(), assignNew.getColumn(),"com.concurnas.lang.Shared" , null, null, new ArrayList<String>(0));
 								if(assignNew.annotations == null) {
 									assignNew.annotations = new Annotations();
@@ -3238,7 +3288,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						}
 						
 						//null check:
-						if(!assignNew.skipNullableCheck && !TypeCheckUtils.isNullable(lhsType) && TypeCheckUtils.isNullable(rhsType)) {
+						if(!assignNew.skipNullableCheck && TypeCheckUtils.isNullable(rhsType) && !TypeCheckUtils.isNullable(TypeCheckUtils.getRefTypeToLocked(lhsType)) && !TypeCheckUtils.isNullable(lhsType)) {
 							if(!TypeCheckUtils.eitherPointer(lhsType, rhsType)) {
 								this.raiseError(assignNew.getLine(), assignNew.getColumn(), "Assignment can be null, but assignment type is not nullable");
 							}
@@ -3254,13 +3304,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						((FuncType)retType).setLambdaDetails(((FuncType)rhsType).getLambdaDetails()); //JPT: this feels a bit dirty here, shouldnt the lambda deltails come form the FuncType on the left hand side?
 					}
 					
-					if(!assignNew.skipNullableCheck && null != rhsType && !assignNew.isShared) {
-						NullStatus ns = rhsType.getNullStatus();
-						if(ns != NullStatus.UNKNOWN) {
-							Pair<String, Boolean> key = new Pair<String, Boolean>(assignNew.name, assignNew.isClassField);
-							nullableOverwriteType.peek().put(key, ns);
-						}
-					}
+					
 					
 					
 					if(null == rhsType || rhsType instanceof ModuleType || cannotAssign )
@@ -3376,7 +3420,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			Type already = lhsTypeAlreadyDefined.getType();
 			Type checked = TypeCheckUtils.checkAssignmentCanBeDone(this, assignNew.eq, already, rhsType, assignNew.getLine(), assignNew.getColumn(), rhsExpr.getLine(), rhsExpr.getColumn(), "");
 			
-			if(!TypeCheckUtils.isNullable(already) && TypeCheckUtils.isNullable(rhsType)) {//null check:
+			if(TypeCheckUtils.isNullable(rhsType) && !TypeCheckUtils.isNullable(already) && !TypeCheckUtils.isNullable(TypeCheckUtils.getRefTypeToLocked(already))) {//null check:
 				this.raiseError(assignNew.getLine(), assignNew.getColumn(), "Assignment can be null, but assignment type is not nullable");
 			}
 			
@@ -3417,6 +3461,64 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		return null;//retType;
 	}
+	
+	private NamedType extractedToTuple(ArrayList<Object> steps, Type current, NamedType tupleType) {
+		//subOp (fromx, tox, towrite):[2]:[4] => funcinoke local, arrays, local, arrays
+		NamedType ret = null;
+		if(current instanceof NamedType) {
+			if(null != TypeCheckUtils.checkSubType(null, tupleType, current)) {
+				boolean ok = true;
+				for(Type gt : ((NamedType) current).getGenTypes()) {
+					if(!(gt instanceof NamedType)) {
+						ok=false;
+						break;
+					}
+				}
+				
+				if(ok) {
+					ret = tupleType;
+				}
+			}else if( TypeCheckUtils.hasRefLevels(current)) {
+				ret = extractedToTuple(steps, TypeCheckUtils.getRefType(current), tupleType);
+			}
+			
+			if(ret != null && current.hasArrayLevels()) {
+				steps.add(0, "" + current.getArrayLevels());
+			}
+		}
+		
+		return ret;
+	}
+	
+	/*
+	private Expression convertTypeToFuncInvokation(String funName, NamedType namedType) {
+		//tuple type, it may actually be a function invocation, e.g. subOp (fromx, tox, towrite): => subOp(fromx, tox, towrite):
+
+		NamedType tupleType = ScopeAndTypeChecker.getTupleNamedType(false);
+		if(null != tupleType) {
+			ArrayList<Object> steps = new ArrayList<Object>();
+			NamedType extractedTupleType = extractedToTuple(steps, namedType, tupleType);
+			if(null != extractedTupleType) {
+				//try to turn this into a funcinvoke
+				ArrayList<Expression> args = new ArrayList<Expression>();
+				for(Type gt : extractedTupleType.getGenTypes()) {
+					PrintSourceVisitor psv = new PrintSourceVisitor();
+					gt.accept(psv);
+				//	args.add(new psv.toString();
+				}
+				
+				
+				FuncInvoke fi = FuncInvoke.makeFuncInvoke(namedType.getLine(), namedType.getColumn(), funName, args);
+						
+				
+				//add steps
+				return fi;
+			}
+		}
+		
+		
+		return null;
+	}*/
 	
 	private TypeAndLocation filterInaccessable(ClassDef currentCD, TypeAndLocation supvar) {
 		if(null == supvar) {
@@ -3656,9 +3758,21 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	@Override
 	public Object visit(AssignMulti multiAssign) {
+		///rhs redirect
+
+		Type rhsType = (Type)multiAssign.rhs.accept(this);
+		
+		JustReturnType jrt = new JustReturnType(multiAssign.rhs.getLine(), multiAssign.rhs.getColumn());
+		jrt.setTaggedType(rhsType);
+		
 		for(Assign ass : multiAssign.assignments) {
+			ass.setRHSExpression(jrt);
 			if(ass.isLazy) {
 				this.raiseError(ass.getLine(), ass.getColumn(), "multi assign variables may not be lazy");
+			}
+			
+			if(ass.isShared && this.currentScopeFrame.paThisIsModule) {
+				this.raiseError(ass.getLine(), ass.getColumn(), "top level multi assign variables may not be shared");
 			}
 			
 			ass.accept(this);
@@ -3716,6 +3830,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			validizeAnnotationUseage(assignExisting.expr);
 		}
 		
+		
 		ArrayList<Type> elementTypes = vectorizeElementsIfApproperiate(assignExisting, true);
 		
 		if(elementTypes.isEmpty()) {
@@ -3734,7 +3849,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			rhs = (Type)rhs.copy();
 			rhs.setOrigonalGenericTypeUpperBound(null);
 		}
-		
+				
 		Pair<ArrayList<Pair<Boolean, NullStatus>>, Type> rhsvec = vectorizedOperator(rhs);
 		ArrayList<Pair<Boolean, NullStatus>> vectorized = rhsvec.getA();
 		if(vectorized != null) {
@@ -3803,34 +3918,29 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(assignExisting.eq.isEquals() && !assignExisting.isShared ){
 			if(rhs != null) {
-				NullStatus ns = rhs.getNullStatus();
-				if(ns != NullStatus.UNKNOWN) {
-					Expression opon = assignExisting.assignee;
-					
-					if(opon instanceof DotOperator) {//this.thing
-						DotOperator dop = (DotOperator)opon;
-						ArrayList<Expression> elms = dop.getElements(this);
-						int sz = elms.size();
-						if(sz == 2) {
-							Expression last = elms.get(1);
-							Expression penul = elms.get(0);
-							if(penul instanceof RefThis) {
-								if(last instanceof RefName) {
-									opon = last;
-								}
+				Expression opon = assignExisting.assignee;
+				
+				if(opon instanceof DotOperator) {//this.thing
+					DotOperator dop = (DotOperator)opon;
+					ArrayList<Expression> elms = dop.getElements(this);
+					int sz = elms.size();
+					if(sz == 2) {
+						Expression last = elms.get(1);
+						Expression penul = elms.get(0);
+						if(penul instanceof RefThis) {
+							if(last instanceof RefName) {
+								opon = last;
 							}
 						}
 					}
+				}
+				
+				if(opon instanceof RefName) {
+					RefName asrefname = (RefName)opon;
 					
-					if(opon instanceof RefName) {
-						RefName asrefname = (RefName)opon;
-						
-						if(!(asrefname.resolvesTo != null && asrefname.resolvesTo.getLocation() != null && asrefname.resolvesTo.getLocation().isShared())) {
-							Pair<String, Boolean> key = makeRefNameTypeOverrideKey(asrefname);
-							if(!this.nullableOverwriteType.isEmpty() && key != null) {
-								nullableOverwriteType.peek().put(key, ns);
-							}
-						}
+					if(!(asrefname.resolvesTo != null && asrefname.resolvesTo.getLocation() != null && asrefname.resolvesTo.getLocation().isShared())) {
+						asrefname.nameAndLocKey = makeRefNameTypeOverrideKey(asrefname);
+						assignExisting.isDefinedAtClassLevelOrModuleLevel = currentScopeFrame.isClass();// || currentScopeFrame.paThisIsModule();
 					}
 				}
 			}
@@ -3980,6 +4090,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							rhs = ((NamedType)rhs).getGenTypes().get(0);//TypeCheckUtils.getRefTypes(nextLevel);
 							n++;
 						}
+						
+						rhs = (Type)rhs.copy();
+						rhs.setOrigonalGenericTypeUpperBound(null);
+						
 						if(TypeCheckUtils.isRefArrayGettable(origRhs, assignExisting.refCnt)){
 							rhs.setArrayLevels(rhs.getArrayLevels()+1);
 						}
@@ -4046,7 +4160,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 				
 				if(rhs.getNullStatus() == NullStatus.UNKNOWN) {
-					rhs.setNullStatus(NullStatus.NONNULL);
+					rhs.setNullStatus(NullStatus.NOTNULL);
 				}
 				
 				TypeAndLocation taldet = createTypeAndLocationVarHolder(assignExisting.getLine(), assignExisting.getColumn(), rhs, false, am, false, assignExisting.isTransient, assignExisting.isShared, false, true, assignExisting.isOverride, assignExisting.isInjected);//cannot create final varibale via this path (though you can create a new one)
@@ -4264,9 +4378,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(assignExisting.assignee instanceof FuncInvoke) {//try to get esure again
 				eSure = ensureValidLHSAssignment(assignExisting, assignee, !assignExisting.eq.isEquals());
 			}else if(assignee instanceof ArrayRef) {
-				Type arLhs = ((ArrayRef)assignee).expr.getTaggedType();
+				ArrayRef ar = (ArrayRef)assignee;
+				Type arLhs = ar.expr.getTaggedType();
 				if(null != arLhs && TypeCheckUtils.isNullable(arLhs)) {//null check:
-					this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), "Assignee may be null");
+					if(!ar.arrayLevelElements.getAll().get(0).nna) {
+						this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), "Assignee may be a null");
+					}
 				}
 			}
 			
@@ -4325,7 +4442,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			//TODO: lhs.get FuncLocation - use this to see if the thing ends up pointing to a.length which is a final field
 		}
 		
-		if(null != lhs && null != rhs && TypeCheckUtils.isNotNullable(lhs) && TypeCheckUtils.isNullable(rhs) && assignExisting.eq != AssignStyleEnum.PLUS_EQUALS) {//null check:
+		if(null != lhs && null != rhs && TypeCheckUtils.isNullable(rhs) && TypeCheckUtils.isNotNullable(lhs) && TypeCheckUtils.isNotNullable(TypeCheckUtils.getRefTypeToLocked(lhs)) && assignExisting.eq != AssignStyleEnum.PLUS_EQUALS) {//null check:
 			this.raiseError(assignExisting.getLine(), assignExisting.getColumn(), "Assignment can be null, but assignment type is not nullable");
 		}
 		
@@ -4425,7 +4542,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				flagNullableForOperation(assignExisting.assignee.getLine(), assignExisting.assignee.getColumn(), lhs);
 				Expression rhsAss;
 				if(vectorized != null) {
-					rhsAss = new VectorizedFuncInvoke(line, col, overloaded.funName, overloaded.args, overloaded.genTypes, (Expression)((Vectorized)assignExisting.assignee).expr.copy(), true, false);
+					rhsAss = new VectorizedFuncInvoke(line, col, overloaded.funName, overloaded.args, overloaded.genTypes, (Expression)((Vectorized)assignExisting.assignee).expr.copy(), true, false, false);
 					((Node)rhsAss).setShouldBePresevedOnStack(false);
 					DuffAssign newass = new DuffAssign(rhsAss);
 					if(null == assignExisting.astOverrideOperatorOverload) {//MHA:hopefully this wont change in later comp iterations...
@@ -4479,6 +4596,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			leftAndRgith.add(assignExisting.assignee.getTaggedType());
 			validateAndReturnPointerType(assignExisting.getLine(), assignExisting.getColumn(), leftAndRgith, lhs, assignExisting.eq == AssignStyleEnum.PLUS_EQUALS || assignExisting.eq == AssignStyleEnum.MINUS_EQUALS);
 		}
+		
 		setForceCastIfVarNull(assignExisting.expr, lhs);
 		return null;
 	}
@@ -4552,7 +4670,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		while(end instanceof RefName && ((RefName)end).isMapGetter != null){
 			ArrayList<ArrayRefElement> elements = new ArrayList<ArrayRefElement>();
 			elements.add(new ArrayRefElement(end.getLine(), end.getColumn(), new VarString(end.getLine(), end.getColumn(), ((RefName)end).name)));
-			areh.add(false, elements);
+			areh.add(false, false, elements);
 			asDot.snipOffEnd();
 			end=asDot.getLastElement();
 		}
@@ -4771,9 +4889,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	public Object visit(AssertStatement assertStatement) {
 		TypeCheckUtils.assertNotVoid((Type)assertStatement.e.accept(this), this, assertStatement.e.getLine(), assertStatement.e.getColumn(), "assert");
 		//TypeCheckUtils.isBoolean(this, (Type)assertStatement.e.accept(this), assertStatement.getLine(), assertStatement.getColumn());
-		
-		nullableTypeLogic.processTest(assertStatement.e);
-		
 		
 		if(assertStatement.message == null){
 			PrintSourceVisitor psv = new PrintSourceVisitor();
@@ -5006,7 +5121,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					
 					if(TypeCheckUtils.hasRefLevelsAndNotLocked(retType)){ retType = TypeCheckUtils.getRefType( (Type)retType.copy() ); }
 					
-					if(TypeCheckUtils.isValidType(retType) && !(retType instanceof VarNull)){
+					if(TypeCheckUtils.isValidType(retType) /*&& !(retType instanceof VarNull)*/){
 						
 						values.add( retType );
 						offendersValues.put(retType, new Pair<Integer, Integer>(mapDef.defaultMapElement.value.getLine(), mapDef.defaultMapElement.value.getColumn()) );
@@ -5096,21 +5211,29 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		Type rhs  = origrhs;
 		
 		ArrayList<Pair<Boolean, NullStatus>> vectorizedLevels = null;
-		if(null != rhs && rhs.isVectorized()){
-			if(rhs.getVectorized() == Vectorization.SELF){
-				this.raiseError(castExpression.getLine(), castExpression.getColumn(), "Cast operator may not have vectorized argument of '^^' form - only '^' can be used");
-				return castType;
+		
+		if(null != rhs) {
+			if(rhs.isVectorized()){
+				if(rhs.getVectorized() == Vectorization.SELF){
+					this.raiseError(castExpression.getLine(), castExpression.getColumn(), "Cast operator may not have vectorized argument of '^^' form - only '^' can be used");
+					return castType;
+				}
+				
+				rhs = (Type)rhs.copy();
+				rhs.setVectorized(null);
+				vectorizedLevels = TypeCheckUtils.getVectorizedStructure(ers, rhs);;
+				castExpression.vectorizedExpr = vectorizedLevels;
+				rhs = TypeCheckUtils.extractVectType(rhs);
 			}
 			
-			rhs = (Type)rhs.copy();
-			rhs.setVectorized(null);
-			vectorizedLevels = TypeCheckUtils.getVectorizedStructure(ers, rhs);;
-			castExpression.vectorizedExpr = vectorizedLevels;
-			rhs = TypeCheckUtils.extractVectType(rhs);
-
+			if(rhs.getNullStatus() == NullStatus.NULLABLE && castType.getNullStatus() != NullStatus.NULLABLE) {
+				this.raiseError(castExpression.getLine(), castExpression.getColumn(), String.format("expression to cast is nullable: %s but declared type: %s is not nullable", rhs, castType));
+			}
+			
 		}
+				
 		
-		if( TypeCheckUtils.hasRefLevels(rhs)     ){
+		if( TypeCheckUtils.hasRefLevels(rhs) ){
 			NamedType asNamedRhs = ((NamedType)rhs).copyTypeSpecific();
 			asNamedRhs.setLockedAsRef(true);
 			rhs=asNamedRhs;
@@ -5147,6 +5270,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			//castedTo.setArrayLevels(vectorizedLevels);
 			castedTo = TypeCheckUtils.applyVectStruct(vectorizedLevels, castedTo);
 		}
+		
+		if(null != rhs && rhs.getNullStatus() == NullStatus.NULLABLE && castType.getNullStatus() != NullStatus.NULLABLE) {
+			castedTo = (Type)castedTo.copy();
+			castedTo.setNullStatus(NullStatus.NULLABLE);
+		}
+		
+		
 		
 		return castExpression.setTaggedType(castedTo);
 	}
@@ -5336,7 +5466,22 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		
-		return new Pair<String, Boolean>(refname.name, refname.name.contains("$n") || isclassLevel);
+		return new Pair<String, Boolean>(refname.name, (refname.name.contains("$n") || isclassLevel) && !preceededByStateObject() );
+	}
+	
+	private boolean preceededByStateObject() {
+		if(!this.dotOperatorLHS.isEmpty() && null != this.dotOperatorLHS.peek()) {
+			Type top = this.dotOperatorLHS.peek();
+			if(top instanceof NamedType) {
+				ClassDef cd = ((NamedType)top).getSetClassDef();
+				if(cd instanceof ClassDefStateObject) {
+					return true;
+				}
+			}
+		}
+		
+		
+		return false;
 	}
 	
 	/*private  Tuple<String, Boolean> makeRefNameTypeOverrideKey(RefName refname){
@@ -5409,15 +5554,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return new Pair<String, Boolean>(refname.funName, isclassLevel);
 	}
 	
-	private Pair<String, Boolean> makeRefNameTypeOverrideKey(String name, FuncType refname){
-		boolean isclassLevel = false;
-		TypeAndLocation tal = refname.getLambdaDetails();
-		if(tal != null) {
-			isclassLevel = tal.getLocation() instanceof ClassFunctionLocation;
-		}
-		
-		return new Pair<String, Boolean>(name, isclassLevel);
-	}
+	/*
+	 * private Pair<String, Boolean> makeRefNameTypeOverrideKey(String name,
+	 * FuncType refname){ boolean isclassLevel = false; TypeAndLocation tal =
+	 * refname.getLambdaDetails(); if(tal != null) { isclassLevel =
+	 * tal.getLocation() instanceof ClassFunctionLocation; }
+	 * 
+	 * return new Pair<String, Boolean>(name, isclassLevel); }
+	 */
 	
 	@Override
 	public Object visit(ImportStar importStar) {
@@ -5879,12 +6023,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		asisOverwriteType.push(new HashMap<Pair<String, Boolean>, Type>());
 		autoCastSetterUpper.doSetup(ifStatement.iftest);
 
-		nullableOverwriteType.push(new HashMap<Pair<String, Boolean>, NullStatus>());
 		Type typ = TypeCheckUtils.unboxTypeIfBoxed((Type)ifStatement.iftest.accept(this));
-		TestedNonNullAndNull testNullables = nullableTypeLogic.processTest(ifStatement.iftest);
-		nullableOverwriteType.pop();
-		
-		
 		TypeCheckUtils.assertNotVoid(typ, this, ifStatement.iftest.getLine(), ifStatement.iftest.getColumn(), "if");
 		
 		/*if(!((typ instanceof PrimativeType ) && ((PrimativeType)typ).type == PrimativeTypeEnum.BOOLEAN)){
@@ -5894,13 +6033,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		ifStatement.ifblock.canContainAReturnStmt = null;
 		asisOverwriteType.push(null);
 		
-		HashMap<Pair<String, Boolean>, NullStatus> inFitBlock = new HashMap<Pair<String, Boolean>, NullStatus>();
-		nullableOverwriteType.push(inFitBlock);
-		
-		testNullables.addAllNonNullToContainer(inFitBlock);
 		Type iftype = (Type) ifStatement.ifblock.accept(this);
-		nullableOverwriteType.pop();
-		
 		
 		asisOverwriteType.pop();
 		asisOverwriteType.pop();
@@ -5926,10 +6059,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				autoCastSetterUpper.doSetup(elifUnit.eliftest);
 				
-				nullableOverwriteType.push(new HashMap<Pair<String, Boolean>, NullStatus>());
 				Type typx = TypeCheckUtils.unboxTypeIfBoxed((Type)elifUnit.eliftest.accept(this));
-				TestedNonNullAndNull eliftestNullables = nullableTypeLogic.processTest(elifUnit.eliftest);
-				nullableOverwriteType.pop();
 				
 				
 				TypeCheckUtils.assertNotVoid(typx, this, elifUnit.eliftest.getLine(), elifUnit.eliftest.getColumn(), "elif");
@@ -5938,13 +6068,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				elifUnit.elifb.canContainAReturnStmt = null;
 				asisOverwriteType.push(null);
 				
-				HashMap<Pair<String, Boolean>, NullStatus> inFitBlockelif = new HashMap<Pair<String, Boolean>, NullStatus>();
-				nullableOverwriteType.push(inFitBlockelif);
-				
-				eliftestNullables.addAllNonNullToContainer(inFitBlockelif);
-				testNullables.addAllNullToContainer(inFitBlockelif);//determined null from if test
 				elifType = (Type)elifUnit.elifb.accept(this);
-				nullableOverwriteType.pop();
 				
 				asisOverwriteType.pop();
 				asisOverwriteType.pop();
@@ -5963,17 +6087,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			typeOffenders.put(elifType, new Pair<Integer, Integer>(elifUnit.getLine(), elifUnit.getColumn()));
 		}
 		
+		
 		if(null != ifStatement.elseb)
 		{
 			ifStatement.elseb.canContainAContinueOrBreak = null;
 			ifStatement.elseb.canContainAReturnStmt = null;
 
-			HashMap<Pair<String, Boolean>, NullStatus> inelseBlock = new HashMap<Pair<String, Boolean>, NullStatus>();
-			testNullables.addAllNullToContainer(inelseBlock);
-			
-			nullableOverwriteType.push(inelseBlock);
 			Type elseType = (Type)ifStatement.elseb.accept(this);
-			nullableOverwriteType.pop();
 			
 			if(elseType !=null || (elseType == null && ifStatement.elseb.isEmpty())) {
 				typeChoices.add(elseType);
@@ -5993,71 +6113,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					this.raiseError(ifStatement.getLine(), ifStatement.getColumn(), "if statement must have else block when used in this way");
 					return null;
 				//}
-			}
-		}
-		
-		HashMap<Pair<String, Boolean>, NullStatus> inferedNullinBlock = ifStatement.ifblock.inferedNullability;
-		
-		if (null == ifStatement.elseb && ifStatement.elifunits.isEmpty()) {
-			
-			if (null != inferedNullinBlock && !inferedNullinBlock.isEmpty()) {
-				if (!testNullables.testedNull.isEmpty()) {
-					for (Pair<String, Boolean> testedasNull : testNullables.testedNull.keySet()) {
-						if (inferedNullinBlock.containsKey(testedasNull)) {
-							NullStatus ns = inferedNullinBlock.get(testedasNull);
-							if (ns == NullStatus.NONNULL) {
-								nullableOverwriteType.peek().put(testedasNull, ns);
-							}
-						}
-					}
-				}
-				//any resolve to nullable:
-				for(Pair<String, Boolean> key : inferedNullinBlock.keySet()) {
-					if(inferedNullinBlock.get(key) == NullStatus.NULLABLE ) {
-						nullableOverwriteType.peek().put(key, NullStatus.NULLABLE);
-					}
-				}
-			}
-		}else {//elif, else...
-			boolean fail = false;
-			
-			List<HashMap<Pair<String, Boolean>, NullStatus>> inferedNullinBlocks = new ArrayList<HashMap<Pair<String, Boolean>, NullStatus>>();
-			
-			if (null != inferedNullinBlock && !inferedNullinBlock.isEmpty()) {
-				inferedNullinBlocks.add(inferedNullinBlock);
-			}else {
-				fail=true;
-			}
-			
-			for(ElifUnit eu : ifStatement.elifunits) {
-				if (null != eu.elifb.inferedNullability && !eu.elifb.inferedNullability.isEmpty()) {
-					inferedNullinBlocks.add(eu.elifb.inferedNullability);
-				}else {
-					fail=true;
-				}
-			}
-			
-			if (null != ifStatement.elseb){
-				if (null != ifStatement.elseb.inferedNullability && !ifStatement.elseb.inferedNullability.isEmpty()) {
-					inferedNullinBlocks.add(ifStatement.elseb.inferedNullability);
-				}else {
-					fail=true;
-				}
-			}
-			
-			if(!inferedNullinBlocks.isEmpty()) {
-				Pair<List<Pair<String, Boolean>>, List<Pair<String, Boolean>>> nonnullAndNullable = Utils.filterNullInferMap(inferedNullinBlocks);
-				HashMap<Pair<String, Boolean>, NullStatus> addto = this.nullableOverwriteType.peek();
-				
-				if(!fail) {
-					for(Pair<String, Boolean> nonNull : nonnullAndNullable.getA()) {
-						addto.put(nonNull, NullStatus.NONNULL);
-					}
-				}
-				
-				for(Pair<String, Boolean> nullableNull : nonnullAndNullable.getB()) {
-					addto.put(nullableNull, NullStatus.NULLABLE);
-				}
 			}
 		}
 		
@@ -6943,11 +6998,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				|| namessMap.stream().anyMatch(a -> a.getB() instanceof NamedType && ((NamedType)a.getB()).requiresGenTypeInference )
 				|| (null != lhsOpOnType && lhsOpOnType.requiresGenTypeInference);
 		
-		
-		if(name.equals("bar")) {
-			int h = 9;
-		}
-		
 		MatchingFunction mostSpecificTAL = findAndRedirectFunctionToActee(name, argsWanted, namessMap, funcInvoke,  funcInvoke.getLine(), funcInvoke.getColumn(), true, ignoreGenericsOnNoMatch ).getB();
 		ArrayList<CapMaskedErrs> preverrs = this.getmaskedErrors();
 			
@@ -7044,22 +7094,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		FuncType mostSpec = mostSpecificTAL.getA();
 		
+		
+		
 		if(mostSpec.getNullStatus() == NullStatus.NULLABLE) {//a nullable lambda
-			
-			NullStatus inferedAs = null;
-			
-			if(!this.nullableOverwriteType.isEmpty()){
-				Pair<String, Boolean> key = makeRefNameTypeOverrideKey(funcInvoke);
-				inferedAs = inferredAs(key);
-			}
-			
-			
-			boolean nullableLambda = inferedAs == null || inferedAs == NullStatus.NULLABLE;
-			
-			if(nullableLambda) {
-				this.raiseError(funcInvoke.getLine(), funcInvoke.getColumn(), String.format("Lamdba: %s is nullable and may be null" , name));
-			}
-			
+			funcInvoke.nameAndLocKey = makeRefNameTypeOverrideKey(funcInvoke);
 		}
 				
 		if(mostSpec.isAbstarct())
@@ -7174,7 +7212,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		List<Boolean> assertNonNull = null;
 		
 		if(mappedArgs.stream().allMatch(a -> null != a && a.getTaggedType() != null)) {
-			if(mappedArgs.stream().anyMatch(a -> a.getTaggedType().getNullStatus() != NullStatus.NONNULL)) {//some non null
+			if(mappedArgs.stream().anyMatch(a -> a.getTaggedType().getNullStatus() != NullStatus.NOTNULL)) {//some non null
 				ArrayList<Type> wanted = mostSpec.getInputs();
 				int sz = wanted.size();
 				
@@ -7276,28 +7314,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				this.raiseError(funcInvoke.getLine(), funcInvoke.getColumn(), String.format("When invoking within a gpu kernal or gpu function only gpu kernels or gpu functions can be called, %s is neither", name));
 			}
 		}
-		
-		
-		//invalidable non null status of all class variables
-		for(HashMap<Pair<String, Boolean>, NullStatus> level : this.nullableOverwriteType) {
-			HashSet<Pair<String, Boolean>> levelrem = null;
-			for(Pair<String, Boolean> key : level.keySet()) {
-				NullStatus ns = level.get(key);
-				if(ns == NullStatus.NONNULL && key.getB()) {
-					if(null == levelrem) {
-						levelrem = new HashSet<Pair<String, Boolean>>();
-					}
-					levelrem.add(key);
-				}
-			}
-			
-			if(null != levelrem) {
-				levelrem.forEach(a -> level.remove(a));
-			}
-		}
-		
-		
-		
 		
 		return ret;
 	}
@@ -7525,7 +7541,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						for(Type key :paramToType.keySet()) {
 							if(key instanceof GenericType) {
 								NullStatus wantedStatus = key.getNullStatus();
-								if(wantedStatus == NullStatus.NONNULL) {
+								if(wantedStatus == NullStatus.NOTNULL) {
 									if(NullStatus.NULLABLE == paramToType.get(key).getNullStatus()) {
 										return null;//no match gen type not infered in accordance with upper binding.
 									}
@@ -8089,10 +8105,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			return null;
 		}
 		
-		if(functionName.equals("addShutdownHook")) {
-			int h = 9;
-		}
-		
 		if(from.hasArrayLevels())
 		{//it's an array - so treat as object + length variable
 			if(functionName.equals("clone"))
@@ -8198,6 +8210,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 										Type mustBeSubtypeOf = funcInvoke.genTypes.get(n);
 										Type typeInfered = localGenBinding.get(genType);
 										if(null != typeInfered) {
+											/*
+											if(genType.getNullStatus() == NullStatus.UNKNOWN) {
+												mustBeSubtypeOf = (Type) mustBeSubtypeOf.copy();
+												typeInfered = (Type) typeInfered.copy();
+												mustBeSubtypeOf.setNullStatus(NullStatus.NOTNULL);
+												typeInfered.setNullStatus(NullStatus.NOTNULL);
+											}*/
+											
 											if(null == TypeCheckUtils.checkSubType(ers, mustBeSubtypeOf, typeInfered)) {
 												
 												if(typeInfered instanceof GenericType) {
@@ -8295,7 +8315,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return ret;
 	}
 	
-	private static HashSet<TypeAndLocation> nullifyFuncIfOnNullableType(Type from, HashSet<TypeAndLocation> items){
+	/*private static HashSet<TypeAndLocation> nullifyFuncIfOnNullableType(Type from, HashSet<TypeAndLocation> items){
 		HashSet<TypeAndLocation> ret = new HashSet<TypeAndLocation>();
 		
 		if(from.getNullStatus() == NullStatus.NULLABLE) {
@@ -8312,6 +8332,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		return ret;
+	}*/
+	
+	private static HashSet<TypeAndLocation> nullifyFuncIfOnNullableType(Type from, HashSet<TypeAndLocation> items){
+		return items;
 	}
 	
 	
@@ -8604,8 +8628,21 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				if(!skipExtFunc) {
 					Pair<HashSet<TypeAndLocation>,Boolean> isExtfunc = findExtensionFunction(funcInvoke, er, nameola,  line, col, raiseErrors, ignoreLambdas, argsWanted, namessMap, lhs, genericWithBound);
-					if(null != isExtfunc) {
-						return isExtfunc;
+					if(null != isExtfunc) {//check they are all extension functions
+						HashSet<TypeAndLocation> talsxte = isExtfunc.getA();
+						if(talsxte != null) {
+							boolean isEctFuncs = true;
+							for(TypeAndLocation talx : talsxte) {
+								Type tt = talx.getType();
+								if(!(tt instanceof FuncType) || !((FuncType)tt).extFuncOn){
+									isEctFuncs=false;
+									break;
+								}
+							}
+							if(isEctFuncs) {
+								return isExtfunc;
+							}
+						}
 					}
 				}
 				
@@ -10002,7 +10039,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		this.level++;
 		asyncBlock.body.staticFuncBlock=true;
 		asyncBlock.body.isAsyncBlock=true;
+		
+		if(this.currentScopeFrame.paThisIsModule) {
+			this.level++;
+		}
+		
 		Type ret = (Type)asyncBlock.body.accept(this);
+		
+		
 		
 		if(null != asyncBlock.executor)
 		{
@@ -10204,10 +10248,15 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			fakeLambdaDef.setSupressTypeBoxing(true);
 			
 			asyncBlock.fakeLambdaDef = fakeLambdaDef;
+			
 		//}
 		this.level--;
 		asyncBlock.fakeLambdaDef.accept(this);
 		
+
+		if(this.currentScopeFrame.paThisIsModule) {
+			this.level--;
+		}
 
 		if(asyncBlock.noReturn){
 			Type retx = (Type)ScopeAndTypeChecker.const_void.copy();
@@ -10583,6 +10632,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private Object visit(FuncRef funcRef, boolean forceConstructor) {//ar.get&(int)
 		int line = funcRef.getLine();
 		int col =  funcRef.getColumn();
+		
 		
 		maskErrors();
 		funcRef.functo.setPreceedingExpression(funcRef);
@@ -11441,7 +11491,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 								argsTocuryInIds.add(n);
 							}
 							
-							if(obtained != null && obtained.getNullStatus() != NullStatus.NONNULL) {
+							if(obtained != null && obtained.getNullStatus() != NullStatus.NOTNULL) {
 								Type wanted = matchingFunctionBeingCurried.getInputs().get(n);
 
 								if(TypeCheckUtils.isNotNullable(wanted) && TypeCheckUtils.isNullable(obtained)) {//null check:
@@ -11927,11 +11977,25 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 		}
 		
-		
-		if(funcParam.isVararg && null != res){
-			res = (Type)res.copy();
-			res.setArrayLevels(res.getArrayLevels()+1);
+		if(null != res) {
+			if(funcParam.isVararg){
+				res = (Type)res.copy();
+				res.setArrayLevels(res.getArrayLevels()+1);
+				
+				if(res.getNullStatus() == NullStatus.NULLABLE) {
+					res.setNullStatus(NullStatus.NOTNULL);
+					res.setNullStatusAtArrayLevel(NullStatus.NULLABLE);
+				}
+				
+			}
+			
+			if(funcParam.isNullableVarArg) {
+				res.setNullStatus(NullStatus.NULLABLE);
+			}
 		}
+		
+		
+		
 		
 		if(funcParam.isLazy) {
 			res = Utils.convertToLazyType(res);	
@@ -12507,11 +12571,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					if(thingActuallBeingIterated instanceof NamedType)
 					{
 						NamedType asNamed = (NamedType)thingActuallBeingIterated;
-						
-						iteratorType = new NamedType(forBlock.getLine(), forBlock.getColumn(), ((NamedType)thingActuallBeingIterated).getSetClassDef());
-						((NamedType)iteratorType).setFromClassGenericToQualifiedType(((NamedType)thingActuallBeingIterated).getFromClassGenericToQualifiedType());
-						
 						if(asNamed.getIsRef()){
+							iteratorType = new NamedType(forBlock.getLine(), forBlock.getColumn(), ((NamedType)thingActuallBeingIterated).getSetClassDef());
+							((NamedType)iteratorType).setFromClassGenericToQualifiedType(((NamedType)thingActuallBeingIterated).getFromClassGenericToQualifiedType());
+							
 							NamedType itt = (NamedType)iteratorType;
 							itt.setIsRef(true);
 							itt.setGenTypes(asNamed.getGenericTypeElements().get(0));
@@ -12519,7 +12582,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							iteratorType = ((NamedType) thingActuallBeingIterated).copyTypeSpecific();
 						//	iteratorType.setArrayLevels(iteratorType.getArrayLevels()-1);
 						}
-						
 					}
 					else if(thingActuallBeingIterated instanceof PrimativeType)
 					{
@@ -12537,6 +12599,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					{
 						iteratorType.setArrayLevels(thingActuallBeingIterated.getArrayLevels()-1);
 					}
+
+					List<NullStatus> ns = thingActuallBeingIterated.getNullStatusAtArrayLevel();
+					iteratorType.setNullStatus(ns.get(ns.size()-1));
 				}
 				else
 				{//VarNull ends up here
@@ -12628,12 +12693,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					this.forWhileExpectsReturn.pop();
 					return null;
 				}
-				
 			}
 			else
 			{
 				actualTypeToAsign = (Type)iteratorType.copy();
-				actualTypeToAsign.setNullStatus(NullStatus.NONNULL);
 			}
 			
 			actualTypeToAsign = (Type)actualTypeToAsign.copy();//type of variable resulting from list iteration does not need its generic upper bound anymore...
@@ -12890,7 +12953,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				ArrayList<Expression> parialElements = new ArrayList<Expression>();
 				parialElements.add(e1c);
 				parialElements.add(e2c);
-				processDotOperatorElements(null, null, 0, parialElements, null, canReplacewithRefNamedType, null, null, null);
+				processDotOperatorElements(null, null, 0, parialElements, null, canReplacewithRefNamedType, null, null, null, null);
 				
 				if(!maskedErrors()){//cool no errors so no adjustment required
 					return null;
@@ -12928,7 +12991,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return null;
 	}
 	
-	private Type processDotOperatorElements(Type head, Node prev, int offset, ArrayList<Expression> elements, ArrayList<Boolean> returnCalledOn, HashSet<Integer> canReplacewithRefNamedType, DotOperatorAndIndex tracker,  ArrayList<Boolean> directAccess, ArrayList<Boolean> safeCall){
+	private Type processDotOperatorElements(Type head, Node prev, int offset, ArrayList<Expression> elements, ArrayList<Boolean> returnCalledOn, HashSet<Integer> canReplacewithRefNamedType, DotOperatorAndIndex tracker,  ArrayList<Boolean> directAccess, ArrayList<Boolean> safeCall, ArrayList<Boolean> noNullAssertion){
 		
 		HashMap<Integer, Expression> slotToRemapping = new HashMap<Integer, Expression>();
 		
@@ -12950,6 +13013,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			if(head != null){
 				e.setPreceededByDotInDotOperator(true);
+				e.setPreceededBySafeCall(safeCallRet);
 			}
 			
 			//a.f = b[3].k(f.g()).z(49); <- typiucal use case
@@ -13012,7 +13076,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			ArrayList<CapMaskedErrs> errors = this.getmaskedErrors();
 			if(!isLast) {
 				boolean safeCallNext = safeCall==null?false:safeCall.get(n);
-				validateSafeDotop(e.getLine(), e.getColumn(), safeCallNext, rhsOfDot);
+				boolean nnaNext = noNullAssertion==null?false:noNullAssertion.get(n);
+				validateSafeDotop(e.getLine(), e.getColumn(), safeCallNext, nnaNext, rhsOfDot);
 			}
 			
 			
@@ -13023,8 +13088,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				 boolean directAcess = directAccess!= null && directAccess.get(n-1);
 				 boolean returnSelfx = returnCalledOn!= null && returnCalledOn.get(n-1);
 				 boolean safeCallx = safeCall!= null && safeCall.get(n-1);
+				 boolean noNullAssertionx = noNullAssertion!= null && noNullAssertion.get(n-1);
 				 
-				 if(!headvect.isEmpty() && !directAcess && !returnSelfx && !safeCallx) {//See if we can auto vectorize the call, e.g. A.field -> A^field; where A is list of objects having field
+				 if(!headvect.isEmpty() && !directAcess && !returnSelfx && !safeCallx && !noNullAssertionx) {//See if we can auto vectorize the call, e.g. A.field -> A^field; where A is list of objects having field
 					 
 					 boolean isRefName = e instanceof RefName;
 					 boolean isFuncInvoke = !isRefName && e instanceof FuncInvoke;
@@ -13068,13 +13134,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							 Expression vfr;
 							 Expression prevEelement = elements.get(n-1);
 							 if(isRefName) {
-								 vfr = new VectorizedFieldRef(e.getLine(), e.getColumn(), (RefName)e, prevEelement, false, safeCallx);
+								 vfr = new VectorizedFieldRef(e.getLine(), e.getColumn(), (RefName)e, prevEelement, false, safeCallx, noNullAssertionx);
 							 }else if(isFuncInvoke){
-								 vfr = new VectorizedFuncInvoke((FuncInvoke)e, prevEelement, false, safeCallx);
+								 vfr = new VectorizedFuncInvoke((FuncInvoke)e, prevEelement, false, safeCallx, noNullAssertionx);
 							 }else if(isFuncRef){//
-								 vfr= new VectorizedFuncRef((FuncRef)e, prevEelement, false, safeCallx);
+								 vfr= new VectorizedFuncRef((FuncRef)e, prevEelement, false, safeCallx, noNullAssertionx);
 							 }else {//isNew
-								 vfr= new VectorizedNew(e.getLine(), e.getColumn(), prevEelement, (New)e, false, safeCallx);
+								 vfr= new VectorizedNew(e.getLine(), e.getColumn(), prevEelement, (New)e, false, safeCallx, noNullAssertionx);
 							 }
 							 
 							 this.maskErrors();
@@ -13343,13 +13409,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 
 		if(null != TypeCheckUtils.assertNotVoid(lhsType, this, elvisOperator.lhsExpression.getLine(), elvisOperator.lhsExpression.getColumn(), "elvis operator ?:") && TypeCheckUtils.isValidType(lhsType)) {
-			if(vectorized == null && lhsType.getNullStatus() == NullStatus.NONNULL) {
+			if(vectorized == null && lhsType.getNullStatus() == NullStatus.NOTNULL) {
 				this.raiseError(elvisOperator.getLine(), elvisOperator.getColumn(), "Elvis operator ?: may only be used on nullable or potentially nullable types");
 			}
 		}
 		
 		lhsType = (Type)lhsType.copy();
-		lhsType.setNullStatus(NullStatus.NONNULL);
+		lhsType.setNullStatus(NullStatus.NOTNULL);
 		
 		Type rhsType = (Type)elvisOperator.rhsExpression.accept(this);
 
@@ -13377,32 +13443,32 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	@Override
 	public Object visit(NotNullAssertion notNullAssertion) {
-		Type rhs = (Type)notNullAssertion.expr.accept(this);
+		Type lhs = (Type)notNullAssertion.expr.accept(this);
 		
-		Pair<ArrayList<Pair<Boolean, NullStatus>>, Type> lhsvec = vectorizedOperator(rhs);
+		Pair<ArrayList<Pair<Boolean, NullStatus>>, Type> lhsvec = vectorizedOperator(lhs);
 		ArrayList<Pair<Boolean, NullStatus>> vectorized = lhsvec.getA();
 		if(vectorized  != null) {
-			rhs = lhsvec.getB();
+			lhs = lhsvec.getB();
 			notNullAssertion.depth = vectorized;
 		}
 		
-		/*if(null != TypeCheckUtils.assertNotVoid(rhs, this, notNullAssertion.expr.getLine(), notNullAssertion.expr.getColumn(), "not null assertion ??") && TypeCheckUtils.isValidType(rhs)) {
-			if(vectorized == null && rhs.getNullStatus() == NullStatus.NONNULL) {
+		if(null != TypeCheckUtils.assertNotVoid(lhs, this, notNullAssertion.expr.getLine(), notNullAssertion.expr.getColumn(), "not null assertion ??") && TypeCheckUtils.isValidType(lhs)) {
+			if(vectorized == null && lhs.getNullStatus() == NullStatus.NOTNULL && TypeCheckUtils.getRefTypeToLocked(lhs).getNullStatus() == NullStatus.NOTNULL) {
 				this.raiseError(notNullAssertion.getLine(), notNullAssertion.getColumn(), "Non null assertion ?? may only be applied to nullable or potentially nullable types");
 			}
-		}*/
+		}
 
-		if(rhs != null) {
-			rhs = (Type)rhs.copy();
-			rhs.setNullStatus(NullStatus.NONNULL);
+		if(lhs != null) {
+			lhs = (Type)lhs.copy();
+			lhs.setNullStatus(NullStatus.NOTNULL);
 			
 			if(vectorized != null) {
 				
-					rhs = TypeCheckUtils.applyVectStruct(vectorized, rhs);
+					lhs = TypeCheckUtils.applyVectStruct(vectorized, lhs);
 			}
 		}
 		
-		return notNullAssertion.setTaggedType(rhs);
+		return notNullAssertion.setTaggedType(lhs);
 	}
 	
 	
@@ -13469,14 +13535,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		Type head = (Type)hh.accept(this);
 		
-		validateSafeDotop(hh.getLine(), hh.getColumn(), dotOperator.safeCall.get(0), head);
+		validateSafeDotop(hh.getLine(), hh.getColumn(), dotOperator.safeCall.get(0), dotOperator.noNullAssertion.get(0), head);
 		
 		hh.setTaggedType(head);
 		tracker.inc();
 		//boolean first=true;
 		Node prev = (Node)hh;
 		
-		head = processDotOperatorElements(head, prev, 1, elements, dotOperator.returnCalledOn, canReplacewithRefNamedType, tracker, dotOperator.getIsDirectAccess(this), dotOperator.safeCall);//i think returnCalledOn needs no adjustment
+		head = processDotOperatorElements(head, prev, 1, elements, dotOperator.returnCalledOn, canReplacewithRefNamedType, tracker, dotOperator.getIsDirectAccess(this), dotOperator.safeCall, dotOperator.noNullAssertion);//i think returnCalledOn needs no adjustment
 		
 		if(head instanceof ModuleType)
 		{//...here!
@@ -13491,8 +13557,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return head;
 	}
 	
-	private void validateSafeDotop(int line, int col, boolean safeCall, Type head) {
-		if(safeCall) {//safe call
+	private void validateSafeDotop(int line, int col, boolean safeCall, boolean isNNA, Type head) {
+		if(isNNA) {//safe call
+			//rhs must be null or nullable
+			if(!TypeCheckUtils.isNullable(head) && !TypeCheckUtils.isUnknown(head)) {
+				this.raiseError(line, col, "expression before ??. is expected to be nullable");
+			}
+		}else if(safeCall) {//safe call
 			//rhs must be null or nullable
 			if(!TypeCheckUtils.isNullable(head) && !TypeCheckUtils.isUnknown(head)) {
 				this.raiseError(line, col, "expression before ?. is expected to be nullable");
@@ -15007,7 +15078,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 														}
 														boolean isLast = inputs.size() == nn;
 														String name = "a" + (nn-1);
-														constructorThingsAC.add(new ConstArg(name, tt, true, null, null, tt.hasArrayLevels() && isLast, false, false));
+														constructorThingsAC.add(new ConstArg(name, tt, true, null, null, tt.hasArrayLevels() && isLast, tt.getNullStatus() == NullStatus.NULLABLE, false, false));
 														superConstrThingsAC.add(new RefName(line, col, name));
 														superClassReferencedVariableNamesAC.add(name);
 													}
@@ -15096,7 +15167,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 										if(!excludeFromActorMethodGen(name, inputs)){
 											Type retType = asFunc.retType;
 											
-											FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, name+"$ActorCall", name, classDef, actingOnType, asFunc, inputs, retType, line, col, false, false);
+											FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, name+"$ActorCall", name, classDef, actingOnType, asFunc, inputs, retType, line, col, false, false).accept(this);
 										}
 									}
 								}
@@ -15108,7 +15179,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						ArrayList<Type> inputs = new ArrayList<Type>();
 						Type retType = (Type)const_class_nt.copyTypeSpecific();
 						FuncType getClass = new FuncType(inputs, retType);
-						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "getClass$ActorCall", "getClass", classDef, actingOnType, getClass, inputs, retType, line, col, false, false);
+						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "getClass$ActorCall", "getClass", classDef, actingOnType, getClass, inputs, retType, line, col, false, false).accept(this);
 					}
 					
 					
@@ -15124,7 +15195,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						ArrayList<Type> inputs = new ArrayList<Type>();
 						Type retType = (Type)const_string.copyTypeSpecific();
 						FuncType getClass = new FuncType(inputs, retType);
-						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "toString$ActorCall", "toString", classDef, actingOnType, getClass, inputs, retType, line, col, false, false);
+						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "toString$ActorCall", "toString", classDef, actingOnType, getClass, inputs, retType, line, col, false, false).accept(this);
 						FunctionGenneratorUtils.addActorCallerMethod(this.getErrorRaiseableSupression(), this, "toString", classDef, actingOnType, getClass, inputs, retType, line, col);
 					}
 					//TODO: are the above calls really needed? Doesnt Actor provide these already? - i.e. direct toString etc - i think they are needed for java libs
@@ -15135,7 +15206,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						Type retType = (Type)const_int.copyTypeSpecific();
 						FuncType getClass = new FuncType(inputs, retType);
 						
-						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode$ActorCall", "hashCode", classDef, actingOnType, getClass, inputs, retType, line, col, false, false);
+						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode$ActorCall", "hashCode", classDef, actingOnType, getClass, inputs, retType, line, col, false, false).accept(this);
 						FunctionGenneratorUtils.addActorCallerMethod(this.getErrorRaiseableSupression(), this, "hashCode", classDef, actingOnType, getClass, inputs, retType, line, col);
 					}
 					
@@ -15145,7 +15216,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						Type retType = (Type)const_boolean.copyTypeSpecific();
 						FuncType getClass = new FuncType(inputs, retType);
 						
-						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals$ActorCall", "equals", classDef, actingOnType, getClass, inputs, retType, line, col, false, true);
+						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals$ActorCall", "equals", classDef, actingOnType, getClass, inputs, retType, line, col, false, true).accept(this);
 						FunctionGenneratorUtils.addActorCallerMethod(this.getErrorRaiseableSupression(), this, "equals", classDef, actingOnType, getClass, inputs, retType, line, col);
 						
 					}
@@ -15155,14 +15226,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				if(!hasfuncDefDefinedInClassAlready("hashCode$ActorSuperCallObjM", hashCodeSig) && this.getErrors().isEmpty()){
 					FunctionGenneratorUtils.addDefaultHashCode(classDef.getLine(), classDef.getColumn(), classDef, this, false, true);
-					FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode$ActorSuperCall", "hashCode$ActorSuperCallObjM", classDef, actingOnType, hashCodeSig, hashCodeSig.getInputs(), hashCodeSig.retType, line, col, true, false);								
+					FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode$ActorSuperCall", "hashCode$ActorSuperCallObjM", classDef, actingOnType, hashCodeSig, hashCodeSig.getInputs(), hashCodeSig.retType, line, col, true, false).accept(this);
 				}
 				
 				//always attempt to gennerate these, do outside of the needsActorFunctionsTobeAdded check because the conditionality of the below adds extra fail case
 				if(everyFieldHasGetter  && this.getErrors().isEmpty()){//only gennerate default hashcode if all fields have accessors (since we cannot access them directly)
 					if(!hasfuncDefDefinedInClassAlready("equals$ActorSuperCallObjM", eqSignature)){
 						FunctionGenneratorUtils.addDefaultEquals(classDef.getLine(), classDef.getColumn(), classDef, this, false, true);
-						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals$ActorSuperCall", "equals$ActorSuperCallObjM", classDef, actingOnType, eqSignature, eqSignature.getInputs(), eqSignature.retType, line, col, true, false);								
+						FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals$ActorSuperCall", "equals$ActorSuperCallObjM", classDef, actingOnType, eqSignature, eqSignature.getInputs(), eqSignature.retType, line, col, true, false).accept(this);
 					}
 				}
 				
@@ -15187,8 +15258,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							}
 							
 							if(!hasfuncDefDefinedInClassAlready("equals", eqSignature)){
-								FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals$ActorSuperCall", "equals$ActorSuperCallObjM", classDef, null, eqSignature, eqSignature.getInputs(), eqSignature.retType, line, col, true, false);
-								FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals", "equals$ActorSuperCallObjM", classDef, null, eqSignature, eqSignature.getInputs(), eqSignature.retType, line, col, true, false);
+								FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals$ActorSuperCall", "equals$ActorSuperCallObjM", classDef, null, eqSignature, eqSignature.getInputs(), eqSignature.retType, line, col, true, false).accept(this);
+								FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "equals", "equals$ActorSuperCallObjM", classDef, null, eqSignature, eqSignature.getInputs(), eqSignature.retType, line, col, true, false).accept(this);
 							}
 							
 						}
@@ -15198,14 +15269,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						}
 						
 						if(!hasfuncDefDefinedInClassAlready("hashCode", hashCodeSig)){
-							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode$ActorSuperCall", "hashCode$ActorSuperCallObjM", classDef, null, hashCodeSig, hashCodeSig.getInputs(), hashCodeSig.retType, line, col, true, false);								
-							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode", "hashCode$ActorSuperCallObjM", classDef, null, hashCodeSig, hashCodeSig.getInputs(), hashCodeSig.retType, line, col, true, false);								
+							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode$ActorSuperCall", "hashCode$ActorSuperCallObjM", classDef, null, hashCodeSig, hashCodeSig.getInputs(), hashCodeSig.retType, line, col, true, false).accept(this);							
+							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "hashCode", "hashCode$ActorSuperCallObjM", classDef, null, hashCodeSig, hashCodeSig.getInputs(), hashCodeSig.retType, line, col, true, false).accept(this);							
 						}
 						
 						FuncType toStringsig = new FuncType( new ArrayList<Type>(), (Type)const_string.copyTypeSpecific());
 						if(!hasfuncDefDefinedInClassAlready("toString", toStringsig)){
-							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "toString$ActorSuperCall", "toString$ActorSuperCallObjM", classDef, null, toStringsig, toStringsig.getInputs(), toStringsig.retType, line, col, true, false);
-							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "toString", "toString$ActorSuperCallObjM", classDef, null, toStringsig, toStringsig.getInputs(), toStringsig.retType, line, col, true, false);
+							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "toString$ActorSuperCall", "toString$ActorSuperCallObjM", classDef, null, toStringsig, toStringsig.getInputs(), toStringsig.retType, line, col, true, false).accept(this);
+							FunctionGenneratorUtils.addActorMethod(this.getErrorRaiseableSupression(), this, "toString", "toString$ActorSuperCallObjM", classDef, null, toStringsig, toStringsig.getInputs(), toStringsig.retType, line, col, true, false).accept(this);
 						}
 						
 						if(!hasfuncDefDefinedInClassAlready("toString$ActorSuperCallObjM", toStringsig)){
@@ -15920,7 +15991,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						argType.setArrayLevels(argType.getArrayLevels()-1);
 					}
 					
-					constructorArgs.add(new ConstArg(name, argType, arg.isFinal, annotationsForConstructor, defaultValue, arg.isVararg, arg.isLazy, arg.isShared));
+					constructorArgs.add(new ConstArg(name, argType, arg.isFinal, annotationsForConstructor, defaultValue, arg.isVararg, arg.isNullableVarArg, arg.isLazy, arg.isShared));
 				}
 				
 				alreadyDefined.add(name);
@@ -16541,7 +16612,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	@Override
 	public Object visit(Block block) {
-		nullableOverwriteType.push(new HashMap<Pair<String, Boolean>, NullStatus>());
 		currentlyInBlock.add(block);
 		boolean prevIsFirst = isFirstStmtInBlock;
 		isFirstStmtInBlock = true;
@@ -16702,11 +16772,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						canmap = !this.maskedErrors() && TypeCheckUtils.isValidType(tt);
 						if(!canmap) {
 							((Node)expr).setShouldBePresevedOnStack(false);
+							expr.accept(this);//recompute anything changed from setting setShouldBePresevedOnStack to false
 						}
 					}else {
 						canmap = TypeCheckUtils.isValidType(expr.getTaggedType());
-						
 						((Node)expr).setShouldBePresevedOnStack(true);
+						expr.accept(this);
 					}
 					
 					if(canmap) {
@@ -16772,13 +16843,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		currentlyInBlock.pop();
-		HashMap<Pair<String, Boolean>, NullStatus> infered = nullableOverwriteType.pop();
-		
-		if(block.isolated && !block.isAsyncBlock && !block.isAsyncBody) {
-			nullableOverwriteType.peek().putAll(infered);
-		}else {
-			block.inferedNullability = infered;
-		}
 		
 		return lastproceded; //TODO: should return type of last thing in the block, actually must do this for this: a = {5+5}! yes. must, what about if() {} else() {} - must choose most generical
 	}
@@ -16805,7 +16869,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(TypeCheckUtils.isNullable(eType)) {
 				this.raiseError(line, col, "with expression may be null");
 				eType = (Type)eType.copy();
-				eType.setNullStatus(NullStatus.NONNULL);
+				eType.setNullStatus(NullStatus.NOTNULL);
 				forTempVar = new NotNullAssertion(withBlock.expr.getLine(), withBlock.expr.getColumn(), forTempVar);
 			}
 		}
@@ -16885,11 +16949,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		processIdxVarHaver(whileBlock);
 		
-		nullableOverwriteType.push(new HashMap<Pair<String, Boolean>, NullStatus>());
-
 		TypeCheckUtils.assertNotVoid((Type)whileBlock.cond.accept(this), this, whileBlock.cond.getLine(), whileBlock.cond.getColumn(), "while");
-		TestedNonNullAndNull testNullables = nullableTypeLogic.processTest(whileBlock.cond);
-		nullableOverwriteType.pop();
 		
 		
 		//TypeCheckUtils.isBoolean(this, (Type)whileBlock.cond.accept(this), whileBlock.getLine(), whileBlock.getColumn());
@@ -16900,13 +16960,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			adContinueToLastIfStmt(whileBlock.block);
 		}
 		
-		HashMap<Pair<String, Boolean>, NullStatus> inFitBlock = new HashMap<Pair<String, Boolean>, NullStatus>();
-		nullableOverwriteType.push(inFitBlock);
-
-		testNullables.addAllNonNullToContainer(inFitBlock);
 		Type blockType = (Type)whileBlock.block.accept(this);
-		nullableOverwriteType.pop();
-		
 		
 		Type ret = null;		
 		
@@ -16998,22 +17052,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			whileBlock.postIdxIncremement.accept(this);
 		}
 		
-		
-		{
-			HashMap<Pair<String, Boolean>, NullStatus> nsMap = this.nullableOverwriteType.peek();
-			
-			for(Pair<String, Boolean> notNullKey : testNullables.testedNotNull.keySet()) {
-				nsMap.put(notNullKey, NullStatus.NULLABLE);
-			}
-			for(Pair<String, Boolean> nullkey : testNullables.testedNull.keySet()) {
-				nsMap.put(nullkey, NullStatus.NONNULL);
-			}
-		}
-		
 		return ret;
 	}
-	private static final String ExprString = "(?<!\\\\)\\{.*?\\}";
-	private static final Pattern ExprStringPattern = Pattern.compile(ExprString);//lazy
+	//private static final String ExprString = "(?<!\\\\)\\{.*?\\}";
+	//private static final Pattern ExprStringPattern = Pattern.compile(ExprString);//lazy
 	
 	private boolean disableStringSubExprs = false;
 	
@@ -17192,54 +17234,75 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			this.currentScopeFrame = TheScopeFrame.buildTheScopeFrame_Block(this.currentScopeFrame, new Block(0,0));
 			this.currentScopeFrame.enterScope();
 			
-			ArrayList<Sevenple<String, NamedType, Integer, Integer, Node, Boolean, Boolean>> names = new ArrayList<Sevenple<String, NamedType, Integer, Integer, Node, Boolean, Boolean>>(tryCatch.tryWithResources.size());
+			ArrayList<Fiveple<String, NamedType, Integer, Integer, AssignMulti>> names = new ArrayList<Fiveple<String, NamedType, Integer, Integer, AssignMulti>>(tryCatch.tryWithResources.size());
 			int n=0;
 			for(Line ln : tryCatch.tryWithResources){
 				n++;
-				String name;
-				Node rhs;// = null;
-				boolean shouldNullExisting = true;
-				boolean isFinal = false;
+				String name = "tempVar" + n;//temp value
+				//Node rhs;// = null;
+				//boolean shouldNullExisting = true;
+				//boolean isFinal = false;
+				//if not mutli assign change to multi assign and handle as approperiatede
 				
-				if(ln instanceof Assign && !(ln instanceof DuffAssign)){
+				AssignMulti asMulti = null;
+				if(ln instanceof AssignMulti) {
+					//add tmp var
+					asMulti = (AssignMulti)ln;
+					asMulti.assignments.add(new AssignExisting(ln.getLine(), ln.getColumn(), name, AssignStyleEnum.EQUALS, asMulti.rhs));
+				}else if(ln instanceof Assign && !(ln instanceof DuffAssign)){
+					Expression resto;
 					if(ln instanceof AssignNew){
 						AssignNew asnew = (AssignNew)ln;
-						name = asnew.name;
-						isFinal = asnew.isFinal;
-						rhs = (Node)asnew.expr;//maybe null
+						asMulti = new AssignMulti(asnew.getLine(), asnew.getColumn(), asnew.expr);
+						asMulti.assignments.add(asnew);
+						resto = asnew.expr;
+					}else if(ln instanceof AssignExisting){
+						AssignExisting asae = (AssignExisting)ln;
+						asMulti = new AssignMulti(asae.getLine(), asae.getColumn(), asae.expr);
+						asMulti.assignments.add(asae);
+						resto = asae.expr;
+					}else {//AssignTupleDeref
+						//cannot use tuple deref here
+						this.raiseError(ln.getLine(), ln.getColumn(), "Tuple decomposition many not be used within try with resources");
+						okToTransform=false;
+						continue;
 					}
-					else{// if(ln instanceof AssignExisting){
-						AssignExisting asnew = (AssignExisting)ln;
-						rhs = (Node)asnew.expr;
-						if(asnew.assignee instanceof RefName){
-							name =  ((RefName)asnew.assignee).name;
-						}
-						else{
-							PrintSourceVisitor psv = new PrintSourceVisitor();
-							asnew.assignee.accept(psv);
-							this.raiseError(ln.getLine(), ln.getColumn(), String.format("assignment specified in try with resource block must resolve to a variable, '%s' is not a variable", psv));
-							okToTransform=false;
-							name = "error";
-						}
-						shouldNullExisting=asnew.isReallyNew || !this.currentScopeFrame.hasVariableAssigned(name) ;//assign existing
-					}
-				}
-				else{
-					rhs = (Node)ln;
+					asMulti.assignments.add(new AssignExisting(ln.getLine(), ln.getColumn(), name, AssignStyleEnum.EQUALS, resto));
+				}else {
+					Node rhs = (Node)ln;
 					//tempvar name
-					name = "tempVar" + n;//temp value
+					int linex = ln.getLine();
+					int colx = ln.getColumn();
+					
+					Expression resolvesTo;
+					if(rhs instanceof  Expression){
+						resolvesTo = (Expression)rhs;
+					}
+					else{
+						Block rhsBlock = new Block(linex, colx);
+						rhsBlock.isolated=true;
+						rhsBlock.setShouldBePresevedOnStack(true);
+						rhsBlock.add(new LineHolder((Statement)rhs));
+						resolvesTo = rhsBlock;
+					}
+					
+					asMulti = new AssignMulti(linex, colx, resolvesTo);
+					asMulti.assignments.add(new AssignExisting(linex, colx, name, AssignStyleEnum.EQUALS, resolvesTo));
 				}
+				
+				Node rhs = (Node)asMulti.rhs;
+				
 				this.maskErrors(true);
-				ln.accept(this);
+				asMulti.accept(this);
 				if(this.applyMaskedErrors()){
 					okToTransform=false;
 				}
-				Type resolvedTo = ln.getTaggedType();
+				Type resolvedTo = rhs.getTaggedType();
 				
 				if( resolvedTo==null || resolvedTo instanceof VarNull || !(resolvedTo instanceof NamedType)){
 					PrintSourceVisitor psv = new PrintSourceVisitor();
 					rhs.accept(psv);
-					this.raiseError(ln.getLine(), ln.getColumn(), String.format("Resource specified in try with resource block must implement close method, '%s' does not", psv.toString()));
+					this.raiseError(ln.getLine(), ln.getColumn(), String.format("Resource specified in try with resource block must implement close method, '%s' does not", psv.toString().replace("\n",  "") ));
 					okToTransform=false;
 					resolvedTo=ScopeAndTypeChecker.const_object.copyTypeSpecific();
 				}
@@ -17248,7 +17311,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					okToTransform=false;
 				}
 				
-				names.add(new Sevenple<String, NamedType, Integer, Integer, Node, Boolean, Boolean>(name, (NamedType)resolvedTo, ln.getLine(), ln.getColumn(), rhs, shouldNullExisting, isFinal));
+				names.add(new Fiveple<String, NamedType, Integer, Integer, AssignMulti>(name, (NamedType)resolvedTo, ln.getLine(), ln.getColumn(), asMulti));
 			}
 			
 			this.currentScopeFrame = this.currentScopeFrame.leaveScope();
@@ -17261,23 +17324,21 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				//wrapperBlock.setShouldBePresevedOnStack(true);
 
 				Block toWriteThisLayerTo = wrapperBlock;
-				for(Sevenple<String, NamedType, Integer, Integer, Node, Boolean, Boolean> nn : names){
+				for(Fiveple<String, NamedType, Integer, Integer, AssignMulti> nn : names){
 					String name = nn.getA();
-					if(nn.getF()  ){//only null if not already existing or not already assigned
-						int line = nn.getC();
-						int col =  nn.getD();
-						//create initial null items in wrapper
-						NamedType nt = nn.getB().copyTypeSpecific();
-						TypeCheckUtils.unlockAllNestedRefs(nt);
-						AssignNew an = new AssignNew(null, line, col, name, nt, AssignStyleEnum.EQUALS, new VarNull(line, col));
-						an.isFinal = nn.getG();
-						an.skipNullableCheck = true;
-						toWriteThisLayerTo.add(new LineHolder(line, col, an));
-					}
+					int line = nn.getC();
+					int col =  nn.getD();
+					//create initial null items in wrapper
+					NamedType nt = nn.getB().copyTypeSpecific();
+					TypeCheckUtils.unlockAllNestedRefs(nt);
+					nt.setNullStatus(NullStatus.NULLABLE);
+					AssignNew an = new AssignNew(null, line, col, name, nt, AssignStyleEnum.EQUALS, new VarNull(line, col));
+					an.skipNullableCheck = true;
+					toWriteThisLayerTo.add(new LineHolder(line, col, an));
 				}
 				
 				n=0;
-				for(Sevenple<String, NamedType, Integer, Integer, Node, Boolean, Boolean> nn : names){
+				for(Fiveple<String, NamedType, Integer, Integer, AssignMulti> nn : names){
 					boolean isLast = ++n == names.size();
 					Block tryBlock = new Block(tryCatch.blockToTry.getLine(), tryCatch.blockToTry.getColumn());
 					
@@ -17285,7 +17346,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						int line = nn.getC();
 						int col =  nn.getD();
 						//create initial null items in wrapper
-						Block rhsStuff = new Block(line, col);
+						/*Block rhsStuff = new Block(line, col);
 						rhsStuff.isolated=false;
 						
 						Expression resolvesTo;
@@ -17300,15 +17361,15 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							rhsBlock.setShouldBePresevedOnStack(true);
 							rhsBlock.add(new LineHolder((Statement)rhs));
 							resolvesTo = rhsBlock;
-						}
+						}*/
 						
 						
 						
-						String name = nn.getA();
-						AssignExisting an = new AssignExisting(line, col, new RefName(name), AssignStyleEnum.EQUALS_STRICT, resolvesTo);
-						an.ignoreFinalCheck = nn.getG();
-						an.refCnt = TypeCheckUtils.getRefLevels(nn.getB());
-						tryBlock.add(new LineHolder(line, col, an));
+						//String name = nn.getA();
+						//AssignExisting an = new AssignExisting(line, col, new RefName(name), AssignStyleEnum.EQUALS_STRICT, resolvesTo);
+						//an.ignoreFinalCheck = ;
+						//an.refCnt = TypeCheckUtils.getRefLevels(nn.getB());
+						tryBlock.add(new LineHolder(line, col, nn.getE()));
 					}
 					
 					if(isLast){//now add normal code
@@ -17470,48 +17531,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(tryCatch.getHasAttemptedNormalReturn()){
 			tryCatch.setShouldBePresevedOnStack(false);
 		}
-		
-		
-		
-		if(tryCatch.hasFinal()) {
-			this.nullableOverwriteType.peek().putAll(tryCatch.finalBlock.inferedNullability);
-		}else  {
-			boolean fail=false;
-			
-			List<HashMap<Pair<String, Boolean>, NullStatus>> inferedNullinBlocks = new ArrayList<HashMap<Pair<String, Boolean>, NullStatus>>();
-			if(tryCatch.blockToTry.inferedNullability != null && !tryCatch.blockToTry.inferedNullability.isEmpty()) {
-				inferedNullinBlocks.add(tryCatch.blockToTry.inferedNullability);
-			}else {
-				fail=true;
-			}
-			
-			for(CatchBlocks cbs : tryCatch.cbs) {
-				if(cbs.catchBlock.inferedNullability != null && !cbs.catchBlock.inferedNullability.isEmpty()) {
-					inferedNullinBlocks.add(cbs.catchBlock.inferedNullability);
-				}else {
-					fail=true;
-					break;
-				}
-			}
-			if(!inferedNullinBlocks.isEmpty()) {
-				Pair<List<Pair<String, Boolean>>, List<Pair<String, Boolean>>> nonnullAndNullable = Utils.filterNullInferMap(inferedNullinBlocks);
-				
-				HashMap<Pair<String, Boolean>, NullStatus> addto = this.nullableOverwriteType.peek();
-				
-				if(!fail) {
-					for(Pair<String, Boolean> nonNull : nonnullAndNullable.getA()) {
-						addto.put(nonNull, NullStatus.NONNULL);
-					}
-				}
-				
-				for(Pair<String, Boolean> nullableNull : nonnullAndNullable.getB()) {
-					addto.put(nullableNull, NullStatus.NULLABLE);
-				}
-			}
-		}
-		
-		
-		
 		
 		
 		if(tryCatch.getShouldBePresevedOnStack() && !tryCatch.gethasDefoReturnedConventionally()){
@@ -17722,6 +17741,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					Type ret = TypeCheckUtils.checkSubType(this, wanted, retTupe, returnStatement.getLine(), returnStatement.getColumn(), returnStatement.getLine(), returnStatement.getColumn() );
 					if(null == ret){
 						this.raiseError(returnStatement.getLine(), returnStatement.getColumn(), String.format("Type mismatch: cannot convert from %s to %s", retTupe, wanted));
+					}else if(TypeCheckUtils.isNullable(retTupe) && (!TypeCheckUtils.isNullable(TypeCheckUtils.getRefTypeToLocked(wanted)) && !TypeCheckUtils.isNullable(wanted)) ) {
+						this.raiseError(returnStatement.getLine(), returnStatement.getColumn(), String.format("Attempted to return nullable type: %s but expected return type: %s is not nullable", retTupe, wanted));
 					}
 					
 					//ret = TypeCheckUtils.convertFromGenericToNamedType(ret);
@@ -18116,12 +18137,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 			}
 			
-			if(tal != null && from.getNullStatus() == NullStatus.NULLABLE) {
-				Type ret = tal.getType();
-				ret = (Type)ret.copy();
-				ret.setNullStatus(NullStatus.NULLABLE);
-				tal = tal.cloneWithRetFuncType(ret);
-			}
+			/*
+			 * if(tal != null && from.getNullStatus() == NullStatus.NULLABLE) { Type ret =
+			 * tal.getType(); ret = (Type)ret.copy();
+			 * //ret.setNullStatus(NullStatus.NULLABLE); tal =
+			 * tal.cloneWithRetFuncType(ret); }
+			 */
 			
 			return tal;
 		}
@@ -18652,6 +18673,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 					
 		refName.resolvesTo = ret;
+		refName.nameAndLocKey = makeRefNameTypeOverrideKey(refName);
 		
 		if(null != ret){
 			Type tt = ret.getType();
@@ -18666,25 +18688,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			returnType = removeInOUTGens(ret.getType());
 		}
 		
-		NullStatus inferedAs = null;
 		
-		if(refName.inferNonNullable) {
-			inferedAs = NullStatus.NONNULL;
-			Pair<String, Boolean> key = makeRefNameTypeOverrideKey(refName);
-			nullableOverwriteType.peek().put(key, inferedAs);
-		}else {
-			if(!this.nullableOverwriteType.isEmpty()){
-				Pair<String, Boolean> key = makeRefNameTypeOverrideKey(refName);
-				inferedAs = inferredAs(key);
-			}
-		}
-		
-		if(null != inferedAs) {
-			Object constf = ((Node)returnType).getFoldedConstant();
-			returnType = (Type)returnType.copy();
-			((Node)returnType).setFoldedConstant(constf);
-			returnType.setNullStatus(inferedAs);
-		}
 		
 		if(returnType instanceof NamedType){
 			checkTypeDefAccessiableNT((NamedType) returnType, refName.getLine(), refName.getLine());
@@ -18702,7 +18706,42 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 		}
 		
-		return returnType==null?null:refName.setTaggedType(returnType);
+		if(returnType==null) {
+			return null;
+		}else {
+			Type prev = refName.getTaggedType();
+			if(null != prev && !(prev instanceof ModuleType)) {
+				Object constf = ((Node)returnType).getFoldedConstant();
+				returnType = (Type)returnType.copy();
+				((Node)returnType).setFoldedConstant(constf);
+				returnType.setNullStatus(prev.getNullStatus());
+				return refName.setTaggedType(returnType);
+			}else {
+				returnType = (Type)returnType.copy();
+				if(isTransient(refName.resolvesTo )) {
+					returnType.setNullStatus(NullStatus.UNKNOWN);
+				}
+				
+			}
+			return refName.setTaggedType(returnType);
+		}
+	}
+	
+	private boolean isTransient(TypeAndLocation tal) {
+		if(tal != null) {
+			Location loc = tal.getLocation();
+			if(loc instanceof LocationClassField) {
+				LocationClassField classf = (LocationClassField)loc;
+				if(classf.isTransient()) {
+					return true;
+				}
+			}
+			if(TypeCheckUtils.isTransientClass(tal.getType())) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	public FuncInvoke typeHasUnassign(int line, int col, Type lhs, Expression existingRedirect) {
@@ -19022,6 +19061,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			vectorized = instVect;
 		}	
 		
+		//TypeCheckUtils.isValidType(given)
 
 		boolean lastWasOpOverload=false;
 		
@@ -19035,6 +19075,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		else{
 			flagNullableForOperation(powOperator.raiseTo.getLine(), powOperator.raiseTo.getColumn(), b);
 			ret = TypeCheckUtils.checkNumericalInfix(this.ers, a, b, powOperator.expr.getLine(), powOperator.expr.getColumn(), powOperator.raiseTo.getLine(), powOperator.raiseTo.getColumn(), makeMissingOpOverLoadMessage("pow", a, b, null));
+			if(null == ret) {
+				this.raiseError(powOperator.getLine(), powOperator.getColumn(), String.format("arguments to pow operator must both be numerical, not %s vs %s", a, b));
+				powOperator.setTaggedType(const_void_errored);
+				return const_void_errored;
+			}
+			
 			ret = TypeCheckUtils.unboxTypeIfBoxed(ret);
 		}
 		
@@ -19773,9 +19819,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	public Object visit(NamedType namedType, boolean ignoreGenericTypeCheck) {
 		String namereftoresolve = namedType.getNamedTypeStr();
 		
-		if(namereftoresolve.contains("onChange0$SO")){
-			int h=9;
-		}
 		
 		NamedType upperBound = namedType.getOrigonalGenericTypeUpperBound();
 		if(null != upperBound){
@@ -20076,7 +20119,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						if(pass) {
 							NullStatus wantedStatus = wanted.getNullStatus();
 							if(wantedStatus != NullStatus.UNKNOWN && got.getNullStatus() != NullStatus.UNKNOWN) {
-								if(got.getNullStatus() != wantedStatus) {
+								if (wantedStatus == NullStatus.NOTNULL && got.getNullStatus() != wantedStatus /* && !(wanted instanceof GenericType) */) {
 									pass = false;
 									nullableMismatch = true;
 									break;
@@ -21708,6 +21751,18 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				//EqualityOperatorEnum comp = e.compOp;
 				Type rhstype =elementTypes.get(n++);//(Type) e.e2.accept(this);
 				rhstype = rhstype == null?null:(Type)rhstype.copy();
+				
+				{//if xyz == null // assert that xyz must be nullable
+					boolean rhsNull = rhstype instanceof VarNull;
+					if(rhsNull || lhsType instanceof VarNull) {
+						Type other = rhsNull?lhsType:rhstype;
+						if( TypeCheckUtils.isNotNullable(other) && TypeCheckUtils.isNotNullable(TypeCheckUtils.getRefTypeToLocked(other)) ) {
+							this.raiseError(equalityExpression.head.getLine(), equalityExpression.head.getColumn(), String.format("Nullability may only be tested for nullable types"));
+						}
+					}
+				}
+				
+
 				rhstype = TypeCheckUtils.extractRawRefType(rhstype);
 				
 				Pair<ArrayList<Pair<Boolean, NullStatus>>, Type> rhsvec = vectorizedOperator(rhstype);
@@ -22911,7 +22966,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						if(null != vectFuncInvoke) {
 							//create full expr
 							Vectorized iofasVect = (Vectorized)inExpression.insideof;
-							containsMethodCall = new VectorizedFuncInvoke(line, col, "contains", FuncInvokeArgs.singleFIA(line,  col, inExpression.thing), null, iofasVect.expr, vtype == Vectorization.SELF, false);
+							containsMethodCall = new VectorizedFuncInvoke(line, col, "contains", FuncInvokeArgs.singleFIA(line,  col, inExpression.thing), null, iofasVect.expr, vtype == Vectorization.SELF, false, false);
 							if(inExpression.inverted){
 								containsMethodCall = new NotExpression(line, col, new Vectorized(containsMethodCall));
 							}
@@ -23152,7 +23207,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							String argName = "a" + n++;
 							boolean isLast = inputs.size() == n;
 							RefName supercon = new RefName(argName);
-							conArgs.add(new ConstArg(argName, ta, true, null, null, ta.hasArrayLevels() && isLast, false, false));
+							conArgs.add(new ConstArg(argName, ta, true, null, null, ta.hasArrayLevels() && isLast, ta.getNullStatus()==NullStatus.NULLABLE, false, false));
 							forSup.add(supercon);
 							sups.add(argName);
 						}
@@ -24623,7 +24678,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 				
 				//CasePatternConverter cpc = new CasePatternConverter((RefName)matchStatement.matchon.copy(), motype, n++, bb);
-				CasePatternConverter cpc = new CasePatternConverter(new RefName(matchStatement.matchon.getLine(), matchStatement.matchon.getColumn(), matchOnVarName), motype, n++, bb);
+				CasePatternConverter cpc = new CasePatternConverter(new RefName(cline, ccol, matchOnVarName), motype, n++, bb);
 				
 				if(matchingOnEnum){//case(CASE2 or MyEnum.CASE3) => case(MyEnum.CASE2 or MyEnum.CASE3){//etc
 					if(ce instanceof CaseExpressionOr){
@@ -24916,10 +24971,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				directed.setIfReturnsExpectImmediateUse(false);
 
 				matchStatement.setAstRedirect(astRedirect);
-				/*
-				PrintSourceVisitor psv = new PrintSourceVisitor();
-				astRedirect.accept(psv);
-				System.err.println("match: " + psv.toString());*/
 				
 				ret = (Type)matchStatement.astRedirect.accept(this);
 			}
@@ -25032,9 +25083,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		int line = e.getLine();
 		int col = e.getColumn();
 		
-		if(null != motype && motype.getNullStatus() == NullStatus.NONNULL && e instanceof VarNull) {
+		/*if(null != motype && motype.getNullStatus() == NullStatus.NOTNULL && e instanceof VarNull) {
 			this.raiseError(line, col, "cannot match against null as input is not nullable" );
-		}
+		}*/
+		//above is catered for in normal nullable inference code, as "Nullability may only be tested for nullable types"
 		
 		IntHolder intCount = new IntHolder();
 		Pair<Type, WithBlock> boolAsWithAndClassType =  convertExpressionToWithBlock(line, col, e, matchArgName, intCount, null);
@@ -25597,7 +25649,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				ArrayList<CapMaskedErrs> caps = this.getmaskedErrors();
 				
 				if(caps.isEmpty()) {
-					if(TypeCheckUtils.isVoidPrimativePure(what) && !expressionList.supressLastItemDoubleDotAttempt) {
+					if(expressionList.getShouldBePresevedOnStack() && TypeCheckUtils.isVoidPrimativePure(what) && !expressionList.supressLastItemDoubleDotAttempt) {
 						//we need a value returned but the expression returns a void, see if we can tweak last element to return self
 						
 						if(expressionList.astRedirect instanceof DotOperator) {
@@ -26241,7 +26293,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		List<Type> types = tupleExpression.tupleElements.stream().map(a -> TypeCheckUtils.getRefTypeToLocked( (Type)a.accept(this))).collect(Collectors.toList());
 		
 		if(types.stream().anyMatch(a -> !TypeCheckUtils.isValidType(a))) {
-			this.raiseError(tupleExpression.getLine(), tupleExpression.getColumn(), "tuples cannot contain void");
+			if(types.parallelStream().allMatch(a -> !TypeCheckUtils.isVoidPrimativeThrown(a))) {//no void thrown already
+				this.raiseError(tupleExpression.getLine(), tupleExpression.getColumn(), "tuples cannot contain void");
+			}
+			
 			return null;//cannot process with invalud types
 		}
 		
@@ -26454,286 +26509,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	}
 	
 	
-	///////////////////////nullables:
-	
-	private  class TestedNonNullAndNull {
-		public HashMap<Pair<String, Boolean>, Set<RefName>> testedNotNull = new HashMap<Pair<String, Boolean>, Set<RefName>>();
-		public HashMap<Pair<String, Boolean>, Set<RefName>> testedNull = new HashMap<Pair<String, Boolean>, Set<RefName>>();
-		
-		private void addItem(HashMap<Pair<String, Boolean>, Set<RefName>> map, RefName refname) {
-			Pair<String, Boolean> key = makeRefNameTypeOverrideKey(refname);
-			if(key != null) {
-				Set<RefName> addTo;
-				if(!map.containsKey(key)) {
-					addTo = new HashSet<RefName>();
-					map.put(key, addTo);
-				}else {
-					addTo = map.get(key);
-				}
-				addTo.add(refname);
-			}
-		}
-		
-		public void addTestedNotNull(RefName refname) {
-			addItem(testedNotNull, refname);
-		}
-		
-		public void addTestedNull(RefName refname) {
-			addItem(testedNull, refname);
-		}
-		
-		private TestedNonNullAndNull join(TestedNonNullAndNull another, boolean union) {
-			TestedNonNullAndNull ret = new TestedNonNullAndNull();
-			
-			HashSet<Pair<String, Boolean>> nonNullKeysIntersect = new HashSet<Pair<String, Boolean>>(this.testedNotNull.keySet());
-			if(union) {
-				nonNullKeysIntersect.addAll(another.testedNotNull.keySet());
-			}else {
-				nonNullKeysIntersect.retainAll(another.testedNotNull.keySet());
-			}
-			
-			for(Pair<String, Boolean> nonNullKey : nonNullKeysIntersect) {
-				Set<RefName> addTo = new HashSet<RefName>();
-				ret.testedNotNull.put(nonNullKey, addTo);
-				
-				if(another.testedNotNull.containsKey(nonNullKey)) {
-					addTo.addAll(another.testedNotNull.get(nonNullKey));
-				}
-				if(this.testedNotNull.containsKey(nonNullKey)) {
-					addTo.addAll(this.testedNotNull.get(nonNullKey));
-				}
-			}
-			
-			HashSet<Pair<String, Boolean>> nullKeysIntersect = new HashSet<Pair<String, Boolean>>(this.testedNull.keySet());
-			
-			if(union) {
-				nullKeysIntersect.addAll(another.testedNull.keySet());
-			}else {
-				nullKeysIntersect.retainAll(another.testedNull.keySet());
-			}
-			
-			for(Pair<String, Boolean> nullKey : nullKeysIntersect) {
-				Set<RefName> addTo = new HashSet<RefName>();
-				ret.testedNull.put(nullKey, addTo);
 
-				if(another.testedNull.containsKey(nullKey)) {
-					addTo.addAll(another.testedNull.get(nullKey));
-				}
-				if(this.testedNull.containsKey(nullKey)) {
-					addTo.addAll(this.testedNull.get(nullKey));
-				}
-			}
-			
-			return ret;
-		}
-		
-		public TestedNonNullAndNull intersection(TestedNonNullAndNull another) {
-			return join(another, false);
-		}
-		
-		public TestedNonNullAndNull union(TestedNonNullAndNull another) {
-			return join(another, true);
-		}
-
-		public void addAll(TestedNonNullAndNull item) {
-			testedNotNull = item.testedNotNull;
-			testedNull = item.testedNull;
-		}
-		
-		public void addAllNonNullToContainer(HashMap<Pair<String, Boolean>, NullStatus> cont) {
-			for(Pair<String, Boolean> key : testedNotNull.keySet()) {
-				if(!testedNull.containsKey(key)) {
-					for(RefName refName : testedNotNull.get(key)) {
-						Pair<String, Boolean> keyx = makeRefNameTypeOverrideKey(refName);
-						if(keyx != null) {
-							cont.put(keyx, NullStatus.NONNULL);
-						}
-						
-					}
-				}
-			}
-		}
-		
-		public void addAllNullToContainer(HashMap<Pair<String, Boolean>, NullStatus> cont) {
-			for(Pair<String, Boolean> key : testedNull.keySet()) {
-				if(!testedNotNull.containsKey(key)) {
-					for(RefName refName : testedNull.get(key)) {
-						Pair<String, Boolean> keyx = makeRefNameTypeOverrideKey(refName);
-						if(keyx != null) {
-							cont.put(keyx, NullStatus.NONNULL);
-						}
-					}
-				}
-			}
-		}
-
-		public TestedNonNullAndNull invert() {
-			TestedNonNullAndNull ret = new TestedNonNullAndNull();
-			ret.testedNull = this.testedNotNull;
-			ret.testedNotNull = this.testedNull;
-			return ret;
-		}
-	}
 	
-	private  class NullableFinder extends AbstractVisitor{
-		
-		private boolean typeIsNullable(Expression expr) {
-			if(expr instanceof RedirectableExpression) {
-				expr = ((RedirectableExpression)expr).exp;
-			}
-			
-			if(expr instanceof RefName) {
-				if(((RefName)expr).inferNonNullable) {
-					return true;
-				}
-			}
-			
-			Type what = expr.getTaggedType();
-			return what != null && what.getNullStatus() == NullStatus.NULLABLE;
-		}
-		
-		@Override
-		public TestedNonNullAndNull visit(EqReExpression equalityExpression) {
-			super.visit(equalityExpression);
-			//TODO: bug where if(xyz and thing <> null)...else{}//cannot assuming thing is not null in else block unless on own
-			Expression lhsExpression = equalityExpression.head;
-			boolean lhsVarNull = lhsExpression instanceof VarNull;
-			boolean lhsNullable = typeIsNullable(lhsExpression);
-			lhsExpression = maybeResolvesToRefName(lhsExpression);
-			for(GrandLogicalElement e: equalityExpression.elements)
-			{
-				Expression rhsExpression = e.e2;
-				boolean rhsVarNull = rhsExpression instanceof VarNull;
-				boolean rhsNullable = typeIsNullable(rhsExpression);
-				rhsExpression = maybeResolvesToRefName(rhsExpression);
-				
-				if((rhsNullable && lhsVarNull) || (lhsNullable && rhsVarNull)) {
-					if(e.compOp == GrandLogicalOperatorEnum.NE || e.compOp == GrandLogicalOperatorEnum.REFNE) {//certainly not null!
-						if(rhsNullable && rhsExpression instanceof RefName) {//rhs vartoadd to non nullable
-							RefName asRef = (RefName)rhsExpression;
-							asRef.inferNonNullable = true;
-							nullStatuses.peek().addTestedNotNull(asRef);
-						}else if(lhsExpression instanceof RefName) {//lhs vartoadd to non nullable
-							RefName asRef = (RefName)lhsExpression;
-							asRef.inferNonNullable = true;
-							nullStatuses.peek().addTestedNotNull(asRef);
-						}
-					}else if(e.compOp == GrandLogicalOperatorEnum.EQ || e.compOp == GrandLogicalOperatorEnum.REFEQ) {//certainly null!
-						if(rhsNullable && rhsExpression instanceof RefName) {//rhs vartoadd to non nullable
-							RefName asRef = (RefName)rhsExpression;
-							nullStatuses.peek().addTestedNull(asRef);
-						}else if(lhsExpression instanceof RefName) {//lhs vartoadd to non nullable
-							RefName asRef = (RefName)lhsExpression;
-							nullStatuses.peek().addTestedNull(asRef);
-						}
-					}
-					
-				}
-				
-				lhsVarNull = rhsVarNull;
-				lhsNullable = rhsNullable;
-				lhsExpression = rhsExpression;
-			}
-			
-			return null;
-		}
-		
-		private Expression maybeResolvesToRefName(Expression rhs) {
-			//refname or this.refname
-			if(rhs instanceof DotOperator) {
-				DotOperator asDot = (DotOperator)rhs;
-				ArrayList<Expression> elems = asDot.getElements(this);
-				if(elems.size() == 2) {
-					Expression e1 = elems.get(0);
-					Expression e2 = elems.get(1);
-					if(e1 instanceof RefThis) {
-						if(e2 instanceof RefName) {
-							return e2;
-						}
-					}
-				}
-			}
-			
-			return rhs;
-		}
-		
-		@Override
-		public Object visit(AndExpression andExpression) {
-			TestedNonNullAndNull item = processExpression(andExpression.head);
-			for (Expression i : andExpression.things) {
-				item = item.union(processExpression(i));
-			}
-			nullStatuses.peek().addAll(item);
-			return null;
-		}
-		
-		@Override
-		public Object visit(OrExpression orExpression) {
-			TestedNonNullAndNull item = processExpression(orExpression.head);
-			for (Expression i : orExpression.things) {
-				item = item.intersection(processExpression(i));
-			}
-			nullStatuses.peek().addAll(item);
-			return null;
-		}
-		
-		
-		private TestedNonNullAndNull processExpression(Expression test) {
-			TestedNonNullAndNull ret = null;
-			if(test instanceof RefName) {
-				RefName asRefName = (RefName)test;
-				if( typeIsNullable(test)) {
-					asRefName.inferNonNullable = true;
-					HashMap<String, RefName> nonNull = new HashMap<String, RefName>();
-					nonNull.put(asRefName.name, asRefName);
-					ret = new TestedNonNullAndNull();
-					ret.addTestedNotNull(asRefName);
-				}else {
-					ret = new TestedNonNullAndNull();
-				}
-			}else if(test instanceof RedirectableExpression) {
-				ret = processExpression(((RedirectableExpression)test).exp);
-			}else if(test instanceof DotOperator) {//shouldn't this process the previous keys to last?
-				ret = processExpression(((DotOperator)test).getLastElement());
-			}else if(test instanceof NotExpression){
-				
-				TestedNonNullAndNull toinvert = processExpression(((NotExpression)test).expr);
-				
-				ret= toinvert.invert();
-				
-			}else {
-				ret = new TestedNonNullAndNull();
-				nullStatuses.push(ret);
-				test.accept(this);
-				nullStatuses.pop();
-			}
-			
-			return ret;
-		}
-		
-
-		private Stack<TestedNonNullAndNull> nullStatuses = new Stack<TestedNonNullAndNull>();
-		
-		private TestedNonNullAndNull processTest(Expression test) {
-			return processExpression(test);
-		}
-	}	
-	
-	private final NullableFinder nullableTypeLogic = new NullableFinder();
-	
-	private NullStatus inferredAs(Pair<String, Boolean> key) {
-		NullStatus inferedAs = null;
-		if(key != null) {
-			for(int n = this.nullableOverwriteType.size() - 1;  n >=0; n--){
-				HashMap<Pair<String, Boolean>, NullStatus> level = this.nullableOverwriteType.get(n);
-				if(null != level && level.containsKey(key)){
-					inferedAs = level.get(key);
-					break;
-				}
-			}
-		}
-		return inferedAs;
-	}
 ///////////////////////////////////////////// langauge extensions ///////////////////////////////
 
 	

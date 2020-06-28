@@ -70,7 +70,7 @@ public final class Fiber {
 		syncTrackers.push(new SyncTracker());
 	}
 	
-	public void exitsync(){
+	public void exitsync() throws Throwable{
 		syncTrackers.pop().awaitAll();
 	}
 	

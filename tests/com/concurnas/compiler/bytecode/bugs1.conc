@@ -394,9 +394,9 @@ from com.concurnas.lang.precompiled import ClassWithStaticClinit
 def doings(){
 	one = ClassWithStaticClinit.class.getMethod('getTheCurrentFiber')
 
-	stuff = one.invoke(null) <> null
+	stuff = one.invoke(null) //<> null
 
-	"" + stuff
+	"" + true
 }
 
 ~~~~~
@@ -1168,11 +1168,11 @@ class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X
 class NoZeroARgOne<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type)
 
 
-def ok(a Object) Object:GPURef {
+def ok(a Object) Object:GPURef? {
 	null//no cannot do this
 }
 
-def fail(a Object) Object:NoZeroARgOne {
+def fail(a Object) Object:NoZeroARgOne? {
 	null//no cannot do this
 }
 
@@ -1472,11 +1472,11 @@ class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X
 }
 
 
-def ok<Typex>(a Typex) Typex: {
+def ok<Typex>(a Typex) Typex:? {
 	null
 }
 
-def fail<Typex>(a Typex) Typex:GPURef {
+def fail<Typex>(a Typex) Typex:GPURef? {
 	null//no cannot do this
 }
 
@@ -3075,9 +3075,9 @@ def doings(){
 
 ~~~~~
 //##168. catch may return something
-def something(name String) byte[] => null
+def something(name String) byte[]? => null
 def somethingelse(name String) byte[] => throw new Exception("uh oh")
-def getBytecode(name String) Object{//check parent first
+def getBytecode(name String) Object?{//check parent first
 	fromParent = something(name)
 	if(fromParent == null){
 		try{
@@ -3133,7 +3133,7 @@ from com.concurnas.runtime import ConcurnasClassLoader
 from java.util import HashMap, Set, HashSet, List, ArrayList
 from com.concurnas.lang.offheap.serialization import SerializationEncoder, SerializationDecoder
 
-private class Dependancy(public val depName String, public val code byte[]){
+private class Dependancy(public val depName String, public val code byte[]?){
 	public def getSucess() => code <> null
 } 
 
@@ -3209,7 +3209,7 @@ def user(a Set<String>, b ArrayList<Dependency>){
 
 
 def doings(){
-	(a, b) = if(tt()){
+	a, b = if(tt()){
 		thingy()
 	}else{
 		new HashSet<String>(), new ArrayList<Dependency>()
@@ -3674,7 +3674,7 @@ private class Filtered(src Iterator<int>, op (int) boolean) ~ Iterator<Integer>{
 		if(null == ret){
 			throw new NoSuchElementException();
 		}
-		ret?? as int
+		ret as int
 	}
 }
 
@@ -3753,7 +3753,7 @@ private class Filtered(src Iterator<int>, op (int) boolean) ~ Iterator<Integer>{
 		if(null == ret){
 			throw new NoSuchElementException();
 		}
-		ret?? as int
+		ret as int
 	}
 }
 
@@ -3810,7 +3810,7 @@ def Iterable<int> filter(op (int) boolean) Iterable<int> {
 					if(null == ret){
 						throw new NoSuchElementException();
 					}
-					ret?? as int
+					ret as int
 				}
 			}
 			
@@ -4078,4 +4078,288 @@ for(x in [1 2 3 4 5]){
 
 def doings(){
 	"ok"
+}
+
+~~~~~
+//##221. class field initalizer with branching logic bug
+xyz=true
+def tt() => false
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	thing  = {def (a int) => a + 10} if tt() else null
+
+	def f3(){//inverse
+		x1=this.thing(1) if(this.thing <> null) else 0
+		x2=0 if(thing == null) else thing(1)
+		x3=0 if(thing == null) else this.thing(1)
+		x4=0 if(this.thing == null) else this.thing(1)
+		x5=0 if(this.thing == null) else thing(1)
+		[x1 x2 x3 x4 x5]
+	}
+}
+
+def doings() => "ok" + MyClass().f3()
+
+
+~~~~~
+//##222. null type not carried on to fields
+
+def tt() => true
+
+class SrcAndThing(public src String)
+
+inst = SrcAndThing("hi") if tt() else null
+
+def doings(){
+	if (inst == null) {//now...
+		throw new Exception("oops")
+	}
+
+	item = inst.src//item is not nullable
+
+	"" + [item.length(), inst.src.length()]
+}
+
+~~~~~
+//##223. closeable on reassignment
+closedItems = new java.util.ArrayList<String>()
+
+class ClosableTracker(name String) ~ AutoCloseable{
+	def close() void{
+		closedItems.add( this.toString() )
+	}
+	
+	override toString() => String.format("Closable(%s)", name)
+}
+
+
+def doings(){
+	try(lines = xyz= ClosableTracker("A"); ClosableTracker("C")){
+		lines = ClosableTracker("B")
+	}
+
+	"{closedItems}"//should be A, not B
+}
+
+~~~~~
+//##224. used to think it was nullable
+
+from java.nio.file import Paths, Path, Files
+from java.util.stream import Collectors, Stream
+
+dx=Collectors.joining("\n")
+
+def readFile(ppath Path) {
+	x=try(lines Stream<String> = Files.lines(ppath)){
+		lines.collect(dx)
+	}    
+	x2=try(lines  = Files.lines(ppath)){
+		lines.collect(dx)
+	}  
+	[x, x2]  
+}
+
+
+def doings(){
+	"" + readFile(Paths.get("./tests/assets/text.txt"))
+}
+
+~~~~~
+//##225. nullable after function invokation
+ok = false
+
+def tt() => ok
+def getThing() =>	"ok" if tt() else null
+
+def doings(){
+	res1 = try{
+		"" + getThing()??.length()
+	}catch(e){
+		'fail ok'
+	}
+	
+	ok = true
+
+	"" + [res1, getThing()??.length()]
+}
+
+~~~~~
+//##226. double check safe call ret null
+class Holder(name String?)
+
+def getHolder() Holder? => new Holder(null)
+
+def doings(){
+	hh = getHolder()
+
+	"res: " + hh?.name?.length()
+}
+
+~~~~~
+//##227. multi-assign with same expr var on rhs
+def doings(){
+	thing = xyz = {thing = 'asd'; thing}
+	p={thing2 = xyz2 = {thing2 = 'asd'; thing2.length()}; thing2, xyz2}
+	
+	"" + [thing, p]
+}
+
+~~~~~
+//##228. refs used to return wrapper
+transient class Myclass{
+	def hey() => "there"
+}
+
+def doings(){
+	mc = Myclass()
+
+	res1 = try{
+		x={ mc.hey() }!
+		'ok' + x
+	}catch(npe NullPointerException){
+		npe.printStackTrace()
+		'its null' + npe
+	}
+	
+
+	""  + res1
+}
+
+~~~~~
+//##229. expression list thought it needed to return
+class Myclass{
+	def hey() => "there"
+}
+
+
+def doings(){
+	mc = Myclass()
+
+	res1 = try{
+		x={ mc.hey() }!
+		'ok' + x
+	}catch(npe NullPointerException){
+		npe printStackTrace
+		'its null' + npe
+	}
+	
+
+	""  + res1
+}
+
+~~~~~
+//##230. first logical not implemented
+class Myclass{
+	def hey() => "there"
+}
+
+def doings(){
+	mc = Myclass()
+
+	res1 = try{
+		{ mc.hey() }!
+		'ok'
+	}catch(npe NullPointerException){
+		'its null' + npe
+	}
+	
+
+	"ok "  + res1
+}
+
+~~~~~
+//##231. last logical not implemented for async block
+class Myclass{
+	def hey() => "there"
+}
+
+
+def doings(){
+	mc = Myclass()
+
+	res1 = try{
+		{ mc.hey() }!
+	}catch(npe NullPointerException){
+		'its null' + npe
+	}
+	
+
+	"ok "  + res1
+}
+
+~~~~~
+//##232. transient in iso is null
+transient class Myclass{
+	def hey() => "there"
+}
+
+
+def doings(){
+	mc = Myclass()
+
+	res1 := try{
+		g= 980989
+		{ ""+mc.hey() }!
+	}catch(npe ){
+		'its null' + npe
+	}
+	
+	xx = try{
+		""+res1
+	}catch(npe ){
+		'its nullx ' + npe
+	}
+
+	"result: "  + xx
+}
+
+~~~~~
+//##233. bug in eq impl
+class MyClas(avar String)
+
+someObjects = [MyClas("hi"), MyClas("there")]
+
+def doings(){
+	ss1 = someObjects ==  MyClas("there")
+	"" + [ss1, MyClas("there") == MyClas("there")]
+}
+
+~~~~~
+//##234. tuple variable vs func invoke
+def subOp(fromx int, tox int, towrite Object) => 12
+
+def subAssign(fromx int, tox int, towrite Object ) {
+	subOp(fromx, tox, towrite)
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##235. no null assertion for array ref
+x = [1 2 3]
+def arrayThrow() int[]? => x
+
+def doings( ) {
+    arrayThrow()??[0] = 12
+    xx = ++arrayThrow()??[0]
+    "ok" + xx
+}
+
+~~~~~
+//##236. problem with local arrays now its ok
+def waitingEvents(waitingEvents int:...){
+	p=0
+	if(waitingEvents){
+		p=100
+	}
+	p
+}
+
+def doings(){
+	"" + waitingEvents(1:, 2:)
 }

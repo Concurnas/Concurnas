@@ -48,9 +48,9 @@ If a nullable variable is checked for nullability within a branching logic block
 
 \begin{lstlisting}
 res = if(nullableVar <> null){
-nullableVar.length()//we've already established that nullableVar is not null
+  nullableVar.length()//we've already established that nullableVar is not null
 }else{
--1
+  -1
 }
 \end{lstlisting}
 
@@ -60,9 +60,9 @@ This logic is reasonably comprehensive and can cater for complex cases such as t
 alambda ((int) int)? = def (a int) => a+10
 
 res = if(alambda == null){
-			0
-		}else{//we've established that alambda is not null
-			alambda(1)
+    0
+  }else{//we've established that alambda is not null
+	alambda(1)
 }
 \end{lstlisting}
 
@@ -70,9 +70,9 @@ This logic applies on an incorporated running basis within the if test, thus the
 
 \begin{lstlisting}
 res = if(nullableVar <> null and nullableVar.length() > 2){
-			"ok"
-		}else{
-			"fail"
+    "ok"
+  }else{
+    "fail"
 }
 \end{lstlisting}
 

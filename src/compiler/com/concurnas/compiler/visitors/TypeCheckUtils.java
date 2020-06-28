@@ -1937,7 +1937,7 @@ public class TypeCheckUtils {
 				
 				if(gens.isEmpty()) {
 					noMatch=true;
-					elems.add(new Pair<Boolean, NullStatus>(false, NullStatus.NONNULL));
+					elems.add(new Pair<Boolean, NullStatus>(false, NullStatus.NOTNULL));
 				}else {
 					type = gens.get(0);
 					elems.add(new Pair<Boolean, NullStatus>(false, type.getNullStatus()));
@@ -2593,7 +2593,7 @@ public class TypeCheckUtils {
 					}else {
 						//take most conservative: if either is true then true
 						for(int n =0; n < arrayLevels; n++ ) {
-							arrayLevelNullStatusToSet.set(n, (arrayLevelNullStatusToSet.get(n)==NullStatus.NULLABLE || items.get(n) ==NullStatus.NULLABLE) ? NullStatus.NULLABLE:NullStatus.NONNULL);
+							arrayLevelNullStatusToSet.set(n, (arrayLevelNullStatusToSet.get(n)==NullStatus.NULLABLE || items.get(n) ==NullStatus.NULLABLE) ? NullStatus.NULLABLE:NullStatus.NOTNULL);
 						}
 					}
 				}
@@ -3562,16 +3562,26 @@ public class TypeCheckUtils {
 	public static Type extractRawRefType(Type nextLevel){
 		boolean isRefArray = false;
 		
-		while(hasRefLevels(nextLevel)){
-			//ret += 1;
-			isRefArray = isRefArrayGettable(nextLevel, -1);
-			nextLevel = ((NamedType)nextLevel).getGenTypes().get(0);
+		if(nextLevel != null) {
+			NullStatus ns = nextLevel.getNullStatus();
+			
+			while(hasRefLevels(nextLevel)){
+				//ret += 1;
+				isRefArray = isRefArrayGettable(nextLevel, -1);
+				nextLevel = ((NamedType)nextLevel).getGenTypes().get(0);
+			}
+			
+			if(isRefArray){
+				nextLevel = (Type)nextLevel.copy();
+				nextLevel.setArrayLevels(nextLevel.getArrayLevels() + 1);
+			}
+			
+			if(ns == NullStatus.UNKNOWN) {
+				nextLevel = (Type)nextLevel.copy();
+				nextLevel.setNullStatus(NullStatus.UNKNOWN);
+			}
 		}
 		
-		if(isRefArray){
-			nextLevel = (Type)nextLevel.copy();
-			nextLevel.setArrayLevels(nextLevel.getArrayLevels() + 1);
-		}
 		
 		return nextLevel;
 	}
@@ -5354,6 +5364,19 @@ public class TypeCheckUtils {
 		return isNonArrayStringOrPrimative(given);
 	}
 	
+	public static boolean isTransientClass(Type given) {
+		if(given != null && given instanceof NamedType) {
+			ClassDef cd = ((NamedType)given).getSetClassDef();
+			while(cd != null) {
+				if(cd.isTransient) {
+					return true;
+				}
+				cd = cd.getSuperclass();
+			}
+		}
+		return false;
+	}
+	
 	public static boolean isVoidPrimativePure(  Type given){
 		if(given instanceof PrimativeType)
 		{
@@ -6834,7 +6857,7 @@ public class TypeCheckUtils {
 			return true;
 		}
 		
-		return lhsType.getNullStatus() == NullStatus.NONNULL ;
+		return lhsType.getNullStatus() == NullStatus.NOTNULL ;
 	}
 	
 	public static boolean isNullable(Type lhsType) {
@@ -6871,7 +6894,7 @@ public class TypeCheckUtils {
 		}
 		
 		NullStatus what = lhsType.getNullStatus();
-		return what != NullStatus.NULLABLE && what != NullStatus.UNKNOWN;
+		return what != NullStatus.NULLABLE && what != NullStatus.UNKNOWN; 
 	}
 
 	

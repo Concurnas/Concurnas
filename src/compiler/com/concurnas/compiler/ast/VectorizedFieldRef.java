@@ -10,16 +10,18 @@ import com.concurnas.runtime.Pair;
 public class VectorizedFieldRef extends AbstractExpression implements Expression, HasDepth, CanBeInternallyVectorized {
 	public final boolean doubledot;
 	public final boolean nullsafe;
+	public final boolean noNullAssertion;
 	public final Expression expr;
 	public RefName name;
 	private Block vectorizedRedirect=null;
 
-	public VectorizedFieldRef(int line, int col, RefName name,  Expression expr, boolean doubledot, boolean nullsafe) {
+	public VectorizedFieldRef(int line, int col, RefName name,  Expression expr, boolean doubledot, boolean nullsafe, boolean noNullAssertion) {
 		super(line, col);
 		this.name = name;
 		this.expr=expr;
 		this.doubledot=doubledot;
 		this.nullsafe=nullsafe;
+		this.noNullAssertion=noNullAssertion;
 	}
 
 	private Expression preceedingExpression;
@@ -49,7 +51,7 @@ public class VectorizedFieldRef extends AbstractExpression implements Expression
 
 	@Override
 	public Node copyTypeSpecific() {
-		VectorizedFieldRef ret = new VectorizedFieldRef(line, column, name, (Expression)expr.copy(), doubledot, nullsafe);
+		VectorizedFieldRef ret = new VectorizedFieldRef(line, column, name, (Expression)expr.copy(), doubledot, nullsafe, noNullAssertion);
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		
 		return ret;

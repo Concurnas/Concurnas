@@ -39,6 +39,7 @@ public abstract class Node implements Copyable {
 	}
 	
 	private boolean preceededByDotInDotOperator =false;
+	private boolean precSafeCall =false;
 	
 	private boolean expectNonRef = false;
 	
@@ -87,9 +88,17 @@ public abstract class Node implements Copyable {
 	public boolean isPreceededByDotInDotOperator() {
 		return preceededByDotInDotOperator;
 	}
-
+	
 	public void setPreceededByDotInDotOperator(boolean preceededByDotInDotOperator) {
 		this.preceededByDotInDotOperator = preceededByDotInDotOperator;
+	}
+	
+	public boolean getPreceededBySafeCall() {
+		return precSafeCall;
+	}
+
+	public void setPreceededBySafeCall(boolean precSafeCall) {
+		this.precSafeCall = precSafeCall;
 	}
 	
 	public boolean getShouldBePresevedOnStackAndNotOnItsOwnLine(){
@@ -161,6 +170,10 @@ public abstract class Node implements Copyable {
 			type = asNamed;
 		}*/
 		
+		/*
+		 * if(this instanceof RefName && ((RefName)this).name.contains("lastVal") &&
+		 * this.getLine() == 35 ){ int h=9; }
+		 */
 		
 		
 		this.type = type;

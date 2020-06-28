@@ -91,7 +91,7 @@ hi [1111, 69, 20][2, 2]
 
 ~~~~~
 //##18. ensure exceptions passed up the stack on await
-[true, java.lang.RuntimeException: uh oh]
+[true, uh oh]
 
 ~~~~~
 //##19. exceptions not caught and passed up stack on onchange
@@ -367,7 +367,7 @@ was ok: [yup]
 
 ~~~~~
 //##z83 exceptions still count as counts in async
-complete: [1, 101, closed, ok java.lang.Exception: excep]
+complete: [1, 101, closed, ok excep]
 
 ~~~~~
 //##z84 check i didnt break copy

@@ -10,20 +10,22 @@ import com.concurnas.runtime.Pair;
 public class VectorizedFuncInvoke extends AbstractExpression implements Expression, HasDepth, CanBeInternallyVectorized {
 	public final boolean doubledot;
 	public final boolean nullsafe;
+	public final boolean noNullAssertion;
 	public final Expression expr;
 	public FuncInvoke funcInvoke;
 	private Block vectorizedRedirect=null;
 
-	public VectorizedFuncInvoke(int line, int col, String name, FuncInvokeArgs args, ArrayList<Type> genTypes, Expression expr, boolean doubledot, boolean nullsafe) {
+	public VectorizedFuncInvoke(int line, int col, String name, FuncInvokeArgs args, ArrayList<Type> genTypes, Expression expr, boolean doubledot, boolean nullsafe, boolean noNullAssertion) {
 		super(line, col);
 		funcInvoke = new FuncInvoke(line, col, name, args, genTypes);
 		this.expr=expr;
 		this.doubledot=doubledot;
 		this.nullsafe=nullsafe;
+		this.noNullAssertion=noNullAssertion;
 	}
 	
-	public VectorizedFuncInvoke(FuncInvoke from, Expression expr, boolean doubledot, boolean nullsafe) {
-		this(from.getLine(), from.getColumn(), from.funName, from.args == null?null:(FuncInvokeArgs)from.args.copy(), from.genTypes==null?null:new ArrayList<Type>(from.genTypes), expr,doubledot, nullsafe);
+	public VectorizedFuncInvoke(FuncInvoke from, Expression expr, boolean doubledot, boolean nullsafe, boolean nna) {
+		this(from.getLine(), from.getColumn(), from.funName, from.args == null?null:(FuncInvokeArgs)from.args.copy(), from.genTypes==null?null:new ArrayList<Type>(from.genTypes), expr,doubledot, nullsafe, nna);
 	}
 
 	private Expression preceedingExpression;
@@ -53,7 +55,7 @@ public class VectorizedFuncInvoke extends AbstractExpression implements Expressi
 
 	@Override
 	public Node copyTypeSpecific() {
-		VectorizedFuncInvoke ret = new VectorizedFuncInvoke(line, column, funcInvoke.funName, funcInvoke.args == null?null:(FuncInvokeArgs)funcInvoke.args.copy(), funcInvoke.genTypes==null?null:(ArrayList<Type>) Utils.cloneArrayList(funcInvoke.genTypes), (Expression)expr.copy(), doubledot, nullsafe);
+		VectorizedFuncInvoke ret = new VectorizedFuncInvoke(line, column, funcInvoke.funName, funcInvoke.args == null?null:(FuncInvokeArgs)funcInvoke.args.copy(), funcInvoke.genTypes==null?null:(ArrayList<Type>) Utils.cloneArrayList(funcInvoke.genTypes), (Expression)expr.copy(), doubledot, nullsafe, noNullAssertion);
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		return ret;
 	}

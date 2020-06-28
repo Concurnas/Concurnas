@@ -39,6 +39,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.concurnas.lang.Shared;
+
 
 /**
  * JOCL - Java bindings for OpenCL.<br />
@@ -49,11 +51,13 @@ import java.util.concurrent.TimeUnit;
  */
 
 @com.concurnas.lang.Uninterruptible
+@Shared
 public final class CL
 {
     /**
      * Whether the native library has been loaded
      */
+	@Shared
     static boolean nativeLibraryLoaded = false;
     
     public static void loadNativeLibrary()

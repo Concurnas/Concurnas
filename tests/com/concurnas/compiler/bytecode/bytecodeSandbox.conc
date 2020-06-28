@@ -1,5 +1,519 @@
-def doings(){
-	thing = def (a int) { a + 1 }
-
-	"hi" + thing&
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
 }
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [ false true]){
+		mc.takesLambda((a => a*2) if x else (a => a**2))
+	}
+}
+
+
+
+/*
+def doings(){
+	res42 = [1 4 2]^??//fail
+	"err"
+}
+*/
+
+
+
+
+
+
+//lets fix tuples, update docs, update website
+//document!
+
+
+
+
+
+
+
+
+//SAM methods to apply to abstract types as well as interfaces
+
+/*Fix this top level code error
+
+
+
+gpukernel 1 gpuTestOp(global in A float[], global in B float[], global out result float[]) 
+{
+    idx = get_global_id(0)
+    result[idx] = A[idx] + B[idx] 
+}
+
+device = gpus.GPU().getGPUDevices()[0].devices[0]
+
+
+*/
+
+
+
+
+
+/*
+class MyClass(items int...){
+	def takesLambda(lam (int) int){
+		lam(x) for x in items
+	}
+}
+
+def doings(){
+	mc = new MyClass(1, 2, 3)
+	
+	"" + for(x in [ false true]){
+		mc.takesLambda((a => a*2) if x else (a => a**2))
+	}
+}
+*/
+
+
+
+
+
+
+/*
+
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	instGen = myFunc&(inGPU1, inGPU2, result)
+	inst = instGen()
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+//inf loop
+*/
+
+
+
+
+
+
+
+/*
+from java.util import Optional
+
+class HasOpti<Y?>{
+	def thing<X?>(x X) => 12
+}
+
+
+def doings(){//java type may be qualified with nullable generic
+	//even though its generic qualification is not nullable
+	//local generic may be qualified in this way
+	x = Optional.ofNullable<String?>("ok")
+	y = HasOpti<String?>().thing<String?>("ok")
+
+	//check for class level generics
+
+	"ok " + (x, y)
+}
+
+*/
+
+
+
+
+
+
+
+
+
+
+/*
+
+def doings() String{//TODO: fix me, i am too slow to compile
+	a1 = "" + { a=1; while(a++ <== 10) { b=1; while(b++ <== 10) { b++ * a++ } } }
+	a2 = "\n" + { a=1; ""+while(a++ <== 10) { b=1; while(b++ <== 10) { b++ * a++ } } }
+	a3 = "\n" + { a=1; while(a++ <== 10) { b=1; ""+while(b++ <== 10) { b++ * a++ } } }
+	a4 = "\n" + { a=1; ""+while(a++ <== 10) { b=1; ""+while(b++ <== 10) { b++ * a++ } } }
+	a5 = "\n" + { a=1; ""+while(a++ <== 10) { b=1; ""+while(b++ <== 10) { ""+( b++ * a++) } } }
+	
+	return "" + [a1, a2, a3, a4, a5]
+}
+*/
+
+
+/*
+def doings(){
+	thing1 list<int?> =  [Integer(1), 4, 2]
+	thing2 Integer?[] =  [Integer(1) 4 2]
+	thing3 Integer?[] =  [Integer(1) null 2]
+	
+	thing1^^??//in place
+	res1 = thing1^??
+	res2 = thing2^??
+	
+	err = try{
+		f=thing3^??
+		'err'
+	}catch(e){
+		"{e}"
+	}
+	
+	"ok" + [thing1 thing2 err]
+}
+//vec non null
+*/
+
+
+
+
+
+/*Support this:
+
+new String?[10](null)
+
+
+x String? = null
+new String?[10, 2](x)
+new String?[10, 2](null)
+*/
+
+//support repl comments
+//gpus are a bit broken
+//gpu top level code
+//fix tuple decomp?
+
+
+//gpu inf loop
+
+//call conc from java, java from conc
+
+
+
+
+
+
+
+
+/*
+
+*/
+
+
+/*
+
+*/
+
+
+/*
+
+*/
+
+
+/*
+
+*/
+
+
+
+
+
+
+
+
+
+
+////////////////
+
+/*
+//this doesnt work correctly in the REPL:
+
+class CounterHolder(public -n int)
+
+counter = CounterHolder(10)
+
+countDownStr := sync{
+	{
+	    ret = StringBuilder()
+	    while(counter.n-- > 0){//we are changing the value of n
+	        ret.append(counter.n)
+	    }
+	    ret.toString()//return a String
+	}!
+}
+
+
+System.out.println("countdown from: {counter.n} == {countDownStr}")
+
+*/
+
+/*
+def doings(){
+	gps = gpus.GPU()
+	deviceGrp = gps.getGPUDevices()[0]
+	summary = deviceGrp getSummary()
+	device = deviceGrp.devices[0]
+	inoutGPU = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+	copyComplete boolean:gpus.GPURef = inoutGPU.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	await(copyComplete)
+	"compl: " + copyComplete
+}
+
+//should be ok
+//try on gralvm
+
+*/
+
+
+
+
+
+/*
+class Abstract {
+  def op(arg int) int
+}
+
+class Clazz(-abs Abstract)
+
+inst = new Clazz(a => a*2)
+inst.abs.op(2)
+//SAM for abstract as well as trait, above should work, document!
+*/
+
+
+
+
+//todo: add homebrew to build
+
+/*
+fix:
+
+BIT_SHIFT_X = SIZE_BITS_X = SIZE_BITS_Y = BIT_SHIFT_Z = SIZE_BITS_Z = 2
+
+typedef BlockPos = long
+def BlockPos x() int => (this << 64 - BIT_SHIFT_X - SIZE_BITS_X >> 64 - SIZE_BITS_X) as int
+def BlockPos y() int => (this << 64 - SIZE_BITS_Y >> 64 - SIZE_BITS_Y) as int
+def BlockPos z() int => (this << 64 - BIT_SHIFT_Z - SIZE_BITS_Z >> 64 - SIZE_BITS_Z) as int
+
+
+def doings() => "" + ( 123123L x) 
+
+
+//and document this
+
+*/
+
+
+
+
+
+
+//fix other nullable bugs in dist
+
+
+
+//add docs on null check logic
+
+
+
+
+//more datautils, print, sum, all, any, min, max, map, fold, foldr, foldl, avg, mean, mode
+//improve error message on no method found
+//fix michael work/tmp
+//prevent run in vanilla java
+//permit spawn from java
+//two isolates to call gpu seperatly... see if we get the loading error
+
+
+//tail call opti?
+
+//add conc repo to sublime pkg
+//jypter
+//default types for ifaces and typedefs
+//note on assign returning things
+
+
+//add * and ? for classpath entries
+
+
+
+
+/*
+//fix this...
+
+$ conc -cp "joda-time-2.9.4.jar"
+Welcome to Concurnas 1.14.020 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_251).
+Currently running in REPL mode. For help type: /help
+
+conc> import org.joda.time.DateTime
+|  ERROR 1:0 Imported name: org.joda.time.DateTime cannot be resolved to a type
+
+conc> from org.joda.time import DateTime
+|  ERROR 1:0 Imported name: org.joda.time.DateTime cannot be resolved to a type
+
+conc>
+
+
+*/
+
+
+
+
+
+
+
+/*
+from java.net import URL, HttpURLConnection
+from java.io import InputStreamReader, BufferedReader
+
+url = new URL("http://google.com")
+
+con = url.openConnection() as HttpURLConnection
+try{
+	status = with(con){//methods below implicitly called on con
+		setRequestMethod("GET")
+		setConnectTimeout(5000)
+		setReadTimeout(5000)
+		getResponseCode()//last called statement is returned from with
+	}
+	System.out.println(status)
+	
+	content = new StringBuffer()//StringBuffer is auto imported
+	
+	try(inp = new BufferedReader(new InputStreamReader(con.getInputStream()))){
+		inputLine String? = ""//nullable as readLine can return null
+		
+		inputLine = inp.readLine()
+		while (inputLine <> null) {
+		    content.append(inputLine)
+		    inputLine = inp.readLine()
+		}
+	}//inp.close() implicitly called at end of try block, even if exception thrown
+	
+	System.out.println(content)
+}finally{//connection always closed if above code throws exception
+	con.disconnect()
+}
+
+
+def doings(){
+	"ok"
+}
+*/
+
+/*
+//bug on onchange generation below, as standalone and in repl
+
+instances = 10000
+
+def inc(input int:) => {input+1}!
+
+head int:;
+cur = head:;
+
+for(x in 0 to instances){
+	cur := inc(cur)
+}
+
+onchange(cur){
+	System.out.println("{cur}")
+}
+
+
+head = 100; System.out.println("{cur}")
+*/
+
+
+
+//default types for interfaces?
+
+
+//jypter - make work in conc
+
+
+
+
+
+/*
+docugen...
+
+add to datautils:
+print
+map
+all
+reduce
+left fold, right fold
+any
+min
+max
+sum
+[0]*10
+a, b = 1, 2
+x[0], x[1] = x[1], x[0]
+
+operator overloading on bigdecimal etc
+a * (x * x) + b * x + c;
+
+*/
+
+
+
+/*
+Release Changes:
+Bufgix for expression lists calling nested inner functions
+
+
+*/
+
+
+
+
+/*
+BUG:
+
+def something(aa String...){
+	a.length() for a in aa
+}
+
+def doings() => "ok" + something(null as String?)//shouldn't be possible
+//fix later
+*/
+
+
+

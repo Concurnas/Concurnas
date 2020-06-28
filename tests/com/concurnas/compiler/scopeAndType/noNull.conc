@@ -107,7 +107,7 @@ def funcNullable(a (int, int)?){
 def doings(){
 	x=funcNoNull&((int, int)?)//fail
 	y=funcNullable&((int, int)?)//ok
-	
+	xx=funcNoNull&((int, int))//ok
 	"err" 
 }
 
@@ -232,7 +232,7 @@ def doings(){
 	
 	x = not mc//tests for null anyway
 	thing = null//ok
-	asit = thing as String//ok
+	asit = thing as String?//ok
 	
 	
 	a /= b
@@ -279,7 +279,7 @@ def doings(){
 	}
 	 
 	for(thig in nonullable){
-		thig = null//not ok
+		thig = null//ok java lists dont abide by null constraints
 	}
 	
 	"err"
@@ -302,11 +302,11 @@ def doings(){
 	}
 	 
 	for(thig in nullable){//moan
-		thig = null//not ok
+		thig = null//ok
 	}
 	
 	for(thig in nonullable){//ok
-		thig = null//not ok
+		thig = null//ok
 	}
 	
 	"err"
@@ -429,18 +429,22 @@ def doings(){
 
 ~~~~~
 //##22. not null assertion
+def something() String? => "ok"
+
 def doings(){
 	a String? = ""
 	b String = ""
+	c String? = something()
 	
-	x = a??
+	x = c??
+	x = a??//implicitly non null
 	x = b??//no, not valid here
 	
 	""
 }
 
 ~~~~~
-//##23. elvis checks and void not approperiate
+//##23. elvis checks and void not approperiate 
 def retvoid() void {}
 
 def doings(){
@@ -1046,11 +1050,11 @@ def f5b(){//normal implicit non null implicit
 }
 
 def f6(){//ok certain non nullable inverse
-	thing if(xyz and thing == null) else thing(1)  
+	thing if(xyz and thing == null) else thing(1)  //FAIL
 }
 
 def f7(){//complex not ok
-	thing(1) if((xyz ) or thing) else 0
+	thing(1) if((xyz ) or thing) else 0 //FAIL
 }
 
 class MyClass{
@@ -1157,7 +1161,7 @@ def doings(){
 class Myclass1{
 	athing String? = "ok"
 	def thing(){
-		athing.length()
+		athing?.length()//maybe null
 	}
 }
 
@@ -1400,11 +1404,11 @@ def doings(){
 
 ~~~~~
 //##63. another one
-state = true
+state = true; def maybenull() String? => "ok"
 def tt() => state = not state; state
  
 def doings(){
- 	client String? = "ok"
+ 	client String? = maybenull()
  	lens = while(client <> null){
  		client = null if tt() else 'fine'
  		x=client.length()//not permitted
@@ -1457,4 +1461,519 @@ def doings(){
 	a3 = aString3.length()//no as varibale is shared
 	
  	"ok"
+}
+
+~~~~~
+//##66. non null assertion only to nullables
+def maybenull() String? => 'ok'
+
+a String? = maybenull()
+b String? = maybenull()
+
+
+def doings(){
+	if(a == null){
+		f=a??.length()
+	}else{
+		f=a.length()
+	}
+	
+	if(a <> null and b == null){
+		f=a??.length()
+	}else{
+		f=a.length()
+	}
+		
+	"ok"
+}
+
+~~~~~
+//##67. correct inverse assertions
+def maybenull() String? => 'ok'
+
+a String? = maybenull()
+b String? = maybenull()
+
+
+def doings(){
+	if(a == null){
+		f=a??.length()
+	}else{
+		f=a.length()
+	}
+	
+	if(a == null){
+		f=a??.length()
+	}elif(b == null){
+		f=a.length()
+		f=b??.length()
+	}else{
+		f=a.length()
+		f=b.length()
+	}
+	
+	
+	if(not (a == null)) {
+		f=a.length()
+	}else{
+		f=a??.length()
+	}
+	
+	if(a == null and b == null){
+		f=a??.length()
+	}else{
+		f=a??.length()//yes may be null still
+		f=b??.length()//yes may be null still
+	}
+	
+	if(a == null or b == null){
+		f=a??.length()
+	}else{
+		f=a.length()//cannot be null
+		f=b.length()//cannot be null
+	}
+	
+	
+	if(not(a == null and b == null)){
+		f=a??.length()//yes may be null still
+		f=b??.length()//yes may be null still
+	}else{
+		f=a??.length()
+	}
+	
+	if(not(a == null or b == null)){
+		f=a.length()//cannot be null
+		f=b.length()//cannot be null
+	}else{
+		f=a??.length()
+	}
+			
+	"ok"
+}
+
+~~~~~
+//##68. not null outside while
+def maybenull() String? => 'ok'
+
+a String? = maybenull()
+b String? = maybenull()
+
+
+def doings(){
+	while(a == null){
+		a = "ok"
+	}
+	
+	ll = a.length()//ok
+			
+	"ok"
+}
+
+~~~~~
+//##69. basic short circuting
+def maybenull() String? => 'ok'
+
+a String? = maybenull()
+b String? = maybenull()
+
+
+def doings(){
+	if(a <> null and a.length() > 1){
+		ll = a.length()//above short cirtuit within and expression
+	}
+			
+	"ok"
+}
+
+
+~~~~~
+//##70. simple union
+def maybenull() String? => 'ok'
+
+a String? = maybenull()
+b String? = maybenull()
+
+
+def doings(){
+	if(not(a == null and b == null)){
+		f=a??.length()
+	}else{
+		f=a.length()//cannot infer
+	}
+	
+	
+	
+	if(a == null or b == null){
+		
+	}else{
+		f=a.length()//cannot be null so ok
+	}
+	
+	if(not(a == null or b == null)){
+		f=a.length()
+		//above is ok, cannot be null
+	}
+	
+		
+	"ok"
+}
+
+
+~~~~~
+//##71. not null after assert
+def something() String? => "ok"
+
+
+def doings(){
+	thing String? = something()
+	
+	assert thing <> null
+
+	"ok" + thing.length()
+}
+
+~~~~~
+//##72. try with resources bugfix
+from java.io import BufferedReader, FileReader
+
+def thing(srcFile String){
+	src = ""
+	//used to complain about null checking on br
+	try( br BufferedReader = BufferedReader( FileReader(srcFile))){
+		sb = new StringBuilder()
+	    line String? = null;
+	    loop{
+	        line = br.readLine()
+	        if (line == null){
+	            break
+	        }
+	        sb.append(""+line+"\n")
+	    }
+		src += "\n" + sb.toString()
+	}
+
+	try( br BufferedReader = BufferedReader( FileReader(srcFile))){
+		sb = new StringBuilder()
+	    line String? = null;
+	    loop{
+	        line = br.readLine()
+	        if (line == null){
+	            break
+	        }
+	        sb.append(""+line+"\n")
+	    }
+		src += "\n" + sb.toString()
+	}
+}
+
+
+
+def doings() => "ok"
+
+~~~~~
+//##73. iterate through nullable array
+
+def something(aa String?[]?){
+	a?.length() for a in aa??
+}
+	
+def doings() => "ok" + something(null as String?)
+
+~~~~~
+//##74. nullable varargs
+def something(aa String...?){
+	a.length() for a in aa??
+}
+	
+def doings() => "ok" + something(null)
+
+~~~~~
+//##75. force nullable type to be explicitly cast as such
+
+def doings() {
+	xxx  = null as String //no, must be nullable type
+	xxx2 = null as String?
+
+	f1 = xxx?.length()
+	f2 = xxx2?.length()
+
+	"ok"
+}
+
+~~~~~
+//##76. component of varag can be nullable
+def something(aa String? ...){
+	a?.length() for a in aa
+}
+
+def doings() => "ok" + something('ok', 'then')
+
+~~~~~
+//##77. as above but without extra space
+
+def something(aa String?...){
+	a?.length() for a in aa
+}
+
+def doings() => "ok" + something('ok', 'then')
+
+~~~~~
+//##78. return means cannot be null
+def maybenul() String? => "its ok"
+
+def doings(){
+	aString String? = maybenul()
+	
+	if(null == aString){
+		return "ok"
+	}
+	
+	"" + aString.length()//this is ok, cannot be null here
+}
+
+~~~~~
+//##79. return means cannot be null pt2
+
+def maybenul() String? => null
+
+def thing() => false
+
+def doingsAnd(){
+	aString String? = maybenul()
+	
+	if(null == aString and thing()){
+		return "ok"
+	}
+	
+	"" + aString?.length()//may still be null
+}
+
+def doings(){
+	aString String? = maybenul()
+	
+	if(null == aString or thing()){
+		return "ok"
+	}
+	
+	"" + aString.length()//this is ok, cannot be null here
+}
+
+~~~~~
+//##80. branching res all non null
+
+def maybenul() String? => "its ok"
+
+def doings() {
+	
+	thing String? = maybenul()
+	if(thing <> null){
+		
+	} else{
+		thing  = "ok"
+	}
+
+	"ok" + thing.length()//this is ok, all paths resolves to non null
+}
+
+~~~~~
+//##81. branching res all non null with ret
+def maybenul() String? => "its ok"
+
+def doings() {
+	
+	thing String? = maybenul()
+	if(thing <> null){
+		
+	} else{
+		return 'something'
+	}
+
+	"ok" + thing.length()
+}
+
+~~~~~
+//##82. branching with deo returns in if
+
+def maybenul() String? => "its ok"
+
+def doings() {
+	
+	thing String? = maybenul()
+	if(thing == null){
+		return 'something'
+	} else{
+		thing = "something"
+	}
+
+	"ok" + thing.length()
+}
+
+~~~~~
+//##83. branching with has to be non null
+
+def maybenul() String? => "its ok"
+
+def doings() {
+	
+	thing String? = maybenul()
+	if(thing == null){
+		thing = "something"
+	} 
+
+	"ok" + thing.length()//should be ok thing is set
+}
+
+~~~~~
+//##84. big conditional branching test
+def maybenul() String? => "its ok"
+
+def doingsx() {
+	
+	thing String? = maybenul()
+	if(thing == null){
+		thing = "something"
+	} else{
+		return 'something'
+	}
+
+	"ok" + thing.length()
+}
+
+
+
+def doingsp() {
+	
+	thing String? = maybenul()
+	if(thing <> null){
+		
+	} else{
+		return 'something'
+	}
+
+	"ok" + thing.length()
+}
+
+
+def doings() {
+	
+	thing String? = maybenul()
+	if(thing <> null){
+		thing = null
+	} else{
+		return 'something'
+	}
+
+	"ok" + thing?.length()//ok as thing can be null
+}
+
+~~~~~
+//##85. if else cannot be null
+def maybenul() String? => "its ok"
+
+
+def doings() {
+	thing String? = maybenul()
+	if( thing == null  ){
+		thing = "something"
+	} else{ 
+	
+	}
+	
+
+	"ok" + thing.length()//cannot be null
+}
+
+~~~~~
+//##86. slightly complex branching case
+def maybenul() String? => "its ok"
+
+another = something = false
+
+def doings() {
+	thing String? = maybenul()
+	if( (thing == null  ) or (thing == null  ) ){
+		thing = "something"
+	} else{ }
+	
+
+	"ok" + thing.length()//cannot be null
+}
+
+def doingsx() {
+	thing String? = maybenul()
+	if( (thing == null or something) and (thing == null or another) ){
+		thing = "something"
+	} 
+	
+
+	"ok" + thing?.length()//may still be null
+}
+
+~~~~~
+//##87. while cannot be null but can with break
+def tt() => false
+a = "ok" if tt() else null
+
+def doingsx(){
+	
+	while(a == null){
+		a = "ok"
+	}
+
+	"ok" + a.length()//ok cannot be null
+}
+
+
+def doings(){
+	
+	while(a == null){
+		if(tt() or not tt()){		
+			break
+		}
+		a = "ok"
+	}
+
+	"ok" + a.length()//FAIL still nullable
+}
+
+~~~~~
+//##88. nullable refs
+def tt() => true
+
+s1 String:? = "ok" if tt() else null //ref itself is nullable
+s2 := "ok" if tt() else null //contents is nullable
+s3 String?: = "ok" if tt() else null //contents is nullable
+
+s2 := null//cannot set this to null as ref itself is not nullable
+s3 := null//cannot set this to null as ref itself is not nullable
+
+def doings(){
+	"" + [s1?.length(), 
+	s2?.length(),
+	s3?.length()]
+}
+
+~~~~~
+//##89. handle asyncrefref in nullable analysis
+
+def getResultRef() Object:? => null
+
+def runRemoteTask(){
+	res Object:? = getResultRef()
+	if(null <> res:){//asyncrefref used to not be recognised as refname
+		res:setException(new Exception())
+	}
+}
+
+def doings(){
+	"ok"
+}
+
+~~~~~
+//##90. non null return
+def something(name String) byte[] => null
+def something2(name String) byte[]? => null//ok
+
+def doings() {
+	"ok" 
 }

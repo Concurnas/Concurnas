@@ -7,6 +7,7 @@ import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.Fourple;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
+import com.concurnas.runtime.Pair;
 
 public class RefName extends AbstractExpression implements Expression {
 
@@ -87,6 +88,7 @@ public class RefName extends AbstractExpression implements Expression {
 		ret.supressUnassign = supressUnassign;
 		ret.origin = this;
 		ret.inferNonNullable = inferNonNullable;
+		ret.nameAndLocKey = nameAndLocKey;
 		//ret.astRedirect = astRedirect == null?null:astRedirect.copy();
 		//ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
 		//hmm unlikely fix
@@ -102,6 +104,7 @@ public class RefName extends AbstractExpression implements Expression {
 	public boolean supressUnassign = false;
 	private RefName origin;
 	public boolean inferNonNullable;
+	public Pair<String, Boolean> nameAndLocKey;
 	@Override
 	public void setPreceedingExpression(Expression expr) {
 		this.preceedingExpression = expr;

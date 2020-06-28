@@ -144,7 +144,7 @@ public class Actor  implements ReifiedType  {
 		}
 
 		@Override
-		public DefaultRef<Boolean> getIsInitCompleteFlag() {
+		public DefaultRef<Boolean> getIsInitCompleteFlag() throws Throwable {
 			Local<Boolean> ll = new  Local<Boolean>(new Class<?>[]{Boolean.class} );
 			ll.set(true);
 			return ll;
@@ -170,7 +170,7 @@ public class Actor  implements ReifiedType  {
 		
 	}
 
-	protected final void onInit(){
+	protected final void onInit() throws Throwable{
 		if(!started){
 			ActorManager manager = new ActorManager(this);
 			Fiber.getScheduler().scheduleTask(manager, "Actor work loop for: " + this.getClass().getName());
@@ -206,7 +206,7 @@ public class Actor  implements ReifiedType  {
 		ret.set( func.apply() );
 	}*/
 	
-	protected void recieve(DefaultRef<Object> ret, Object msg){
+	protected void recieve(DefaultRef<Object> ret, Object msg) throws Throwable{
 		Function0<?> func = (Function0)msg;
 		
 		//System.err.println("" + func);

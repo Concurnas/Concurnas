@@ -1,11 +1,8 @@
 package com.concurnas.compiler.ast;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
-import com.concurnas.compiler.ast.interfaces.FuncDefI;
-import com.concurnas.compiler.visitors.NotifyOnError;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.VectorizedRedirector;
 import com.concurnas.compiler.visitors.Visitor;
@@ -21,11 +18,12 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 	
 	public ArrayList<Boolean> returnCalledOn;
 	public ArrayList<Boolean> safeCall;
+	public ArrayList<Boolean> noNullAssertion;
 	
 	private Expression vectorizedRedirect;
 	//public boolean didStaticAdjustments=false;
 
-	public DotOperator(int line, int col, Expression head, ArrayList<Expression> elements, ArrayList<Boolean> isDirectAccess, ArrayList<Boolean> returnCalledOn, ArrayList<Boolean> safeCall) {
+	public DotOperator(int line, int col, Expression head, ArrayList<Expression> elements, ArrayList<Boolean> isDirectAccess, ArrayList<Boolean> returnCalledOn, ArrayList<Boolean> safeCall, ArrayList<Boolean> noNullAssertion) {
 		super(line, col);//TODO: head stuff here needs refactoring it's insane
 		//this.head = head;
 		this.elements = elements;
@@ -33,16 +31,18 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		this.isDirectAccess = isDirectAccess;
 		this.returnCalledOn = returnCalledOn;
 		this.safeCall = safeCall;
+		this.noNullAssertion = noNullAssertion;
 		posProcessElements();
 	}
 	
-	public DotOperator(int line, int col, ArrayList<Expression> elements, ArrayList<Boolean> isDirectAccess, ArrayList<Boolean> returnCalledOn, ArrayList<Boolean> safeCall) {
+	public DotOperator(int line, int col, ArrayList<Expression> elements, ArrayList<Boolean> isDirectAccess, ArrayList<Boolean> returnCalledOn, ArrayList<Boolean> safeCall, ArrayList<Boolean> noNullAssertion) {
 		super(line, col);//TODO: head stuff here needs refactoring it's insane
 		//this.head = head;
 		this.elements = elements;
 		this.isDirectAccess = isDirectAccess;
 		this.returnCalledOn = returnCalledOn;
 		this.safeCall = safeCall;
+		this.noNullAssertion = noNullAssertion;
 		posProcessElements();
 	}
 	
@@ -53,27 +53,32 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		ArrayList<Boolean> isDirectAccess = new ArrayList<Boolean>(sz);
 		ArrayList<Boolean> returnCalledOn = new ArrayList<Boolean>(sz);
 		ArrayList<Boolean> safeCall = new ArrayList<Boolean>(sz);
+		ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>(sz);
 		for(int n=0; n < sz; n++){
 			//'.'|'\\.'|'..'|'?.'
 			boolean da = false;
 			boolean rca = false;
 			boolean sc = false;
+			boolean nna = false;
 			
 			switch(variant[n]) {
 				case ".": break;
 				case "\\.": da=true; break;
 				case "..":  rca=true; break;
 				case "?.":  sc=true; break;
+				case "??.":  nna=true; break;
 			}
 			
 			isDirectAccess.add(da);
 			returnCalledOn.add(rca);
 			safeCall.add(sc);
+			noNullAssertion.add(nna);
 		}
 		
 		this.returnCalledOn = returnCalledOn;
 		this.isDirectAccess = isDirectAccess; 
 		this.safeCall = safeCall; 
+		this.noNullAssertion = noNullAssertion; 
 		posProcessElements();
 	}
 	
@@ -92,6 +97,8 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		this.returnCalledOn.add(false);
 		this.safeCall = new ArrayList<Boolean>();
 		this.safeCall.add(false);
+		this.noNullAssertion = new ArrayList<Boolean>();
+		this.noNullAssertion.add(false);
 		
 		this.isDirectAccess.add(false);
 		posProcessElements();
@@ -107,8 +114,9 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		boolean isRetSelf = returnCalledOn.remove(returnCalledOn.size()-1);
 		boolean isDirect = isDirectAccess.remove(isDirectAccess.size()-1);
 		boolean isSafe = safeCall.remove(safeCall.size()-1);
+		boolean nna = noNullAssertion.remove(noNullAssertion.size()-1);
 		
-		return isRetSelf || isDirect|| isSafe ?null: ret;
+		return isRetSelf || isDirect|| isSafe || nna ?null: ret;
 	}
 	
 	private DotOperator addToT(Expression header, boolean ret, boolean direct, boolean isSafe){
@@ -116,6 +124,7 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		returnCalledOn.add(ret);
 		isDirectAccess.add(direct);
 		safeCall.add(isSafe);
+		noNullAssertion.add(false);
 		return this;
 	}
 	
@@ -140,6 +149,7 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		this.returnCalledOn.addAll(fullDop.returnCalledOn);
 		this.isDirectAccess.addAll(fullDop.isDirectAccess);
 		this.safeCall.addAll(fullDop.safeCall);
+		this.noNullAssertion.addAll(fullDop.noNullAssertion);
 	}
 
 	public void add(Expression fullDop) {
@@ -151,6 +161,7 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		returnCalledOn.add(0, ret);
 		isDirectAccess.add(0, direct);
 		safeCall.add(0, isSafe);
+		noNullAssertion.add(0, false);
 		return this;
 	}
 	public DotOperator addToHead(Expression header){
@@ -182,6 +193,7 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		ret.adjustedElements = this.adjustedElements==null?null:(ArrayList<Expression>) Utils.cloneArrayList(adjustedElements);
 		ret.isDirectAccess=this.isDirectAccess==null?null:new ArrayList<Boolean>(isDirectAccess);
 		ret.safeCall=this.safeCall==null?null:new ArrayList<Boolean>(safeCall);
+		ret.noNullAssertion=this.noNullAssertion==null?null:new ArrayList<Boolean>(noNullAssertion);
 		ret.returnCalledOn=this.returnCalledOn==null?null:new ArrayList<Boolean>(returnCalledOn);
 		ret.preceedingExpression = preceedingExpression==null?null:(Expression)preceedingExpression.copy();
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
@@ -200,22 +212,22 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 	}
 	
 	public static DotOperator buildDotOperatorOne(int line, int col, Expression head, Expression other) {
-		return buildDotOperatorOne(line, col, head, other, true, false, false);
+		return buildDotOperatorOne(line, col, head, other, true, false, false, false);
 	}
 	
 	public static DotOperator buildDotOperatorOneNonDirect(int line, int col, Expression head, Expression other) {
-		return buildDotOperatorOne(line, col, head, other, false, false, false);
+		return buildDotOperatorOne(line, col, head, other, false, false, false, false);
 	}
 	
-	public static DotOperator buildDotOperatorOneNonDirectNullSafe(int line, int col, Expression head, Expression other, boolean nullsafe) {
-		return buildDotOperatorOne(line, col, head, other, false, false, nullsafe);
+	public static DotOperator buildDotOperatorOneNonDirectNullSafe(int line, int col, Expression head, Expression other, boolean nullsafe, boolean noNullAssertion) {
+		return buildDotOperatorOne(line, col, head, other, false, false, nullsafe, noNullAssertion);
 	}
 	
 	public static DotOperator buildDotOperatorOneReturn(int line, int col, Expression head, Expression other) {
-		return buildDotOperatorOne(line, col, head, other, false, true, false);
+		return buildDotOperatorOne(line, col, head, other, false, true, false, false);
 	}
 	
-	private static DotOperator buildDotOperatorOne(int line, int col, Expression head, Expression other, boolean direct, boolean ret, boolean isSafe) {
+	private static DotOperator buildDotOperatorOne(int line, int col, Expression head, Expression other, boolean direct, boolean ret, boolean isSafe, boolean noNullAssertion) {
 		ArrayList<Boolean> isDirectAccess = new ArrayList<Boolean>();
 		isDirectAccess.add(direct);
 		
@@ -226,10 +238,14 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		isSafec.add(isSafe);
 		
 		
+		ArrayList<Boolean> noNullAssertionc = new ArrayList<Boolean>();
+		noNullAssertionc.add(noNullAssertion);
+		
+		
 		ArrayList<Expression> elements = new ArrayList<Expression>();
 		elements.add(other);
 		
-		return new DotOperator(line, col, head, elements, isDirectAccess, returnCalledOn, isSafec);
+		return new DotOperator(line, col, head, elements, isDirectAccess, returnCalledOn, isSafec, noNullAssertionc);
 	}
 	
 	public static DotOperator buildDotOperator(int line, int col, String... elements) {
@@ -246,15 +262,17 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		ArrayList<Boolean> isDirectAccess = new ArrayList<Boolean>();
 		ArrayList<Boolean> returnCalledOn = new ArrayList<Boolean>();
 		ArrayList<Boolean> safeCall = new ArrayList<Boolean>();
+		ArrayList<Boolean> noNullAssertionc = new ArrayList<Boolean>();
 		int n=0;
 		int sz = toRefName.size()-1;
 		while(n++ < sz){
 			isDirectAccess.add(false);
 			returnCalledOn.add(false);
 			safeCall.add(false);
+			noNullAssertionc.add(false);
 		}
 		
-		DotOperator ret = new DotOperator(line, col, toRefName, isDirectAccess, returnCalledOn, safeCall);
+		DotOperator ret = new DotOperator(line, col, toRefName, isDirectAccess, returnCalledOn, safeCall, noNullAssertionc);
 		
 		
 		ret.addToT(other, isRefSelf, isDirect, false);
@@ -282,15 +300,18 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		ArrayList<Boolean> isDirectAccess = new ArrayList<Boolean>(sz);
 		ArrayList<Boolean> returnCalledOn = new ArrayList<Boolean>(sz);
 		ArrayList<Boolean> safeCall = new ArrayList<Boolean>(sz);
+		ArrayList<Boolean> noNullAssertion = new ArrayList<Boolean>(sz);
 		for(int n=0; n < sz; n++){
 			isDirectAccess.add(directAccess);
 			returnCalledOn.add(false);
 			safeCall.add(false);
+			noNullAssertion.add(false);
 		}
 		
 		this.returnCalledOn = returnCalledOn;
 		this.isDirectAccess = isDirectAccess; 
 		this.safeCall = safeCall; 
+		this.noNullAssertion = noNullAssertion; 
 	}
 	
 	
@@ -380,6 +401,7 @@ public class DotOperator extends AbstractExpression implements Expression, CanBe
 		isDirectAccess.remove(isDirectAccess.size()-1);
 		returnCalledOn.remove(returnCalledOn.size()-1);
 		safeCall.remove(safeCall.size()-1);
+		noNullAssertion.remove(noNullAssertion.size()-1);
 		elements.remove(elements.size()-1);
 	}
 	

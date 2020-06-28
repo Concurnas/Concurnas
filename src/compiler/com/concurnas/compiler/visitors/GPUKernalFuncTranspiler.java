@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 
 import com.concurnas.compiler.CaseExpressionAnd;
@@ -23,6 +24,7 @@ import com.concurnas.compiler.ast.*;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.util.GPUKernelFuncDetails;
 import com.concurnas.compiler.ast.util.JustLoad;
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.bytecode.FuncLocation;
 import com.concurnas.compiler.bytecode.FuncLocation.ClassFunctionLocation;
 import com.concurnas.compiler.bytecode.FuncLocation.StaticFuncLocation;
@@ -31,7 +33,6 @@ import com.concurnas.compiler.typeAndLocation.LocationStaticField;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.visitors.datastructs.TheScopeFrame;
 import com.concurnas.runtime.Pair;
-import com.google.common.base.Objects;
 
 public class GPUKernalFuncTranspiler implements Visitor {
 
@@ -310,11 +311,15 @@ public class GPUKernalFuncTranspiler implements Visitor {
 
 	public void processArrayRefElements(ArrayRefLevelElementsHolder elements){
 		List<ArrayRefElement> flat = new ArrayList<ArrayRefElement>();
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> bracksetx: elements.getAll()){
-			ArrayList<ArrayRefElement> brackset = bracksetx.getB();
+		for(NullableArrayElementss bracksetx: elements.getAll()){
+			ArrayList<ArrayRefElement> brackset = bracksetx.elements;
 			
-			if(bracksetx.getA()) {
+			if(bracksetx.nullsafe) {
 				raiseErrorNoUse(brackset.get(0).getLine(), brackset.get(0).getColumn(), "safe array reference");
+			}
+			
+			if(bracksetx.nna) {
+				raiseErrorNoUse(brackset.get(0).getLine(), brackset.get(0).getColumn(), "no null assertion array reference");
 			}
 			
 			for(ArrayRefElement e : brackset) {
@@ -925,9 +930,10 @@ public class GPUKernalFuncTranspiler implements Visitor {
 					boolean isDirect = isDirectAccess.get(n);
 					boolean retSelf = dotOperator.returnCalledOn.get(n);
 					boolean isSafe = dotOperator.safeCall.get(n);
+					boolean nna = dotOperator.noNullAssertion.get(n);
 					
-					if(isDirect || retSelf || isSafe) {
-						raiseErrorNoUse(e.getLine(), e.getColumn(), "direct, safe or self returning dot operator");
+					if(isDirect || retSelf || isSafe || nna) {
+						raiseErrorNoUse(e.getLine(), e.getColumn(), "direct, safe, no null assertion or self returning dot operator");
 					}
 					
 					this.addItem(".");
@@ -1074,7 +1080,7 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		public boolean equals(Object an) {
 			if(an instanceof ClinitOrFuncDef) {
 				ClinitOrFuncDef asAn = (ClinitOrFuncDef)an;
-				return asAn.isClinit == this.isClinit && Objects.equal(asAn.fd, this.fd);
+				return asAn.isClinit == this.isClinit && Objects.equals(asAn.fd, this.fd);
 			}
 			return false;
 		}

@@ -447,7 +447,7 @@ def retLambda() (int) int{
 
 class A<T> with Cloneable, java.io.Serializable {
     //length int = X ;
-    override clone() T[]  {
+    override clone() T[]?  {
         try {
             return super.clone() as T[]; // unchecked warning
         } catch (e CloneNotSupportedException) {

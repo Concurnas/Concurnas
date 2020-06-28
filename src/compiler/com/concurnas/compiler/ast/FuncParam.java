@@ -11,6 +11,7 @@ public class FuncParam extends Node implements HasAnnotations, Comparable<FuncPa
 	public boolean isShared;
 	public boolean isLazy;
 	public boolean isVararg;
+	public boolean isNullableVarArg;
 	public Integer sytheticDefinitionLevel;
 
 	public Annotations annotations;
@@ -55,6 +56,7 @@ public class FuncParam extends Node implements HasAnnotations, Comparable<FuncPa
 		ret.annotations=annotations==null?null:(Annotations)this.annotations.copy();
 		ret.defaultValue = defaultValue==null?null:(Expression)defaultValue.copy();
 		ret.isVararg=isVararg;
+		ret.isNullableVarArg=isNullableVarArg;
 		ret.gpuVarQualifier=gpuVarQualifier;
 		ret.isShared=isShared;
 		ret.isLazy=isLazy;
@@ -73,6 +75,7 @@ public class FuncParam extends Node implements HasAnnotations, Comparable<FuncPa
 		ret.defaultValue = defaultValue==null?null:(Expression)defaultValue.copy();
 		ret.defaultOk=defaultOk;
 		ret.isVararg=isVararg;
+		ret.isNullableVarArg=isNullableVarArg;
 		ret.gpuVarQualifier=gpuVarQualifier;
 		ret.isShared=isShared;
 		ret.isLazy=isLazy;
@@ -99,7 +102,7 @@ public class FuncParam extends Node implements HasAnnotations, Comparable<FuncPa
 				return comppd.type == this.type;
 			}
 			
-			return comppd.type.getNonGenericPrettyName().equals(this.type.getNonGenericPrettyName()) && this.isVararg == comppd.isVararg;
+			return comppd.type.getNonGenericPrettyName().equals(this.type.getNonGenericPrettyName()) && this.isVararg == comppd.isVararg && this.isNullableVarArg == comppd.isNullableVarArg;
 		}
 		return false;
 	}
@@ -127,7 +130,7 @@ public class FuncParam extends Node implements HasAnnotations, Comparable<FuncPa
 	@Override
 	public String toString()
 	{
-		return String.format("%s%s%s%s%s %s%s%s", this.gpuVarQualifier==null?"":this.gpuVarQualifier + " ", this.isLazy?"lazy ":"",this.isShared?"shared ":"", this.gpuInOutFuncParamModifier==null?"":this.gpuInOutFuncParamModifier + " ", name, type==null?"":type.toString(), this.isVararg?"...":"" ,this.defaultValue != null?"="+this.defaultValue:"=null");
+		return String.format("%s%s%s%s%s %s%s%s%s", this.gpuVarQualifier==null?"":this.gpuVarQualifier + " ", this.isLazy?"lazy ":"",this.isShared?"shared ":"", this.gpuInOutFuncParamModifier==null?"":this.gpuInOutFuncParamModifier + " ", name, type==null?"":type.toString(), this.isVararg?"...":"", this.isNullableVarArg?"?":"" ,this.defaultValue != null?"="+this.defaultValue:"=null");
 	}
 
 	public void setDefaultValue(Expression defaultValue) {

@@ -2,12 +2,12 @@ package com.concurnas.compiler.ast;
 
 import java.util.ArrayList;
 
+import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.utils.Thruple;
-import com.concurnas.runtime.Pair;
 
 public class ArrayRefLevelElementsHolder {
 
-	private ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> items = new ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>>();
+	private ArrayList<NullableArrayElementss> items = new ArrayList<NullableArrayElementss>();
 	private ArrayList<Thruple<Type, Type, ARElementType>> typeAtLevel = new ArrayList<Thruple<Type, Type, ARElementType>>();
 	
 	public enum ARElementType{LIST, MAP, ARRAY, OBJ};
@@ -16,29 +16,30 @@ public class ArrayRefLevelElementsHolder {
 		
 	}
 	
-	private ArrayRefLevelElementsHolder(ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> items, ArrayList<Thruple<Type, Type, ARElementType>> typeAtLevel){
+	private ArrayRefLevelElementsHolder(ArrayList<NullableArrayElementss> items, ArrayList<Thruple<Type, Type, ARElementType>> typeAtLevel){
 		this.items = items;
 		this.typeAtLevel = typeAtLevel;
 	}
 	
-	public void add(boolean isNullSafe, ArrayList<ArrayRefElement> item) {
-		Pair<Boolean, ArrayList<ArrayRefElement>> itemx = new Pair<Boolean, ArrayList<ArrayRefElement>>(isNullSafe, item);
+	
+	public void add(boolean isNullSafe, boolean noNullAssertion, ArrayList<ArrayRefElement> item) {
+		NullableArrayElementss itemx = new NullableArrayElementss(isNullSafe, noNullAssertion, item);
 		items.add(itemx);
 	}
 	public void prepend(ArrayList<ArrayRefElement> item) {
-		Pair<Boolean, ArrayList<ArrayRefElement>> itemx = new Pair<Boolean, ArrayList<ArrayRefElement>>(false, item);
-		 items.add(0, itemx);
+		NullableArrayElementss itemx = new NullableArrayElementss(false, false, item);
+		items.add(0, itemx);
 	}
 	
-	public ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> getAll() {
+	public ArrayList<NullableArrayElementss> getAll() {
 		return items;
 	}
 	
 	public ArrayList<ArrayRefElement> flatten(){
 		ArrayList<ArrayRefElement> ret = new ArrayList<ArrayRefElement>();
 		
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> inst : items) {
-			ret.addAll(inst.getB());
+		for(NullableArrayElementss inst : items) {
+			ret.addAll(inst.elements);
 		}
 		
 		return ret;
@@ -49,8 +50,8 @@ public class ArrayRefLevelElementsHolder {
 	}
 	
 	public ArrayRefElement getLastArrayRefElement(){
-		Pair<Boolean,ArrayList<ArrayRefElement>> lastEsx = items.get(items.size()-1);
-		ArrayList<ArrayRefElement> lastEs = lastEsx.getB();
+		NullableArrayElementss lastEsx = items.get(items.size()-1);
+		ArrayList<ArrayRefElement> lastEs = lastEsx.elements;
 		
 		return lastEs.get(lastEs.size()-1);
 	}
@@ -73,15 +74,15 @@ public class ArrayRefLevelElementsHolder {
 	
 	@Override
 	public ArrayRefLevelElementsHolder clone(){
-		ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>> items = new ArrayList<Pair<Boolean, ArrayList<ArrayRefElement>>>();
+		ArrayList<NullableArrayElementss> items = new ArrayList<NullableArrayElementss>();
 		ArrayList<Thruple<Type, Type, ARElementType>> typeAtLevel = new ArrayList<Thruple<Type, Type, ARElementType>>();
 		
-		for(Pair<Boolean, ArrayList<ArrayRefElement>> aresx : this.items){
+		for(NullableArrayElementss aresx : this.items){
 			ArrayList<ArrayRefElement> areae = new ArrayList<ArrayRefElement>();
-			for(ArrayRefElement ar : aresx.getB()){
+			for(ArrayRefElement ar : aresx.elements){
 				areae.add((ArrayRefElement)ar.copyTypeSpecific());
 			}
-			items.add(new Pair<Boolean, ArrayList<ArrayRefElement>>(aresx.getA(), areae) );
+			items.add(new NullableArrayElementss(aresx.nullsafe, aresx.nna, areae) );
 		}
 		
 		for(Thruple<Type, Type, ARElementType> tal : this.typeAtLevel){

@@ -248,3 +248,31 @@ ok2
 ~~~~~
 //##62. most generic of nullable types - list
 ok1
+
+~~~~~
+//##63. transient classes may be checked for nullability within async block
+result: uh oh
+
+~~~~~
+//##64. as above but with tricky if else condition
+uh oh
+
+~~~~~
+//##65. transient class into isolate
+result: uh oh
+
+~~~~~
+//##66. transient field is unknown nullability
+oknullnull
+
+~~~~~
+//##67. transient class is unknown nullability
+ok[hi ok]
+
+~~~~~
+//##68. unknown local generic is ok
+ok Optional[ok]
+
+~~~~~
+//##69. unknown local generic is ok 2
+ok (Optional[ok], 12)

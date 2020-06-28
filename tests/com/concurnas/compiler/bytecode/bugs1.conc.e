@@ -710,7 +710,7 @@ oktrue
 
 ~~~~~
 //##176. trans block missing isolated=true on main work block
-java.lang.Exception: uh oh
+uh oh
 
 ~~~~~
 //##177. allow dot over multiple lines
@@ -887,3 +887,67 @@ k
 ~~~~~
 //##220. top level nesting of for loop within isolate
 ok
+
+~~~~~
+//##221. class field initalizer with branching logic bug
+ok[0 0 0 0 0]
+
+~~~~~
+//##222. null type not carried on to fields
+[2, 2]
+
+~~~~~
+//##223. closeable on reassignment
+[Closable(C), Closable(A)]
+
+~~~~~
+//##224. used to think it was nullable
+[some text, some text]
+
+~~~~~
+//##225. nullable after function invokation
+[fail ok, 2]
+
+~~~~~
+//##226. double check safe call ret null
+res: null
+
+~~~~~
+//##227. multi-assign with same expr var on rhs
+[asd, (3, 3)]
+
+~~~~~
+//##228. refs used to return wrapper
+its nulljava.lang.NullPointerException
+
+~~~~~
+//##229. expression list thought it needed to return
+okthere
+
+~~~~~
+//##230. first logical not implemented
+ok ok
+
+~~~~~
+//##231. last logical not implemented for async block
+ok there
+
+~~~~~
+//##232. transient in iso is null
+result: its nullx java.lang.NullPointerException
+
+~~~~~
+//##233. bug in eq impl
+[[false, true], true]
+
+~~~~~
+//##234. tuple variable vs func invoke
+ok
+
+~~~~~
+//##235. no null assertion for array ref
+ok13
+
+~~~~~
+//##236. problem with local arrays now its ok
+100

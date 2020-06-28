@@ -104,8 +104,11 @@ public class AsyncBlock extends Block implements HasExtraCapturedVars {
 	public String toString() {
 		return "" + this.getLine() + " -> " + this.lamDets;
 	}
-	
 
+	/*
+	 * public LineHolder getLast() { return this.body.getLast(); }
+	 */
+	
 	/*public boolean isPermissableToGoOnRHSOfADot(Node preceededBy)
 	{
 		return true;

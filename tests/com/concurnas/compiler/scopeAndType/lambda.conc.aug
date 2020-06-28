@@ -27,9 +27,9 @@ z4 (B) void = def (a A) void {}//FAIL
 
 ~~~~~
 //##69. Lambda - creation def 4 - arrays, as args, 
-a (int[2]) int[6] = def (a int[2]) int[6] {  return null; } //OK
-a2 (int[2]) int[] = def (a int[1]) int[] {  return null; }//FAIL as array levels dont mathc
-a3 (int[2]) int[6] = def (a int[2]) int[5] {  return null; }//FAIL as array levels dont mathc
+a (int[2]) int[6]? = def (a int[2]) int[6]? {  return null; } //OK
+a2 (int[2]) int[]? = def (a int[1]) int[]? {  return null; }//FAIL as array levels dont mathc
+a3 (int[2]) int[6]? = def (a int[2]) int[5]? {  return null; }//FAIL as array levels dont mathc
 
 ~~~~~
 //##69. Lambda - creation def 5 - arrays of funcs -> wow!
@@ -400,8 +400,8 @@ for( funcrefola  in [funcref])
 //##69. Lambda - FunctionN type...
 a Function2<Integer, Integer, String>? = null //can set funcref to null and these are commutable....
 res String =a??(2,3)// translate the function2 into a FuncType
-a = def (a int, b int) String { return ""; }
-res  =a??(2,3)// translate the function2 into a FuncType
+a = def (a int, b int) String { return ""; }//now a cannot be null
+res  =a(2,3)// translate the function2 into a FuncType
 
 voidfunc Function3<String, String, String, Void>? = null
 voidfunc = def (a String, b String, c String) void {} 

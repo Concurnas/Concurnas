@@ -28,7 +28,7 @@ x6nullablefuncref2.conc line 12:15 Argument passed to method reference can be nu
  
 ~~~~~
 //##7. nullable funcref 3
-x7nullablefuncref3.conc line 12:16 Argument passed to method reference can be null, but method argument type is not nullable
+x7nullablefuncref3.conc line 12:15 Argument passed to method reference can be null, but method argument type is not nullable
  
 ~~~~~
 //##8. nullable constructor
@@ -79,14 +79,11 @@ x12expressionbeforedotmaybenull.conc line 14:6 expression before . might be null
 
 ~~~~~
 //##13. lists pt1
-x13listspt1.conc line 16:2 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##14. for loop iterable can be null
 x14forloopiterablecanbenull.conc line 13:22 iterable for loop expression can be null
 x14forloopiterablecanbenull.conc line 17:13 iterable for loop expression can be null
-x14forloopiterablecanbenull.conc line 18:2 Assignment can be null, but assignment type is not nullable
-x14forloopiterablecanbenull.conc line 22:2 Assignment can be null, but assignment type is not nullable
  
 ~~~~~
 //##15. with expression may be null
@@ -122,13 +119,15 @@ x21safedotopchain.conc line 18:9 expression before ?. is expected to be nullable
  
 ~~~~~
 //##22. not null assertion
+x22notnullassertion.conc line 11:5 Non null assertion ?? may only be applied to nullable or potentially nullable types
+x22notnullassertion.conc line 12:5 Non null assertion ?? may only be applied to nullable or potentially nullable types
  
 ~~~~~
 //##23. elvis checks and void not approperiate
 x23elvischecksandvoidnotapproperiate.conc line 8:8 Elvis operator ?: may only be used on nullable or potentially nullable types
 x23elvischecksandvoidnotapproperiate.conc line 9:8 unexpected type: void for elvis operator ?:
 x23elvischecksandvoidnotapproperiate.conc line 11:2 unexpected type: void for elvis operator ?:
-x23elvischecksandvoidnotapproperiate.conc line 13:1 void is not an instantiable type
+x23elvischecksandvoidnotapproperiate.conc line 13:8 unexpected type: void for not null assertion ??
 
 ~~~~~
 //##24. HasNoNullItems - test @NoNull annoation
@@ -190,14 +189,13 @@ x35vectorization.conc line 4:7 Operand for operation might be null
 
 ~~~~~
 //##36. applies to nullable only
+x36appliestonullableonly.conc line 4:9 Non null assertion ?? may only be applied to nullable or potentially nullable types
 
 ~~~~~
 //##37. nullable generics
 x37nullablegenerics.conc line 25:7 Generic parameter qualifcation mismatch: 'X' cannot be qualified with: 'java.lang.String?' - nullability mismatch
 x37nullablegenerics.conc line 26:7 Argument 1 passed to constructor (of x37nullablegenerics.MyClass<java.lang.String>) can be null (null), but constructor argument type(java.lang.String) is not nullable
 x37nullablegenerics.conc line 27:8 Generic parameter qualifcation mismatch: 'X' cannot be qualified with: 'null' - nullability mismatch
-x37nullablegenerics.conc line 30:7 Generic parameter qualifcation mismatch: 'X?' cannot be qualified with: 'java.lang.String' - nullability mismatch
-x37nullablegenerics.conc line 31:8 Generic parameter qualifcation mismatch: 'X?' cannot be qualified with: 'java.lang.String' - nullability mismatch
  
 ~~~~~
 //##38. generic type inference will preserve nullability
@@ -244,12 +242,10 @@ x44thiswasabugnowitsok.conc line 8:7 int[] is not a subtype of java.lang.Integer
 ~~~~~
 //##45. nullable generics respected in bytecode
 x45nullablegenericsrespectedinbytecode.conc line 7:11 Generic parameter qualifcation mismatch: 'X' cannot be qualified with: 'java.lang.String?' - nullability mismatch
-x45nullablegenericsrespectedinbytecode.conc line 9:10 Generic parameter qualifcation mismatch: 'X?' cannot be qualified with: 'java.lang.String' - nullability mismatch
  
 ~~~~~
 //##46. nullable generics respected in bytecode - other way
 x46nullablegenericsrespectedinbytecodeotherway.conc line 7:11 Generic parameter qualifcation mismatch: 'X' cannot be qualified with: 'java.lang.String?' - nullability mismatch
-x46nullablegenericsrespectedinbytecodeotherway.conc line 9:10 Generic parameter qualifcation mismatch: 'X?' cannot be qualified with: 'java.lang.String' - nullability mismatch
  
 ~~~~~
 //##47. nullable generics respected in bytecode - methods
@@ -276,8 +272,8 @@ x51Nullsafearrayoperationmayonlybeperformedonarrayhavinganullabletype.conc line 
  
 ~~~~~
 //##52. used to crash now its ok
-x52usedtocrashnowitsok.conc line 11:31 Array index operation can only be performed on object that is an array, Map, List or object having approperiate operator overloading 'get' method not: int
- 
+x52usedtocrashnowitsok.conc line 11:14 expression before ?. is expected to be nullable
+
 ~~~~~
 //##53. fun ret void still ret void
 x53funretvoidstillretvoid.conc line 12:1 void is not an instantiable type
@@ -286,12 +282,13 @@ x53funretvoidstillretvoid.conc line 12:1 void is not an instantiable type
 //##54. null check logic 
 x54nullchecklogic.conc line 8:1 Lamdba: thing is nullable and may be null
 x54nullchecklogic.conc line 24:1 Lamdba: thing is nullable and may be null
+x54nullchecklogic.conc line 36:38 Lamdba: thing is nullable and may be null
 x54nullchecklogic.conc line 40:1 Lamdba: thing is nullable and may be null
  
 ~~~~~
 //##55. no match on null if not nullable
-x55nomatchonnullifnotnullable.conc line 8:7 cannot match against null as input is not nullable
-
+x55nomatchonnullifnotnullable.conc line 8:7 Nullability may only be tested for nullable types
+ 
 ~~~~~
 //##56. advanved null inference - ae an
 x56advanvednullinferenceaean.conc line 15:1 expression before . might be null
@@ -340,3 +337,83 @@ x65sharedvarsinf.conc line 12:6 expression before . might be null
 x65sharedvarsinf.conc line 13:6 expression before . might be null
 x65sharedvarsinf.conc line 14:6 expression before . might be null
  
+~~~~~
+//##66. non null assertion only to nullables
+x66nonnullassertiononlytonullables.conc line 17:4 expression before ??. is expected to be nullable
+x66nonnullassertiononlytonullables.conc line 19:4 expression before . might be null
+ 
+~~~~~
+//##67. correct inverse assertions
+
+~~~~~
+//##68. not null outside while
+
+~~~~~
+//##69. basic short circuting
+
+~~~~~
+//##70. simple union
+x70simpleunion.conc line 13:4 expression before . might be null
+
+~~~~~
+//##71. not null after assert
+
+~~~~~
+//##72. try with resources bugfix
+
+~~~~~
+//##73. iterate through nullable array
+
+~~~~~
+//##74. nullable varargs
+
+~~~~~
+//##75. force nullable type to be explicitly cast as such
+x75forcenullabletypetobeexplicitlycastassuch.conc line 5:8 expression to cast is nullable: null but declared type: java.lang.String is not nullable
+ 
+~~~~~
+//##76. component of varag can be nullable
+ 
+~~~~~
+//##78. return means cannot be null
+ 
+~~~~~
+//##79. return means cannot be null pt2
+ 
+~~~~~
+//##80. branching res all non null
+ 
+~~~~~
+//##81. branching res all non null with ret
+ 
+~~~~~
+//##82. branching with deo returns in if
+ 
+~~~~~
+//##83. branching with has to be non null
+ 
+~~~~~
+//##84. big conditional branching test
+ 
+~~~~~
+//##85. if else cannot be null
+
+~~~~~
+//##85. if else cannot be null
+
+~~~~~
+//##86. slightly complex branching case
+
+~~~~~
+//##87. while cannot be null but can with break
+x87whilecannotbenullbutcanwithbreak.conc line 25:8 expression before . might be null
+
+~~~~~
+//##88. nullable refs
+
+~~~~~
+//##89. handle asyncrefref in nullable analysis
+
+~~~~~
+//##90. non null return
+x90nonnullreturn.conc line 3:37 Attempted to return nullable type: null but expected return type: byte[] is not nullable
