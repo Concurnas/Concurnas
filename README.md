@@ -105,6 +105,8 @@ The first time setup of Concurnas for eclipse is quite involved.
    
 	or import the project into eclipse as a gradle project.
 2. You may need to force the ANTLR plugin (configured as above) to detect the .g files under src\main\antlr\com\concurnas for the first time by opening them and re-saving them (this will clear up any errors about missing Visitors etc).
+3. You may also need to refresh the gradle build in order to include the ./src_derived directory as a directory containing source code for the build. (right click on build.gradle -> Gradle -> Refresh Gradle Project)
+4. Finally, you may also need to replace the JRE System Library in the project JavaBuild Path. (Java Build Path -> Libraries -> JRE System Library - Remove 1.8 and replace via the "Add Library..." button).
 
 #### Generating remaining Concurnas Code:
 Run the following code in eclipse (after each clean build) in order to complete the build:
