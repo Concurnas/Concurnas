@@ -55,9 +55,8 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		return ret;
 	}
 	
-	public GPUKernalFuncTranspiler(String fullPathFileName)
-	{
-		this.fullPathFileName = fullPathFileName;
+	public GPUKernalFuncTranspiler(String fullPathFileName){
+		this.fullPathFileName  = fullPathFileName;
 	}
 	
 	
@@ -95,8 +94,33 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		return errorLocation.remove(errorLocation.size()-1);
 	}
 	
+	
+	private ArrayList<ErrorHolder> capErrors = null;
+			
+	public ArrayList<ErrorHolder> supressErrors(){
+		capErrors = new ArrayList<ErrorHolder>();
+		return capErrors;
+	}
+	
+	public void applyErrors() {
+		ArrayList<ErrorHolder> eerrs = capErrors;
+		capErrors = null;
+		for(ErrorHolder er : eerrs) {
+			raiseError(er.getLine(), er.getColumn(), er.getMessage());
+		}
+	}
+	
+	private ErrorHolder makeError(int line, int column, String error) {
+		return new ErrorHolder(this.fullPathFileName, line, column, error, null, Utils.tagErrorChain(errorLocation) );
+	}
+	
 	public void raiseError(int line, int column, String error)
 	{
+		if(capErrors != null) {
+			capErrors.add(makeError(line, column, error));
+			return;
+		}
+		
 		boolean isEmpty = errorForLine.isEmpty();
 		if(isEmpty){//JPT: see if u can remove this, its a bit ugly
 			enterLine();
@@ -107,7 +131,7 @@ public class GPUKernalFuncTranspiler implements Visitor {
 		{
 			if(!currentLineToErr.containsKey(line))
 			{//add if one has not already been assigned
-				currentLineToErr.put(line, new ErrorHolder(this.fullPathFileName, line, column, error, null, Utils.tagErrorChain(errorLocation)  ) );
+				currentLineToErr.put(line, makeError(line, column, error) );
 			}
 		}
 		
@@ -151,6 +175,8 @@ public class GPUKernalFuncTranspiler implements Visitor {
 			for(LineHolder lh : lexedAndParsedAST.lines) {
 				Line l = lh.l;
 				boolean wasConst=false;
+				
+				ArrayList<ErrorHolder> ers = topLevelTranspi.supressErrors();//only raise if const
 				if(l instanceof AssignNew) {
 					wasConst = (Boolean)topLevelTranspi.visit((AssignNew)l);
 				}else if(l instanceof AssignExisting) {
@@ -160,6 +186,10 @@ public class GPUKernalFuncTranspiler implements Visitor {
 				}
 				
 				if(wasConst) {
+					if(!ers.isEmpty()) {//raise any errors...
+						topLevelTranspi.applyErrors();
+					}
+					
 					anyconst = wasConst;
 					topLevelTranspi.addItem(";\n");
 				}

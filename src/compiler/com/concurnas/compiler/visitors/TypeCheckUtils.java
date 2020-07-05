@@ -6260,8 +6260,12 @@ public class TypeCheckUtils {
 									} else {*/
 										ArrayDef ad = new ArrayDef(0, 0, arrayElements);
 										ad.isArray=true;
-										ad.setTaggedType(vaType);
 										ad.emptyArrayOk=true;
+										//satc.maskErrors(false);
+										//try to figure out type
+										//Type tt = (Type)ad.accept(satc);
+										//ad.setTaggedType(tt==null||satc.maskedErrors()?vaType :tt );
+										ad.setTaggedType(vaType);
 										ret=ad;
 										/*ret = new CastExpression(0,0, vaType, (Expression)ret);
 										ret.setTaggedType(vaType);*/
@@ -6897,7 +6901,27 @@ public class TypeCheckUtils {
 		return what != NullStatus.NULLABLE && what != NullStatus.UNKNOWN; 
 	}
 
-	
+	public static boolean isNullMismatch(Type want, Type got) {
+		if(want == null || got == null) {
+			return false;
+		}
+		
+		if(want.hasArrayLevels() && want.getArrayLevels() == got.getArrayLevels()) {
+			List<NullStatus> wantNL = want.getNullStatusAtArrayLevel();
+			List<NullStatus> gotNL = got.getNullStatusAtArrayLevel();
+			
+			for(int n=0; n < wantNL.size(); n++) {
+				NullStatus winst = wantNL.get(n);
+				NullStatus ginst = gotNL.get(n);
+				
+				if(winst != NullStatus.NULLABLE && winst != NullStatus.UNKNOWN && ginst == NullStatus.NULLABLE) {
+					return true;
+				}
+			}
+		}
+		
+		return TypeCheckUtils.isNotNullable(want) && TypeCheckUtils.isNullable(got);
+	}
 
 	public static boolean regularEQ(GenericType me, GenericType asNamed) {
 		if(me.getInOutGenModifier() != asNamed.getInOutGenModifier()) {

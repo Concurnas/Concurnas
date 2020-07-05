@@ -294,7 +294,7 @@ def doings()=> ""+f
 items = [(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= for( (f, b) in items ){
+	r1= for( f, b in items ){
 		f + b
 	}
 	"" + r1
@@ -306,7 +306,7 @@ def doings(){
 items = [(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= for( (f int, b ) in items ){
+	r1= for( f int, b  in items ){
 		f + b
 	}
 	"" + r1
@@ -318,7 +318,7 @@ def doings(){
 items = [(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= for( (f int,  ) in items ){
+	r1= for( f int,  in items ){
 		f + f
 	}
 	"" + r1
@@ -330,7 +330,7 @@ def doings(){
 items = a[(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= for( (a, b) in items ){
+	r1= for( a, b in items ){
 		a+b
 	}
 	"" + r1
@@ -342,7 +342,7 @@ def doings(){
 items = a[(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= a+b for (a, b) in items
+	r1= a+b for a, b in items
 	"" + r1
 }
 
@@ -528,4 +528,15 @@ def doings(){
 	c , d int = x
 		
 	"" + [a b c d]
+}
+
+~~~~~
+//##46. tuple decomp for fors
+
+toSum = [(1, 2), (3, 4), (5, 6)]
+
+def doings(){
+	x = "" + (a + b for a, b in toSum)
+	y = "" + for(a, b in toSum ) { a + b }
+	"{x, y}"
 }

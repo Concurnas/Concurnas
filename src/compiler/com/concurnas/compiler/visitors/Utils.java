@@ -129,6 +129,8 @@ public class Utils {
 		int col = rhs.getColumn();
 		Block newbodyHoldingTryCatch = new Block(line, col);
 		
+		
+				
 		Block blockToTry = includeRetAssignmentFromBlock?new Block(line, col):rhs;
 		ArrayList<CatchBlocks> cbs = new ArrayList<CatchBlocks>();
 		Block catchBlock = new Block(line, col);
@@ -817,14 +819,17 @@ public class Utils {
 			return new Pair<FuncType, Pair<NamedType, TypeAndLocation>>((FuncType)potential, null);
 		}else if(potential instanceof NamedType){
 			NamedType asNamed = (NamedType)potential;
-			if(asNamed.isInterface()) {
-				List<Pair<String, TypeAndLocation>> methods = asNamed.getAllLocallyDefinedMethods(satc, true, false);
-				
-				if(methods.size() == 1) {
-					Pair<String, TypeAndLocation> inst = methods.get(0);
-					FuncType ft = (FuncType)inst.getB().getType();
-					if(!ft.signatureExpectedToChange) {
-						return new Pair<FuncType, Pair<NamedType, TypeAndLocation>>(ft, new Pair<NamedType, TypeAndLocation>(asNamed, inst.getB()));
+			
+			if(!asNamed.equals(ScopeAndTypeChecker.const_lambda_nt)) {
+				if(asNamed.isInterface() || asNamed.isAbstract()) {
+					List<Pair<String, TypeAndLocation>> methods = asNamed.getAllLocallyDefinedMethods(satc, true, false);
+					
+					if(methods.size() == 1) {
+						Pair<String, TypeAndLocation> inst = methods.get(0);
+						FuncType ft = (FuncType)inst.getB().getType();
+						if(!ft.signatureExpectedToChange) {
+							return new Pair<FuncType, Pair<NamedType, TypeAndLocation>>(ft, new Pair<NamedType, TypeAndLocation>(asNamed, inst.getB()));
+						}
 					}
 				}
 			}

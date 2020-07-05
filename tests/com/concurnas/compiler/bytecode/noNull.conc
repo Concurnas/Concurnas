@@ -479,7 +479,7 @@ class CallThing(a int){
 def doings(){
 	thing1 list<CallThing?> =  [CallThing(1), CallThing(4), CallThing(2)]
 	
-	res1 = thing1?^anOp()
+	res1 = thing1^anOp()
 	
 	"ok" + res1
 }
@@ -1242,3 +1242,38 @@ def doings(){//java type may be qualified with nullable generic
 	"ok " + (x, y)
 }
 
+~~~~~
+//##70. check cast nullable type
+def thing(what Object?){
+	if(what <> null){
+		if(what is String?){
+			return what as String//no err expected here
+		}
+	}
+	"nope"	
+}
+
+def doings(){
+	"OK" + [thing(null), thing("ok")]
+}
+
+~~~~~
+//##71. tests on aysncrefrefs
+private class ResponseQueueSender( ){
+	private client String:? = null
+}//was not processing if(this.client: <> null), correctly
+
+def doings() => "ok"
+
+~~~~~
+//##72. dont apply inference to lhs
+private class ResponseQueueSender(client String:?){
+	private def doSend(){
+		if(this.client <> null ){
+			this.client = null//should be ok
+		}
+		
+	}
+}
+
+def doings() => "ok"

@@ -31,7 +31,7 @@ ageAndName = new AgeAndNameHolder(24, "dave")
 ageAndName2 = [67, "mary"] //holding the data within a list
 \end{lstlisting}
 
-The holder object can become a very heavy weight pattern to use in code, especially for cases where the data lifetime or manipulation context is very short (contained within a method for instance). Likewise, the list pattern is inconvenient as we must remember to explicitly cast got values and it's mutable, meaning the contents can be accidentally changed. Tuples provide a nice middle ground between the two, as much type safety as classes, but with as much convenience in defining as lists.
+The holder object can become a very heavyweight pattern to use in code, especially for cases where the data lifetime or manipulation context is very short (contained within a method for instance). Likewise, the list pattern is inconvenient as we must remember to explicitly cast got values and it's mutable, meaning the contents can be accidentally changed. Tuples provide a nice middle ground between the two, as much type safety as classes, but with as much convenience in defining as lists.
 
 A nice advantage of tuples is that they are naturally immutable - once created they cannot be changed (note that the objects they contain, if not immutable can be changed).
 
@@ -59,13 +59,13 @@ e2 = x.f1
 Or we can use a decomposition assignment:
 \begin{lstlisting}
 x = 12, 14
-(e1, e2) = x
+e1, e2 = x
 \end{lstlisting}
 
 If only certain values need to be extracted this can be achieved by simply following the space to ignore with a comma:
 \begin{lstlisting}
 x = 12, 14, 15
-(e1, , e3) = x
+e1, , e3 = x
 
 //e1 == 12
 //e3 == 15
@@ -75,7 +75,7 @@ We can make use of the decomposition assignment within for loops like so:
 \begin{lstlisting}
 toSum = [(1, 2), (3, 4), (5, 6)]
 
-for((a, b) in toSum ) { a + b }
+for(a, b in toSum ) { a + b }
 //== [3, 7, 11]
 \end{lstlisting}
 
@@ -84,7 +84,7 @@ This same effect can be achieved within list comprehensions of tuples:
 \begin{lstlisting}
 toSum = [(1, 2), (3, 4), (5, 6)]
 
-(a+b) for (a, b) in toSum 
+(a+b) for a, b in toSum 
 //== [3, 7, 11]
 \end{lstlisting}
 
@@ -102,8 +102,8 @@ Tuples are reified types, which means that the following is perfectly valid code
 \begin{lstlisting}
 def extractAgeIfNameAndAge(an Object){
 	if(an is (int, String)){
-		(age,) = an
-		age
+		age, = an
+		return age
 	}
 	-1
 }
@@ -112,7 +112,7 @@ def extractAgeIfNameAndAge(an Object){
 \section{Tuples in multiple assignment}
 Tuples can be used in multiple assignment statements, e.g:
 \begin{lstlisting}
-(a, b) = (c, d) = 1, 2
+a, b = c, d = 1, 2
 
 //a == 1
 //b == 2

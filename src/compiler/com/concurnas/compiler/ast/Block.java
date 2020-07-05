@@ -454,10 +454,20 @@ public class Block extends CompoundStatement{
 			int sz = lines.size();
 			for(int n=0; n < sz-1; n++) {
 				LineHolder lh = lines.get(n);
+				
 				lh.setShouldBePresevedOnStack(false);
 			}
 			
-			lines.get(sz-1).setShouldBePresevedOnStack(should);
+			LineHolder last = lines.get(sz-1);
+			if(sz > 1) {//if last thing is synthetic continue statement, ignore it and allocate to penultimate item
+				Line what = last.l;//synthetic continue is a NOP operation - JPT: remove synthetic continue
+				if(what instanceof ContinueStatement && ((ContinueStatement)what).isSynthetic) {
+					last.setShouldBePresevedOnStack(should);
+					last = lines.get(sz-2);
+				}
+			}
+			
+			last.setShouldBePresevedOnStack(should);
 		}
 	}
 	

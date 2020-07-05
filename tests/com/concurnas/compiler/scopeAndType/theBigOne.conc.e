@@ -4222,7 +4222,7 @@ x556tuplesrhsno.conc line 6:1 c cannot be resolved to a variable
  
 ~~~~~
 //##557. no tuples in gpu 
-x557notuplesingpu.conc line 3:16 non primative types may not be used within a gpudef or gpukernel
+x557notuplesingpu.conc line 3:13 non primative types may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 7:5 tuples may not be used within a gpudef or gpukernel
 x557notuplesingpu.conc line 8:1 tuple decomposition may not be used within a gpudef or gpukernel
  
@@ -4530,4 +4530,4 @@ x617tuplevariabledefvsfuncinvoke.conc line 13:28 Array index operation can only 
 
 ~~~~~
 //##618. multi assign to shared variables
-bytecodeSandbox.conc line 18:0 top level multi assign variables may not be shared
+x618multiassigntosharedvariables.conc line 3:0 top level multi assign variables may not be shared

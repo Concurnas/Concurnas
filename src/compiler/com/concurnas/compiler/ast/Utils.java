@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.TypeCheckUtils;
+import com.concurnas.runtime.Pair;
 
 public class Utils {
 
@@ -16,6 +17,23 @@ public class Utils {
 		
 		for(Object e : elements){
 			ret.add(e==null?null:((Copyable)e).copy());
+		}
+				
+		return ret;
+	}
+	
+	public static ArrayList<Pair<String, NamedType>> cloneArrayListPair(List<Pair<String, NamedType>> elements) {
+		if(null == elements){
+			return null;
+		}
+		ArrayList<Pair<String, NamedType>> ret = new ArrayList<Pair<String, NamedType>>(elements.size());
+		
+		for(Pair<String, NamedType> e : elements){
+			NamedType nt = e.getB();
+			if(nt != null) {
+				nt = (NamedType) nt.copy();
+			}
+			ret.add(new Pair<String, NamedType>(e.getA(), nt));
 		}
 				
 		return ret;

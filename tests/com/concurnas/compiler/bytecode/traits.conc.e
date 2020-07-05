@@ -360,3 +360,15 @@ got: [101, 201] use: [{class x89persistanceoftraitfields$MyClass->1}, {}] cont: 
 ~~~~~
 //##90. copy a trait
 its ok: 12
+
+~~~~~
+//##91. SAM type on abstract class
+22
+
+~~~~~
+//##92. SAM type on abstract class 2
+[13, 13, 14, 14]
+
+~~~~~
+//##93. SAM type on abstract class 3
+OK4

@@ -3950,11 +3950,11 @@ def doings(){
 things = zip([1, 2, 3], [4, 5, 6])
 
 def doings(){
- 	res1= for( (a, b) in things){//foreced as new now
+ 	res1= for( a, b in things){//foreced as new now
 		b
 	}
 	
-	res2=for( (a, b) in things){
+	res2=for( a, b in things){
 		a
 	}
 	
@@ -4363,3 +4363,22 @@ def waitingEvents(waitingEvents int:...){
 def doings(){
 	"" + waitingEvents(1:, 2:)
 }
+
+~~~~~
+//##237. assign null to ref
+private enum AsyncComponentStatus{
+	NOT_STARTED, RUNNING, TERMINATING, TERMINATED, STARTFAIL;
+}
+
+
+client String:? = null
+runState AsyncComponentStatus = AsyncComponentStatus.RUNNING
+
+def doSend(){
+	while(runState == AsyncComponentStatus.RUNNING){
+		client = null
+	}
+	
+}
+
+def doings() => "ok"

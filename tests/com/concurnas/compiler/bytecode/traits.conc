@@ -2114,3 +2114,66 @@ def doings(){
 	holdsTrait = new HoldsTrait(impl)
 	"" + holdsTrait@
 }
+
+~~~~~
+//##91. SAM type on abstract class
+class MyClass1{//implicit
+	def thing(a int) int;
+}
+
+def takesMcInst1(inst MyClass1) => inst.thing(12)
+
+
+def doings(){
+	f=9
+	"" + takesMcInst1(a => a+1 + f)
+}
+
+~~~~~
+//##92. SAM type on abstract class 2
+//SAM methods to apply to abstract types as well as interfaces
+class MyClass1{//implicit
+	def thing(a int) int;
+}
+
+abstract class MyClass2{//explicit
+	def thing(a int) int;
+}
+
+class MyClass3{//implicit
+	def thing(a int) int;
+	def something(a int) => thing(a + 1)
+}
+
+abstract class MyClass4{//explicit
+	def thing(a int) int;
+	def something(a int) => thing(a + 1)
+}
+
+def takesMcInst1(inst MyClass1) => inst.thing(12)
+def takesMcInst2(inst MyClass2) => inst.thing(12)
+def takesMcInst3(inst MyClass3) => inst.something(12)
+def takesMcInst4(inst MyClass4) => inst.something(12)
+
+
+def doings(){
+	"" + [takesMcInst1(a => a+1), 
+		takesMcInst2(a => a+1), 
+		takesMcInst3(a => a+1), 
+		takesMcInst4(a => a+1)]
+}
+
+~~~~~
+//##93. SAM type on abstract class 3
+class Abstract {
+  def op(arg int) int
+}
+
+class Clazz(-abs Abstract)
+
+inst = new Clazz(a => a*2)
+
+
+def doings(){
+	"OK" + inst.abs.op(2)
+}

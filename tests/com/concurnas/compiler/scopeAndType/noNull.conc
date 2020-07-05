@@ -1977,3 +1977,17 @@ def something2(name String) byte[]? => null//ok
 def doings() {
 	"ok" 
 }
+
+~~~~~
+//##91. null array arguments
+def something(aa String...){
+	a.length() for a in aa
+}
+
+def tt() => false
+
+def doings() {
+	xyz String[] = [null as String?]//also a problem
+	"ok" + something(null as String?)//nope! cannot pass null element array
+}
+

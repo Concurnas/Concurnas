@@ -367,10 +367,10 @@ def doings() String{
 //##15. null ref handle ok
 
 from com.concurnas.lang.precompiled import RefHelper
-
+def tt() => true
 def doings() String{
-	ref3 Integer?:?= RefHelper.getNullRef2()
-	ref4 Integer?:?= RefHelper.getNullRef2()
+	ref3 int:? = RefHelper.getNullRef2(): if tt() else null
+	ref4 int:? = RefHelper.getNullRef2(): if tt() else null
 	
 	z = try{
 	 g=[null &== ref3, ref3 &== null]
@@ -12214,9 +12214,9 @@ def doings() => "" + [ doings1(), doings2() ]
 //##204 locking of refs ignored for prim operations - ref eq
 
 from com.concurnas.lang.precompiled import RefHelper
-
+def tt() => true
 def doings() String{
-	ref3 Integer?:?= RefHelper.getNullRef2()
+	ref3 int:? = RefHelper.getNullRef2(): if tt() else null
 	
 	//the eq above is based on ref so shouldnt be extracting
 	

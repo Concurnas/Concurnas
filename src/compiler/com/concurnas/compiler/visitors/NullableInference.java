@@ -267,28 +267,6 @@ public class NullableInference extends AbstractErrorRaiseVisitor {
 	}
 	
 	private  class NullableFinder extends AbstractVisitor{
-		private Expression maybeResolvesToRefName(Expression rhs) {
-			//refname or this.refname
-			if(rhs instanceof DotOperator) {
-				DotOperator asDot = (DotOperator)rhs;
-				ArrayList<Expression> elems = asDot.getElements(this);
-				if(elems.size() == 2) {
-					Expression e1 = elems.get(0);
-					Expression e2 = elems.get(1);
-					if(e1 instanceof RefThis) {
-						if(e2 instanceof RefName) {
-							return e2;
-						}
-					}
-				}
-			}else if(rhs instanceof AsyncRefRef) {
-				return maybeResolvesToRefName(((AsyncRefRef)rhs).b);
-			}
-			
-			return rhs;
-		}
-		
-
 		private Stack<HashMap<Pair<String, Boolean>, NullStatus>> shortCircuited = new Stack<HashMap<Pair<String, Boolean>, NullStatus>>();
 		
 		@Override
@@ -343,13 +321,13 @@ public class NullableInference extends AbstractErrorRaiseVisitor {
 			Expression lhsExpression = equalityExpression.head;
 			boolean lhsVarNull = lhsExpression instanceof VarNull;
 			boolean lhsNullable = typeIsNullable(lhsExpression);
-			lhsExpression = maybeResolvesToRefName(lhsExpression);
+			lhsExpression = maybeResolvesToRefName(lhsExpression, this);
 			for(GrandLogicalElement e: equalityExpression.elements)
 			{
 				Expression rhsExpression = e.e2;
 				boolean rhsVarNull = rhsExpression instanceof VarNull;
 				boolean rhsNullable = typeIsNullable(rhsExpression);
-				rhsExpression = maybeResolvesToRefName(rhsExpression);
+				rhsExpression = maybeResolvesToRefName(rhsExpression, this);
 				
 				if((rhsNullable && lhsVarNull) || (lhsNullable && rhsVarNull)) {
 					if(e.compOp == GrandLogicalOperatorEnum.NE || e.compOp == GrandLogicalOperatorEnum.REFNE) {//certainly not null!
@@ -413,6 +391,8 @@ public class NullableInference extends AbstractErrorRaiseVisitor {
 				}else {
 					ret = new TestedNonNullAndNull();
 				}
+			}else if(test instanceof AsyncRefRef) {
+				ret = processExpression(((AsyncRefRef)test).b);
 			}else if(test instanceof RedirectableExpression) {
 				ret = processExpression(((RedirectableExpression)test).exp);
 			}else if(test instanceof DotOperator) {//shouldn't this process the previous keys to last?
@@ -504,6 +484,28 @@ public class NullableInference extends AbstractErrorRaiseVisitor {
 		return null;
 	}
 	
+	private static Expression maybeResolvesToRefName(Expression rhs, Visitor vis) {
+		//refname or this.refname
+		if(rhs instanceof DotOperator) {
+			DotOperator asDot = (DotOperator)rhs;
+			ArrayList<Expression> elems = asDot.getElements(vis);
+			if(elems.size() == 2) {
+				Expression e1 = elems.get(0);
+				Expression e2 = elems.get(1);
+				if(e1 instanceof RefThis) {
+					e2 = maybeResolvesToRefName(e2, vis);
+					if(e2 instanceof RefName) {
+						return e2;
+					}
+				}
+			}
+		}else if(rhs instanceof AsyncRefRef) {
+			return maybeResolvesToRefName(((AsyncRefRef)rhs).b, vis);
+		}
+		
+		return rhs;
+	}
+	
 	@Override
 	public Object visit(AssignExisting assignExisting) {
 		//lastLineVisited=assignExisting.getLine();
@@ -511,7 +513,10 @@ public class NullableInference extends AbstractErrorRaiseVisitor {
 			assignExisting.annotations.accept(this);
 		}
 		
-		assignExisting.assignee.accept(this);
+		if(!(maybeResolvesToRefName(assignExisting.assignee, this) instanceof RefName)){
+			assignExisting.assignee.accept(this);
+		}
+		
 		if(null != assignExisting.expr) {
 			assignExisting.expr.accept(this);
 		}

@@ -23,7 +23,7 @@ typedef map<K, V> = HashMap<K, V>
 /**Function will create a new HashMap from a collection of Key Value tuples. For example: map([(1, "a"), (2, "b"), (3, "c")]) will create: {1: "a", 2: "b", 3: "c"} */
 def map<K, V>(values Collection<(K, V)>) map<K, V> {
 	ret = new map<K, V>()
-	for((key, value) in values){
+	for(key, value in values){
 		ret[key] = value
 	}
 	return ret

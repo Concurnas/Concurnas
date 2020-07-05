@@ -28,7 +28,7 @@ Lets create some isolates now:
 \begin{lstlisting}
 def gcd(x int, y int){//greatest common divisor of two integers
 	while(y){
-		(x, y) = (y, x mod y)
+		x, y = y, x mod y
 	}
 	x
 }
@@ -208,7 +208,7 @@ A \lstinline{sync} block will ensure that all isolates created by code executed 
 \begin{lstlisting}
 def gcd(x int, y int){//greatest common divisor of two integers
 	while(y){
-		(x, y) = (y, x mod y)
+		x, y = y, x mod y
 	}
 	x
 }
@@ -230,7 +230,7 @@ Sync blocks may return a value:
 \begin{lstlisting}
 def gcd(x int, y int){//greatest common divisor of two integers
 	while(y){
-		(x, y) = (y, x mod y)
+		x, y = y, x mod y
 	}
 	x
 }
@@ -1491,7 +1491,7 @@ For example:
 \begin{lstlisting}
 def gcd(x int, y int){//greatest common divisor of two integers
 	while(y){
-		(x, y) = (y, x mod y)
+		x, y = y, x mod y
 	}
 	x
 }

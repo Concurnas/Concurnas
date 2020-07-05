@@ -621,6 +621,6 @@ typedef myTuple<x> = (int, x)
 items myTuple<int>[] = a[(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= a+b for (a, b) in items
+	r1= a+b for a, b in items
 	"" + r1
 }

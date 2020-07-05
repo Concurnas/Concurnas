@@ -1401,6 +1401,7 @@ from com.concurnas.lang.precompiled import SimpleClassNoParamsOnMethod
 
 def doings(){
 	cons = SimpleClassNoParamsOnMethod.class.getDeclaredMethods()
+	java.util.Collections.sort(cons)
 	"" + for(c in cons){
 		c.getParameterAnnotations()
 	}

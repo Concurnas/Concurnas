@@ -145,6 +145,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 		ret.supressErrors = supressErrors;
 		ret.isNestedFuncionDef = isNestedFuncionDef;
 		ret.canSkipIterativeCompilation = canSkipIterativeCompilation;
+		ret.defaultFuncParams = defaultFuncParams==null?null:(FuncDef)defaultFuncParams.copy();
 	}
 
 	
@@ -355,6 +356,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 	}
 
 	private boolean canSkipIterativeCompilation=false;
+	public FuncDef defaultFuncParams;
 	@Override
 	public boolean canSkip() {
 		return canSkipIterativeCompilation;

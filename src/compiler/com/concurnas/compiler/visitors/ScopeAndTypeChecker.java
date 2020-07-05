@@ -4023,6 +4023,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					//this.raiseError(assignExisting.getLine(),assignExisting.getColumn(), "Ambiguous type declaration of null");
 					int levels = rhs.getArrayLevels();
 					rhs = new NamedType(assignExisting.getLine(), assignExisting.getColumn(), new ClassDefJava(java.lang.Object.class));
+					rhs.setNullStatus(NullStatus.NULLABLE);
 					rhs.setArrayLevels(levels);
 				}
 				/*else if(TypeCheckUtils.hasRefLevels(rhs) && TypeCheckUtils.getRefType(rhs) instanceof VarNull){
@@ -7212,8 +7213,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		List<Boolean> assertNonNull = null;
 		
 		if(mappedArgs.stream().allMatch(a -> null != a && a.getTaggedType() != null)) {
-			if(mappedArgs.stream().anyMatch(a -> a.getTaggedType().getNullStatus() != NullStatus.NOTNULL)) {//some non null
-				ArrayList<Type> wanted = mostSpec.getInputs();
+			ArrayList<Type> wanted = mostSpec.getInputs();
+			if(wanted.stream().anyMatch(a -> a.getNullStatus() == NullStatus.NOTNULL)) {//some non null inputs
 				int sz = wanted.size();
 				
 				if(mappedArgs.size() == sz) {
@@ -7224,7 +7225,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						Type got = mappedArgs.get(n).getTaggedType();
 						
 						boolean checkForNull = false;
-						if(TypeCheckUtils.isNotNullable(want) && TypeCheckUtils.isNullable(got)) {//null check:
+						if(TypeCheckUtils.isNullMismatch(want, got)) {//null check:
 							this.raiseError(mappedArgs.get(n).getLine(), mappedArgs.get(n).getColumn(), String.format("Argument %s passed to method (of %s) can be null (%s), but method argument type(%s) is not nullable", n+1, name, got, wanted));
 						}else if( TypeCheckUtils.isUnknown(got)  &&  TypeCheckUtils.isNoNull(want) ) {
 							checkForNull=true;
@@ -11484,6 +11485,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 								if(isNull) {
 									Type wanted = matchingFunctionBeingCurried.getInputs().get(n);
 									obtained = overrideVarNull(wanted, obtained, item);
+								}else if(null != obtained && obtained.getNullStatus() == NullStatus.UNKNOWN) {
+									Type wanted = matchingFunctionBeingCurried.getInputs().get(n);
+									obtained = (Type)obtained.copy();
+									obtained.setNullStatus(wanted.getNullStatus());
 								}
 								
 								iType = obtained;
@@ -11497,6 +11502,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 								if(TypeCheckUtils.isNotNullable(wanted) && TypeCheckUtils.isNullable(obtained)) {//null check:
 									this.raiseError(item.getLine(), item.getColumn(), "Argument passed to method reference can be null, but method argument type is not nullable");
 								}else if( TypeCheckUtils.isUnknown(obtained)  &&  TypeCheckUtils.isNoNull(wanted) ) {//applies to to be curried in only?
+									obtained = (Type)obtained.copy();
 									obtained.setNullStatus(wanted.getNullStatus());//MHA
 								}
 							}
@@ -19077,8 +19083,18 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			ret = TypeCheckUtils.checkNumericalInfix(this.ers, a, b, powOperator.expr.getLine(), powOperator.expr.getColumn(), powOperator.raiseTo.getLine(), powOperator.raiseTo.getColumn(), makeMissingOpOverLoadMessage("pow", a, b, null));
 			if(null == ret) {
 				this.raiseError(powOperator.getLine(), powOperator.getColumn(), String.format("arguments to pow operator must both be numerical, not %s vs %s", a, b));
-				powOperator.setTaggedType(const_void_errored);
-				return const_void_errored;
+				
+				Type retx;
+				if(TypeCheckUtils.checkNumerical(this.ers, a, 0, 0, false)) {
+					retx=a;
+				}else if(TypeCheckUtils.checkNumerical(this.ers, b, 0, 0, false)) {
+					retx=b;
+				}else {
+					retx= const_void_errored;
+				}
+				
+				powOperator.setTaggedType(retx);
+				return retx;
 			}
 			
 			ret = TypeCheckUtils.unboxTypeIfBoxed(ret);
@@ -21243,7 +21259,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			funcDef.createTraitStaticMethod = !funcDef.isAbstract() && this.currentlyInTraitDef();
 			
-			boolean blacklist = false;//why is it called a black list?
+			boolean notCorrect = false;
 			if(isOverride && superClass == null)
 			{
 				this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s: %s which has been declared as overriden can only be defined within a subclass", methodOrFunction(), String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName)));
@@ -21269,7 +21285,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					//if no match, ret not compatible
 					
 					if(null == matchSuperDef){
-						blacklist = true;
+						notCorrect = true;
 						
 						if(null != matchButDifferingreturnTypeMaybe){
 							this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("The return type of method '%s' in class %s cannot be matched with method: '%s' in superclass: %s", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), holdingCls,  String.format(((FuncType)matchButDifferingreturnTypeMaybe.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), superClassStr));
@@ -21303,12 +21319,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						else{
 							if(!isOverride && !matchSuperDefType.isAbstarct() && !((AbstractType)tt.getType()).getAutoGennerated() )     
 							{//if not override, error, unless super was abstract in which case we dont have to deinfe it at all!
-								blacklist = true;
+								notCorrect = true;
 								this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("Method: '%s' of class: '%s' should be explicitly overriden in subclass: %s. Use the override keyword", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), superClassStr, holdingCls));
 							}
 							else if(isOverride && matchSuperDefType.isAbstarct() && !((AbstractType)tt.getType()).getAutoGennerated() )
 							{
-								blacklist = true;
+								notCorrect = true;
 								this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("In order for the method '%s' of class: '%s' to be overriden it must be defined in the superclass: %s - its been declared abstract", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), holdingCls, superClassStr));
 							}
 						}
@@ -21319,18 +21335,18 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				{
 					//also need to bind the superytpyes genericals
 					if(null != matchButDifferingreturnTypeMaybe && null == ((FuncType)matchButDifferingreturnTypeMaybe.getType()).retType){
-						blacklist = true;
+						notCorrect = true;
 						this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("The return type of method '%s' in class %s cannot be matched with method: '%s' in superclass: %s because no return type has been defined for instance in superclass", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), holdingCls,  String.format(((FuncType)matchButDifferingreturnTypeMaybe.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), superClassStr));
 					}
 					else if(null != matchButDifferingreturnTypeMaybe && !TypeCheckUtils.isAlreadyDefinedFuncReturnTypeCompatible(this.getErrorRaiseableSupression(), ((FuncType)tt.getType()).retType, ((FuncType)matchButDifferingreturnTypeMaybe.getType()).retType) )
 					{//class Sup{ fun foo() int } class Child extends Sup{ fun foo() double} //fail! because ambig ret
 						//object to float etc is ok though
-						blacklist = true;
+						notCorrect = true;
 						this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("The return type of method '%s' in class %s is incompatible with method: '%s' in superclass: %s", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), holdingCls,  String.format(((FuncType)matchButDifferingreturnTypeMaybe.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), superClassStr));
 					}
 					else if(isOverride)
 					{
-						blacklist = true;
+						notCorrect = true;
 						this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("In order for the method '%s' of class: '%s' to be overriden it must be defined in superclass: %s", String.format(((FuncType)tt.getType()).getFormatStringWithPalceholderforMethName(), funcDef.funcName), holdingCls, superClassStr));
 					}
 				}
@@ -21368,13 +21384,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					
 					if(null != offendingSuperDelc)
 					{
-						blacklist = true;
+						notCorrect = true;
 						this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("Method %s with matching argument definition exists already in supertype or traits as: %s - generic types are erased at runtime", tt==null?null:tt.getType(), offendingSuperDelc));
 					}
 				}
 			}
 			
-			if(!blacklist)
+			if(!notCorrect)
 			{
 				HashSet<TypeAndLocation> superFuncsfuncsWithGenerics = superClass==null? null : holdingCls.getSuperClassFuncDefsMatchingName(funcDef.funcName, false);
 				if(null != superFuncsfuncsWithGenerics)
@@ -21537,7 +21553,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(!funcDef.isGPUKernalFuncOrStub()) {
 			if(Utils.funcParamsHaveDefaults(funcDef.params) && !funcDef.funcName.endsWith("$ActorCall")){
-				FunctionGenneratorUtils.addwithDefaultsMethod(this.ers, this, funcDef, this.currentScopeFrame, this.currentlyInBlock.peek());
+				funcDef.defaultFuncParams = FunctionGenneratorUtils.addwithDefaultsMethod(this.ers, this, funcDef, this.currentScopeFrame, this.currentlyInBlock.peek());
 			}
 			
 			if(funcDef.getShouldBeDeletedOnUsusedReturn() && (!(funcDef.retType instanceof NamedType) || funcDef.retType.hasArrayLevels() )) {
@@ -21689,6 +21705,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		Type lhsType = elementTypes.get(0);//(Type)equalityExpression.head.accept(this);
 		lhsType = lhsType == null?null:(Type)lhsType.copy();
+		Type origLhs = lhsType;
 		lhsType = TypeCheckUtils.extractRawRefType(lhsType);
 		
 		Pair<ArrayList<Pair<Boolean, NullStatus>>, Type> lhsvec = vectorizedOperator(lhsType);
@@ -21754,8 +21771,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				{//if xyz == null // assert that xyz must be nullable
 					boolean rhsNull = rhstype instanceof VarNull;
-					if(rhsNull || lhsType instanceof VarNull) {
-						Type other = rhsNull?lhsType:rhstype;
+					if(rhsNull || origLhs instanceof VarNull) {
+						Type other = rhsNull?origLhs:rhstype;
 						if( TypeCheckUtils.isNotNullable(other) && TypeCheckUtils.isNotNullable(TypeCheckUtils.getRefTypeToLocked(other)) ) {
 							this.raiseError(equalityExpression.head.getLine(), equalityExpression.head.getColumn(), String.format("Nullability may only be tested for nullable types"));
 						}

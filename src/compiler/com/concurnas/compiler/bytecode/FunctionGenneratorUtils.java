@@ -270,7 +270,7 @@ public class FunctionGenneratorUtils {
 		addFunctionToClassDef(errors, classDef, funcName, setter, line, col, false, false);
 	}
 	
-	public static void addwithDefaultsMethod(ErrorRaiseable sup, ScopeAndTypeChecker satc, FuncDef funcDef, TheScopeFrame myScopeFrame, Block currentBlock) {
+	public static FuncDef addwithDefaultsMethod(ErrorRaiseable sup, ScopeAndTypeChecker satc, FuncDef funcDef, TheScopeFrame myScopeFrame, Block currentBlock) {
 		int line = funcDef.getLine();
 		int col = funcDef.getColumn();
 		String fname = funcDef.funcName;
@@ -391,6 +391,7 @@ public class FunctionGenneratorUtils {
 		currentBlock.overwriteLineHolder(new Pair<String, FuncType>(fname, sig), new LineHolder(line, col, wdefault));
 		
 		wdefault.accept(satc);
+		return wdefault;
 	}
 	
 	

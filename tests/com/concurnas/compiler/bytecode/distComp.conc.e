@@ -171,7 +171,7 @@ got: 7
 
 ~~~~~
 //##42. serialize an exception stack 1
-[[FourThings(java.lang.Throwable, init, Throwable.java, 271) FourThings(java.lang.Throwable, init, Throwable.java, 272) FourThings(java.lang.Throwable, init, Throwable.java, 273) null null], [FourThings(java.lang.Throwable, init, Throwable.java, 271) FourThings(java.lang.Throwable, init, Throwable.java, 272) FourThings(java.lang.Throwable, init, Throwable.java, 273) null null]]
+[[FourThings(java.lang.Throwable, init, Throwable.java, 273) FourThings(java.lang.Throwable, init, Throwable.java, 274) FourThings(java.lang.Throwable, init, Throwable.java, 275) null null], [FourThings(java.lang.Throwable, init, Throwable.java, 273) FourThings(java.lang.Throwable, init, Throwable.java, 274) FourThings(java.lang.Throwable, init, Throwable.java, 275) null null]]
 
 ~~~~~
 //##43. serialize an exception stack 2
@@ -227,11 +227,11 @@ ok20
 
 ~~~~~
 //##56. connect when already connected fail
-ok[ok err: java.lang.Exception: RemoteServer has already been started, ok err: java.lang.RuntimeException: java.lang.Exception: Connection to: localhost:42000 already established]
+ok[ok err: java.lang.Exception: RemoteServer has already been started, ok err: java.lang.Exception: Connection to: localhost:42000 already established]
 
 ~~~~~
 //##57. close connection before already connected
-ok[ok err: java.lang.Exception: RemoteServer has not been started, ok err: java.lang.RuntimeException: java.lang.Exception: Attempted disconnection but not currently connected]
+ok[ok err: java.lang.Exception: RemoteServer has not been started, ok err: java.lang.Exception: Attempted disconnection but not currently connected]
 
 ~~~~~
 //##58. auto close and explicit connect

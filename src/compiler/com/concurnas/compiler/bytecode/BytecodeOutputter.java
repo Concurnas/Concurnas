@@ -546,10 +546,11 @@ public class BytecodeOutputter implements Opcodes {
 		//NEW com/concurnas/bootstrap/runtime/CopyTracker
 		//CHECKCAST java/lang/Integer
 		//NEW java/lang/Object
+		//CHECKCAST com/concurnas/runtime/ref/Local
 		
-		if(checkcast == NEW && genType.equals("java/lang/Object")) {
-			int h=9;
-		}
+		//if(checkcast == CHECKCAST && genType.equals("com/concurnas/runtime/ref/Local")) {
+		//	int h=9;
+		//}
 		
 		
 		if (!(checkcast == CHECKCAST && genType.equals("java/lang/Object"))) {
@@ -610,7 +611,10 @@ public class BytecodeOutputter implements Opcodes {
 		//GETFIELD bytecodeSandbox$bytecodeSandbox$$onChange0$SO.lastVal$n1 : Ljava/lang/Integer;
 		//GETSTATIC repl$.a : Lcom/concurnas/runtime/ref/Local;
 		//PUTSTATIC bytecodeSandbox.a : Lcom/concurnas/runtime/ref/Local;
-		if (dowhat == PUTSTATIC && fullModuleAndClassName.equals("bytecodeSandbox") && name.equals("a")) {
+		
+		//GETSTATIC bytecodeSandbox client Lcom/concurnas/runtime/ref/Local;
+		
+		if (dowhat == GETSTATIC && fullModuleAndClassName.equals("bytecodeSandbox") && name.equals("client")) {
 			int g = 9;
 		}
 
@@ -655,7 +659,9 @@ public class BytecodeOutputter implements Opcodes {
 		//INVOKESPECIAL java/lang/Object.<init> (Lrepl$$Master;Lrepl$$Master;)V
 		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
 
-		if(opcode == PUTSTATIC && owner.equals("bytecodeSandbox") && name.equals("a") ) {
+		//INVOKEVIRTUAL com/concurnas/runtime/ref/Local.set (Ljava/lang/Object;)V
+		
+		if(opcode == INVOKEVIRTUAL && owner.equals("com/concurnas/runtime/ref/Local") && name.equals("set") ) {
 			int h=9;
 		}
 		

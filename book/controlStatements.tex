@@ -187,7 +187,7 @@ In Concurnas, a expression may be referenced in isolation within a test requirin
 \begin{lstlisting}
 def gcd(x int, y int){
 	while(y){//translated to y <> 0
-		(x, y) = (y, x mod y)
+		x, y = y, x mod y
 	}
 	x
 }

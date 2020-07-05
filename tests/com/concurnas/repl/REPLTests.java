@@ -1371,13 +1371,6 @@ public class REPLTests {
 		assertEquals("$0 ==> TSPoint(2020-01-01T00:00, 100.00)",repl.processInput("f = x for x in createData(); f[0]"));
 	}
 	
-
-	@Test
-	public void bugOptionalParams() throws Exception {
-		assertEquals("|  created function thing(int)",repl.processInput("def thing(a = 12) => a"));
-		assertEquals("$0 ==> 12",repl.processInput("thing()"));
-	}
-	
 	@Test
 	public void parfor() throws Exception {
 		String gcd = "def gcd(x int, y int){//greatest common divisor of two integers\n" + 
@@ -1542,22 +1535,6 @@ public class REPLTests {
 	}
 	
 	@Test
-	public void testRedefInst() throws Exception {
-		String op = "def gcd(x int, y = 25){\r\n" + 
-				"		  while(y){log(y)\r\n" + 
-				"		    x, y = y, x mod y\r\n" + 
-				"		  }\r\n" + 
-				"		  x\r\n" + 
-				"		}";
-		
-		assertEquals("moan",repl.processInput(op));
-		assertEquals("ok",repl.processInput("def log(a int) => System.\\out.println(a)"));
-		
-		
-		assertEquals("ok",repl.processInput("gcd(67)"));
-	}
-	
-	@Test
 	public void delWDefault() throws Exception {
 		String op = "def gcd(x int, y = 25){\r\n" + 
 				"		  while(y){log(y)\r\n" + 
@@ -1567,11 +1544,36 @@ public class REPLTests {
 				"		}";
 
 		assertEquals("|  ERROR 1:13 in gcd(int, int) - Unable to find method with matching name: log",repl.processInput(op));
-		assertEquals("ok",repl.processInput("del gcd"));
+		assertEquals("",repl.processInput("del gcd"));
 	}
-	
+
 	@Test
 	public void defaultObjectNullable() throws Exception {
-		assertEquals("should be ok",repl.processInput("aString = null"));
+		assertEquals("aString ==> null",repl.processInput("aString  = null"));
 	}
+
+	
+	@Test
+	public void testRedefInst() throws Exception {
+		String op = "def gcdx(x int, y int){\r\n" + 
+				"		  while(y){log(y)\r\n" + 
+				"		    x, y = y, x mod y\r\n" + 
+				"		  }\r\n" + 
+				"		  x\r\n" + 
+				"		}";
+		
+		assertEquals("|  ERROR 1:13 in gcdx(int, int) - Unable to find method with matching name: log",repl.processInput(op));
+		assertEquals("|  created function log(int)\n|    update modified gcdx(int, int)",repl.processInput("def log(a int) => s=a;;"));
+		
+		
+		assertEquals("$0 ==> 1",repl.processInput("gcdx(67, 123)"));
+	}
+
+	@Test
+	public void bugOptionalParams() throws Exception {
+		assertEquals("|  created function thing(int)",repl.processInput("def thing(a = 12) => a"));
+		assertEquals("$0 ==> 12",repl.processInput("thing()"));
+	}
+	
+	
 }

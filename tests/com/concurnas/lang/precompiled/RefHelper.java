@@ -36,7 +36,7 @@ public class RefHelper {
 	}
 	
 	@NoNull
-	public static Local<Integer> getNullRef2(){
+	public static Local<Integer> getNullRef2(){ 
 		return null;//TODO: support for ? is needed in generics
 	}
 	

@@ -15319,7 +15319,7 @@ def doings(){
 items = a[(1, 2), (3, 4), (5, 6)]
 
 def doings(){
-	r1= a+b for (a, b String) in items
+	r1= a+b for a, b String in items
 	"" + r1
 }
 
@@ -15332,7 +15332,7 @@ items myTuple[] = a[(1, 2), (3, 4), (5, 6)]
 items2 myTuple[] = a[(1, 2.), (3, 4), (5, 6)]
 
 def doings(){
-	r1= a+b for (a, b) in items
+	r1= a+b for a, b in items
 	"" + r1
 }
 

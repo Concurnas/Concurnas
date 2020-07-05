@@ -2213,6 +2213,7 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 				
 				if(!hasdefoReturnedNormally){
 					//repoint to assign results to onChangeBlock...
+					//onChangeBlock.isolated=true;
 					onChangeBlock = Utils.makeAssignToRefFromrhsBlock(onChangeBlock, retType, true); //xxx => ret := {xxx}
 				}
 				else{

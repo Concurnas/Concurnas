@@ -16,8 +16,8 @@ x69Lambdacreationdef3ensuresubbjcorrectly.conc line 13:14 Generic Type argument 
  
 ~~~~~
 //##69. Lambda - creation def 4 - arrays
-x69Lambdacreationdef4arraysasargs.conc line 4:20 Generic Type argument type mismatch: int[2] vs int[]
-x69Lambdacreationdef4arraysasargs.conc line 5:21 Generic Type argument type mismatch: int[6] vs int[5]
+x69Lambdacreationdef4arraysasargs.conc line 4:21 Generic Type argument type mismatch: int[2] vs int[]
+x69Lambdacreationdef4arraysasargs.conc line 5:22 Generic Type argument type mismatch: int[6]? vs int[5]?
  
 ~~~~~
 //##69. Lambda - creation def 5 - arrays of funcs -> wow!

@@ -787,9 +787,9 @@ class Child2 < ParCls("Child2")
 
 def matcher(a Object?) {
 	match(a){
-		case(Child1 or Child2; <>null){//one does not need to reference the class
-			"child: " + (a as ParCls).a
-		}
+		case(Child1? or Child2?; <>null){//one does not need to reference the class
+			"child: " + (a as ParCls?)??.a//null support here is messy
+		}//TODO: null analysis isnt quite clever enough to handle <>null case above
 		case(x){
 			"not sure what this is" + x
 		}

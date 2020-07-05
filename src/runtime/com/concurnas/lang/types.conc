@@ -2,7 +2,7 @@
  * Lazy<X> can be assigned a function reference (or lambda) taking no arguments but returning an instance of tpye X.
  * Upon the initial unassignment of the Lazy instance the function reference or lambda will be executed and the result returned.
  * On subsequent calls to unassign, the Lazy<X> variable will return the same value
- * If a function reference or lambda has not been assigned then when unassign is called it shall return null
+ * If a function reference or lambda has not been assigned then when unassign is called it shall throw a NullPointerException
  */
 class Lazy<X>{
 	private value X?
@@ -18,11 +18,11 @@ class Lazy<X>{
 		this.valueSet=false
 	}
 	
-	def unassign() X?{
+	def unassign() X{
 		if(not this.valueSet){
 			
 			if(this.eval == null){
-				return null
+				throw new NullPointerException("lazy variable has not been assigned a value")
 			}else{
 				this.value = this.eval()
 				valueSet=true
@@ -36,11 +36,7 @@ class Lazy<X>{
 	def hasBeenEvaluated() bool => this.valueSet
 	
 	def isPresent() bool => this.eval <> null
-	
-	override toString(){
-		ts = unassign()
-		"lazy " + (null if ts == null else ts.toString())
-	} 
+	override toString() => 	"lazy {unassign()}"
 }
 
 /**

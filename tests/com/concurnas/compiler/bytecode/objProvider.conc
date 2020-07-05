@@ -1763,7 +1763,7 @@ class MyClass{
 
 def doings(){
 	mc = MyClass()
-	a = mc.something
+	a = try{mc.something}catch(NullPointerException){null}
 	mc.something = 400
 	
 	"" + [a mc.something]
@@ -3231,7 +3231,7 @@ trait MessageSender{
 
 inject class MessageProcessor(lazy obtainer MessageGetter, sender MessageSender){
 	public def processMessage(){//processing
-		this.sender.sendMessage('proc: ' + this.obtainer??.getMessage())//double this on the ast redirect was causing a bug
+		this.sender.sendMessage('proc: ' + this.obtainer.getMessage())//double this on the ast redirect was causing a bug
 	}
 }
 

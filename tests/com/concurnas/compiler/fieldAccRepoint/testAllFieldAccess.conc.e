@@ -691,8 +691,8 @@ return cc . SYN-getXsetX ( += , POST , 1 ) ;
 
 ~~~~~
 //##12.4 setter and getter different types - increment error case
-line 20:4 numerical operation cannot be performed on type x124setterandgetterdifferenttypesincrementerrorcase.AnotherM
-line 21:4 numerical operation cannot be performed on type x124setterandgetterdifferenttypesincrementerrorcase.AnotherM
+line 20:4 numerical operation cannot be performed on type x124setterandgetterdifferenttypesincrementerrorcase.AnotherM?
+line 21:4 numerical operation cannot be performed on type x124setterandgetterdifferenttypesincrementerrorcase.AnotherM?
 
 ~~~~~
 //##13 def with ifexpr

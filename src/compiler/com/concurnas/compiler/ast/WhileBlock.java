@@ -56,9 +56,6 @@ public class WhileBlock extends CompoundStatement implements IdxVarHaver{
 	private boolean shouldBePresevedOnStack=false;
 	
 	public void setShouldBePresevedOnStack(boolean should){
-		
-		//System.err.println("while: " + should);
-		
 		shouldBePresevedOnStack = should;
 		this.block.setShouldBePresevedOnStack(should);
 		if(null != this.elseblock){

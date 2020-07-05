@@ -341,6 +341,7 @@ public class REPL implements Opcodes {
 
 		LinkedHashMap<REPLComponentWrapper, Type> funcs = new LinkedHashMap<REPLComponentWrapper, Type>();
 		// funcs for later iterations...
+		HashSet<Pair<String, Type>> newFuncDefs = new HashSet<Pair<String, Type>>();
 		for (LineHolder lh : blk.lines) {
 			Line lin = lh.l;
 
@@ -362,7 +363,9 @@ public class REPL implements Opcodes {
 
 				Type tt;
 				if (lin instanceof FuncDef) {
-					tt = ((FuncDef) lin).getFuncType().getErasedFuncTypeNoRet();
+					FuncDef fd = (FuncDef)lin;
+					tt = fd.getFuncType().getErasedFuncTypeNoRet();
+					newFuncDefs.add(new Pair<String, Type>(fd.getName(), tt));
 				} else if (lin instanceof ClassDef) {
 					tt = null;
 				} else {
@@ -388,7 +391,28 @@ public class REPL implements Opcodes {
 			newlyDefined.add(new Pair<REPLTopLevelComponent, Boolean>(replcom.comp, isNew));
 		}
 		// now add funcs from prevous definitions unless redefined above....
-		persistedTopLevelElementSet.values().forEach(a -> blk.addPenultimate(new LineHolder(a)));
+
+		Collection<Line> topLevelValues = persistedTopLevelElementSet.values();
+		
+		{
+			HashSet<FuncDef> wdefaultParamMethodsExlcudetop = new HashSet<FuncDef>();
+			for(Line toAdd : topLevelValues) {
+				if(toAdd instanceof FuncDef) {
+					FuncDef toRemove = (FuncDef)toAdd;
+					if(newFuncDefs.contains(new Pair<String, Type>(toRemove.getName(), toRemove.getFuncType().getErasedFuncTypeNoRet())) && !wdefaultParamMethodsExlcudetop.contains(toAdd)) {
+						if(toRemove.defaultFuncParams  != null) {
+							//don't include this remove this
+							wdefaultParamMethodsExlcudetop.add(toRemove.defaultFuncParams);
+						}
+					}
+				}
+			}
+			wdefaultParamMethodsExlcudetop.forEach(a -> topLevelValues.remove(a));
+		}
+		
+		
+		topLevelValues.forEach(toAdd -> blk.addPenultimate(new LineHolder(toAdd)));
+		
 
 		funcs.keySet().forEach(a -> {
 			String name = (a.comp).getName();

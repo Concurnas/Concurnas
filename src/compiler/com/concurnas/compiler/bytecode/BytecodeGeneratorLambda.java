@@ -592,22 +592,31 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 			origRetType = TypeCheckUtils.boxTypeIfPrimativeAndSetUpperBound(origRetType);
 		}
 		
+
+		String lambdaClassBeingOverriden = "com/concurnas/bootstrap/lang/Lambda$Function" + args.unboundCount() + (returnVoid?"v":"")  ;//void?
 		String[] ifaces = null;
-		
+		boolean implementSAMAbstractCls = false;
 		if(taggedType.implementSAM != null) {
 			NamedType nt = taggedType.implementSAM.getA().copyTypeSpecific();
 			nt.setArrayLevels(0);
 			String samiface = nt.getBytecodeType();
 			samiface = samiface.substring(1,  samiface.length()-1);
-			ifaces = new String[] {samiface};
+			
+			if(!nt.isInterface()) {//it's an abstract class
+				lambdaClassBeingOverriden = samiface;
+				ifaces = new String[] {};
+				implementSAMAbstractCls = true;
+			}else {
+				ifaces = new String[] {samiface};
+			}
 		}
-
-		String lambdaClassBeingOverriden = "com/concurnas/bootstrap/lang/Lambda$Function" + args.unboundCount() + (returnVoid?"v":"")  ;//void?
 		
-		cw.visit(V1_8, ACC_PUBLIC + ACC_SUPER + ACC_SYNTHETIC, fullname, signature, funcRef.superClassName == null ? lambdaClassBeingOverriden : funcRef.superClassName, ifaces);
+		cw.visit(V1_8, ACC_PUBLIC + ACC_SUPER + ACC_SYNTHETIC, fullname, implementSAMAbstractCls?null:signature, funcRef.superClassName == null ? lambdaClassBeingOverriden : funcRef.superClassName, ifaces);
 		cw.visitSource(this.bytecodeVisitor.packageAndClassName + ".conc", null);
-		cw.visitInnerClass("com/concurnas/bootstrap/lang/Lambda$Function" + args.unboundCount() + (returnVoid?"v":""), "com/concurnas/bootstrap/lang/Lambda", "Function" + args.unboundCount() + (returnVoid?"v":""), ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
-
+		if(!implementSAMAbstractCls) {
+			cw.visitInnerClass("com/concurnas/bootstrap/lang/Lambda$Function" + args.unboundCount() + (returnVoid?"v":""), "com/concurnas/bootstrap/lang/Lambda", "Function" + args.unboundCount() + (returnVoid?"v":""), ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
+		}
+		
 
 		NamedType nestedConsturctorParent = null;
 		if(isConstructor){
@@ -673,8 +682,12 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 		
 		//we gennerate a init method for the bounded and unbounded cases - really we ought to just gennerate for the cases (bounded or unbounded, that are acutlaly used, but meh...)
 		
-		boolean[] toGennerates = !isreallyStatic?new boolean[]{false, true}:new boolean[]{ true};
-		
+		boolean[] toGennerates;
+		if(!implementSAMAbstractCls) {
+			toGennerates= !isreallyStatic?new boolean[]{false, true}:new boolean[]{ true};
+		}else {
+			toGennerates = new boolean[]{true};
+		}
 		for(boolean isOperatingOnStatic : toGennerates)
 		{// "<init>"
 			ArrayList<Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>> masterConstInputs = new ArrayList<Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>>();
@@ -699,14 +712,17 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 			mv.visitLabel(l0);
 			mv.visitVarInsn(ALOAD, 0);
 			
-			if(isreallyStatic && !funcRef.isConstructor){
-				mv.visitInsn(ACONST_NULL);
-			}
-			else{
-				mv.visitLdcInsn(org.objectweb.asm.Type.getType(classOfThingGettingCalled));
+			if(!implementSAMAbstractCls) {
+				if(isreallyStatic && !funcRef.isConstructor){
+					mv.visitInsn(ACONST_NULL);
+				}
+				else{
+					mv.visitLdcInsn(org.objectweb.asm.Type.getType(classOfThingGettingCalled));
+				}
 			}
 			
-			mv.visitMethodInsn(INVOKESPECIAL, funcRef.superClassName != null ? funcRef.superClassName : lambdaClassBeingOverriden, "<init>", "(Ljava/lang/Class;)V", false);
+			
+			mv.visitMethodInsn(INVOKESPECIAL, funcRef.superClassName != null ? funcRef.superClassName : lambdaClassBeingOverriden, "<init>", implementSAMAbstractCls?"()V":"(Ljava/lang/Class;)V", false);
 			Label l1 = new Label();
 			mv.visitLabel(l1);
 
@@ -768,13 +784,13 @@ public class BytecodeGeneratorLambda extends AbstractVisitor implements Opcodes,
 			
 			if(taggedType.implementSAM != null) {//call trait init for sam class gennerated on the fly
 				NamedType asNamed = (NamedType)taggedType.implementSAM.getA();
+				
 				Pair<List<NamedType>, ArrayList<Fourple<String, String, Boolean, TypeAndLocation>>> res = ScopeAndTypeChecker.createTraitSuperRefImpls(null, 0,0, new ArrayList<NamedType>(), asNamed);
 				
 				List<NamedType> linears = res.getA();
 				if(!linears.isEmpty()) {
 					BytecodeGennerator.visitLinearlizedTraitInits(boCasterHelpder, linears);
 				}
-				
 			}
 			
 			Label l2 = new Label();

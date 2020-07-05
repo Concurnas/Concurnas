@@ -2527,10 +2527,10 @@ def doings() String{
 //##28. null eq optimization
 
 def doings() String{
-	nulls String[] = [null null null null  null  null as String]
+	nulls String?[] = [null null null null  null  null as String?]
 	notnulls String[] = ["ok" "ok" "ok" "ok" "ok" "ok" as String]
 	
-	def proc(dd String[], dda String) String[]{
+	def proc(dd String?[], dda String) String[]{
 		if(dd[0] == null){
 			dd[0] = dda
 		}
@@ -2565,10 +2565,10 @@ def doings() String{
 //##28. null eq optimization via ifexpr
 
 def doings() String{
-	nulls String[] = [null null null null  null  null as String]
+	nulls String?[] = [null null null null  null  null as String?]
 	notnulls String[] = ["ok" "ok" "ok" "ok" "ok" "ok" as String]
 	
-	def proc(dd String[], dda String) String[]{
+	def proc(dd String?[], dda String) String[]{
 		dd[0] = dda if dd[0] == null else dd[0]
 		dd[1] = dda if null == dd[1] else dd[1]
 		dd[2] = dda if not (dd[2] <> null) else dd[2]
@@ -3158,13 +3158,13 @@ class ClsWithFields{
 class Child{
 	strola String[]?
 }
-
+def tt() => true
 def doings() String {
-	cc2 = new Child()
+	cc2 = new Child() if tt() else null
 	cwf = new ClsWithFields()
 	cwf2 = new ClsWithFields()
 	nf = not (cc2 == null)
-	x = not ([1,2,3] == null)
+	x = not ( ([1,2,3] if tt() else null ) == null)
 	\also = [1,2,3] == [1,2,3]//make sure that these call my special function too
 	//map to equals function
 	return "" + [ (cc2==cc2), (cwf==cwf2) , \also, nf, x]
@@ -3295,7 +3295,7 @@ def doings() String {
 //##55 various types of list being instantiated
 
 def doings() String {
-	ok String?[] = [null as String  null   ]
+	ok String?[] = [null as String?  null   ]
 	ok2 Object?[] = [null  null   ]
 	notOkObj = [null  null]   //ok - object array!
 	notOk2 String?[] = [null  null] //ok, rhs cast
@@ -5845,7 +5845,7 @@ def doings(){
 ~~~~~
 //##169. the double arg was taking up too much space
 
-def stringThrow() String {
+def stringThrow() String? {
     return null; //throw new RightHandSideThrow();
 }
 
@@ -5856,7 +5856,7 @@ def name(q Object ) String {
 }
 
 def testEight(x String[], z double[], j int ) {
-	x[j] += stringThrow();
+	x[j] += stringThrow()??;
 }
 
 
@@ -8627,7 +8627,7 @@ def doings() {
 //##318. we used to be unable to bind this
 
 class MyClass<X>(~x X){
-	def stuff<H>() H{
+	def stuff<H>() H?{
 		null
 	}
 }
@@ -8713,7 +8713,7 @@ def doings(){
 //##322. this stuff where we are not doing references seems ok i guess testing could be better
 
 class MyClass<X>(~x X){
-	def stuff<H>() H{
+	def stuff<H>() H?{
 		null
 	}
 }
@@ -8924,13 +8924,13 @@ class MyClass{
 	override toString() => "called toString"
 }
 
-def specific(a MyClass){
+def specific(a MyClass?){
 	res = if(a){"no null"} else {"is null"}
 	res2 = "no null" if a else "is null"
 	"" + [res, res2]
 }
 
-def general(a Object){
+def general(a Object?){
 	res = if(a){"no null"} else {"is null"}
 	res2 = "no null" if a else "is null"
 	"" + [res, res2]
@@ -8938,8 +8938,8 @@ def general(a Object){
 
 
 def doings(){
-	specs = for(a in [new MyClass(), null]){ specific(a) }
-	gens = for(a in [new MyClass(), null]){ general(a) }
+	specs = for(a MyClass? in [new MyClass(), null]){ specific(a) }
+	gens = for(a MyClass? in [new MyClass(), null]){ general(a) }
 
 	"" + [specs, gens]
 }
@@ -8951,13 +8951,13 @@ class MyClass{
 	override toBoolean() => false
 }
 
-def specific(a MyClass){
+def specific(a MyClass?){
 	res = if(a){"no null"} else {"is null"}
 	res2 = "no null" if a else "is null"
 	"" + [res, res2]
 }
 
-def general(a Object){
+def general(a Object?){
 	res = if(a){"no null"} else {"is null"}
 	res2 = "no null" if a else "is null"
 	"" + [res, res2]
@@ -8965,8 +8965,8 @@ def general(a Object){
 
 
 def doings(){
-	specs = for(a in [new MyClass(), null]){ specific(a) }
-	gens = for(a in [new MyClass(), null]){ general(a) }
+	specs = for(a MyClass? in [new MyClass(), null]){ specific(a) }
+	gens = for(a MyClass? in [new MyClass(), null]){ general(a) }
 
 	o Object = "1"
 	got1 = o.toBoolean()
@@ -8982,13 +8982,13 @@ class MyClass{
 	override toBoolean() => false
 }
 
-def specific(a MyClass[]){
+def specific(a MyClass[]?){
 	res = if(a){"ok"} else {"null"}
 	res2 = "ok" if a else "null"
 	"" + [res, res2]
 }
 
-def general(a Object){
+def general(a Object?){
 	res = if(a){"ok"} else {"null"}
 	res2 = "ok" if a else "null"
 	"" + [res, res2]
@@ -8996,8 +8996,8 @@ def general(a Object){
 
 
 def doings(){
-	specs = for(a in [[new MyClass()], null]){ specific(a) }
-	gens = for(a in [[new MyClass()], null]){ general(a) }
+	specs = for(a MyClass[]? in [[new MyClass()], null]){ specific(a) }
+	gens = for(a MyClass[]? in [[new MyClass()], null]){ general(a) }
 
 	//above should work as we redirect Object ref to CObject
 	"" + [specs, gens]
@@ -9008,7 +9008,7 @@ def doings(){
 
 from java.util import ArrayList, HashMap, HashSet, Collection
 
-def general(a Object){
+def general(a Object?){
 	res = if(a){"ok"} else {"null"}
 	res2 = "ok" if a else "null"
 	"" + [res, res2]
@@ -9039,7 +9039,7 @@ def doings(){
 	customMapFull =  {ar = CustMapBoring(); ar.put("", ""); ar }
 
 	itemz = [emptyList, fullList, emptySet, fullSet, emptyMap, fullMap, customMapWOEmpty, customMapWOFull, customMapFull, customMapEmpty, null]
-	gens = for(a in itemz){ general(a) }
+	gens = for(a Object? in itemz){ general(a) }
 
 	"" + [ gens]//, specs
 }
@@ -9047,13 +9047,13 @@ def doings(){
 ~~~~~
 //##339. toBoolean - on string
 
-def general(a Object ){
+def general(a Object?){
 	res = if(a){"ok"} else {"null"}
 	res2 = "ok" if a else "null"
 	"" + [res, res2]
 }
 
-def specific(a String){
+def specific(a String?){
 	res = if(a){"ok"} else {"null"}
 	res2 = "ok" if a else "null"
 	"" + [res, res2]
@@ -9062,8 +9062,8 @@ def specific(a String){
 
 def doings(){
 	itemz = ["hi", "", " ", null]
-	specs = for(a in itemz){ specific(a) }
-	gens = for(a in itemz){ general(a) }
+	specs = for(a String? in itemz){ specific(a) }
+	gens = for(a String? in itemz){ general(a) }
 
 	"" + [ gens, specs]
 }

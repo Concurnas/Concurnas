@@ -77,6 +77,13 @@ public class NamedType  extends AbstractType {
 		return this.classDef.isInterface();
 	}
 	
+	
+	public boolean isAbstract(){
+		return this.classDef.getIsAbstract();
+	}
+	
+	
+	
 	public NamedType(ClassDef classDef)
 	{
 		this(0,0,classDef);

@@ -176,3 +176,8 @@ ok
 ~~~~~
 //##45. tuple decomp both ways round
 [12 13 12 13]
+
+~~~~~
+//##46. tuple decomp for fors
+([3, 7, 11], [3, 7, 11])
+

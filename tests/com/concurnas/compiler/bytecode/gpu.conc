@@ -4346,3 +4346,55 @@ def doings(){
 	
 	'nice: ' + (xu as int for xu in ret)
 }
+
+~~~~~
+//##90. additional code declared at top level of module
+gpukernel 1 myFunc(global in A int[], global B int[], global out ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+
+gps = gpus.GPU()
+cpus = gps.getCPUDevices()
+
+
+def doings(){
+
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	instGen = myFunc&(inGPU1, inGPU2, result)
+	inst = instGen()
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+
+	'nice: ' + ret
+}
+//inf loop

@@ -410,7 +410,7 @@ fors
   ;
   
 for_stmt 
-	: forblockvariant LPARA {setNotInArrayDef();} ( (localVarName=NAME localVarType=type?) | ( LPARA {setNotInArrayDef();} forVarTupleOrNothing (',' forVarTupleOrNothing)+ RPARA {popInArrayDef();}))  'in' expr=expr_stmt_tuple 
+	: forblockvariant LPARA {setNotInArrayDef();} ( (localVarName=NAME localVarType=type?) | (  {setNotInArrayDef();} forVarTupleOrNothing (',' forVarTupleOrNothing)+  {popInArrayDef();}))  'in' expr=expr_stmt_tuple 
 	    (';'  (idxName=NAME idxType=type? (('\\=' | '=') idxExpr=expr_stmt)?) )? RPARA {popInArrayDef();} mainblock=block 
 	    (NEWLINE* 'else' elseblock=block )?
 	;
@@ -428,7 +428,7 @@ for_stmt_old
     ( NEWLINE* 'else' elseblock=block  )?
   ;
 
-forblockvariant:'for'|'parfor' |'parforsync';
+forblockvariant: 'for'|'parfor' |'parforsync';
 
 
 match_stmt
@@ -765,7 +765,7 @@ for_list_comprehension
 	;
 
 flc_forStmt_:
-	forblockvariant (localVarName=NAME localVarType=type?  | ( LPARA {setNotInArrayDef();} forVarTupleOrNothing (',' forVarTupleOrNothing)+ RPARA {popInArrayDef();}))   'in' expr=expr_list
+	forblockvariant (localVarName=NAME localVarType=type?  | (  {setNotInArrayDef();} forVarTupleOrNothing (',' forVarTupleOrNothing)+  {popInArrayDef();}))   'in' expr=expr_list
 	;
 
 
@@ -835,20 +835,22 @@ sizeOfExpr: (sizeof='sizeof'  ('<' variant=dotted_name '>')? )? asyncSpawnExpr;
 asyncSpawnExpr: elvisOperator (isAsync='!' (LPARA {setNotInArrayDef();} expr_stmt RPARA {popInArrayDef();})? )?;
 
 
-elvisOperator :  lhsExpr=vectorize ( '?:'  elsExpr=if_expr)?  ;
+elvisOperator :  lhsExpr=notNullAssertion ( '?:'  elsExpr=if_expr)?  ;
 
+
+notNullAssertion : vectorize ( nna='??')?;
 
 vectorize: primary=vectorize vectorize_element+
 	| passthrough=dotOperatorExpr
 	;
 
 vectorize_element:
-	(nna='??' nullsafe='?')? ('^' (doubledot='^')? ) (constru=constructorInvoke | arrayRefElements+ | afterVecExpr=refName genTypeList? (pureFuncInvokeArgs | '&' funcRefArgs?)? )? 
+	(nna='??' | nullsafe='?')? ('^' (doubledot='^')? ) (constru=constructorInvoke | arrayRefElements+ | afterVecExpr=refName genTypeList? (pureFuncInvokeArgs | '&' funcRefArgs?)? )? 
 	;
 
 dotOperatorExpr: ((pntUnrefCnt+='*'|pntUnrefCnt2+='**' )+ | address='~')? copyExpr ( NEWLINE* dotOpArg NEWLINE* copyExpr)*;
 
-copyExpr : notNullAssertion (isCopy='@' (hasCopier=LPARA {setNotInArrayDef();} ( (copyExprItem  (',' copyExprItem)* ','?)? (';' modifier+=NAME (',' modifier+=NAME)* ','?  )? ) RPARA {popInArrayDef();} )? )?;
+copyExpr : expr_stmt_BelowDot (isCopy='@' (hasCopier=LPARA {setNotInArrayDef();} ( (copyExprItem  (',' copyExprItem)* ','?)? (';' modifier+=NAME (',' modifier+=NAME)* ','?  )? ) RPARA {popInArrayDef();} )? )?;
 
 copyExprItem: ename=NAME '=' expr_stmt
 	|  incName=NAME
@@ -857,7 +859,6 @@ copyExprItem: ename=NAME '=' expr_stmt
 	;
 
 
-notNullAssertion :  expr_stmt_BelowDot ( nna='??')?;
 
 expr_stmt_BelowDot //seperate rule for match operations - basically atoms
 	: (isthis='this' pureFuncInvokeArgs | 'super' pureFuncInvokeArgs) #superOrThisConstructorInvoke

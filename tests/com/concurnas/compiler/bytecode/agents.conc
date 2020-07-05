@@ -2232,7 +2232,7 @@ def doings(){
 }
 
 ~~~~~
-//##117. actor copy in and out 
+//##117. actor copy in and out
 
 from java.util import Arrays, HashSet
 
@@ -2889,7 +2889,7 @@ inject class Myclass(pp Providexx){
 	}
 	
 	def doit(){
-		x byte[] = pp.something()
+		x byte[]? = pp.something()
 		setThing(x)
 	}
 }

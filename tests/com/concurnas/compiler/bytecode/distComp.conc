@@ -286,7 +286,7 @@ package class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
 		runRemoteTask()
 	}
 	
-	def getResultRef() Object: => task??.getResultRef()
+	def getResultRef() Object:? => task??.getResultRef()
 	
 	def runRemoteTask(){
 		try{
@@ -294,14 +294,14 @@ package class Executor(fh FailHandler) ~ ISOExecutor<Object:>{
 				throw new Exception("fail as expected")
 			}
 			
-			(task as () Void)();;
+			(task?? as () Void)();;
 		}catch(e){
 			rf = new RemoteFailureContext(e)
 			rf.isoExecutor = this
 			try{
 				fh.thefailure(rf)
 			}catch(e){
-				res Object: = getResultRef()
+				res Object:? = getResultRef()
 				if(null <> res:){
 					res:setException(e)
 				}
@@ -380,14 +380,14 @@ package class Executor(fh RemoteFailureHandler) ~ ISOExecutor<Object:>{
 				throw new Exception("fail as expected")
 			}
 			
-			(task as () Void)();;
+			(task?? as () Void)();;
 		}catch(e){
 			rf = new RemoteFailureContext(e)
 			rf.isoExecutor = this
 			try{
 				fh.handle(rf)
 			}catch(e){
-				res Object: = getResultRef()
+				res Object:? = getResultRef()
 				if(null <> res:){
 					res:setException(e)
 				}

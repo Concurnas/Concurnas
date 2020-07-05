@@ -1214,7 +1214,7 @@ public class BytecodeTests extends TestCase implements Opcodes {
 			Object taskLAmbda = testLambdaCls.newInstance();
 
 			
-			Method schedTsk = getMethod(schedulerCls, "public void com.concurnas.bootstrap.runtime.cps.Scheduler.scheduleTask(com.concurnas.bootstrap.runtime.cps.AbstractIsoTask,java.lang.String)");
+			Method schedTsk = getMethod(schedulerCls, "public void com.concurnas.bootstrap.runtime.cps.Scheduler.scheduleTask(com.concurnas.bootstrap.runtime.cps.AbstractIsoTask,java.lang.String) throws java.lang.Throwable");
 			
 			schedTsk.invoke(shceduler, taskLAmbda, "Test Harness executeClass");
 			

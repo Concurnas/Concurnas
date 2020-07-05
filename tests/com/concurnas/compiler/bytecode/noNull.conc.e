@@ -276,3 +276,15 @@ ok Optional[ok]
 ~~~~~
 //##69. unknown local generic is ok 2
 ok (Optional[ok], 12)
+
+~~~~~
+//##70. check cast nullable type
+OK[nope, ok]
+
+~~~~~
+//##71. tests on aysncrefrefs
+ok
+
+~~~~~
+//##72. dont apply inference to lhs
+ok

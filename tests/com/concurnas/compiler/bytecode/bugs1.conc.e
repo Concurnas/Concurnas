@@ -951,3 +951,7 @@ ok13
 ~~~~~
 //##236. problem with local arrays now its ok
 100
+
+~~~~~
+//##237. assign null to ref
+ok

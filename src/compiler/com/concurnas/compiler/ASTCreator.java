@@ -2917,10 +2917,10 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 
 			List<String> modifiers = ctx.modifier.stream().map(a -> a.getText()).collect(Collectors.toList());
 
-			return new CopyExpression(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Expression) ctx.notNullAssertion().accept(this), copyItems, modifiers);
+			return new CopyExpression(ctx.start.getLine(), ctx.start.getCharPositionInLine(), (Expression) ctx.expr_stmt_BelowDot().accept(this), copyItems, modifiers);
 		}
 
-		return (Expression) ctx.notNullAssertion().accept(this);
+		return (Expression) ctx.expr_stmt_BelowDot().accept(this);
 	}
 
 	@Override
@@ -3606,7 +3606,7 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 	
 	@Override
 	public Expression visitNotNullAssertion(ConcurnasParser.NotNullAssertionContext ctx) {
-		Expression rhs = (Expression) ctx.expr_stmt_BelowDot().accept(this);
+		Expression rhs = (Expression) ctx.vectorize().accept(this);
 		if (null == ctx.nna) {
 			return rhs;
 		} else {

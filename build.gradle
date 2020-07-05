@@ -31,6 +31,7 @@ java {
 
 assert org.gradle.api.JavaVersion.current().isJava9Compatible()//Concurnas must be built on Java 9+
 
+targetCompatibility = 9
 sourceCompatibility = 1.8
 
 repositories {

@@ -42,7 +42,7 @@ public class LambdaDef extends FuncDefI implements HasExtraCapturedVars, HasAnno
 				(FuncParams)params.copy(), 
 				body == null?null:(Block)body.copy(), 
 				returnType==null?null:(Type)returnType.copy(), 
-				(ArrayList<Pair<String, NamedType>>) Utils.cloneArrayList(methodGenricList) );
+				Utils.cloneArrayListPair(methodGenricList) );
 		lam.extraCapturedLocalVars = this.extraCapturedLocalVars;
 		lam.lamDets=lamDets;
 		lam.methodName=methodName;

@@ -17,7 +17,7 @@ public class SchedulerRunner{
 		this.forwhat = forwhat;
 		schedulerCls = localisedClasslaoder.loadClass("com.concurnas.bootstrap.runtime.cps.Scheduler");
 		
-		schedTskMethod = Utils.getMethod(schedulerCls, "public void com.concurnas.bootstrap.runtime.cps.Scheduler.scheduleTask(com.concurnas.bootstrap.runtime.cps.AbstractIsoTask,java.lang.String)", 2);
+		schedTskMethod = Utils.getMethod(schedulerCls, "public void com.concurnas.bootstrap.runtime.cps.Scheduler.scheduleTask(com.concurnas.bootstrap.runtime.cps.AbstractIsoTask,java.lang.String) throws java.lang.Throwable", 2);
 		
 		schedulerTerminate = Utils.getMethod(schedulerCls, "public void com.concurnas.bootstrap.runtime.cps.Scheduler.terminate()", 0);
 		
