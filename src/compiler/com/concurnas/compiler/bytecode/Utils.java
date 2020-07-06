@@ -812,6 +812,14 @@ public class Utils implements Opcodes {
 			return to;//shouldnt really happen...
 		}
 		
+		
+		if(from instanceof VarNull && TypeCheckUtils.hasRefLevels(to)) {
+			//to deal with likes of: ref3 int:? = RefHelper.getNullRef2(): if tt() else null//ref created inline for null
+			createRefInline(mv, bcv, from, to, false);
+			return to;
+		}
+		
+		
 		if(TypeCheckUtils.isRefArraySettable(to, -1) && from instanceof VarNull){//dont set null on arrayrefs
 			mv.visitInsn(Opcodes.POP2);//clean up stack
 			//mv.visitInsn(Opcodes.POP);
@@ -828,13 +836,6 @@ public class Utils implements Opcodes {
 			{
 				Type fro2 = Utils.unref(mv, from, to, bcv);
 				return applyCastImplicit(mv, fro2, to, bcv);
-				/*
-				Type fro2 = ((NamedType)from).getGenTypes().get(0);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "com/concurnas/runtime/ref/Local", "get", "()Ljava/lang/Object;");
-				mv.visitTypeInsn(CHECKCAST, fro2.getCheckCastType());
-				
-				return applyCastImplicit(mv, fro2, to, bcv);
-				*/
 			}
 			
 			if(TypeCheckUtils.hasRefLevelsAndIsArray(from)){

@@ -407,7 +407,7 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 	
 	
 	
-	private static class LocalVarSplicerForOnChange extends AbstractVisitor{
+	public static class LocalVarSplicerForOnChange extends AbstractVisitor{
 		private  Set<String> toSpliceIn;
 		private  Set<String> alwaysSpliceEvenWhenLocallyDefined;
 		private  final String currentSOClass;
@@ -2211,13 +2211,18 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 			if(null != retType && !onchange.noReturn && onchange.getShouldBePresevedOnStack()){
 				onchange.funcParams.params.add(new FuncParam(0,0,"ret$", retType, true));
 				
+				Block newrhs = new Block(onChangeBlock.getLine(), onChangeBlock.getColumn());
+				newrhs.isolated=true;
+				newrhs.setShouldBePresevedOnStack(onChangeBlock.getShouldBePresevedOnStack());
+				newrhs.add(onChangeBlock);
+				
 				if(!hasdefoReturnedNormally){
 					//repoint to assign results to onChangeBlock...
 					//onChangeBlock.isolated=true;
-					onChangeBlock = Utils.makeAssignToRefFromrhsBlock(onChangeBlock, retType, true); //xxx => ret := {xxx}
+					onChangeBlock = Utils.makeAssignToRefFromrhsBlock(newrhs, retType, true); //xxx => ret := {xxx}
 				}
 				else{
-					onChangeBlock = Utils.makeAssignToRefFromrhsBlock(onChangeBlock, retType, false); //xxx => ret := {xxx}
+					onChangeBlock = Utils.makeAssignToRefFromrhsBlock(newrhs, retType, false); //xxx => ret := {xxx}
 				}
 			}
 			else if(null != onchange.asyncExplicitReturnVarType){

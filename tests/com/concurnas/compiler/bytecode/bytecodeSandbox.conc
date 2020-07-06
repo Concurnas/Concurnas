@@ -1,5 +1,49 @@
 
-def doings() => "ok"
+
+
+
+/*Support this:
+
+new String?[10](null)
+
+
+x String? = null
+new String?[10, 2](x)
+new String?[10, 2](null)
+*/
+
+
+from com.concurnas.lang.precompiled import RefHelper
+def tt() => true
+def doings() String{
+	ref3 int:? = RefHelper.getNullRef2(): if tt() else 12
+	
+	//the eq above is based on ref so shouldnt be extracting
+	
+	"" + ref3
+}
+
+
+
+
+
+/*
+def hey() => "there"
+
+def doings(){
+	mc = "ok"
+	x int:
+	
+	thing = onchange(x){
+		'uh oh' if null == mc else hey()//this was breaking
+	}
+	
+	x = 10
+	
+	"" + thing
+}
+*/
+
 
 
 /*
@@ -38,15 +82,6 @@ def doings(){
 
 
 
-/*Support this:
-
-new String?[10](null)
-
-
-x String? = null
-new String?[10, 2](x)
-new String?[10, 2](null)
-*/
 
 //support repl comments
 //fix the ctrl+c problem

@@ -27,11 +27,11 @@ ans: 2
 
 ~~~~~
 //##6. result is available for exception assignment etc
-ans: java.lang.Exception: fail as expected
+ans: fail as expected
 
 ~~~~~
 //##7. stateful dist comp
-[ans: 2, ans: java.lang.Exception: fail as expected]
+[ans: 2, ans: fail as expected]
 
 ~~~~~
 //##8. check shared vars can be overriden
@@ -211,7 +211,7 @@ done: [112, true]
 
 ~~~~~
 //##52. no copy security manager
-ok[true]
+java/security/Policy$Globals$
 
 ~~~~~
 //##53. custom security manager all permissions
@@ -219,7 +219,7 @@ done: [112, true]
 
 ~~~~~
 //##54. security manager no permissions!
-excep
+done: [112, false]
 
 ~~~~~
 //##55. startup and restart server and client

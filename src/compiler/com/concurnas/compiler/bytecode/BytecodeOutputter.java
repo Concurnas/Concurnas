@@ -547,10 +547,10 @@ public class BytecodeOutputter implements Opcodes {
 		//CHECKCAST java/lang/Integer
 		//NEW java/lang/Object
 		//CHECKCAST com/concurnas/runtime/ref/Local
-		
-		//if(checkcast == CHECKCAST && genType.equals("com/concurnas/runtime/ref/Local")) {
-		//	int h=9;
-		//}
+
+		if(checkcast == ANEWARRAY && genType.equals("java/lang/Class")) {
+			int h=9;
+		}
 		
 		
 		if (!(checkcast == CHECKCAST && genType.equals("java/lang/Object"))) {
@@ -660,6 +660,8 @@ public class BytecodeOutputter implements Opcodes {
 		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
 
 		//INVOKEVIRTUAL com/concurnas/runtime/ref/Local.set (Ljava/lang/Object;)V
+		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
+
 		
 		if(opcode == INVOKEVIRTUAL && owner.equals("com/concurnas/runtime/ref/Local") && name.equals("set") ) {
 			int h=9;

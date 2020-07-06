@@ -128,8 +128,6 @@ public class Utils {
 		int line = rhs.getLine();
 		int col = rhs.getColumn();
 		Block newbodyHoldingTryCatch = new Block(line, col);
-		
-		
 				
 		Block blockToTry = includeRetAssignmentFromBlock?new Block(line, col):rhs;
 		ArrayList<CatchBlocks> cbs = new ArrayList<CatchBlocks>();

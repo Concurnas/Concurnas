@@ -791,10 +791,12 @@ def doings() {
 	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
 	
 	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
-	Collections.sort(methods)
+	cons = for(m in SpecialClass.class.getDeclaredConstructors()){  ""+m.getParameterAnnotations() }
+	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){ ""+ m.getAnnotations() }
 	
-	cons = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getParameterAnnotations() }
-	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getAnnotations() }
+	Collections.sort(methods)
+	Collections.sort(cons)
+	Collections.sort(consitself)
 	
 	"fields: {fields}\nmethods:{methods}\ncons: {cons}\ncon itself: {consitself}\nclass: " + SpecialClass.class.getAnnotations()
 }
@@ -826,10 +828,12 @@ def doings() {
 	fields = "" + for(f in SpecialClass.class.getFields()) {f.getName() + ": " + f.getAnnotations(); }
 	
 	methods = for(m in SpecialClass.class.getMethods()){m.getName() + ": " +  m.getAnnotations() }
-	Collections.sort(methods)
+	cons = for(m in SpecialClass.class.getDeclaredConstructors()){""+  m.getParameterAnnotations() }
+	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){""+  m.getAnnotations() }
 	
-	cons = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getParameterAnnotations() }
-	consitself = for(m in SpecialClass.class.getDeclaredConstructors()){  m.getAnnotations() }
+	Collections.sort(methods)
+	Collections.sort(cons)
+	Collections.sort(consitself)
 	
 	"fields: {fields}\nmethods:{methods}\ncons: {cons}\ncon itself: {consitself}\nclass: " + SpecialClass.class.getAnnotations()
 }
@@ -1401,8 +1405,9 @@ from com.concurnas.lang.precompiled import SimpleClassNoParamsOnMethod
 
 def doings(){
 	cons = SimpleClassNoParamsOnMethod.class.getDeclaredMethods()
-	java.util.Collections.sort(cons)
-	"" + for(c in cons){
-		c.getParameterAnnotations()
-	}
+	
+	xx = ("" + c.getParameterAnnotations() for c in cons )
+	
+	java.util.Collections.sort(xx)
+	"" + xx
 }

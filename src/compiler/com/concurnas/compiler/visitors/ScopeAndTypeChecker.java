@@ -355,10 +355,10 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private void raiseSomething(boolean ignorecurrentContext, int line, int column, String somthing, Stack<HashMap<Integer, ErrorHolder>> thingsOnLineTracker, WarningVariant wv){
 		
-		String err = "Unable to find method with matching number of arguments with name: get";
-		if(somthing.contains(err) && !maskErrors.isEmpty()/* && line == 1660*/ ){
-			int h=999;
-		}
+		//String err = "void is not an instantiable type";
+		//if(somthing.contains(err) && maskErrors.isEmpty() && line == 555 ){
+		//	int h=999;
+		//}
 		
 		if(maskErrors.isEmpty()){
 			if(thingsOnLineTracker.isEmpty()){

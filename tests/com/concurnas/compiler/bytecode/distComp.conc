@@ -187,7 +187,7 @@ class TestRemote{
 	}	
 }
 
-class RemoteFailureContext(error Throwable){
+class RemoteFailureContext(errorx Throwable){
 	+isoExecutor Executor?
 	
 	def retry(){
@@ -198,7 +198,7 @@ class RemoteFailureContext(error Throwable){
 		
 	}
 	
-	def reason() => error
+	def reason() => errorx
 }
 
 
@@ -259,7 +259,7 @@ class TestRemote{
 	}	
 }
 
-package class RemoteFailureContext(error Throwable){
+package class RemoteFailureContext(errorx Throwable){
 	+isoExecutor Executor?
 	
 	def retry(){
@@ -268,7 +268,7 @@ package class RemoteFailureContext(error Throwable){
 	
 	def result() Object: => isoExecutor??.getResultRef()
 	
-	def reason() => error
+	def reason() => errorx
 }
 
 
@@ -344,7 +344,7 @@ class TestRemote{
 	}	
 }
 
-package class RemoteFailureContext(error Throwable){
+package class RemoteFailureContext(errorx Throwable){
 	+isoExecutor Executor?
 	
 	def retry(){
@@ -353,7 +353,7 @@ package class RemoteFailureContext(error Throwable){
 	
 	def result() Object: => isoExecutor??.getResultRef()
 	
-	def reason() => error
+	def reason() => errorx
 }
 
 
@@ -372,7 +372,7 @@ package class Executor(fh RemoteFailureHandler) ~ ISOExecutor<Object:>{
 		runRemoteTask()
 	}
 	
-	def getResultRef() Object: => task??.getResultRef()
+	def getResultRef() Object:? => task??.getResultRef()
 	
 	def runRemoteTask(){
 		try{

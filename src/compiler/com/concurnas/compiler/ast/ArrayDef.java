@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.NestedFuncRepoint;
+import com.concurnas.compiler.visitors.NestedFuncRepoint.LocalVarSplicerForOnChange;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
 
@@ -36,7 +37,7 @@ public class ArrayDef extends AbstractExpression implements Expression, ArrayEle
 	}
 	
 	public ArrayList<Expression> getArrayElements(Visitor askee){
-		if(askee instanceof ScopeAndTypeChecker || askee instanceof NestedFuncRepoint){
+		if(askee instanceof ScopeAndTypeChecker || askee instanceof NestedFuncRepoint || askee instanceof LocalVarSplicerForOnChange){
 			return arrayElements;
 		}
 		
