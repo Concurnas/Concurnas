@@ -525,6 +525,11 @@ public class TypeCheckUtils {
 			}
 			else if(argMatchingTo instanceof GenericType){
 				NamedType gtUpper = ((GenericType) argMatchingTo).upperBound;
+				if(argMatchingTo.hasArrayLevels()) {
+					gtUpper = (NamedType)gtUpper.copy();
+					gtUpper.setArrayLevels(argMatchingTo.getArrayLevels());
+				}
+				
 				if(null != gtUpper) {
 					if(null == TypeCheckUtils.checkSubType(invoker, gtUpper, passedInArg)){
 						return MatchType.NONE;
@@ -1202,6 +1207,11 @@ public class TypeCheckUtils {
 			Set<TypeAndLocation> matchingFuncNames, List<Type> argsWanted, ArrayList<Pair<String, Type>> namessMap, 
 			String funcName, int line, int col, boolean refUpArgsIfNeeded, ScopeAndTypeChecker satc, boolean ignoreGenericsOnNOMatch)
 	{
+		
+		if(line == 17) {
+			int h= 9;
+		}
+		
 		if(matchingFuncNames == null || matchingFuncNames.isEmpty())
 		{
 			invoker.raiseError(line, col, String.format("Unable to find method with matching name: %s", filterOutActorCall(funcName)));
@@ -5929,9 +5939,9 @@ public class TypeCheckUtils {
 			}
 			
 			
-			if( fd.extFunOn != null){
+			if( fd.getExtFuncOn() != null){
 				params = (FuncParams)params.copy();
-				params.params.add(0, new FuncParam(0, 0, "$extendeeType", fd.extFunOn, false));
+				params.params.add(0, new FuncParam(0, 0, "$extendeeType", fd.getExtFuncOnRaw(), false));
 				if(!itemIsType){
 					argOffset++;
 				}

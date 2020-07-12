@@ -152,11 +152,30 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 	public Expression kernelDim = null;
 	
 	private Expression preceedingExpression;
-	public Type extFunOn;
+	private Type extFunOn;
 	public ArrayList<FuncDef> funcDefVariants;
 	public boolean checkForFDVariants=true;
 	public boolean ignore;
 	public FuncType requiresBridgeMethodTo;
+	
+	public Type getExtFuncOn() {
+		if(this.extFunOn != null && this.extFunOn instanceof NamedType) {
+			Type redir = ((NamedType)this.extFunOn).astredirect;
+			if(null != redir) {
+				return redir;
+			}
+		}
+		
+		return this.extFunOn;
+	}
+	
+	public void setExtFuncOn(Type extFunOn) {
+		this.extFunOn = extFunOn;
+	}
+	
+	public Type getExtFuncOnRaw() {
+		return this.extFunOn;
+	}
 	
 	@Override
 	public void setPreceedingExpression(Expression expr) {
@@ -244,7 +263,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 		
 		if(this.extFunOn != null){
 			ret.extFuncOn = true;
-			iinputs.add(0, this.extFunOn);
+			iinputs.add(0, this.getExtFuncOn());
 		}
 		
 		

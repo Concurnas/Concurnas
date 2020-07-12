@@ -358,7 +358,7 @@ public class FunctionGenneratorUtils {
 		else{
 			Expression theCall = new FuncInvoke(line, col, fname, fia, genTypes.isEmpty()?null:genTypes);
 			
-			if(funcDef.extFunOn!=null) {
+			if(funcDef.getExtFuncOn()!=null) {
 				theCall = DotOperator.buildDotOperatorOne(line, col, new RefThis(line, col), theCall);
 			}
 			
@@ -366,8 +366,8 @@ public class FunctionGenneratorUtils {
 			setterBlock.add(new LineHolder(ret));
 			wdefault = new FuncDef(line, col, null, funcDef.accessModifier, fname, fps, setterBlock, iscon?null:(Type)funcDef.retType.copy(), false, false, false, genTypesStr);
 			
-			if(funcDef.extFunOn!=null) {
-				wdefault.extFunOn = (Type)funcDef.extFunOn.copy();
+			if(funcDef.getExtFuncOn()!=null) {
+				wdefault.setExtFuncOn( (Type)funcDef.getExtFuncOn().copy() );
 			}
 		}
 		

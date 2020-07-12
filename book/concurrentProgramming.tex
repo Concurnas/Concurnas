@@ -1066,22 +1066,21 @@ tally1 = 2:
 tally2 = 2:
 
 async{
-	pre{
-		count = 0
-	}
+  pre{
+    count = 0
+  }
 	
-	every(tally1){
-		count += tally1	
-	}		
+  every(tally1){
+    count += tally1	
+  }		
 	
-	onchange(tally2){
-		count += tally2		
-	}
+  onchange(tally2){
+    count += tally2		
+  }
 	
-	post{
-		finalCount = count
-	}
-	
+  post{
+    finalCount = count
+  }
 }
 
 tally1 = 9; tally1 = 10; tally1 = 10
@@ -1104,24 +1103,23 @@ tally1 = 2:
 tally2 = 2:
 
 lastproc = async{
-pre{
-count = 0
-}
+  pre{
+    count = 0
+  }
 
-every(tally1){
-count += tally1
-count//return this value
-}		
+  every(tally1){
+    count += tally1
+    count//return this value
+  }		
 
-onchange(tally2){
-count += tally2		
-count//return this value
-}
+  onchange(tally2){
+    count += tally2		
+    count//return this value
+  }
 
-post{
-finalCount = count
-}
-
+  post{
+    finalCount = count
+  }
 }
 
 tally1 = 9; tally1 = 10; tally1 = 10
@@ -1141,22 +1139,21 @@ tally1 = 2:
 tally2 = 2:
 
 finalCount = async{
-pre{
-count = 0
-}
+  pre{
+    count = 0
+  }
 
-every(tally1){
-count += tally1
-}		
+  every(tally1){
+    count += tally1
+  }		
 
-onchange(tally2){
-count += tally2		
-}
+  onchange(tally2){
+    count += tally2		
+  }
 
-post{
-count//return this value
-}
-
+  post{
+    count//return this value
+  }
 }
 
 tally1 = 9; tally1 = 10; tally1 = 10

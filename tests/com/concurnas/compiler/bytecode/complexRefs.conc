@@ -422,7 +422,7 @@ from java.util import ArrayList
 
 def doings() {
 	xx = new int:RefArray(3)
-	gotproper String: = ""
+	gotproper String:
 	cnt :=0
 	
 	andgo :=false
@@ -433,7 +433,7 @@ def doings() {
 		trans{
 			stat = ""+xx.get(2)
 			//got.add(stat) 
-			gotproper += stat + ","
+			gotproper = stat + ","
 			cnt++
 		}
 	}

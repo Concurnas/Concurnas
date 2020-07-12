@@ -1070,8 +1070,18 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		}
 
 		String name = assignNew.name;
+		
+		if(type instanceof MultiType) {
+			type = type.getTaggedType();
+		}
+		
 		if(type instanceof NamedType && ((NamedType)type).astredirect != null){
 			type = ((NamedType)type).astredirect;
+			
+			if(type instanceof MultiType) {
+				type = type.getTaggedType();
+			}
+			
 		}
 		
 
@@ -9634,8 +9644,8 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		
 		if(methodOrLambda instanceof FuncDef){
 			FuncDef asFd = (FuncDef)methodOrLambda;
-			if(asFd.extFunOn != null){
-				inputs.add(0,new Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>(asFd.extFunOn, "this$extFunc", null, false, false, false));
+			if(asFd.getExtFuncOn() != null){
+				inputs.add(0,new Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>(asFd.getExtFuncOn(), "this$extFunc", null, false, false, false));
 			}
 		}
 		
@@ -10970,7 +10980,7 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 		HashMap<Integer, Type> toAddDefaultParamUncreate = defpp.getB();
 		
 		int argOffset;
-		if(funcType.origonatingFuncDef != null && funcType.origonatingFuncDef.extFunOn != null){
+		if(funcType.origonatingFuncDef != null && funcType.origonatingFuncDef.getExtFuncOn() != null){
 			argOffset=1;
 		}else{
 			argOffset=0;

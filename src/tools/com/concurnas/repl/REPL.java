@@ -886,11 +886,11 @@ public class REPL implements Opcodes {
 
 				if (comp instanceof FuncDef) {
 					FuncDef funcDef = (FuncDef) comp;
-					if (funcDef.extFunOn == null) {
+					if (funcDef.getExtFuncOn() == null) {
 						sb.append("function ");
 					} else {
 						sb.append("extension function ");
-						sb.append(funcDef.extFunOn.toString());
+						sb.append(funcDef.getExtFuncOn().toString());
 						sb.append('.');
 					}
 				}

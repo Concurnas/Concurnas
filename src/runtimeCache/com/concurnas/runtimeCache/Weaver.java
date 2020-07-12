@@ -1,6 +1,8 @@
 package com.concurnas.runtimeCache;
 
 import java.util.HashMap;
+import java.util.HashSet;
+
 import org.objectweb.asm.Opcodes;
 import com.concurnas.runtime.Cpsifier;
 
@@ -12,6 +14,13 @@ public class Weaver implements Opcodes {
 		this.rTJarEtcLoader = rTJarEtcLoader;
 	}
 	
+	private static HashSet<String> addToBooleanMethod = new HashSet<String>();
+	static {
+		addToBooleanMethod.add("java/util/AbstractCollection");
+		addToBooleanMethod.add("java/util/AbstractMap");
+		addToBooleanMethod.add("java/lang/String");
+		addToBooleanMethod.add("java/lang/Boolean");
+	}
 	
 	public HashMap<String, byte[]> weave(byte[] code, boolean log, boolean assumeNoPrimordials){
 		String name = ClassNameFinder.getClassName(code);
@@ -25,11 +34,8 @@ public class Weaver implements Opcodes {
 			ret.put(name, code);
 		}
 		else{
-			if(name.equals("java/util/AbstractCollection") ||  name.equals("java/util/AbstractMap")){
-				code = ToBoolean.addToBoolean(name, code, rTJarEtcLoader, false);
-			}
-			if(name.equals("java/lang/String")  ){
-				code = ToBoolean.addToBoolean(name, code, rTJarEtcLoader, true);
+			if(addToBooleanMethod.contains(name)) {
+				code = ToBoolean.addToBoolean(name, code, rTJarEtcLoader);
 			}
 			
 			ret = Cpsifier.doCPSTransform(rTJarEtcLoader, name, code, assumeNoPrimordials, log, true);//included global classes for module fields

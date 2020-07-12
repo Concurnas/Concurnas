@@ -20,6 +20,7 @@ import com.concurnas.compiler.ast.FuncType;
 import com.concurnas.compiler.ast.GenericType;
 import com.concurnas.compiler.ast.GrandLogicalOperatorEnum;
 import com.concurnas.compiler.ast.MulerExprEnum;
+import com.concurnas.compiler.ast.MultiType;
 import com.concurnas.compiler.ast.NamedType;
 import com.concurnas.compiler.ast.PrimativeType;
 import com.concurnas.compiler.ast.PrimativeTypeEnum;
@@ -812,6 +813,14 @@ public class Utils implements Opcodes {
 			return to;//shouldnt really happen...
 		}
 		
+		if(from instanceof MultiType) {
+			from = from.getTaggedType();
+		}
+		
+		if(to instanceof MultiType) {
+			to = to.getTaggedType();
+		}
+		
 		
 		if(from instanceof VarNull && TypeCheckUtils.hasRefLevels(to)) {
 			//to deal with likes of: ref3 int:? = RefHelper.getNullRef2(): if tt() else null//ref created inline for null
@@ -977,6 +986,13 @@ public class Utils implements Opcodes {
 			return;
 		}
 		
+		if(from instanceof MultiType) {
+			from = from.getTaggedType();
+		}
+		
+		if(to instanceof MultiType) {
+			to = to.getTaggedType();
+		}		
 		
 		if(to.hasArrayLevels() && to instanceof NamedType )			{
 			ClassDef toSet = ((NamedType)to).getSetClassDef();
@@ -1480,6 +1496,11 @@ public class Utils implements Opcodes {
 	
 	public static PrimativeType unbox(BytecodeOutputter mv, Type from, BytecodeGennerator bcv)
 	{
+		
+		if(from instanceof MultiType) {
+			from = from.getTaggedType();
+		}
+		
 		if(TypeCheckUtils.hasRefLevelsAndNotLocked(from)){
 			return unbox(mv, unref(mv, from, bcv), bcv);
 		}
@@ -1496,6 +1517,11 @@ public class Utils implements Opcodes {
 			from=(NamedType)from.copy();//JPT this is so that getBytecodeTypeWithoutArray prodces the right thing - ugly... should have genneral method for this...
 			from.setOrigonalGenericTypeUpperBound(null);
 			String genericName = from.getGenericBytecodeType();
+			if(genericName.equals("*")) {
+				return null;
+			}
+			
+			
 			genericName = genericName.substring(1, genericName.length() - 1);
 			String boxedUpObject = ((NamedType) from).getBytecodeTypeWithoutArray();// .getPrettyName().replace('.', '/');
 			boxedUpObject = boxedUpObject.substring(1, boxedUpObject.length()-1);

@@ -11,7 +11,7 @@ x3ifretthenothersmust.conc line 3:0 method: plusTen return type has been declare
 ~~~~~
 //##4. multitype args count must match
 x4multitypeargscountmustmatch.conc line 3:0 method: plusTen uses multitype arguments, these must all be of the same count of: 3. Return type has count: 2
-x4multitypeargscountmustmatch.conc line 4:0 method: plusTen uses multitype arguments, these must all be of the same count of: 3. Input argument 2 has count: 2
+x4multitypeargscountmustmatch.conc line 4:0 method: plusTen uses multitype arguments, these must all be of the same count of: 2. Input argument 1 has count: 3
  
 ~~~~~
 //##5. not for use in lambda
@@ -20,8 +20,8 @@ x5notforuseinlambda.conc line 7:12 For variable reference on: 'plusTen' it must 
  
 ~~~~~
 //##6. check count for multitypes referenced in body
-x6checkcountformultitypesreferencedinbody.conc line 16:3 method: matmult uses multitype arguments, these must all be of the same count of: 7. Multitype referenced in body has count: 2
-x6checkcountformultitypesreferencedinbody.conc line 17:4 method: matmult uses multitype arguments, these must all be of the same count of: 7. Multitype referenced in body has count: 2
+x6checkcountformultitypesreferencedinbody.conc line 15:3 method: matmult uses multitype arguments, these must all be of the same count of: 7. Multitype referenced in body has count: 2
+x6checkcountformultitypesreferencedinbody.conc line 16:4 method: matmult uses multitype arguments, these must all be of the same count of: 7. Multitype referenced in body has count: 2
  
 ~~~~~
 //##7. All arry dimensions must be qualified in order to use an element wise initialiser

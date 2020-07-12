@@ -1798,10 +1798,10 @@ def doings(){
 //##97. ConstructorRef inner class generics bound
 
 from java.util import ArrayList
-class Outer(abs int){
+class Outer(absx int){
 	public class MyClass<X>(x String){
 		this(a int) => this("" + a)
-		override toString() => "got: " + [x, abs]
+		override toString() => "got: " + [x, absx]
 		override hashCode() => 1
 		override equals(a Object) => false
 	}
@@ -1826,10 +1826,10 @@ def doings(){
 //##97.b ConstructorRef inner class generics bound - non generical
 
 //classref to an inner class
-class Outer(abs int){
+class Outer(absx int){
 	public class MyClass(x String){
 		this(a int) => this("" + a)
-		override toString() => "got: " + [x, abs]
+		override toString() => "got: " + [x, absx]
 		override hashCode() => 1
 		override equals(a Object) => false
 	}
@@ -1854,10 +1854,10 @@ def doings(){
 //##98. ConstructorRef inner class generics unbounded
 
 from java.util import ArrayList
-class Outer(abs int){
+class Outer(absx int){
 	public class MyClass<X>(x String){
 		this(a int) => this("" + a)
-		override toString() => "got: " + [x, abs]
+		override toString() => "got: " + [x, absx]
 		override hashCode() => 1
 		override equals(a Object) => false
 	}

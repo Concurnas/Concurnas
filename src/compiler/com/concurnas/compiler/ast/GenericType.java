@@ -162,6 +162,10 @@ public class GenericType extends AbstractType implements Comparable<GenericType>
 
 	@Override
 	public boolean equals(Object other) {
+		if(other instanceof MultiType) {
+			other = ((MultiType)other).getTaggedType();
+		}
+		
 		if(other instanceof GenericType )
 		{
 			GenericType otherGen = (GenericType)other;

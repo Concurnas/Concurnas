@@ -802,7 +802,7 @@ true 2:true true
 
 ~~~~~
 //##50 default equals for lambdas
-[true, true, true][true, true, true, true, true]
+[false, true, true][false, true, false, true, true]
 
 ~~~~~
 //##51 default equals for inner functions

@@ -1,5 +1,8 @@
 package com.concurnas.compiler.visitors.util;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.visitors.ErrorRaiseable;
 
@@ -35,5 +38,4 @@ public class ErrorRaiseableSupressErrors implements ErrorRaiseable {
 	public ClassDef getImportedClassDef(String namereftoresolve, boolean ingoreDotOp) {
 		return this.parent.getImportedClassDef(namereftoresolve, ingoreDotOp);
 	}
-
 }

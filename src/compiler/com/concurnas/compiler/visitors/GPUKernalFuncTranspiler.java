@@ -1156,7 +1156,7 @@ public class GPUKernalFuncTranspiler implements Visitor {
 						this.addItem(funcDef.retType + " ");
 					}
 					
-					if(funcDef.extFunOn != null){
+					if(funcDef.getExtFuncOn() != null){
 						raiseErrorNoUse(funcDef.getLine(), funcDef.getColumn(), "extension functions");
 					}
 					

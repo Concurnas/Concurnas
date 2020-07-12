@@ -570,8 +570,11 @@ public class NamedType  extends AbstractType {
 	
 	
 	@Override
-	public boolean equals(Object other)
-	{
+	public boolean equals(Object other){
+		if(other instanceof MultiType) {
+			other = ((MultiType)other).getTaggedType();
+		}
+		
 		if(other instanceof GenericType) {
 			GenericType asGen = (GenericType)other;
 			

@@ -1339,8 +1339,8 @@ public class PrintSourceVisitor implements Visitor {
 				
 				this.addItem(funcDef.isOverride?"override":normname);
 				
-				if(funcDef.extFunOn != null){
-					funcDef.extFunOn.accept(this);
+				if(funcDef.getExtFuncOn() != null){
+					funcDef.getExtFuncOn().accept(this);
 					this.addItem(".");
 				}
 				

@@ -385,3 +385,8 @@ nice: [12, 16, 20, 28, 38, 47, 60, 75, 93, 110]
 ~~~~~
 //##90. additional code declared at top level of module
 nice: [101 202 303 404 505 606 707 808 909 1010]
+
+~~~~~
+//##91. gpu work at top level
+compl: true
+

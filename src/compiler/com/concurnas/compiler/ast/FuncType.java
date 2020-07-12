@@ -316,6 +316,10 @@ public class FuncType  extends AbstractType  implements Comparable<FuncType> {
 			return true;
 		}
 		
+		if(compare instanceof MultiType) {
+			compare = ((MultiType)compare).getTaggedType();
+		}
+		
 		if(compare instanceof FuncType)
 		{
 			FuncType compy = (FuncType)compare;

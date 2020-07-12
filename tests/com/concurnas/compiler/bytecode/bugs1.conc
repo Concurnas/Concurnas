@@ -4382,3 +4382,202 @@ def doSend(){
 }
 
 def doings() => "ok"
+
+~~~~~
+//##238. lambda not last arg
+abstract class SAMCls{
+	def operation(inp int) int
+	def mul2(tomul int) => tomul* 2
+}
+
+def takesSamCls(uses SAMCls, applyto int) => uses.operation(applyto)
+
+def doings() => "" + takesSamCls((a => a+10), 12)
+
+~~~~~
+//##239. sum min max
+def doings(){
+	x  = ""+sum(1, 2, 3, 4)
+	y  = ""+sum(1.d, 2.d, 3.d, 4.d)
+	z  = ""+sum(1.f, 2.f, 3.f, 4.f)
+	zs = ""+sum(1s, 2s, 3s, 4s)
+	zl = ""+sum(1l, 2l, 3l, 4l)
+	prim = "" + [x, y, z, zs, zl]
+	
+	bx  = ""+sum(Integer(1), Integer(2), Integer(3), Integer(4))
+	by  = ""+sum([Double(1) 2 3 4])
+	bz  = ""+sum([Float(1) 2 3 4])
+	bzs = ""+sum([Short(1) 2 3 4])
+	bzl = ""+sum([Long(1) 2 3 4])
+	
+	boxed = "" + [bx, by, bz, bzs, bzl]
+	
+	mi, ma = min(1, 2, 3), max(1, 2, 3)
+	
+	"" + [prim, boxed, mi, ma]
+}
+
+~~~~~
+//##240. min max collections
+def doings(){
+	inp = [6, 1, 2, 3]
+	mi = min(inp)
+	ma = max(inp)
+	
+	mir = min(inp, (a, b) => b > a)
+	mar = max(inp, (a, b) => b > a)
+	
+	"" + (mi, ma, mir, mar)
+}
+
+~~~~~
+//##241. use of question mark in input arg gen type
+
+from java.util import ArrayList
+
+def anyx(items ArrayList<?>){
+	for(item in items){
+		if(item){
+			return true
+		}
+	}
+	
+	false
+}
+
+def doings(){
+	any1 = anyx([true, false, true])
+	
+	"" + any1
+}
+
+~~~~~
+//##242. toBoolean was not implemented for Boolean
+def bol(an Object) => an.toBoolean()	
+
+def doings(){
+	"" + [bol(new Boolean(false)), bol(new Boolean(true))]
+}
+
+~~~~~
+//##243. any all
+from java.util import Collection
+
+class MyClass(num int){
+	override toBoolean() => num > 3
+}
+
+def doings(){
+	lists = {
+		any1 = any([true, false, true])
+		any2 = any([MyClass(10), MyClass(0), MyClass(1)])
+		
+		all1 = all([true, false, true])
+		all2 = all([MyClass(10), MyClass(0), MyClass(1)])
+		
+		allpos1 = all([true, true, true])
+		allpos2 = all([MyClass(101), MyClass(100), MyClass(101)])
+					
+		"" + (any1, any2, all1, all2, allpos1, allpos2)
+	}
+	
+	onarrays = {
+		anyBa1 = any( true, false, true)
+		allBa1 = all( true, false, true)
+		
+		anyBa2 = any(a[Boolean(true), Boolean(false)])
+		allBa2 = all(a[Boolean(true), Boolean(false)])
+		
+		anyIa1 = any( 1, 0, 1)
+		allIa1 = all( 1, 0, 1)
+		
+		anyOa1 = any(MyClass(10), MyClass(0), MyClass(1))
+		allOa1 = all(MyClass(10), MyClass(0), MyClass(1))
+			
+		"" + (anyBa1, allBa1, anyBa2, allBa2, anyIa1, allIa1, anyOa1, allOa1)
+	}
+	
+	"" + (lists, onarrays)
+}
+
+~~~~~
+//##244. forEach
+def doings(){
+	simpleLi = forEach([1, 2, 3], a => a*10)
+	simpleAr = forEach([1 2 3], a => a*10)
+	
+	"" + (simpleLi, simpleAr)
+}
+
+~~~~~
+//##245. reduction
+def doings(){
+	simpleLi1 = reduce([1, 2, 3, 4], 2, a, b => a*b)
+	simpleLi2 = reduce([1, 2, 3, 4], a, b => a*b)
+	
+	simpleAr1 = reduce([1 2 3 4], 2, a, b => a*b)
+	simpleAr2 = reduce([1 2 3 4], a, b => a*b)
+	
+	"" + [simpleLi1, simpleLi2, simpleAr1, simpleAr2]
+}
+
+~~~~~
+//##246. two arg min max
+def doings(){
+	simpleLi1 = min(2, 6)
+	simpleDob = max(2, 6)
+	
+	"" + (simpleLi1, simpleDob)
+}
+
+
+~~~~~
+//##247. primative type ext func via typedef
+BIT_SHIFT_X = SIZE_BITS_X = SIZE_BITS_Y = BIT_SHIFT_Z = SIZE_BITS_Z = 4
+
+typedef BlockPos = long
+def BlockPos x() => this << BIT_SHIFT_X 
+def BlockPos y() => this << SIZE_BITS_Y 
+def BlockPos z() => this << BIT_SHIFT_Z 
+
+
+def doings() => "" + ( 123123L x) 
+
+~~~~~
+//##248. array index on generic type array
+def proc<X>(items X[]) X => items[0]
+
+def doings(){
+	"" + proc(4, 5, 7)
+}
+
+~~~~~
+//##249. reduce on object array
+class MyClass(valu int){
+	def +(other MyClass) => MyClass(valu + other.valu)
+	override toString() => "MyClass({valu})"
+}
+
+def doings(){
+	items = [MyClass(9) MyClass(10) MyClass(100)]
+
+	reduceObjArray = reduce(items, (a, b) => a+b)
+	reduceObjArrayInit = reduce(items, MyClass(88), (a, b) => a+b)
+
+	"" + (reduceObjArray, reduceObjArrayInit)
+}
+
+~~~~~
+//##250. forEach arr
+class MyClass(valu int){
+	override toString() => "MyClass({valu})"
+}
+
+def doings(){
+	items = [MyClass(9) MyClass(10) MyClass(100)]
+
+	reduceObjArray1 = forEach<MyClass, String>(items, (a => ""+a))
+	reduceObjArray2 = forEach(items, (a => ""+a))
+
+	"" + (reduceObjArray1, reduceObjArray2)
+}

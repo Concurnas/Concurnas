@@ -420,7 +420,7 @@ public class CompiledClassUtils {
 		for (java.lang.annotation.Annotation annot : m.getAnnotations()) {
 			Class<?> at = annot.annotationType();
 			if (first != null && at.equals(ExtensionFunction.class)) {
-				sig.origonatingFuncDef.extFunOn =  first;//(NamedType)
+				sig.origonatingFuncDef.setExtFuncOn(first);//(NamedType)
 				sig.extFuncOn = true;
 				fp.params.remove(0);
 				break;

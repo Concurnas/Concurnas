@@ -955,3 +955,55 @@ ok13
 ~~~~~
 //##237. assign null to ref
 ok
+
+~~~~~
+//##238. lambda not last arg
+22
+
+~~~~~
+//##239. sum min max
+[[10, 10.0, 10.0, 10, 10], [10, 10.0, 10.0, 10, 10], 1, 3]
+
+~~~~~
+//##240. min max collections
+(1, 6, 6, 1)
+
+~~~~~
+//##241. use of question mark in input arg gen type
+true
+
+~~~~~
+//##242. toBoolean was not implemented for Boolean
+[false, true]
+
+~~~~~
+//##243. any all
+((true, true, true, true, true, true), (true, false, true, false, true, false, true, false))
+
+~~~~~
+//##244. forEach
+([10, 20, 30], [10 20 30])
+
+~~~~~
+//##245. reduction
+[48, 24, 48, 24]
+
+~~~~~
+//##246. two arg min max
+(2, 6)
+
+~~~~~
+//##247. primative type ext func via typedef
+1969968
+
+~~~~~
+//##248. array index on generic type array
+4
+
+~~~~~
+//##249. reduce on object array
+(MyClass(119), MyClass(198))
+
+~~~~~
+//##250. forEach arr
+([MyClass(9), MyClass(10), MyClass(100)], [MyClass(9), MyClass(10), MyClass(100)])

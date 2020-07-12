@@ -107,6 +107,10 @@ public class PrimativeType  extends AbstractType   {
 	@Override
 	public boolean equals(Object comp)
 	{//TODO: should this compare array levels?
+		if(comp instanceof MultiType) {
+			comp = ((MultiType)comp).getTaggedType();
+		}
+		
 		if(comp instanceof PrimativeType){
 			PrimativeType compp = (PrimativeType)comp;
 			return compp.type == this.type 

@@ -2169,11 +2169,11 @@ class Abstract {
   def op(arg int) int
 }
 
-class Clazz(-abs Abstract)
+class Clazz(-absx Abstract)
 
 inst = new Clazz(a => a*2)
 
 
 def doings(){
-	"OK" + inst.abs.op(2)
+	"OK" + inst.absx.op(2)
 }

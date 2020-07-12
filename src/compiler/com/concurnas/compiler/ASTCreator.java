@@ -1079,11 +1079,11 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 				ConcurnasParser.ExtFuncOnContext first = extons.get(0);
 
 				if (extons.size() == 1) {
-					fd.extFunOn = (Type) first.accept(this);
+					fd.setExtFuncOn( (Type) first.accept(this) );
 				} else {
 					ArrayList<Type> multitype = new ArrayList<Type>(extons.size());
 					extons.forEach(btc -> multitype.add((Type) btc.accept(this)));
-					fd.extFunOn = new MultiType(first.start.getLine(), first.start.getCharPositionInLine(), multitype);
+					fd.setExtFuncOn( new MultiType(first.start.getLine(), first.start.getCharPositionInLine(), multitype));
 				}
 			}
 			ret = fd;

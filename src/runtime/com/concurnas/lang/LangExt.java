@@ -149,8 +149,8 @@ public class LangExt {
 						if(asFT.origonatingFuncDef != null) {
 							FuncDef origin = asFT.origonatingFuncDef;
 							
-							if( origin.extFunOn != null) {
-								extFunc = origin.extFunOn.getBytecodeType();
+							if( origin.getExtFuncOn() != null) {
+								extFunc = origin.getExtFuncOn().getBytecodeType();
 							}
 						}
 						
@@ -257,7 +257,7 @@ public class LangExt {
 					if(tsf.funcDef instanceof ConstructorDef) {
 						ret.add(new Constructor(arguments));
 					}else {
-						String extFunc = tsf.funcDef.extFunOn != null?tsf.funcDef.extFunOn.getBytecodeType():null;
+						String extFunc = tsf.funcDef.getExtFuncOn() != null?tsf.funcDef.getExtFuncOn().getBytecodeType():null;
 						
 						if(tsf.funcDef.definedAtClassLevel || tsf.funcDef.definedAtLocalClassLevel) {
 							ret.add(new Method(name, returnType, arguments, extFunc));
@@ -302,8 +302,8 @@ public class LangExt {
 						if(asft.origonatingFuncDef != null) {
 							FuncDef origin = asft.origonatingFuncDef;
 							
-							if( origin.extFunOn != null) {
-								extFunc = origin.extFunOn.getBytecodeType();
+							if( origin.getExtFuncOn() != null) {
+								extFunc = origin.getExtFuncOn().getBytecodeType();
 							}
 							
 							if(origin.definedAtClassLevel || origin.definedAtLocalClassLevel) {

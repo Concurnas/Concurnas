@@ -6,6 +6,12 @@ from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections
 from java.util import Iterator, NoSuchElementException
 from com.concurnas.lang import DefaultMap
 
+private typedef intsAndBoolean  = short|int|long|boolean|byte|Object
+private typedef numericalPrim  = short|int|long|float|double|byte
+private typedef numericalBoxed = Short|Integer|Long|Float|Double|Byte
+private typedef numerical = numericalPrim | numericalBoxed
+private typedef allPrimatives  = numericalPrim|char|boolean
+
 /** typedef set resolves to a HashSet requiring inference of generic qualifiers*/
 typedef set = HashSet
 /** typedef set resolves to a HashSet with generic qualification*/
@@ -449,9 +455,276 @@ def String iterator() Iterator<Character> {
 }
 
 /**Will print a beautified version of the inputed object to console - stdout
+ * print("hello")
 */
 def print(toOutput Object) => System.out.println(com.concurnas.bootstrap.lang.Stringifier.stringify(toOutput))
 
 /**Will print a beautified version of the inputed object to console - stderr
+ * error("help!")
 */
 def error(toOutput Object) => System.err.println(com.concurnas.bootstrap.lang.Stringifier.stringify(toOutput))
+
+
+/**Will return the sum of the input array values
+ * example: 
+ *   sum([25 49 93])
+ *   sum(25 49 93)
+ * @returns: the sum of the input array values
+*/
+def sum(items numerical...){
+	x numerical = 0
+	for(itm in items){
+		x += itm
+	}
+	x
+}
+
+private def validatMinMax(items numerical[]){
+	if(items.length == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+	items[0]
+}
+
+/**Will return the smallest value from the input array
+ * throws IllegalArgumentException if the input array is empty
+ * example: 
+ *   min([25 49 93])
+ *   min(25 49 93)
+ *   min([25 49 93], (a, b) => b > a)
+ * @returns: smallest value
+*/
+def min(items numerical...){
+	ret = validatMinMax(items)
+	for(n=1; n < items.length; n++){
+		valu = items[n]
+		if(valu < ret){
+			ret = valu
+		}
+	}
+	ret
+}
+
+/**Will return the smallest value from the two inputs
+ * example: 
+ *   min(25, 49)
+ * @returns: smallest value
+*/
+def min(a numerical, b numerical) numerical{
+	//2 arg common case
+	a if a < b else b
+}
+
+/**Will return the smallest value from the input
+ * A comparator may be specified to define the comparison order, if non is specified then the elements will be compared in their natural order.
+ * example: 
+ *   min([25, 49, 93])
+ *   min([25, 49, 93], (a, b) => b > a)
+ * @returns: smallest value
+ */
+def min<X>(what Collection<X>, comparator Comparator<X>?=null) X {
+	Collections.min(what, comparator)
+}
+
+/**Will return the largest value from the input array
+ * throws IllegalArgumentException if the input array is empty
+ * example: 
+ *   max([25 49 93])
+ *   max(25 49 93)
+ *   max([25 49 93], (a, b) => b > a)
+ * @returns: largest value
+*/
+def max(items numerical...){
+	ret = validatMinMax(items)
+	for(n=1; n < items.length; n++){
+		valu = items[n]
+		if(valu > ret){
+			ret = valu
+		}
+	}
+	ret
+}
+
+/**Will return the largest value from the two inputs
+ * example: 
+ *   max(25,49)
+ * @returns: largest value
+*/
+def max(a numerical, b numerical) numerical{
+	//2 arg common case
+	a if a > b else b
+}
+
+/**Will return the largest value from the input
+ * A comparator may be specified to define the comparison order, if non is specified then the elements will be compared in their natural order.
+ * example: 
+ *   max([25, 49, 93])
+ *   max([25, 49, 93], (a, b) => b > a)
+ * @returns: largest value
+ */
+def max<X>(what Collection<X>, comparator Comparator<X>?=null) X {
+	Collections.max(what, comparator)
+}
+
+/**Will check if all input values are the equivalent of boolean true
+ * example: any([0, 1, 0])
+ * @returns: a boolean indicated if all items are true
+ */
+def all(items Collection<out Object>|intsAndBoolean[]){
+	for(item in items){
+		if( not item){
+			return false
+		}
+	}
+	true
+}
+
+/**Will check if any input values are the equivalent of boolean true
+ * example: any([0 1 0])
+ * @returns: a boolean indicated if any items are true
+ */
+def any(items Collection<out Object>|intsAndBoolean[]){
+	for(item in items){
+		if(item){
+			return true
+		}
+	}
+	false
+}
+
+/**Applies a function reference to each element of an array
+ * example: forEach(['hi' 'there'], (a => a+a) )//returns: ['hihi' 'therethere']
+ * @returns: a list of mapped values
+ * throws IllegalArgumentException if the input array is empty
+ */
+def forEach<X, Y>(items X[], apply (X) Y) java.util.List<Y>{
+	if(items.length == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+	apply(item) for item in items
+}
+/**Applies a function reference to each element of a collection
+ * Input collection is of type X, function reference is of type (X) Y
+ * example: forEach([1, 2, 3], a => a*10)//returns: [10, 20, 30]
+ * @returns: a new java.lang.List<Y> of mapped values
+ */
+def forEach<X, Y>(items Collection<X>, apply (X) Y ) List<Y>{
+	for(itm in items){
+		apply(itm)
+	}	
+}
+/**Applies a function reference to each element of a array
+ * example: forEach([1 2 3], a => a*10)//returns: [10 20 30]
+ * @returns: a new array of mapped values
+ * throws IllegalArgumentException if the input array is empty
+ */
+def forEach(items allPrimatives[], apply (allPrimatives) allPrimatives) allPrimatives[]{
+	sz = items.length
+	if(sz == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+
+	ret = new allPrimatives[sz]
+	for(n=0; n < sz; n++){
+		ret[n] = apply(items[n])
+	}
+	ret
+}
+
+private def reduce(items allPrimatives[], sz int, initialValue allPrimatives, apply (allPrimatives, allPrimatives) allPrimatives) allPrimatives {
+	ret = initialValue
+	for(n = 1; n < sz; n++){
+		ret = apply(ret, items[n])
+	}
+	ret
+}
+
+private def reduce<X>(itr Iterator<X>, initialValue X, apply (X, X) X) X {
+	ret = initialValue
+	while(itr.hasNext()){
+		ret = apply(ret, itr.next())
+	}
+	ret
+}
+
+/**Applies a reduction function of type (X, X) X to a collection of type X, with initial value of type X, in order to return a single value of type X
+ * example: reduce([1, 2, 3, 4], a, b => a*b) //returns: 24
+ * @returns: a single value of type X
+ */
+def reduce<X>(items Collection<X>, initialValue X, apply (X, X) X) X {
+	reduce(items.iterator(), initialValue, apply)
+}
+
+/**Applies a reduction function of type (X, X) X to a collection of type X in order to return a single value of type X
+ * example: reduce([1, 2, 3, 4], a, b => a*b) //returns: 24
+ * @returns: a single value of type X
+ * throws IllegalArgumentException if the input collection is empty
+ */
+def reduce<X>(items Collection<X>, apply (X, X) X) X {
+	if(items.isEmpty()){
+		throw IllegalArgumentException("Input collection is empty")
+	}
+	
+	itr = items.iterator()
+	reduce(itr, itr.next(), apply)
+}
+
+/**Applies a reduction function, with initial value, to an array in order to return a single value
+ * example: reduce([1 2 3 4], 2, a, b => a*b) //returns: 48
+ * @returns: a single value
+ */
+def reduce(items allPrimatives[], initialValue allPrimatives, apply (allPrimatives, allPrimatives) allPrimatives) allPrimatives{
+	reduce(items, items.length, initialValue, apply)
+}
+
+/**Applies a reduction function to an array in order to return a single value
+ * example: reduce([1 2 3 4], a, b => a*b) //returns: 24
+ * @returns: a single value
+ * throws IllegalArgumentException if the input array is empty
+ */
+def reduce(items allPrimatives[], apply (allPrimatives, allPrimatives) allPrimatives) allPrimatives{
+	sz = items.length
+	if(sz == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+	
+	reduce(items, sz, items[0], apply)
+}
+
+private def reduce<X>(items X[], sz int, initialValue X, apply (X, X) X) X {
+	ret = initialValue
+	for(n = 1; n < sz; n++){
+		ret = apply(ret, items[n])
+	}
+	ret
+}
+
+/**Applies a reduction function, with initial value, to an object array in order to return a single value
+ * example: reduce([1 2 3 4], 2, a, b => a*b) //returns: 48
+ * @returns: a single value
+ */
+def reduce<X>(items X[], initialValue X, apply (X, X) X) X{
+	reduce<X>(items, items.length, initialValue, apply)
+}
+
+/**Applies a reduction function to an object array in order to return a single value
+ * example: reduce([1 2 3 4], a, b => a*b) //returns: 24
+ * @returns: a single value
+ * throws IllegalArgumentException if the input array is empty
+ */
+def reduce<X>(items X[], apply (X, X) X) X{
+	sz = items.length
+	if(sz == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+	
+	reduce<X>(items, sz, items[0], apply)
+}
+
+/**The absolute value of the argument.
+ * example: abs(-1) //returns: 1
+ * @returns: the absolute value of the argument.
+ */
+def abs(what numerical) numerical{
+	Math.abs(what)
+}

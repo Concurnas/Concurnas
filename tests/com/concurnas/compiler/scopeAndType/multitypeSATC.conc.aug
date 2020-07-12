@@ -43,11 +43,10 @@ def doings(){
 
 ~~~~~
 //##6. check count for multitypes referenced in body
+private typedef numericalz = short|int|long|float|double|char|byte
+private typedef numericalzSub = short|int
 
-private typedef numerical = short|int|long|float|double|char|byte
-private typedef numericalSub = short|int
-
-def matmult(ax numerical[2], b numerical[2]){
+def matmult(ax numericalz[2], b numericalz[2]){
 	m1 = ax.length
 	n1 = ax[0].length
 	m2 = b.length
@@ -57,7 +56,7 @@ def matmult(ax numerical[2], b numerical[2]){
 	}
 	
 	c int|double[2] = new int|double[m1,n2]
-	c2 numericalSub[2] = new numericalSub[m1,n2]
+	c2 numericalzSub[2] = new numericalzSub[m1,n2]
 	for (i = 0; i < m1; i++){
 	    for (j = 0; j < n2; j++){
 	        for (k = 0; k < n1; k++){
@@ -74,7 +73,6 @@ B=[7 8 ; 9 10 ; 11 12]
 def doings(){
 	"" //+ matmult(A, B)
 }
-
 ~~~~~
 //##7. All arry dimensions must be qualified in order to use an element wise initialiser
 def doings(){

@@ -95,6 +95,8 @@ public class MultiType  extends AbstractType   {
 					return true;
 				}
 			}
+		}else if(this.astOverride != null) {
+			return this.astOverride.equals(comp);
 		}
 		return false;
 	}

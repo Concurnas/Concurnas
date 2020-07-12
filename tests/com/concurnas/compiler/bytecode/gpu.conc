@@ -4398,3 +4398,18 @@ def doings(){
 	'nice: ' + ret
 }
 //inf loop
+
+~~~~~
+//##91. gpu work at top level
+gps = gpus.GPU()
+deviceGrp = gps.getGPUDevices()[0]
+summary = deviceGrp getSummary()
+device = deviceGrp.devices[0]
+inoutGPU = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
+copyComplete boolean:gpus.GPURef = inoutGPU.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+await(copyComplete)
+x="compl: " + copyComplete
+
+def doings(){
+	x
+}

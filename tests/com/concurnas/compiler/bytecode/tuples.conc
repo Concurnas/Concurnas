@@ -70,13 +70,13 @@ def doings(){
 	y (String, String) = "hi", "there"
 	
 	anx Object = x as Object
-	any Object = y as Object
+	anyx Object = y as Object
 	
 	isit = anx is (int, int)
-	isisnt = any is (int, int)
-	isisnt2 = any is not (int, int)
+	isisnt = anyx is (int, int)
+	isisnt2 = anyx is not (int, int)
 	
-	"" + [isit, isisnt, isisnt2]//+ [isit, isisnt, x2, nope]
+	"" + [isit, isisnt, isisnt2]
 }
 
 ~~~~~
@@ -87,12 +87,12 @@ def doings(){
 	y (String, String) = "hi", "there"
 	
 	anx Object = x as Object
-	any Object = y as Object
+	anyx Object = y as Object
 	
 	
 	x2 = anx as (int, int)
 	nope = try{
-		fail = any as (int, int)
+		fail = anyx as (int, int)
 		'fail'
 	}catch(e){
 		e getMessage
@@ -109,13 +109,13 @@ def doings(){
 	y Tuple2<String, String> = "hi", "there"
 	
 	anx Object = x as Object
-	any Object = y as Object
+	anyx Object = y as Object
 	
 	isit = anx is Tuple2<int, int>
-	isisnt = any is Tuple2<int, int>
-	isisnt2 = any is not Tuple2<int, int>
+	isisnt = anyx is Tuple2<int, int>
+	isisnt2 = anyx is not Tuple2<int, int>
 	
-	"" + [isit, isisnt, isisnt2]//+ [isit, isisnt, x2, nope]
+	"" + [isit, isisnt, isisnt2]
 }
 
 ~~~~~
@@ -126,12 +126,11 @@ def doings(){
 	y (String, String) = "hi", "there"
 	
 	anx Object = x as Object
-	any Object = y as Object
-	
-	
+	anyx Object = y as Object
+		
 	x2 = anx as Tuple2<int, int>
 	nope = try{
-		fail = any as Tuple2<int, int>
+		fail = anyx as Tuple2<int, int>
 		'fail'
 	}catch(e){
 		e getMessage

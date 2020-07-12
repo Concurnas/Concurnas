@@ -2408,8 +2408,7 @@ x205somecomplexconstructorinvokationsaretoocomplex.conc line 18:11 Unable to fin
  
 ~~~~~
 //##206 what if not all the generics got qualified...
-x206whatifnotallthegenericsgotqualified.conc line 14:9 Unable to find method with matching name: myGen and arguments (java.lang.String, x206whatifnotallthegenericsgotqualified.MyAR)
-x206whatifnotallthegenericsgotqualified.conc line 15:10 Unable to find method with matching name: myGen and arguments (java.lang.String, x206whatifnotallthegenericsgotqualified.MyAR)
+x206whatifnotallthegenericsgotqualified.conc line 15:10 Missing generic binding for: H on module method: myGen
  
 ~~~~~
 //##207 what if not all the generics got qualified...
@@ -2417,9 +2416,9 @@ x207whatifnotallthegenericsgotqualifiedwhenexplicit.conc line 14:10 Unable to fi
  
 ~~~~~
 //##207.b avoid accidental binding
-x207bavoidaccidentalbinding.conc line 14:10 Unable to find method with matching name: myGen and arguments (java.lang.String, x207bavoidaccidentalbinding.MyAR)
-x207bavoidaccidentalbinding.conc line 20:10 Unable to find method with matching name: myGen and arguments (java.lang.String, x207bavoidaccidentalbinding.MyAR)
-
+x207bavoidaccidentalbinding.conc line 14:10 Missing generic binding for: H on module method: myGen
+x207bavoidaccidentalbinding.conc line 20:10 Missing generic binding for: H on module method: myGen
+ 
 ~~~~~
 //##208 method locals do get ereased at runtime
  
@@ -2512,8 +2511,7 @@ x227funcrefvisibility.conc line 10:9 The method getter is not visible
 ~~~~~
 //##228. ensure generic bindings
 x228ensuregenericbindings.conc line 9:1 Type must match generic type: H
-x228ensuregenericbindings.conc line 15:9 Unable to find method with matching name: myGen and arguments (java.lang.String, x228ensuregenericbindings.MyAR)
-x228ensuregenericbindings.conc line 16:10 Unable to find method with matching name: myGen and arguments (java.lang.String, x228ensuregenericbindings.MyAR)
+x228ensuregenericbindings.conc line 16:10 Missing generic binding for: H on module method: myGen
  
 ~~~~~
 //##229. missing local bindings
@@ -4531,3 +4529,7 @@ x617tuplevariabledefvsfuncinvoke.conc line 13:28 Array index operation can only 
 ~~~~~
 //##618. multi assign to shared variables
 x618multiassigntosharedvariables.conc line 3:0 top level multi assign variables may not be shared
+
+~~~~~
+//##619. incorrectly matched to upper bound of array type previously
+x619incorrectlymatchedtoupperboundofarraytypepreviously.conc line 11:1 Unable to find method with matching name: red and arguments (java.util.Iterator<DD>, DD)

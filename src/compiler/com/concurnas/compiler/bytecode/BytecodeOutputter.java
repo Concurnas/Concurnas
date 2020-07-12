@@ -443,6 +443,7 @@ public class BytecodeOutputter implements Opcodes {
 		 * }
 		 */
 
+		
 		consumeNextLabelIfExists();
 		lastWroteThrow = dcmpl == Opcodes.ATHROW;
 		lastWriteLabel = false;
@@ -571,8 +572,9 @@ public class BytecodeOutputter implements Opcodes {
 		 * System.out.println("did a backet case"); }
 		 */
 		
-		  if(space == 2){ 
-			  int j=8; }
+		  if(lstore == ASTORE && space == 1){ 
+			  int h = 9;
+		  }
 		 
 		// ALOAD 0
 		// ALOAD 9
@@ -661,9 +663,10 @@ public class BytecodeOutputter implements Opcodes {
 
 		//INVOKEVIRTUAL com/concurnas/runtime/ref/Local.set (Ljava/lang/Object;)V
 		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
-
+		//INVOKESTATIC java/lang/Integer.valueOf (I)Ljava/lang/Integer;
 		
-		if(opcode == INVOKEVIRTUAL && owner.equals("com/concurnas/runtime/ref/Local") && name.equals("set") ) {
+		
+		if(opcode == INVOKESTATIC && owner.equals("java/lang/Integer") && name.equals("valueOf") ) {
 			int h=9;
 		}
 		

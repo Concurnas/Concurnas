@@ -22,6 +22,10 @@ public class ModuleType extends AbstractType  {
 	
 	@Override
 	public boolean equals(Object an) {
+		if(an instanceof MultiType) {
+			an = ((MultiType)an).getTaggedType();
+		}
+		
 		if(an instanceof ModuleType) {
 			return Objects.equals(moduleNameSoFar, ((ModuleType)an).moduleNameSoFar);
 		}

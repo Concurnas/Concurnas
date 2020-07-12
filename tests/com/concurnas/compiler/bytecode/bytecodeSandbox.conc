@@ -1,51 +1,189 @@
 
 
+def int|double|long|String plus10times(a int) => this + (a*10)
+
+def doings(){
+	"" + [ "" + (2.01 plus10times 10), "" + (2 plus10times 10), "" + ("2" plus10times 10)]
+}
 
 
-/*Support this:
 
-new String?[10](null)
+/*
+typedef numerical = int|long|short|float|double|char|byte
+typedef aString = String
+def thing(ab numerical) => ab
+
+def doings(){
+	a aString? = null
+	"" + thing(2)
+}
+//should be ok, not overriding as private
+*/
+
+/*private enum AsyncComponentStatus{
+	NOT_STARTED, RUNNING, TERMINATING, TERMINATED, STARTFAIL;
+}
 
 
-x String? = null
-new String?[10, 2](x)
-new String?[10, 2](null)
+client String:? = null
+runState AsyncComponentStatus = AsyncComponentStatus.RUNNING
+
+def doSend(){
+	while(runState == AsyncComponentStatus.RUNNING){
+		client = null
+	}
+	
+}
+
+def doings() => "ok"
 */
 
 
-from com.concurnas.lang.precompiled import RefHelper
-def tt() => true
-def doings() String{
-	ref3 int:? = RefHelper.getNullRef2(): if tt() else 12
-	
-	//the eq above is based on ref so shouldnt be extracting
-	
-	"" + ref3
+
+
+/*
+
+class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+	public this(type Class<?>[]){
+		this(type, 0)
+	}
+
 }
+
+class NoZeroARgOne<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type)
+
+
+def ok(a Object) Object:GPURef? {
+	null//no cannot do this
+}
+
+def fail(a Object) Object:NoZeroARgOne? {
+	null//no cannot do this
+}
+
+def doings(){
+	what1 = try{ok("fail"); 'ok'}catch(e){'fail' + e}
+	what2 = try{fail("fail"); 'fail' }catch(e){e.getMessage()}
+	"" + [what1, what2] 
+}
+*/
+
+/*
+class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
+}
+
+
+def ok<Typex>(a Typex) Typex:? {
+	null
+}
+
+def fail<Typex>(a Typex) Typex:GPURef? {
+	null//no cannot do this
+}
+
+def doings(){
+	ok("hi")
+	msg = try{
+		fail("hi"); 'fail'
+	}catch(e) { e getMessage }
+	"fine " + msg 
+}
+*/
+
+
+/*
+
+def doings(){
+	aa1 java.lang.Integer:? = null//ok
+
+	""+ aa1
+}
+//wait forever
+*/
+
+
+
+
 
 
 
 
 
 /*
-def hey() => "there"
+typedef li = List default ArrayList
+typedef li<X> = List<X> default ArrayList<X>
+
 
 def doings(){
-	mc = "ok"
-	x int:
-	
-	thing = onchange(x){
-		'uh oh' if null == mc else hey()//this was breaking
-	}
-	
-	x = 10
-	
-	"" + thing
+	my li<String> = new li<String>(); 
+	"" + my
 }
 */
 
 
+/*
+def forEach<X, Y>(items X[], apply (X) Y) list<Y>{
+	sz = items.length
+	if(sz == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+	apply(item) for item in items
+}
+*/
 
+//build, run tests and do:
+
+
+//+ add to release notes
+
+
+//document default for typedef
+//add default for typedef to release notes
+
+
+
+
+
+//defaults for typedefs
+//typedef list<X> = List<X> default ArrayList<X>
+
+
+//fix below @ module level and in docs
+
+/*
+tally1 = 2:
+tally2 = 2:
+
+finalCount = async{
+pre{
+count = 0
+}
+
+every(tally1){
+count += tally1
+}		
+
+onchange(tally2){
+count += tally2		
+}
+
+post{
+count//return this value
+}
+
+}
+
+tally1 = 9; tally1 = 10; tally1 = 10
+tally2 = 45; tally2 = 3; tally2 = 53
+
+tally1:close(); tally2:close()
+
+await(finalCount)
+//finalCount == 132
+*/
+
+
+//fix recording of nullable support on here
 /*
 from java.util import Optional
 
@@ -79,19 +217,19 @@ def doings(){
 
 
 
+/*Support this:
+
+new String?[10](null)
+
+
+x String? = null
+new String?[10, 2](x)
+new String?[10, 2](null)
+*/
 
 
 
-
-//support repl comments
-//fix the ctrl+c problem
-
-//call conc from java, java from conc
-
-
-
-
-//gpu java 8 support
+//dist is still broken
 
 
 
@@ -107,31 +245,11 @@ def doings(){
 //targetCompatibility=9-check on java 8
 
 
-/*
-fix:
-
-BIT_SHIFT_X = SIZE_BITS_X = SIZE_BITS_Y = BIT_SHIFT_Z = SIZE_BITS_Z = 2
-
-typedef BlockPos = long
-def BlockPos x() int => (this << 64 - BIT_SHIFT_X - SIZE_BITS_X >> 64 - SIZE_BITS_X) as int
-def BlockPos y() int => (this << 64 - SIZE_BITS_Y >> 64 - SIZE_BITS_Y) as int
-def BlockPos z() int => (this << 64 - BIT_SHIFT_Z - SIZE_BITS_Z >> 64 - SIZE_BITS_Z) as int
-
-
-def doings() => "" + ( 123123L x) 
-
-
-//and document this
-
-*/
 
 
 
 
 
-
-
-//more datautils, print, sum, all, any, min, max, map, fold, foldr, foldl, avg, mean, mode
 //improve error message on no method found
 //fix michael work/tmp
 //prevent run in vanilla java
@@ -149,15 +267,6 @@ def doings() => "" + ( 123123L x)
 docugen...
 
 add to datautils:
-print
-map
-all
-reduce
-left fold, right fold
-any
-min
-max
-sum
 [0]*10
 a, b = 1, 2
 x[0], x[1] = x[1], x[0]
@@ -191,6 +300,17 @@ conc>
 
 
 
+
+
+//support repl comments
+//fix the ctrl+c problem
+
+//call conc from java, java from conc
+
+
+
+
+//gpu java 8 support
 
 
 
@@ -259,8 +379,6 @@ head = 100; System.out.println("{cur}")
 
 
 
-//default types for interfaces?
-
 
 //jypter - make work in conc
 
@@ -298,22 +416,13 @@ System.out.println("countdown from: {counter.n} == {countDownStr}")
 
 */
 
+
+
+//default for arraylist for typedefs, so we can do new List()...
+
 /*
-def doings(){
-	gps = gpus.GPU()
-	deviceGrp = gps.getGPUDevices()[0]
-	summary = deviceGrp getSummary()
-	device = deviceGrp.devices[0]
-	inoutGPU = device.makeOffHeapArrayMixed<int[]>(int[].class, 10)
-	copyComplete boolean:gpus.GPURef = inoutGPU.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
-	await(copyComplete)
-	"compl: " + copyComplete
+//expr list doesn't like this:
+def thing<X>(apply (X, X) X, a X, b X) X{
+	apply a b
 }
-
-//should be ok
-//try on gralvm
-
 */
-
-
-

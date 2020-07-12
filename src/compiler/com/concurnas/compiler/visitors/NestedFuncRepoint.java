@@ -1281,8 +1281,8 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 		//inoutWrapper.enter(true && !funcDef.getMethodName().startsWith("$$"));//$$ hack to filter out methods for onchange init etc
 		inoutWrapper.enter();//$$ hack to filter out methods for onchange init etc
 		
-		if(funcDef.extFunOn != null){
-			FuncParam fp =new FuncParam(funcDef.getLine(), funcDef.getColumn(), "this$extFunc", funcDef.extFunOn, false);
+		if(funcDef.getExtFuncOn() != null){
+			FuncParam fp =new FuncParam(funcDef.getLine(), funcDef.getColumn(), "this$extFunc", funcDef.getExtFuncOn(), false);
 			fp.accept(this);
 		}
 		

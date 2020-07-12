@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -114,6 +115,8 @@ import com.concurnas.repl.REPLState;
 import com.concurnas.repl.REPLState.REPLTopLevelImports;
 import com.concurnas.runtime.Pair;
 import com.concurnas.runtime.ref.Local;
+
+import jdk.nashorn.internal.ir.LexicalContextNode.Acceptor;
 
 public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
@@ -1796,7 +1799,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 						this.dotOperatorLHS.pop();
 						this.currentDotOperatorTracker.pop();
 						return null;
-					} else if (isNamedType || retSoFar instanceof PrimativeType || retSoFar instanceof FuncType) {
+					} else if (isNamedType || retSoFar instanceof PrimativeType || retSoFar instanceof FuncType || retSoFar instanceof GenericType) {
 						if (retSoFar instanceof NamedType) {
 							// retThisInstance = (Type)
 							// ((NamedType)retSoFar).copy();
@@ -1811,6 +1814,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							clon.setIsRef(((NamedType) retSoFar).getIsRef());
 							clon.setLockedAsRef(((NamedType) retSoFar).getLockedAsRef());
 							retThisInstance = clon;
+						}else if(retSoFar instanceof GenericType) {
+							retThisInstance = ((GenericType) retSoFar).clone();
 						} else if (retSoFar instanceof PrimativeType) {
 							retThisInstance = new PrimativeType(((PrimativeType) retSoFar).type);
 							retThisInstance.setPointer(retSoFar.getPointer());
@@ -2000,12 +2005,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	}
 	
 	private void checkASsignmentForArrayRef(Type retThisInstance, Type rhsOfThing, int line, int col, AssignStyleEnum rhsOfAssigmentEQ) {
-		
-		
-		
-		
 		TypeCheckUtils.checkAssignmentCanBeDone(this, rhsOfAssigmentEQ, retThisInstance, rhsOfThing, line, col, line, col, "");
-		
 		
 		/*
 		
@@ -7552,10 +7552,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					}
 					
 					
-					
-					if(paramToType.size() == localGens){
+					int ptss = paramToType.size();
+					if(ptss > 0 && ptss <= localGens){
 						asFuncType = (FuncType) GenericTypeUtils.mapFuncTypeGenericsToOtherGenerics(asFuncType, paramToType, false);
-						asFuncType.setLocalGenerics(null);
+						if(paramToType.size() == localGens){
+							asFuncType.setLocalGenerics(null);
+						}
 						//map to arguments if they have sam types too
 						for(Type tt: invokedTypes) {
 							if(tt instanceof FuncType) {
@@ -8475,8 +8477,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 							break;
 						}else {
 							FuncDef fd = (FuncDef)ci;
-							if(null != fd.extFunOn) {
-								return !fd.extFunOn.equals(prevSupTypeResolvesTo);//if super resolves to the type of the ext function, then dont permit ext functions on it
+							if(null != fd.getExtFuncOn()) {
+								return !fd.getExtFuncOn().equals(prevSupTypeResolvesTo);//if super resolves to the type of the ext function, then dont permit ext functions on it
 							}
 						}
 					}
@@ -8781,9 +8783,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			for(int n = currentlyInFuncDef.size()-1; n>=0; n--){
 				FuncDefI fd = currentlyInFuncDef.get(n);
 				if(fd instanceof FuncDef){
-					if(((FuncDef)fd).extFunOn != null){
+					if(((FuncDef)fd).getExtFuncOn() != null){
 						
-						Type extFuncOn = ((FuncDef)fd).extFunOn;
+						Type extFuncOn = ((FuncDef)fd).getExtFuncOn();
 						
 						HashSet<TypeAndLocation> tals = findFuncRefenceDefsLambdaCurry(line, col, funcInvoke, extFuncOn, nameola, argsWanted, namessMap);
 						if(null != tals && !tals.isEmpty()){
@@ -10192,13 +10194,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		//args added in constructor
 		
-		PrintSourceVisitor psv = new PrintSourceVisitor();
-		psv.visit(asyncBlock.body);
+		//PrintSourceVisitor psv = new PrintSourceVisitor();
+		//psv.visit(asyncBlock.body);
 		
-		String contents = psv.toString();
+		//String contents = psv.toString();
 		
 		if(null == asyncBlock.methodName){
-			asyncBlock.methodName = generateLambdaName(contents);
+			asyncBlock.methodName = generateLambdaName(/*contents*/);
 			//System.err.println("gennerated ab name " + asyncBlock.methodName  );
 		}else{
 			lambdaNames.add(asyncBlock.methodName);
@@ -10417,15 +10419,15 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		//args added in constructor
 		
- 		PrintSourceVisitor psv = new PrintSourceVisitor();
-		psv.visit(lambdaDef);
+ 		//PrintSourceVisitor psv = new PrintSourceVisitor();
+		//psv.visit(lambdaDef);
 		
-		String contents = psv.toString();
+		//String contents = psv.toString();
 		
 		//System.err.println(lambdaDef.getLine() + ": contentes: " + contents + "\n----------------\n");
 		
 		if(null == lambdaDef.methodName){
-			lambdaDef.methodName = generateLambdaName(contents);// this.packageAndClassName + "$$LambdaInner" + localLambdaInnerCount++;
+			lambdaDef.methodName = generateLambdaName(/*contents*/);// this.packageAndClassName + "$$LambdaInner" + localLambdaInnerCount++;
 		}else{
 			lambdaNames.add(lambdaDef.methodName);
 		}
@@ -10472,15 +10474,15 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private HashSet<String> lambdaNames = new HashSet<String>();
 	private static long lambdaNamescnt = 0;
 	
-	private String generateLambdaName(String contents){
-		HashMap<String, String> lambContentsInMod = lambContentsInModStack.peek();
-		String got = lambContentsInMod.get(contents);
-		if(null == got){
-			got = this.packageName.peek() + "$$LambdaInner" + lambdaNames.size() + "$$" + lambdaNamescnt++;
+	private String generateLambdaName(/*String contents*/){
+		//HashMap<String, String> lambContentsInMod = lambContentsInModStack.peek();
+		//String got = lambContentsInMod.get(contents);
+		//if(null == got){
+			String got = this.packageName.peek() + "$$LambdaInner" + lambdaNames.size() + "$$" + lambdaNamescnt++;
 			got = got.replace('.', '/');
-			lambContentsInMod.put(contents, got);			
+			//lambContentsInMod.put(contents, got);			
 			lambdaNames.add(got);
-		}
+		//}
 		
 		return got;
 	}
@@ -17772,8 +17774,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			for(int n = this.currentlyInFuncDef.size()-1; n >= 0; n--){
 				FuncDefI fd = this.currentlyInFuncDef.get(n);
 				if(fd instanceof FuncDef){
-					if(((FuncDef)fd).extFunOn != null){
-						Type ret = ((FuncDef)fd).extFunOn;
+					if(((FuncDef)fd).getExtFuncOn() != null){
+						Type ret = ((FuncDef)fd).getExtFuncOn();
 						if(ret != null) {
 							TheScopeFrame cf = this.currentScopeFrame;
 							while(cf != null) {
@@ -17797,6 +17799,13 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private Object thisOrSuper(boolean isSuper, String txt, int line, int col, String qualifier, RefThis refThis)
 	{
 		Type inExtFunction = currentlyInExtensionFunction();
+		
+		/*if(null != inExtFunction && inExtFunction instanceof NamedType  ) {
+			Type redir = ((NamedType)inExtFunction).astredirect;
+			if(null != redir) {
+				inExtFunction = redir;
+			}
+		}*/
 		
 		boolean ingppufunc = !this.currentlyInFuncDef.isEmpty() && this.currentlyInFuncDef.peek().isGPUKernalOrFunction != null;
 		
@@ -18211,8 +18220,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				for(int n = currentlyInFuncDef.size()-1; n>=0; n--){
 					FuncDefI fd = currentlyInFuncDef.get(n);
 					if(fd instanceof FuncDef){
-						if(((FuncDef)fd).extFunOn != null){
-							Type extFuncOn = ((FuncDef)fd).extFunOn;
+						if(((FuncDef)fd).getExtFuncOn() != null){
+							Type extFuncOn = ((FuncDef)fd).getExtFuncOn();
 							
 							TypeAndLocation tal = findFuncDefs(line, col, extFuncOn, name);
 							if(null != tal){
@@ -20517,27 +20526,62 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		return new TypeAndLocation(input, loc);
 	}
 	
-	private Pair<Boolean, Type> resolvestoMultiArg(Type thing){
-		if(thing instanceof MultiType) {
-			((MultiType)thing).isValidAtThisLocation=true;
+	
+	private List<Pair<Boolean, MultiType>> resolvestoMultiArg(Type argument){
+		List<Pair<Boolean, MultiType>> ret = new ArrayList<Pair<Boolean, MultiType>>();
+		processArgsForMultiType(argument, ret);
+		return ret;
+	}
+	
+	
+	private void processArgsForMultiType(Type arg, List<Pair<Boolean, MultiType>> ret){
+		if(arg instanceof MultiType) {
+			ret.add(processMultiTypex((MultiType)arg));
+		}else if(arg instanceof NamedType) {
+			NamedType asNamedType = (NamedType)arg;
+			asNamedType.accept(this);
+			if(asNamedType.astredirect != null) {
+				processArgsForMultiType(asNamedType.astredirect, ret);
+			}else {
+				for(Type gen : asNamedType.getGenericTypeElements()) {
+					processArgsForMultiType(gen, ret);
+				}
+			}
+		}else if(arg instanceof FuncType) {
+			FuncType asFT = (FuncType)arg;
+			processArgsForMultiType(asFT.retType, ret);
+			for(Type inp : asFT.getInputs()) {
+				processArgsForMultiType(inp, ret);
+			}
+		}
+	}
+	
+	private Pair<Boolean, MultiType> processMultiTypex(MultiType thing){
+		if(thing !=null) {
+			thing.isValidAtThisLocation=true;
 		}
 		
 		this.maskErrors();
-		Type resTo = thing==null?null:(Type)thing.accept(this);
+		Type resTo = thing==null?null:(MultiType)thing.accept(this);
 		boolean errs = this.maskedErrors();
 		
 		if(!(resTo instanceof MultiType)){
 			resTo = null;
 		}
 		
-		return new Pair<Boolean, Type>( errs, resTo);
+		return new Pair<Boolean, MultiType>( errs, (MultiType)resTo);
 	}
 	
 	private static class MutitypesInsideFunctionBodyFinder extends AbstractVisitor{
 		public ArrayList<MultiType> found;
 		
-		public ArrayList<MultiType> find(Block fd){
+		public ArrayList<MultiType> startSearch() {
 			found = new ArrayList<MultiType>();
+			return found;
+		}
+		
+		public ArrayList<MultiType> find(Block fd){
+			found = startSearch();
 			if(null != fd) {
 				this.visit(fd);
 			}
@@ -20556,8 +20600,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		private int which;
 		
 		public void qualifyTo(Block fd, int which){
-			this.which = which;
+			setWhitch(which);
 			this.visit(fd);
+		}
+		
+		public void setWhitch(int which) {
+			this.which = which;
 		}
 
 		@Override
@@ -20583,6 +20631,9 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	private final MutitypesInsideFunctionBodyFinder multitypeFinder = new MutitypesInsideFunctionBodyFinder();
 	private final MutitypesInsideFunctionBodyQualifier multitypequalifer = new MutitypesInsideFunctionBodyQualifier();
 	
+
+	
+	
 	private Thruple<Boolean, ArrayList<FuncDef>, Boolean> processMultiArgs(FuncDef funcDef) {
 		String isConst = funcDef instanceof ConstructorDef?"constructor":("method: " + funcDef.getMethodName());
 		
@@ -20590,49 +20641,57 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		boolean hasMultiArgs=false;
 		boolean hasMultiArgRet=false;
 		boolean canResolveAllTypes=true;
-		HashSet<MultiType> allMultiTypes = new HashSet<MultiType>();
-		ArrayList<Integer> multiargs = new ArrayList<Integer>();
+		HashSet<MultiType> inputOutputMultiTypes = new HashSet<MultiType>();
+		//ArrayList<Integer> multiargs = new ArrayList<Integer>();
+		
+		IdentityHashMap<MultiType, Integer> multiTypeToIdx = new IdentityHashMap<MultiType, Integer>();
+		
 		int nx=0;
 		for(FuncParam fp : funcDef.params.params) {
-			Pair<Boolean, Type> got = resolvestoMultiArg(fp.type);
-			Type resTo = got.getB();
-			if(resTo instanceof MultiType) {
-				hasMultiArgs=true;
-				fp.type = resTo;
-				allMultiTypes.add((MultiType)resTo);
-				multiargs.add(nx);
-			}
-			if(got.getA()){
-				canResolveAllTypes=false;
-			}
 			
+			for(Pair<Boolean, MultiType> got : resolvestoMultiArg(fp.type)) {
+				MultiType resTo = got.getB();
+				if(resTo != null) {
+					hasMultiArgs=true;
+					//fp.type = resTo;
+					inputOutputMultiTypes.add(resTo);
+					multiTypeToIdx.put(resTo, nx);
+					//multiargs.add(nx);
+				}
+				if(got.getA()){
+					canResolveAllTypes=false;
+				}
+			}
 			nx++;
 		}
 		
-		
-		if(null != funcDef.extFunOn){
-			Pair<Boolean, Type> got = resolvestoMultiArg(funcDef.extFunOn);
-			Type resTo = got.getB();
-			if(resTo instanceof MultiType) {
-				hasMultiArgs=true;
-				multiArgExtFunc=true;
-				funcDef.extFunOn = resTo;
-				//multiargs.add(nx);
-			}
-			if(got.getA()){
-				canResolveAllTypes=false;
+		if(null != funcDef.getReturnType()){
+			for(Pair<Boolean, MultiType> got : resolvestoMultiArg(funcDef.getReturnType())) {
+				MultiType resTo = got.getB();
+				if(resTo != null ) {
+					hasMultiArgRet=true;
+					inputOutputMultiTypes.add((MultiType)resTo);
+					//funcDef.retType = resTo;
+					multiTypeToIdx.put(resTo, -1);
+				}
+				if(got.getA()){
+					canResolveAllTypes=false;
+				}
 			}
 		}
 		
-		if(null != funcDef.getReturnType()){
-			Pair<Boolean, Type> got = resolvestoMultiArg(funcDef.getReturnType());
-			Type resTo = got.getB();
-			if(resTo instanceof MultiType) {
-				hasMultiArgRet=true;
-				funcDef.retType = resTo;
-			}
-			if(got.getA()){
-				canResolveAllTypes=false;
+		if(null != funcDef.getExtFuncOn()){
+			for(Pair<Boolean, MultiType> got : resolvestoMultiArg(funcDef.getExtFuncOn())) {
+				MultiType resTo = got.getB();
+				if(resTo != null) {
+					hasMultiArgs=true;
+					multiArgExtFunc=true;
+					//funcDef.extFunOn = resTo;
+					//multiargs.add(nx);
+				}
+				if(got.getA()){
+					canResolveAllTypes=false;
+				}
 			}
 		}
 		
@@ -20640,32 +20699,24 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			int multiTypeArgCnt = -1;
 			if(!hasMultiArgs) {//only ret
 				this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s return type has been declared as a multi type, multitype input arguments with matching count must be defined", isConst));
-				//allMultiTypes.forEach(a -> a.ignore=true);
 				return new Thruple<>(true, null, true);
 			}else {
 				if(multiArgExtFunc) {
-					multiTypeArgCnt = ((MultiType)funcDef.extFunOn).multitype.size();
+					multiTypeArgCnt = ((MultiType)funcDef.getExtFuncOn()).multitype.size();
 				}
 				
-				if(multiargs.size() >= 1 || hasMultiArgRet) {//check all same size
-					for(Integer idx : multiargs) {
-						int thisOne = ((MultiType)funcDef.params.params.get(idx).type).multitype.size();
-						if(multiTypeArgCnt == -1) {
-							multiTypeArgCnt = thisOne;
-						}else if(multiTypeArgCnt != thisOne) {
-							this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s uses multitype arguments, these must all be of the same count of: %s. Input argument %s has count: %s", isConst, multiTypeArgCnt, idx+1, thisOne));
-							//allMultiTypes.forEach(a -> a.ignore=true);
-							return new Thruple<>(true, null, true);
-						}
-					}
-					
-					if(hasMultiArgRet) {
-						int thisOne = ((MultiType)funcDef.getReturnType()).multitype.size();
-						if(multiTypeArgCnt != thisOne) {
+				for(MultiType inout : inputOutputMultiTypes) {
+					int thisOne = inout.multitype.size();
+					if(multiTypeArgCnt == -1) {
+						multiTypeArgCnt = thisOne;
+					}else if(multiTypeArgCnt != thisOne) {
+						int idx = multiTypeToIdx.get(inout);
+						if(idx == -1){
 							this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s uses multitype arguments, these must all be of the same count of: %s. Return type has count: %s", isConst, multiTypeArgCnt, thisOne));
-							//allMultiTypes.forEach(a -> a.ignore=true);
-							return new Thruple<>(true, null, true);
+						}else {
+							this.raiseError(funcDef.getLine(), funcDef.getColumn(), String.format("%s uses multitype arguments, these must all be of the same count of: %s. Input argument %s has count: %s", isConst, multiTypeArgCnt, idx+1, thisOne));
 						}
+						return new Thruple<>(true, null, true);
 					}
 				}
 			}
@@ -20674,7 +20725,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			this.maskErrors();
 			
 			this.currentlyInRet.add("");
-			this.returnTypeExpected.add(this.const_object);
+			this.returnTypeExpected.add(ScopeAndTypeChecker.const_object);
 			if(null != funcDef.funcblock) {
 				funcDef.funcblock.canContainAReturnStmt = true;
 				
@@ -20706,29 +20757,35 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			//validated, now ouput variants of FuncDef with 
 			ArrayList<FuncDef> ret = new ArrayList<FuncDef>(multiTypeArgCnt);
 			for(int n=0; n < multiTypeArgCnt; n++) {
+				multitypequalifer.setWhitch(n);
 				FuncDef funcDefInst = (FuncDef)funcDef.copy();
 				if(hasMultiArgs) {//need to adjust args
 					//ArrayList<FuncParam> newParams = new ArrayList<FuncParam>(funcDef.params.params.size());
 					for(FuncParam fp : funcDefInst.params.params) {
 						Type tt = fp.type;
-						if(tt instanceof MultiType) {
+						/*if(tt instanceof MultiType) {
 							MultiType mt = (MultiType)tt;
 							fp.type = mt.multitype.get(n);
 							fp.type.setArrayLevels(mt.getArrayLevels());
-						}
+						}*/
+						tt.accept(multitypequalifer);
 					}
 					
-					if(funcDefInst.extFunOn instanceof MultiType) {
+					/*if(funcDefInst.extFunOn instanceof MultiType) {
 						MultiType mt = (MultiType)funcDefInst.extFunOn;
 						funcDefInst.extFunOn = mt.multitype.get(n);
 						funcDefInst.extFunOn.setArrayLevels(mt.getArrayLevels());
+					}*/
+					if(funcDefInst.getExtFuncOn() != null) {
+						funcDefInst.getExtFuncOn().accept(multitypequalifer);
 					}
 				}
 
 				if(hasMultiArgRet) {//addjust ret
-					MultiType mt = (MultiType)funcDefInst.getReturnType();
+					/*MultiType mt = (MultiType)funcDefInst.getReturnType();
 					funcDefInst.retType = mt.multitype.get(n);
-					funcDefInst.retType.setArrayLevels(mt.getArrayLevels());
+					funcDefInst.retType.setArrayLevels(mt.getArrayLevels());*/
+					funcDefInst.retType.accept(multitypequalifer);
 				}
 				
 				if(!inbody.isEmpty()) {
@@ -20740,11 +20797,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			return new Thruple<>(true, ret, false);
 		}
-		
-		/*if(canResolveAllTypes) {//all types resolved ok, and we're not having multitypes - no need to check again
-			//allMultiTypes.forEach(a -> a.ignore=true);
-			return new Thruple<>(false, null, true);
-		}*/
 		
 		return new Thruple<>(!canResolveAllTypes, null, false);
 	}
@@ -20788,7 +20840,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(funcDef.isGPUKernalOrFunction != null) {
 			hasGPUFuncorkernals=true;
 			
-			if(funcDef.extFunOn != null) {
+			if(funcDef.getExtFuncOn() != null) {
 				this.raiseError(funcDef.getLine(), funcDef.getColumn(), "gpu kernels or gpu functions may not be extension functions");
 			}
 			else {
@@ -20846,7 +20898,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 					this.raiseError(funcDef.getLine(), funcDef.getColumn(), "gpu kernel or gpu functions may not have annotations");
 				}
 			}
-			if(funcDef.extFunOn != null ) {//impossible to get here?
+			if(funcDef.getExtFuncOn() != null ) {//impossible to get here?
 				this.raiseError(funcDef.getLine(), funcDef.getColumn(), "gpu kernel or gpu functions may not be an extension functions");
 			}
 			if(funcDef.methodGenricList != null && !funcDef.methodGenricList.isEmpty()) {//impossible to get here?
@@ -21022,7 +21074,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		boolean isAbstract = funcDef.isAbstract();
 		
 		if(funcDef.accessModifier == null){
-			funcDef.accessModifier=funcDef.extFunOn != null && funcDef.definedAtClassLevel?AccessModifier.PROTECTED : AccessModifier.PUBLIC;
+			funcDef.accessModifier=funcDef.getExtFuncOn() != null && funcDef.definedAtClassLevel?AccessModifier.PROTECTED : AccessModifier.PUBLIC;
 			if(!funcDef.isOverride){
 				if(!currentlyInBlock.isEmpty() && currentlyInBlock.peek().isEnum){
 					ClassDef cls = this.currentlyInClassDef.peek();
@@ -21071,8 +21123,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		this.currentlyInFuncDef.add(funcDef);
 
-		if(funcDef.extFunOn != null){
-			Type extFuncType = (Type)funcDef.extFunOn.accept(this);
+		if(funcDef.getExtFuncOnRaw() != null){
+			Type extFuncType = (Type)funcDef.getExtFuncOnRaw().accept(this);
 			//com.concurnas.lang.ExtensionFunction
 			if(funcDef.annotations == null){
 				funcDef.annotations = new Annotations();
@@ -21458,7 +21510,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 			}
 
-			if(funcDef.extFunOn != null) {
+			if(funcDef.getExtFuncOn() != null) {
 				funcDef.funcblock.isExtFunc = true;
 			}
 			

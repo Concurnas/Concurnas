@@ -96,4 +96,69 @@ y = zip([1, 2, 3, 4], [4, 3, 2, 1],[4, 3, 2, 1],[4, 3, 2, 1] )
 //y == [(1, 4, 4, 4), (2, 3, 3, 3), (3, 2, 2, 2), (4, 1, 1, 1)]
 \end{lstlisting}
 
+
+
+\subsection{print and error}
+The \lstinline{print} and \lstinline{error} functions can be used to pretty print any object to \lstinline{stdout} and \lstinline{stderr} respectfully. The pretty print goes beyond the standard \lstinline{System.out.println(xyz)} and can handle arrays etc:
+
+\begin{lstlisting}
+print([1, 2, 3, 4], [4, 3, 2, 1])
+print("hello world")
+error("oh no!")
+\end{lstlisting}
+
+\subsection{sum}
+The \lstinline{sum} function will calculate the sum an array of numerical (primitive or boxed) inputs. It may also be used with vararg input:
+
+\begin{lstlisting}
+sum([1 2 3 4])//=>10
+sum(1, 2, 3, 4)  //=>10
+sum(1.2, 3.0)    //=>4.2
+\end{lstlisting}
+
+\subsection{min and max}
+The \lstinline{min} and \lstinline{max} functions will find the min and max value of an array or \lstinline{java.util.Collection<X>}. In the case where a collection is provided, an optional comparator argument may be specified. Where only two input arguments of primitive or boxed type are provided an optimized version of the functions are invoked:
+
+\begin{lstlisting}
+min([1 2 3 4])
+max(1, 2, 3, 4)  
+max(2, 5)
+min("a", "z")
+\end{lstlisting}
+
+\subsection{abs}
+The \lstinline{sum} function will return the absolute value of the input primitive or boxed type:
+
+\begin{lstlisting}
+abs(-1)
+\end{lstlisting}
+
+\subsection{any and all}
+The \lstinline{any} and \lstinline{all} functions operator upon arrays of primitive or boxed types, and \lstinline{java.util.Collection<X>}'s. The functions will return \lstinline{true} if any input value is equivalent of true or all values are the equivalent of true respectfully:
+
+\begin{lstlisting}
+any([0 1 0])
+any(0, 1, 0)
+
+all(true, true, false, true)
+class MyClass(value int){ override toBoolean() => this.value > 10 }
+
+any(MyClass 5, MyClass 88)
+\end{lstlisting}
+
+\subsection{forEach}
+The \lstinline{forEach} function will apply a function to each element of an array or \lstinline{java.util.Collection<X>} and will return a new array or collection respectfully:
+
+\begin{lstlisting}
+forEach([1, 2, 3], a => a*10)//returns: [10, 20, 30]
+\end{lstlisting}
+
+\subsection{reduce}
+The \lstinline{reduce} function will apply a reduction function to each element of an array or \lstinline{java.util.Collection<X>} in order to return a single value. An initial value may optionally be specified:
+
+\begin{lstlisting}
+reduce([1, 2, 3, 4], a, b => a*b) //returns: 24
+reduce([1, 2, 3, 4], 2, a, b => a*b) //returns: 48	
+\end{lstlisting}
+
 \end{document}

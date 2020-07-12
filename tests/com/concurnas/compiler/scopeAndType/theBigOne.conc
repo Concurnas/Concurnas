@@ -2893,16 +2893,15 @@ thisIsFine int[3] = [null null] //this is fine and bc is ok as well
 //##10.4. Array Access
 
 
-class Gauss {
+class Gauss { 
     def main(args String[] ) void {
         ia int[] = new int[101];
         ia[2] = 6;
-        sum int = 0;
-        for (e int in ia)
-        {
-        	sum += e;
+        sumx int = 0;
+        for (e int in ia){
+        	sumx += e;
         }
-        System.out.println(sum);
+        System.out.println(sumx);
     }
 }
 
@@ -16108,4 +16107,21 @@ public shared var1 = public shared var2 =  "ok" //not ok
 def doings(){
 	shared var1x = shared var2x =  "ok" //this is ok
 	"ok"
+}
+
+~~~~~
+//##619. incorrectly matched to upper bound of array type previously
+from java.util import Iterator, Collection
+
+def red<X>(items X[], initialValue X) X{
+	items[0]
+}
+
+def red<DD>(items Collection<DD>) DD {
+	itr = items.iterator()
+	red(itr, itr.next())//itr it not a subtype of []
+}
+
+def doings(){
+	"ok" 
 }
