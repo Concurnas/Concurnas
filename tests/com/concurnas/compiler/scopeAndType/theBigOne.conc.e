@@ -3111,13 +3111,13 @@ x338nonestedclassesthanks.conc line 9:1 class: Nope cannot be defined within ann
  
 ~~~~~
 //##339. suppress warnings params that can be used
-x339suppresswarningsparamsthatcanbeused.conc line 8:1 Invalid SuppressWarnings arguments: 'allx' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all'
-x339suppresswarningsparamsthatcanbeused.conc line 13:1 Invalid SuppressWarnings arguments: 'allc' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all'
-x339suppresswarningsparamsthatcanbeused.conc line 18:1 Invalid SuppressWarnings arguments: 'generic-castc' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all'
-x339suppresswarningsparamsthatcanbeused.conc line 23:1 Invalid SuppressWarnings arguments: 'pants, generic-castx' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all'
-x339suppresswarningsparamsthatcanbeused.conc line 29:0 Invalid SuppressWarnings arguments: 'all, generic-cast' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all' - 'all' cannot be used in conjunction with other options
-x339suppresswarningsparamsthatcanbeused.conc line 35:0 Invalid SuppressWarnings arguments: 'alla' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all'
-x339suppresswarningsparamsthatcanbeused.conc line 42:0 Invalid SuppressWarnings arguments: 'generic-castd' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use' or 'all'
+x339suppresswarningsparamsthatcanbeused.conc line 8:1 Invalid SuppressWarnings arguments: 'allx' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all'
+x339suppresswarningsparamsthatcanbeused.conc line 13:1 Invalid SuppressWarnings arguments: 'allc' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all'
+x339suppresswarningsparamsthatcanbeused.conc line 18:1 Invalid SuppressWarnings arguments: 'generic-castc' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all'
+x339suppresswarningsparamsthatcanbeused.conc line 23:1 Invalid SuppressWarnings arguments: 'pants, generic-castx' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all'
+x339suppresswarningsparamsthatcanbeused.conc line 29:0 Invalid SuppressWarnings arguments: 'all, generic-cast' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all' - 'all' cannot be used in conjunction with other options
+x339suppresswarningsparamsthatcanbeused.conc line 35:0 Invalid SuppressWarnings arguments: 'alla' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all'
+x339suppresswarningsparamsthatcanbeused.conc line 42:0 Invalid SuppressWarnings arguments: 'generic-castd' valid options are one or many of: 'enum-match-non-exhaustive, generic-cast, redefine-import, typedef-arg-use, typedef-override' or 'all'
 x339suppresswarningsparamsthatcanbeused.conc WARN line 10:2 Unable to determine type for generic: T for as operation. Wil use upper bounds of: java.lang.Object instead
 x339suppresswarningsparamsthatcanbeused.conc WARN line 15:4 Unable to determine type for generic: T for as operation. Wil use upper bounds of: java.lang.Object instead
 x339suppresswarningsparamsthatcanbeused.conc WARN line 20:2 Unable to determine type for generic: T for as operation. Wil use upper bounds of: java.lang.Object instead
@@ -3337,14 +3337,15 @@ x382typedefcanonlybeusedinblocks.conc line 5:1 line cannot be present within cla
 //##385. typedef cehcks
 x385typedefcehcks.conc line 7:0 typedef myok has already been definted with 1 arguments
 x385typedefcehcks.conc line 8:0 typedef qualifier 'x' has already been declared in qualifier parameter list
-x385typedefcehcks.conc line 9:0 typedef qualifier 'String' overrides an existing type - this is confusing
-x385typedefcehcks.conc line 10:0 typedef qualifier 'mylistQ' overrides an existing type - this is confusing
-x385typedefcehcks.conc line 11:0 typedef 'String' overrides an existing type - this is confusing
+x385typedefcehcks.conc line 9:0 typedef mylistQ has already been definted with 1 arguments
+x385typedefcehcks.conc line 10:0 typedef mylistQ has already been definted with 1 arguments
 x385typedefcehcks.conc line 13:16 Unable to resolve type corresponding to name: amyb
 x385typedefcehcks.conc line 14:16 Unable to resolve type corresponding to name: amyc
 x385typedefcehcks.conc line 15:16 Unable to resolve type corresponding to name: nope
 x385typedefcehcks.conc line 25:2 Cannot perform is or isnot check on primative type
-x385typedefcehcks.conc WARN line 10:0 typedef qualifier is unused in right hand side definition: mylistQ
+x385typedefcehcks.conc WARN line 9:0 typedef qualifier 'String' overrides an existing type - this is confusing
+x385typedefcehcks.conc WARN line 10:0 typedef qualifier 'mylistQ' overrides an existing type - this is confusing
+x385typedefcehcks.conc WARN line 11:0 typedef 'String' overrides an existing type - this is confusing
  
 ~~~~~
 //##386. match at least one case
@@ -4291,8 +4292,8 @@ x568transientimpliesnew.conc line 6:1 Variable myLists has already been defined 
 //##569. shared params may not be primatives
 x569sharedparamsmaynotbeprimatives.conc line 4:9 shared variables may not be of non array primative type
 x569sharedparamsmaynotbeprimatives.conc line 6:0 shared variables may not be of non array primative type
-x569sharedparamsmaynotbeprimatives.conc line 6:0 shared variables of primative type must also be of array type
-x569sharedparamsmaynotbeprimatives.conc line 9:1 shared variables of primative type must also be of array type
+x569sharedparamsmaynotbeprimatives.conc line 6:0 shared variables of primative type must be arrays
+x569sharedparamsmaynotbeprimatives.conc line 9:1 shared variables of primative type must be arrays
  
 ~~~~~
 //##570. with expression must be an Object type
@@ -4533,3 +4534,11 @@ x618multiassigntosharedvariables.conc line 3:0 top level multi assign variables 
 ~~~~~
 //##619. incorrectly matched to upper bound of array type previously
 x619incorrectlymatchedtoupperboundofarraytypepreviously.conc line 11:1 Unable to find method with matching name: red and arguments (java.util.Iterator<DD>, DD)
+
+~~~~~
+//##620. typedef defualt must be subtype
+bytecodeSandbox.conc line 3:0 typedef li with default type: java.lang.String must be a subtype of: java.util.List
+
+~~~~~
+//##621. typedef with params used on rhs
+bytecodeSandbox.conc WARN line 3:0 typedef qualifier is unused in right hand side definition: X

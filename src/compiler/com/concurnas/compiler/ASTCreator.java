@@ -869,10 +869,12 @@ public class ASTCreator extends ConcurnasBaseVisitor<Object> {
 		AccessModifier accessModifier = (AccessModifier) (ctx.pppNoInject() != null ? ctx.pppNoInject().accept(this) : null);
 
 		List<String> typedefargs = ctx.typedefArgs() == null ? new ArrayList<String>(0) : (List<String>) ctx.typedefArgs().accept(this);
+		
+		Type type = (Type) ctx.tdtype.accept(this);
+		
+		Type defaultType = ctx.defaultType==null?null:(Type)ctx.defaultType.accept(this);
 
-		Type type = (Type) ctx.type().accept(this);
-
-		return new TypedefStatement(ctx.start.getLine(), ctx.start.getCharPositionInLine(), accessModifier, ctx.NAME().getText(), type, typedefargs);
+		return new TypedefStatement(ctx.start.getLine(), ctx.start.getCharPositionInLine(), accessModifier, ctx.NAME().getText(), type, typedefargs, defaultType);
 	}
 
 	@Override

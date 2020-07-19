@@ -3143,11 +3143,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 		}
 		
-		if(this.currentScopeFrame.paThisIsModule && assignNew.isShared) {
-			this.hasSharedModuleLevelVars = assignNew.expr != null;
-			assignNew.isModuleLevelShared = true;
-		}
-		
 		Type retType = null;
 		
 		TypeAndLocation tal = null;
@@ -3431,7 +3426,14 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		{
 			return null;
 		}else if(assignNew.isShared && TypeCheckUtils.isPurePrimativeNonArray(retType)) {
-			this.raiseError(assignNew.getLine(), assignNew.getColumn(), "shared variables of primative type must also be of array type");
+			this.raiseError(assignNew.getLine(), assignNew.getColumn(), "shared variables of primative type must be arrays");
+		}
+		
+		if(isClinitsharedVariable(assignNew.isShared, retType)) {
+			//shared, ref, actor or sharedclass
+			this.hasSharedModuleLevelVars = assignNew.expr != null;
+			assignNew.isModuleLevelShared = true;
+			assignNew.isShared=true;
 		}
 		
 		if(TypeCheckUtils.hasRefLevelsAndIsLocked(retType)){//uh oh, were going to have to operate...
@@ -3460,6 +3462,22 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		return null;//retType;
+	}
+	
+	private boolean isClinitsharedVariable(boolean isShared, Type type) {
+		if(this.currentScopeFrame.paThisIsModule ) {
+			
+			
+			
+			if(isShared || (type instanceof NamedType && TypeCheckUtils.isActor(ers, (NamedType)type)) || TypeCheckUtils.hasRefLevels(type)) {
+				return true;
+			}
+			
+			/*
+			 * if(isShared) { return true; }
+			 */
+		}
+		return false;
 	}
 	
 	private NamedType extractedToTuple(ArrayList<Object> steps, Type current, NamedType tupleType) {
@@ -3829,7 +3847,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(this.currentScopeFrame.isAnnotation){
 			validizeAnnotationUseage(assignExisting.expr);
 		}
-		
+
+		assignExisting.isModuleLevelShared = false;
 		
 		ArrayList<Type> elementTypes = vectorizeElementsIfApproperiate(assignExisting, true);
 		
@@ -3945,7 +3964,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 			}
 		}
-		
 		
 		if(assignee instanceof RefName)
 		{//it may already exist... so go find it!
@@ -4193,6 +4211,15 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				}
 
 				setForceCastIfVarNull(assignExisting.expr, rhs);
+				
+
+				if(isClinitsharedVariable(assignExisting.isReallyNew && assignExisting.isShared, rhs)) {
+					//shared, ref, actor or sharedclass
+					this.hasSharedModuleLevelVars = assignExisting.expr != null;
+					assignExisting.isModuleLevelShared = true;
+					assignExisting.isShared=true;
+				}
+				
 				return null;
 			}
 			else if(this.currentScopeFrame.isClass() && this.currentScopeFrame.hasVariable(this.currentScopeFrame, lhsRefName.name, false, false, true))
@@ -6840,7 +6867,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			int argCnt = args.asnames.size();
 			for(n = 0; n < argCnt; n++){
 				if(attemptRedirectToFuncRef.containsKey(n)){//tpye
-					fra.addType((Type)attemptRedirectToFuncRef.get(n));
+					Node isType = attemptRedirectToFuncRef.get(n);
+					if(isType instanceof Type) {
+						fra.addType((Type)isType);
+					}else {
+						fra.addExpr(args.asnames.get(n));
+					}
 				}else{//expression
 					fra.addExpr(args.asnames.get(n));
 				}
@@ -9153,6 +9185,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		if(null != funcInvoke){
 			asNamed.setGenTypes(funcInvoke.genTypes);
 		}
+		asNamed.usedToCreateNewObj=true;
 		Type resTo = (Type)asNamed.accept(this);
 		if(null != resTo && resTo instanceof NamedType){
 			asNamed = (NamedType)resTo;
@@ -9328,7 +9361,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				AssignExisting ae = (AssignExisting)lh.l;
 				if(ae.isReallyNew) {
 					lh.l = new AssignNew(null, ae.getLine(), ae.getColumn(), ((RefName)ae.assignee).name, ae.getTaggedType(), ae.eq, ae.expr);
-					lh.l.accept(this);//should already be accepted
+					//lh.l.accept(this);//should already be accepted
 				}
 			}
 			newaelh.add(lh);
@@ -17905,6 +17938,12 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			ClassDef cd;
 			
 			if(inExtFunction != null){
+				
+				if(inExtFunction instanceof MultiType) {
+					inExtFunction = inExtFunction.getTaggedType();
+				}
+				
+				
 				if(inExtFunction instanceof PrimativeType){
 					cd = com.concurnas.compiler.bytecode.Utils.primToBoxedType(((PrimativeType)inExtFunction).type).getSetClassDef();
 				}else{
@@ -19629,59 +19668,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private Stack<Pair<List<Type>, ArrayList<Pair<String, Type>>>> inNamedConstructor = new Stack<Pair<List<Type>, ArrayList<Pair<String, Type>>>>();
 
-/*	@Override
-	public Object visit(RefNamedType refNamedType) {
-		//note, MySomething[n].method() //MySomething[n] - could either be a method refernce, or a arrayref 
-		//try this as a NamedType, if thats ok, great, otherwise try it as a arraydef - if that works then set it and proceed
-		
-		maskErrors();
-		refNamedType.mynamed.accept(this);
-		if(maskedErorrs()){
-			
-			if(refNamedType.astRedirectToArrayRef != null){//cool, just refer to previous mapping...
-				return refNamedType.astRedirectToArrayRef.accept(this);
-			}
-			
-			//it might not be a named, type so try as arradef
-			PrintSourceVisitor psv = new PrintSourceVisitor();
-			psv.visit(refNamedType);
-			String strToTry = psv.toString();
-			try{
-				ArrayRef couldbe = Utils.parseArrayRefJustName(strToTry, "tryArrayRef", refNamedType.getLine());
-				if(null != couldbe){
-					//we have something, see if its refarray
-					maskErrors();
-					couldbe.accept(this);
-					if(!maskedErorrs()){
-						//ok it's an arrayref
-						refNamedType.astRedirectToArrayRef = couldbe;
-						return couldbe.accept(this);
-					}
-				}
-			}
-			catch(Exception e){
-				//nope!
-			}
-			
-		}
-		else{//oh it parses to a namedtype now
-			//clear out any previous redirects if any
-			refNamedType.astRedirectToArrayRef = null;
-		}
-		
-		//accept as normal
-		return refNamedType.mynamed.accept(this);
-	}*/
-	
-/*
-	private void validateGenerics(ArrayList<Type> gens, int line, int col){//pointless
-		for(Type gen : gens){
-			if(gen instanceof PrimativeType && gen.getInOutGenModifier() != null){
-				this.raiseError(line, col, "Generic types qualified with primative types may not be tagged as in our out");
-			}
-		}
-	}*/
-	
 	@Override
 	public Object visit(NamedType namedType) {
 		String namereftoresolve = namedType.getNamedTypeStr();
@@ -19715,7 +19701,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		if(null != typedefProvider){
-			Thruple<Type, AccessModifier, String>  tpp = typedefProvider.qualifyType(gens);
+			Thruple<Type, AccessModifier, String>  tpp = typedefProvider.qualifyType(gens, namedType.usedToCreateNewObj);
 			
 			checkTypeDefAccessiable(namedType.getLine(), namedType.getColumn(), "typedef", tpp.getB(), tpp.getC());
 			
@@ -21986,6 +21972,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			asNamed.isCalledInConsructor = true;
 			this.maskErrors(true);
+			asNamed.usedToCreateNewObj = true;
 			got = (Type)asNamed.accept(this);
 			ArrayList<CapMaskedErrs> normalErors = this.getmaskedErrors();
 			
@@ -24010,7 +23997,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(this.hasImportBeenRegistered(name))
 		{
-			this.raiseError(line, column, String.format("typedef '%s' overrides an existing type - this is confusing", name));
+			this.raiseWarning(line, column, String.format("typedef '%s' overrides an existing type - this is confusing", name), WarningVariant.TYPEDEF_OVERRIDE);
 			return null;
 		}
 		
@@ -24027,17 +24014,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			
 			if(this.hasImportBeenRegistered(arg) || (arg).equals(name) )
 			{
-				this.raiseError(line, column, String.format("typedef qualifier '%s' overrides an existing type - this is confusing", arg));
+				this.raiseWarning(line, column, String.format("typedef qualifier '%s' overrides an existing type - this is confusing", arg), WarningVariant.TYPEDEF_OVERRIDE);
 			}
-			
-			/*if(!this.currentlyInClassDef.isEmpty()){
-				ClassDef classDef = this.currentlyInClassDef.peek();
-				
-				if(GenericTypeUtils.getAllGenericTypesDeclInHierarchy(classDef).contains(arg))
-				{
-					this.raiseError(classDef.getLine(), classDef.getColumn(), String.format("typedef qualifier '%s' has been defined already further up hierarchy", arg));
-				}
-			}*/
 			
 			GenericType gen = new GenericType(line, column, arg, 0);
 			typedefQaulifiers.put(arg, gen);
@@ -24056,12 +24034,28 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		Type got = (Type)typedefStatement.type.accept(this);//rhs
 		
+		Type defType=null;
+		if(typedefStatement.defaultType != null) {
+			if(typedefStatement.defaultType instanceof NamedType){
+				((NamedType)typedefStatement.defaultType).ignoreNonQualificationfGenerics = true;//thus the following is permitted: typedef  amyc = MyClass
+			}
+			
+			defType = (Type)typedefStatement.defaultType.accept(this);
+			if(null == TypeCheckUtils.checkSubType(ers, got, defType)) {
+				this.raiseError(line, column, String.format("typedef %s with default type: %s is expected to be a subtype of: %s", name, defType, got));
+			}
+		}
+		
 		checkTypeDefGens(got, typedefStatement.getLine(), typedefStatement.getColumn(), name);
 		currentlyInTypedefStatement.pop();
 
 		if(!uniqueArgs.isEmpty()){
 			HashMap<String, HashSet<Integer>> argToSubGens = new HashMap<String, HashSet<Integer>>();
 			scanDefinitionForArgStructure(got, uniqueArgs, argToSubGens);
+			
+			if(null != defType) {
+				scanDefinitionForArgStructure(defType, uniqueArgs, argToSubGens);
+			}
 			
 			for(String arg : argToSubGens.keySet()){
 				if(argToSubGens.get(arg).size() > 1){
@@ -24104,7 +24098,7 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 				
 				String loc = String.join(".", this.packageName);
 				
-				tp.add(got, generics, typedefStatement.accessModifier, loc, name);
+				tp.add(got, generics, typedefStatement.accessModifier, loc, name, defType);
 				typedefsAtThisLevel.peek().put(key, tp);
 				
 				if(this.isREPL != null && this.currentScopeFrame.paThisIsModule) {

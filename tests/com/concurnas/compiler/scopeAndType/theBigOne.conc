@@ -16125,3 +16125,25 @@ def red<DD>(items Collection<DD>) DD {
 def doings(){
 	"ok" 
 }
+
+~~~~~
+//##620. typedef defualt must be subtype
+from java.util import List, ArrayList
+
+typedef li = List default String
+
+
+def doings(){
+	"uh" 
+}
+
+~~~~~
+//##621. typedef with params used on rhs
+from java.util import List, ArrayList
+
+typedef zli<X> = List<?> default ArrayList//X not used
+typedef li<X> = List<?> default ArrayList<X>//ok, X is used
+
+def doings(){
+	"uh" 
+}

@@ -2,7 +2,7 @@
  * Auto included built in functions for performing various common data oriented activities in Concurnas. 
  * Inspired by the set of standard Python built in functions 
 */ 
-from java.util import HashSet, ArrayList, HashMap, Collection, List, Collections, Comparator
+from java.util import HashSet, Set, List, Map, ArrayList, HashMap, Collection, Collections, Comparator
 from java.util import Iterator, NoSuchElementException
 from com.concurnas.lang import DefaultMap
 
@@ -13,19 +13,19 @@ private typedef numerical = numericalPrim | numericalBoxed
 private typedef allPrimatives  = numericalPrim|char|boolean
 
 /** typedef set resolves to a HashSet requiring inference of generic qualifiers*/
-typedef set = HashSet
+typedef set = Set default HashSet
 /** typedef set resolves to a HashSet with generic qualification*/
-typedef set<X> = HashSet<X>
+typedef set<X> = Set<X> default HashSet<X>
 
 /** typedef list resolves to a ArrayList requiring inference of generic qualifiers*/
-typedef list = ArrayList
+typedef list = List default ArrayList
 /** typedef list resolves to a ArrayList with generic qualification*/
-typedef list<X> = ArrayList<X>
+typedef list<X> = List<X> default ArrayList<X>
 
 /** typedef map resolves to a HashMap requiring inference of generic qualifiers*/
-typedef map = HashMap
+typedef map = Map default HashMap
 /** typedef map resolves to a HashMap with generic qualification*/
-typedef map<K, V> = HashMap<K, V>
+typedef map<K, V> = Map<K, V> default HashMap<K, V>
 /**Function will create a new HashMap from a collection of Key Value tuples. For example: map([(1, "a"), (2, "b"), (3, "c")]) will create: {1: "a", 2: "b", 3: "c"} */
 def map<K, V>(values Collection<(K, V)>) map<K, V> {
 	ret = new map<K, V>()

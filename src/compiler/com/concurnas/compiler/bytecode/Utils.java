@@ -822,11 +822,12 @@ public class Utils implements Opcodes {
 		}
 		
 		
-		if(from instanceof VarNull && TypeCheckUtils.hasRefLevels(to)) {
-			//to deal with likes of: ref3 int:? = RefHelper.getNullRef2(): if tt() else null//ref created inline for null
-			createRefInline(mv, bcv, from, to, false);
-			return to;
-		}
+		/*
+		 * if(from instanceof VarNull && TypeCheckUtils.hasRefLevels(to)) { //to deal
+		 * with likes of: ref3 int:? = RefHelper.getNullRef2(): if tt() else null//ref
+		 * created inline for null createRefInline(mv, bcv, from, to, false); return to;
+		 * }
+		 */
 		
 		
 		if(TypeCheckUtils.isRefArraySettable(to, -1) && from instanceof VarNull){//dont set null on arrayrefs

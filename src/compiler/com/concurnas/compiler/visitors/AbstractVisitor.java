@@ -1229,6 +1229,10 @@ public abstract  class AbstractVisitor implements Visitor {
 		//lastLineVisited=typedefStatement.getLine();
 		typedefStatement.type.accept(this);
 		
+		if(null != typedefStatement.defaultType) {
+			typedefStatement.defaultType.accept(this);
+		}
+		
 		return null;
 	}
 

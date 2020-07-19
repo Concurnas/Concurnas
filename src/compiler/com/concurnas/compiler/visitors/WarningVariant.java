@@ -9,6 +9,7 @@ public enum WarningVariant {
 	TYPEDEFARGUSAGE("typedef-arg-use"), 
 	GENERICCAST("generic-cast"), 
 	REDEFINE_IMPORT("redefine-import"), 
+	TYPEDEF_OVERRIDE("typedef-override"),
 	ALL("all"/*, true*/);//all is special cannot be declated
 	
 	public String variant;

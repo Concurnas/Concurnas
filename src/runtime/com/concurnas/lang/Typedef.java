@@ -11,4 +11,7 @@ public @interface Typedef {
 	String name();
 	String[] args();
 	String type();
+	String accessModifier();
+	String location();
+	String defaultType() default "";
 }

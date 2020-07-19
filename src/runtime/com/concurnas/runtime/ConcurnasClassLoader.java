@@ -2,7 +2,6 @@ package com.concurnas.runtime;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
@@ -10,6 +9,7 @@ import java.util.Stack;
 import com.concurnas.bootstrap.runtime.InitUncreatable;
 import com.concurnas.bootstrap.runtime.cps.Fiber;
 import com.concurnas.compiler.ast.FuncType;
+import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.lang.Shared;
 import com.concurnas.lang.Uninterruptible;
@@ -260,11 +260,13 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 						List<String> jvmArgs = bean.getInputArguments();
 						System.err.println("jvmargs: " + jvmArgs);*/
 						
+						
 						/*
-						 * if(namell.contains("TestCase$Globals$")) { try {
-						 * BytecodePrettyPrinter.print(toTrans, true); } catch (Exception e) { // TODO
-						 * Auto-generated catch block e.printStackTrace(); } }
+						 * if(namell.contains("bytecodeSandbox$")) { try {
+						 * BytecodePrettyPrinter.print(toTrans, true); } catch (Exception e) {
+						 * e.printStackTrace(); } }
 						 */
+						 
 						
 						Class<?> clz = super.defineClass(namell, toTrans, 0, toTrans.length);
 						definedAlready.put(namell, clz);

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -1291,6 +1292,22 @@ public class Globalizer implements Opcodes {
 			mv.visitEnd();
 		}
 		
+		/*
+		public static String oncevar = null; 
+		
+		public synchronized void thing() {
+			if(null == oncevar) {
+				thing2();
+				oncevar = "set";
+			}
+		}
+		
+		public int thing2() {
+			synchronized(this) {
+				return 23;
+			}
+		}*/
+		
 	    public void visitEnd() {
 	    	if(!visitedClinit   ){//didnt have a clinit, so create a simple init and getter now...
 	    		if(!this.staticFinalVars.isEmpty()) {
@@ -1313,10 +1330,33 @@ public class Globalizer implements Opcodes {
 					String initOnceVarName = sharedinit + "$onceVar";
 					{
 						FieldVisitor fv = super.visitField(ACC_PRIVATE + ACC_VOLATILE + ACC_STATIC, initOnceVarName, "Ljava/lang/Object;", null, null);
-					    fv.visitEnd();
+						fv.visitEnd();
 					}
 					
+					//TODO: find a quicker way to do this which doesn't lock whole structure
+					
 					{
+						MethodVisitor mv = super.visitMethod(ACC_PUBLIC | ACC_SYNCHRONIZED, sharedinit, "()V", null, null);
+						
+						mv.visitCode();
+						Label l4 = new Label();
+						mv.visitLabel(l4);
+						mv.visitFieldInsn(GETSTATIC, globalClass, initOnceVarName, "Ljava/lang/Object;");
+						Label ifnotNull = new Label();
+						mv.visitJumpInsn(IFNONNULL, ifnotNull);
+						
+						mv.visitMethodInsn(INVOKESTATIC, origClassName, sharedinit, "()V", false);//this is called only once
+						mv.visitLdcInsn("set");
+						mv.visitFieldInsn(PUTSTATIC, globalClass, initOnceVarName, "Ljava/lang/Object;");
+						
+						mv.visitLabel(ifnotNull);
+						mv.visitInsn(RETURN);
+						mv.visitMaxs(1, 1);
+						mv.visitEnd();
+					}
+					
+					
+					/*{
 						MethodVisitor mv = super.visitMethod(ACC_PUBLIC, sharedinit, "()V", null, null);
 						mv.visitCode();
 						Label l0 = new Label();
@@ -1333,8 +1373,6 @@ public class Globalizer implements Opcodes {
 						Label l6 = new Label();
 						mv.visitLabel(l6);
 						mv.visitVarInsn(ALOAD, 0);
-						mv.visitInsn(DUP);
-						mv.visitVarInsn(ASTORE, 1);
 						mv.visitInsn(MONITORENTER);
 						mv.visitLabel(l0);
 						mv.visitFieldInsn(GETSTATIC, globalClass, initOnceVarName, "Ljava/lang/Object;");
@@ -1342,19 +1380,18 @@ public class Globalizer implements Opcodes {
 						mv.visitJumpInsn(IFNONNULL, l7);
 						Label l8 = new Label();
 						mv.visitLabel(l8);
-						mv.visitIntInsn(BIPUSH, 111);
-						mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false);
+						mv.visitLdcInsn("set");
 						mv.visitFieldInsn(PUTSTATIC, globalClass, initOnceVarName, "Ljava/lang/Object;");
 						Label l9 = new Label();
 						mv.visitLabel(l9);
 						mv.visitMethodInsn(INVOKESTATIC, origClassName, sharedinit, "()V", false);//this is called only once
 						mv.visitLabel(l7);
-						mv.visitVarInsn(ALOAD, 1);
+						mv.visitVarInsn(ALOAD, 0);
 						mv.visitInsn(MONITOREXIT);
 						mv.visitLabel(l1);
 						mv.visitJumpInsn(GOTO, l5);
 						mv.visitLabel(l2);
-						mv.visitVarInsn(ALOAD, 1);
+						mv.visitVarInsn(ALOAD, 0);
 						mv.visitInsn(MONITOREXIT);
 						mv.visitLabel(l3);
 						mv.visitInsn(ATHROW);
@@ -1362,7 +1399,7 @@ public class Globalizer implements Opcodes {
 						mv.visitInsn(RETURN);
 						mv.visitMaxs(2, 2);
 						mv.visitEnd();
-					}
+					}*/
 				}
 			}
 	    	

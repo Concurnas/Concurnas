@@ -55,6 +55,7 @@ public class NamedType  extends AbstractType {
 	public boolean ignorePPPCheck;
 	public boolean fromisWildCardAny=false;
 	public boolean requiresGenTypeInference = false;
+	public boolean usedToCreateNewObj = false;
 	
 	public NamedType(ClassDef classDef, ArrayList<Type> genTypes)
 	{
@@ -233,6 +234,7 @@ public class NamedType  extends AbstractType {
 		ret.ignoreNonQualificationfGenerics = ignoreNonQualificationfGenerics;
 		ret.printNameInBytecodeRepresentation = printNameInBytecodeRepresentation;
 		ret.requiresGenTypeInference = requiresGenTypeInference;
+		ret.usedToCreateNewObj = usedToCreateNewObj;
 		ArrayList<Pair<String, ArrayList<Type>>> rnestorSegments = new ArrayList<Pair<String, ArrayList<Type>>>();
 		for(Pair<String, ArrayList<Type>> row : this.nestorSegments){
 			ArrayList<Type> orig = row.getB();

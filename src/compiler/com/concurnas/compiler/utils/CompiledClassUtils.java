@@ -53,6 +53,7 @@ import com.concurnas.compiler.typeAndLocation.Location;
 import com.concurnas.compiler.typeAndLocation.LocationClassField;
 import com.concurnas.compiler.typeAndLocation.LocationStaticField;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
+import com.concurnas.compiler.utils.TypeDefTypeProvider.TypeDef;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.util.ErrorRaiseableSupressErrors;
 import com.concurnas.lang.ExtensionFunction;
@@ -1331,6 +1332,7 @@ public class CompiledClassUtils {
 								String name = (String)cls.getMethod("name", null).invoke(typedefanot, null);
 								if(item == null || name.equals(item)){
 									String typestr = (String)cls.getMethod("type", null).invoke(typedefanot, null);
+									String defaultTypeStr = (String)cls.getMethod("defaultType", null).invoke(typedefanot, null);
 									String[] arguments = (String[])cls.getMethod("args", null).invoke(typedefanot, null);
 									ArrayList<GenericType> generics = new ArrayList<GenericType>(arguments.length);
 									
@@ -1339,6 +1341,9 @@ public class CompiledClassUtils {
 									}
 									
 									Type resolvedType = new TypeDefAnnotationTypeParser(typestr).toType();
+									
+									Type defaultType = defaultTypeStr.equals("")?null:new TypeDefAnnotationTypeParser(defaultTypeStr).toType();
+									
 									if(tp == null){
 										tp = new TypeDefTypeProvider();
 									}
@@ -1346,14 +1351,18 @@ public class CompiledClassUtils {
 									AccessModifier am = null;
 									String location = "";
 									try{
-										am = AccessModifier.valueOf((String)cls.getMethod("accessModifier", null).invoke(typedefanot, null));
-										location = (String)cls.getMethod("location", null).invoke(typedefanot, null);
+										am = AccessModifier.getAccessModifier((String)cls.getMethod("accessModifier", null).invoke(typedefanot, null));
 									}
 									catch(NoSuchMethodException e){
 										am = AccessModifier.PUBLIC;
 									}
 									
-									tp.add(resolvedType, generics, am, location, name);
+									try {
+										location = (String)cls.getMethod("location", null).invoke(typedefanot, null);
+									}catch(NoSuchMethodException e){///?
+									}
+									
+									tp.add(resolvedType, generics, am, location, name, defaultType);
 								}
 							}
 						}
@@ -1421,10 +1430,10 @@ public class CompiledClassUtils {
 		//typedefs
 		TypeDefTypeProvider tp = getTypeDef(relevantClass, null);
 		if(null != tp) {
-			for(Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String> argsToTypeAndGen : tp.alltypeAndGens) {
-				AccessModifier am = argsToTypeAndGen.getC();
+			for(TypeDef argsToTypeAndGen : tp.alltypeAndGens) {
+				AccessModifier am = argsToTypeAndGen.am;
 				if(am == AccessModifier.PUBLIC || am == AccessModifier.PACKAGE) {
-					ret.add(new Pair<String, TypeAndLocation>(argsToTypeAndGen.getE(), new TypeAndLocation(argsToTypeAndGen.getA(), new StaticFuncLocation(ownerNt))));	
+					ret.add(new Pair<String, TypeAndLocation>(argsToTypeAndGen.name, new TypeAndLocation(argsToTypeAndGen.rhstpye, new StaticFuncLocation(ownerNt))));	
 				}
 			}
 		}

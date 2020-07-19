@@ -11,14 +11,15 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import com.concurnas.compiler.ast.AccessModifier;
 import com.concurnas.compiler.ast.Block;
 import com.concurnas.compiler.ast.ClassDef;
 import com.concurnas.compiler.ast.ClassDefJava;
@@ -26,10 +27,12 @@ import com.concurnas.compiler.bytecode.BytecodeGennerator;
 import com.concurnas.compiler.bytecode.FinallyBlockCodeCopier;
 import com.concurnas.compiler.bytecode.LabelAllocator;
 import com.concurnas.compiler.bytecode.ModuleLevelSharedVariableFuncGennerator;
+import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.utils.CompiledCodeClassLoader;
 import com.concurnas.compiler.utils.ITEM_TYPE;
 import com.concurnas.compiler.utils.Profiler;
+import com.concurnas.compiler.utils.TypeDefTypeProvider;
 import com.concurnas.compiler.visitors.ConstantFolding;
 import com.concurnas.compiler.visitors.DefaultActorGennerator;
 import com.concurnas.compiler.visitors.DefoAssignmentVisitor;
@@ -240,12 +243,37 @@ public class ModuleCompiler implements Comparable{
 	public List<String> getAllStaticAssets(){
 		ArrayList<String> ret = new ArrayList<String>();
 		if(null != moduleLevelFrame) {
-			ret.addAll(moduleLevelFrame.getAllTypeDefAtCurrentLevel().keySet());
-			moduleLevelFrame.getAllClasses().forEach(a -> ret.add(a.getClassName()));
-			ret.addAll(moduleLevelFrame.getAllFunctions().keySet());
-			ret.addAll(moduleLevelFrame.getAllVars(null).keySet());
+			
+			for(Entry<String, TypeDefTypeProvider> entry : moduleLevelFrame.getAllTypeDefAtCurrentLevel().entrySet()) {
+				TypeDefTypeProvider prov = entry.getValue();
+				if(prov.alltypeAndGens.stream().allMatch(a -> nonPrivate(a.am))){
+					ret.add(entry.getKey());
+				}
+			}
+			
+			for(ClassDef cd : moduleLevelFrame.getAllClasses()) {
+				if(nonPrivate(cd.accessModifier)) {
+					ret.add(cd.getClassName());
+				}
+			}
+			
+			for(Entry<String, HashSet<TypeAndLocation>> entry : moduleLevelFrame.getAllFunctions().entrySet()) {
+				if(entry.getValue().stream().allMatch(a -> nonPrivate(a.getLocation().getAccessModifier()))) {
+					ret.add(entry.getKey());
+				}
+			}
+			
+			for(Entry<String, TypeAndLocation> entry : moduleLevelFrame.getAllVars(null).entrySet()) {
+				if(nonPrivate(entry.getValue().getLocation().getAccessModifier())) {
+					ret.add(entry.getKey());
+				}
+			}
 		}
 		return ret;
+	}
+	
+	private boolean nonPrivate(AccessModifier ac) {
+		return ac == null || ac != AccessModifier.PRIVATE;
 	}
 	
 	

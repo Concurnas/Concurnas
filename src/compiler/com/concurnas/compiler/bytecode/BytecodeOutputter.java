@@ -16,6 +16,7 @@ import org.objectweb.asm.Opcodes;
 import com.concurnas.compiler.ast.AccessModifier;
 import com.concurnas.compiler.ast.Annotations;
 import com.concurnas.compiler.ast.FuncType;
+import com.concurnas.compiler.ast.MultiType;
 import com.concurnas.compiler.ast.NamedType;
 import com.concurnas.compiler.ast.NullStatus;
 import com.concurnas.compiler.ast.Type;
@@ -192,6 +193,9 @@ public class BytecodeOutputter implements Opcodes {
 		if (inputs != null) {
 			for (Sixple<Type, String, Annotations, Boolean, Boolean, Boolean> arg : inputs) {
 				Type tt = arg.getA();
+				if(tt instanceof MultiType) {
+					tt = tt.getTaggedType();
+				}
 				if (tt instanceof FuncType) {
 					((FuncType) tt).usedInMethodDesc = true;
 				}
@@ -442,6 +446,10 @@ public class BytecodeOutputter implements Opcodes {
 		 * if (Opcodes.ARRAYLENGTH == dcmpl) { System.err.println("visitInsn AASTORE");
 		 * }
 		 */
+		
+		if (dcmpl == DUP) {
+			int h = 9;
+		}
 
 		
 		consumeNextLabelIfExists();
@@ -548,8 +556,9 @@ public class BytecodeOutputter implements Opcodes {
 		//CHECKCAST java/lang/Integer
 		//NEW java/lang/Object
 		//CHECKCAST com/concurnas/runtime/ref/Local
+		//NEW com/concurnas/runtime/ref/Local
 
-		if(checkcast == ANEWARRAY && genType.equals("java/lang/Class")) {
+		if(checkcast == NEW && genType.equals("com/concurnas/runtime/ref/Local")) {
 			int h=9;
 		}
 		
@@ -615,8 +624,9 @@ public class BytecodeOutputter implements Opcodes {
 		//PUTSTATIC bytecodeSandbox.a : Lcom/concurnas/runtime/ref/Local;
 		
 		//GETSTATIC bytecodeSandbox client Lcom/concurnas/runtime/ref/Local;
+		//GETSTATIC bytecodeSandbox.finalCount : Lcom/concurnas/runtime/ref/Local;
 		
-		if (dowhat == GETSTATIC && fullModuleAndClassName.equals("bytecodeSandbox") && name.equals("client")) {
+		if (dowhat == GETSTATIC && fullModuleAndClassName.equals("bytecodeSandbox") ) {
 			int g = 9;
 		}
 
@@ -665,8 +675,10 @@ public class BytecodeOutputter implements Opcodes {
 		//    INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
 		//INVOKESTATIC java/lang/Integer.valueOf (I)Ljava/lang/Integer;
 		
+		//INVOKESPECIAL com/concurnas/runtime/ref/Local.<init> ([Ljava/lang/Class;)V
+
 		
-		if(opcode == INVOKESTATIC && owner.equals("java/lang/Integer") && name.equals("valueOf") ) {
+		if(opcode == INVOKESPECIAL && owner.equals("com/concurnas/runtime/ref/Local") && name.equals("<init>") ) {
 			int h=9;
 		}
 		

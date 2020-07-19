@@ -12,6 +12,7 @@ import com.concurnas.compiler.ast.Type;
 import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.visitors.AbstractVisitor;
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
+import com.concurnas.compiler.visitors.TypeCheckUtils;
 import com.concurnas.compiler.visitors.Unskippable;
 
 /**
@@ -25,10 +26,12 @@ abs$sharedInit()
 def abs$sharedInit() => new Integer(80)
 
 Note that this: 
-shared abs Integer
+shared absx Integer
+aref = 12:
 
 stays as:
-shared abs Integer
+shared absx Integer
+aref = 12:
 
  */
 public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor  implements Unskippable{
@@ -48,6 +51,7 @@ public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor  im
 		{
 			n++;
 			cblockno = n;
+			lastLH = lh;
 			lh.accept(this);
 			lh = block.getNext();
 		}
@@ -55,6 +59,8 @@ public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor  im
 		currentBlock = prevBlock;
 		return null;
 	}
+	
+	private LineHolder lastLH = null;
 	
 	@Override
 	public Object visit(AssignNew assignNew) {
@@ -66,7 +72,13 @@ public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor  im
 			int col = assignNew.getColumn();
 			
 			//refs?
-			repoint.funcblock.add(new AssignExisting(line, col, new RefName(assignNew.name), assignNew.eq, (Expression)assignNew.expr.copy()));
+			AssignExisting ae = new AssignExisting(line, col, new RefName(assignNew.name), assignNew.eq, (Expression)assignNew.expr.copy());
+			
+			if(TypeCheckUtils.hasRefLevels(assignNew.getTaggedType())) {
+				ae.createModuleLevelRef = true;
+			}
+			
+			repoint.funcblock.add(ae);
 			
 			assignNew.expr = null;
 			
@@ -79,5 +91,36 @@ public class ModuleLevelSharedVariableFuncGennerator extends AbstractVisitor  im
 		return null;
 	}
 	
-	
+	@Override
+	public Object visit(AssignExisting assignExisting) {
+		if(assignExisting.isModuleLevelShared && null != assignExisting.expr) {
+			FuncDef repoint = FuncDef.build((Type)ScopeAndTypeChecker.const_void.copy());
+			String name = assignExisting.getName();
+			repoint.funcName = name + "$sharedInit";
+			
+			int line = assignExisting.getLine();
+			int col = assignExisting.getColumn();
+			
+			//refs?
+			AssignExisting ae = new AssignExisting(line, col, new RefName(name), assignExisting.eq, (Expression)assignExisting.expr.copy());
+			if(TypeCheckUtils.hasRefLevels(assignExisting.getTaggedType())) {
+				ae.createModuleLevelRef = true;
+			}
+			repoint.funcblock.add(ae);
+			
+			//assignExisting.expr = null;
+			
+			currentBlock.add(cblockno, repoint);
+			currentBlock.add(cblockno+1, new LineHolder(new DuffAssign(FuncInvoke.makeFuncInvoke(line, col, repoint.funcName))));
+			
+			//replace assignExisting with assignNew:
+			AssignNew replace = new AssignNew(null, line, col, name, assignExisting.getTaggedType());
+			replace.isModuleLevelShared = true;
+			replace.isShared=true;
+			lastLH.l = replace;
+		}
+		
+		
+		return null;
+	}
 }

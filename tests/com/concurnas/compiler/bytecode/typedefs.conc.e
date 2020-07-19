@@ -107,7 +107,7 @@ null
 
 ~~~~~
 //##28. annotations at module level
-[@Typedefs(typedefs = [@Typedef(args = [x], name = mylistQ, type = Ljava/util/ArrayList<Lx;>;) @Typedef(args = [], name = myfuncdef2, type = Lcom/concurnas/bootstrap/lang/Lambda$Function2<Ljava/lang/Integer;Ljava/lang/Integer;+Ljava/lang/Integer;>;)]) @ConcImmutable]
+[@Typedefs(typedefs = [@Typedef(accessModifier = public, args = [x], location = x28annotationsatmodulelevel, name = mylistQ, type = Ljava/util/ArrayList<Lx;>;) @Typedef(accessModifier = public, args = [], location = x28annotationsatmodulelevel, name = myfuncdef2, type = Lcom/concurnas/bootstrap/lang/Lambda$Function2<Ljava/lang/Integer;Ljava/lang/Integer;+Ljava/lang/Integer;>;)]) @ConcImmutable]
 
 ~~~~~
 //##29. annotations at module level to disable warnings
@@ -148,3 +148,19 @@ ok [[hi, there]]
 ~~~~~
 //##39. tuple typedef use x args
 [3, 7, 11]
+
+~~~~~
+//##40. typedef with default
+[[], []]
+
+~~~~~
+//##41. typedef with default another module
+[[], []]
+
+~~~~~
+//##42. precompiled typedef
+[[], []]
+
+~~~~~
+//##43. typedef default ignore non qualifcation of generics
+([12], [something])

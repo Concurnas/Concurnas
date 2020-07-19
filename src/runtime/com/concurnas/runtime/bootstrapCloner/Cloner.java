@@ -465,13 +465,12 @@ public final class Cloner {
 				
 			}
 			else {
-				/*if(null != defField) {
-					defField.invoke(newInstance, null, null);
-				}
-				*/
 				final List<Field> fields = allFields(clz);
 				addfieldsToInstance(fields, obj, clones, tracker, newInstance);
 			}
+			
+
+			//System.err.println(String.format("asked to code: %s: %s -> %s", obj.getClass(), System.identityHashCode(obj), System.identityHashCode(newInstance)));
 			
 			return newInstance;
 		}

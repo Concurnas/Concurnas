@@ -18,12 +18,29 @@ public class TypeDefTypeProvider {
 		//this.generics = argToGeneric;
 	}*/
 	
+	public static class TypeDef{
+		public Type rhstpye;
+		public ArrayList<GenericType> args;
+		public AccessModifier am;
+		public String name;
+		public String packagea;//?
+		public Type defType;
+
+		public TypeDef(Type rhstpye, ArrayList<GenericType> args, AccessModifier am, String packagea, String name, Type defType) {
+			this.rhstpye=rhstpye;
+			this.args=args;
+			this.am=am;
+			this.packagea=packagea;
+			this.name=name;
+			this.defType=defType;
+		}
+	}
 	
-	public HashMap<Integer, Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String>> argsToTypeAndGens = new HashMap<Integer, Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String>>();
-	public List<Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String>> alltypeAndGens = new ArrayList<Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String>>();
+	public HashMap<Integer, TypeDef> argsToTypeAndGens = new HashMap<Integer, TypeDef>();
+	public List<TypeDef> alltypeAndGens = new ArrayList<TypeDef>();
 	
-	public void add(Type rhstpye, ArrayList<GenericType> args, AccessModifier am, String packagea, String name){
-		Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String> inst = new Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String>(rhstpye, args, am, packagea, name);
+	public void add(Type rhstpye, ArrayList<GenericType> args, AccessModifier am, String packagea, String name, Type defType){
+		TypeDef inst = new TypeDef(rhstpye, args, am, packagea, name, defType);
 		argsToTypeAndGens.put(args.size(), inst);
 		alltypeAndGens.add(inst);
 	}
@@ -32,17 +49,25 @@ public class TypeDefTypeProvider {
 		return argsToTypeAndGens.containsKey(argcnt)?this:null;
 	}
 	
-	public Thruple<Type, AccessModifier, String> qualifyType(ArrayList<Type> toqualifyGens){//assume size matches
+	public Thruple<Type, AccessModifier, String> qualifyType(ArrayList<Type> toqualifyGens, boolean usedToCreateNewObj){//assume size matches
 		int lenwant = toqualifyGens.size();
 		
-		Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String> items = argsToTypeAndGens.get(lenwant);
+		TypeDef items = argsToTypeAndGens.get(lenwant);
 		
 		if(null == items){
 			return null;
 		}
 		
-		Type ret = (Type)items.getA().copy();
-		ArrayList<GenericType> generics = items.getB();
+
+		Type ret = (Type)items.rhstpye.copy();
+		if(usedToCreateNewObj && null != items.defType) {
+			//use default if there is one
+			ret = (Type)items.defType.copy();
+		}else {
+			ret = (Type)items.rhstpye.copy();
+		}
+		
+		ArrayList<GenericType> generics = items.args;
 		if(!generics.isEmpty() && generics.size() == toqualifyGens.size()){
 			HashMap<Type, Type> genMapping = new HashMap<Type, Type>();
 			HashMap<String, Type> nameToArgMatch = new HashMap<String, Type>();
@@ -56,7 +81,7 @@ public class TypeDefTypeProvider {
 			ret = GenericTypeUtils.mapFuncTypeGenericsToOtherGenerics(ret, genMapping, false, nameToArgMatch);
 		}
 		
-		return new Thruple<Type, AccessModifier, String>(ret, items.getC(), items.getD() );
+		return new Thruple<Type, AccessModifier, String>(ret, items.am, items.packagea );
 	}
 	
 	

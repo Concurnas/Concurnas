@@ -66,7 +66,11 @@ public class FuncParams extends Node {
 		ArrayList<Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>> ret = new ArrayList<Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>>();
 		for(FuncParam par: params)
 		{
-			ret.add(new Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>(par.getTaggedType(), par.name, par.annotations, null !=par.defaultValue, par.isVararg, par.isShared));
+			Type tt = par.getTaggedType();
+			/*
+			 * if(tt instanceof MultiType) { tt = tt.getTaggedType(); }
+			 */
+			ret.add(new Sixple<Type, String, Annotations, Boolean, Boolean, Boolean>(tt, par.name, par.annotations, null !=par.defaultValue, par.isVararg, par.isShared));
 		}
 		return ret;
 	}

@@ -155,11 +155,10 @@ public class Cpsifier {
 					 * BytecodePrettyPrinter.print(code, true); }
 					 */
 
-					/*
-					 * if (namea.contains("bytecodeSandbox")) {
-					 * System.out.println("post weaving names: " + namea);
-					 * BytecodePrettyPrinter.print(code, true); }
-					 */
+					if (namea.contains("bytecodeSandbox")) {
+						System.out.println("post weaving names: " + namea);
+						BytecodePrettyPrinter.print(code, true);
+					}
 
 					ret.put(namea, code);
 				}

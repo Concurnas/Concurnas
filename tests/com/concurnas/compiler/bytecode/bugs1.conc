@@ -4581,3 +4581,88 @@ def doings(){
 
 	"" + (reduceObjArray1, reduceObjArray2)
 }
+
+~~~~~
+//##251. typedef import start exclude private
+//##MODULE com.myorg.code
+private typedef aString = String
+def foo() => 12
+
+//##MODULE
+from com.myorg.code import *
+
+typedef aString = String//ok as not overriding existing type (private in module)
+
+typedef intsAndBoolean  = short|int|long|boolean|byte|Object//also ok
+
+def doings(){
+	"ok " + foo()
+}
+//should be ok, not overriding as private
+
+~~~~~
+//##252. list comp returns List which is compatible with list definition in datautils
+def forEach<X, Y>(items X[], apply (X) Y) list<Y>{
+	sz = items.length
+	if(sz == 0){
+		throw IllegalArgumentException("Input array is empty")
+	}
+	apply(item) for item in items
+}
+
+
+def doings(){
+	"" + forEach(['1x' '2x' '3x' '4x'], (a  => a + 10))
+}
+
+~~~~~
+//##253. sharedInit applies to actors and refs in addition to shared at module level
+//##MODULE com.myorg.code
+public tally1 = Integer(2789):
+public shared thing = Integer 99
+something = 2323://assign existing version
+
+def getSomething() int: => something
+
+//##MODULE
+from com.myorg.code import *
+
+def doings(){
+	a1 = { ++tally1	}!
+	await(a1)
+	a2 = { tally1 }!
+	//should be only one instance of top level refs
+
+	t1 = {++thing}!
+	await(t1)
+	t2 = { thing}!
+	
+	s1 = {f = getSomething():; ++f}!
+	await(s1)
+	s2 = {getSomething()}!
+
+	"ok " + [a1 == a2, a1, a2, t1==t2, t1, t2, s1 == s2, s1, s2]
+}
+
+//sharedInit applies to actors and refs in addition to vars marked as shared
+
+~~~~~
+//##254. simple module level async
+tally1 int: = 6969
+
+finalCount := async{
+	pre{
+		count  = 0
+	}
+	every(tally1){
+		count += tally1
+	}
+	post{
+		count//return this value
+	}
+}
+
+def doings(){
+	tally1:close()
+	"" + finalCount
+}

@@ -183,7 +183,7 @@ dotted_as_name
 	;
 
 typedef_stmt 
-  : pppNoInject? 'typedef'  NAME typedefArgs? '='  type
+  : pppNoInject? 'typedef'  NAME typedefArgs? '='  tdtype=type ('default' defaultType=type)?
   ;
 
 typedefArgs: '<' NAME  (',' NAME )* ','? '>';

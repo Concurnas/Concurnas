@@ -1007,3 +1007,19 @@ true
 ~~~~~
 //##250. forEach arr
 ([MyClass(9), MyClass(10), MyClass(100)], [MyClass(9), MyClass(10), MyClass(100)])
+
+~~~~~
+//##251. typedef import start exclude private
+ok 12
+
+~~~~~
+//##252. list comp returns List which is compatible with list definition in datautils
+[1x10, 2x10, 3x10, 4x10]
+
+~~~~~
+//##253. sharedInit applies to actors and refs in addition to shared at module level
+ok [true, 2790, 2790, true, 100, 100, true, 2324, 2324]
+
+~~~~~
+//##254. simple module level async
+1264

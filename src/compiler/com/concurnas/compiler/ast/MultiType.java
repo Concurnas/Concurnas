@@ -1,6 +1,7 @@
 package com.concurnas.compiler.ast;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
@@ -75,7 +76,11 @@ public class MultiType  extends AbstractType   {
 		for(Type mm : multitype) {
 			acc += mm.hashCode();
 		}
-		return acc + (int)this.arrayLevels;
+		acc += (int)this.arrayLevels;
+		if(this.astOverride != null) {
+			acc += this.astOverride.hashCode();
+		}
+		return acc ;
 	}
 	
 	@Override
@@ -92,7 +97,8 @@ public class MultiType  extends AbstractType   {
 							return false;
 						}
 					}
-					return true;
+					
+					return Objects.equals(this.astOverride, asmt.astOverride);
 				}
 			}
 		}else if(this.astOverride != null) {

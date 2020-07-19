@@ -2499,6 +2499,11 @@ public class PrintSourceVisitor implements Visitor {
 		
 		typedefStatement.type.accept(this);
 		
+		if(null != typedefStatement.defaultType) {
+			this.addItem("default");
+			typedefStatement.defaultType.accept(this);
+		}
+		
 		return null;
 	}
 

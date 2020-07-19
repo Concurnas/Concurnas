@@ -64,6 +64,7 @@ import com.concurnas.compiler.utils.Fourple;
 import com.concurnas.compiler.utils.Sixple;
 import com.concurnas.compiler.utils.Thruple;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
+import com.concurnas.compiler.utils.TypeDefTypeProvider.TypeDef;
 import com.concurnas.compiler.visitors.AbstractErrorRaiseVisitor;
 import com.concurnas.compiler.visitors.ErrorRaiseable;
 import com.concurnas.compiler.visitors.NestedFuncRepoint;
@@ -412,18 +413,16 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 				
 				for(String name : moduletypedefs.keySet()){
 					TypeDefTypeProvider typeProvider = moduletypedefs.get(name);
-					for( Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String> item : typeProvider.argsToTypeAndGens.values()){
+					for( TypeDef item : typeProvider.argsToTypeAndGens.values()){
 						
 						AnnotationVisitor typedef = typedefs.visitAnnotation(null, "Lcom/concurnas/lang/Typedef;");
 						typedef.visit("name", name);
 						
-						Type rhsToQualify = item.getA();
-						ArrayList<GenericType> generics = item.getB();
-						AccessModifier am = item.getC();
-						String location = item.getD();
+						ArrayList<GenericType> generics = item.args;
+						AccessModifier am = item.am;
+						String location = item.packagea;
 						
-						String bc = rhsToQualify.getGenericBytecodeType();
-						typedef.visit("type", bc);
+						typedef.visit("type", item.rhstpye.getGenericBytecodeType());
 						{
 							AnnotationVisitor av3 = typedef.visitArray("args");
 							for(GenericType gt : generics){
@@ -435,6 +434,10 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 						typedef.visit("accessModifier", am.toString());
 						
 						typedef.visit("location", location);
+						
+						if(null != item.defType) {
+							typedef.visit("defaultType", item.defType.getGenericBytecodeType());
+						}
 						
 						typedef.visitEnd();
 					}
@@ -1012,6 +1015,12 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 	public int createNewLocalVar(String name, boolean shouldMakeRef, Type storeAs, boolean doStore, boolean overriteLHSRef, boolean extraRefDup, int createOuuterLevelOnly) {
 		int incNumber = localvarStackSize.pop();
 		int slot = incNumber;
+		
+		if(storeAs instanceof MultiType) {
+			storeAs = storeAs.getTaggedType();
+		}
+		
+		
 		localvarStack.peek().put(name, new Pair<Type, Integer>(storeAs, incNumber));
 		localvarStack.peek().put(name+"$n"+level, new Pair<Type, Integer>(storeAs, incNumber));//alias
 		 //System.err.println( String.format("CVAR: %s -> %s", name, incNumber));
@@ -1137,14 +1146,22 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 
 		} else {
 			if (isInclInitCreator) {// skip if nothing to assign to static var,
-									// unless ur dealing with a ref, in which
+									
+				// unless ur dealing with a ref, in which
 									// case u need to create one
-				if (isRef) {// but ensure u create the ref shell
+				/*if (isRef) {// but ensure u create the ref shell
 					createNewLocalVar(name, true, type, true, true, true, -1);
 					rhsType = type;
 				} else {
 					return null;
+				}*/
+				
+				if (isRef) {// but ensure u create the ref shell
+					int h = 9;
 				}
+				
+				return null;
+				
 			}
 		}
 
@@ -1403,6 +1420,12 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			} else {
 				if(loc != null && loc instanceof LocationStaticField && firstDotOpElementIsRefThis && popIfActingOnstatic) {
 					bcoutputter.visitInsn(POP);//clean up stack as statuc call therefore we dont need whats on the lhs
+				}
+				
+				if(assignExisting.createModuleLevelRef) {
+					Type tt = assignExisting.getTaggedType();
+					createNewLocalVar(name, true, tt, true, true, true, -1);
+					bcoutputter.visitFieldInsn( PUTSTATIC, getFullModuleAndClassName(), name, tt.getBytecodeType());
 				}
 				
 				if (eqStyle.isEquals()) {

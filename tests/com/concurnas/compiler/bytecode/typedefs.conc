@@ -624,3 +624,58 @@ def doings(){
 	r1= a+b for a, b in items
 	"" + r1
 }
+
+~~~~~
+//##40. typedef with default
+from java.util import List, ArrayList
+
+typedef li<X> = List<X> default ArrayList<X>
+
+def doings(){
+	my1 li<String> = new li<String>(); 
+	my2 li<String> = li<String>(); 
+	"" + [my1, my2]
+}
+
+~~~~~
+//##41. typedef with default another module
+//##MODULE com.myorg.code
+from java.util import List, ArrayList
+
+typedef li<X> = List<X> default ArrayList<X>
+
+//##MODULE
+from com.myorg.code import *
+
+def doings(){
+	my1 li<String> = new li<String>(); 
+	my2 li<String> = li<String>(); 
+	"" + [my1, my2]
+}
+
+~~~~~
+//##42. precompiled typedef
+from com.concurnas.lang.precompiled.TypeDefHelper import li
+
+def doings(){
+	my1 li<String> = new li<String>(); 
+	my2 li<String> = li<String>(); 
+	"" + [my1, my2]
+}
+
+~~~~~
+//##43. typedef default ignore non qualifcation of generics
+from java.util import HashSet, Set
+
+typedef seta = Set default HashSet //ignore non qualification of generic types
+typedef seta<X> = Set<X> default HashSet<X>
+
+def doings(){
+	xx = seta()
+	xx add 12
+
+	yy = seta<String>()
+	yy add "something"
+
+	"" + (xx, yy)
+}

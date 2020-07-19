@@ -8,27 +8,22 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Stack;
 
-import com.concurnas.bootstrap.runtime.CopyTracker;
 import com.concurnas.bootstrap.runtime.InitUncreatable;
 import com.concurnas.bootstrap.runtime.cps.Fiber;
 import com.concurnas.compiler.ast.AccessModifier;
 import com.concurnas.compiler.ast.ClassDefJava;
 import com.concurnas.compiler.ast.FuncType;
-import com.concurnas.compiler.ast.GenericType;
 import com.concurnas.compiler.ast.PrimativeType;
 import com.concurnas.compiler.ast.PrimativeTypeEnum;
 import com.concurnas.compiler.ast.Type;
-import com.concurnas.compiler.bytecode.FuncLocation.StaticFuncLocation;
-import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.CompiledClassUtils;
-import com.concurnas.compiler.utils.Fiveple;
 import com.concurnas.compiler.utils.TypeDefTypeProvider;
+import com.concurnas.compiler.utils.TypeDefTypeProvider.TypeDef;
 import com.concurnas.lang.Actor;
 import com.concurnas.lang.ParamName;
 import com.concurnas.lang.TypedActor;
 import com.concurnas.runtime.ConcImmutable;
 import com.concurnas.runtime.DefaultParamUncreatable;
-import com.concurnas.runtime.Pair;
 import com.concurnas.runtime.cps.IsoRegistrationSet;
 
 public class UncallableMethods {
@@ -255,10 +250,10 @@ public class UncallableMethods {
 				//typedefs
 				TypeDefTypeProvider tp = CompiledClassUtils.getTypeDef(cls, null);
 				if(null != tp) {
-					for(Fiveple<Type, ArrayList<GenericType>, AccessModifier, String, String> argsToTypeAndGen : tp.alltypeAndGens) {
-						AccessModifier am = argsToTypeAndGen.getC();
+					for(TypeDef argsToTypeAndGen : tp.alltypeAndGens) {
+						AccessModifier am = argsToTypeAndGen.am;
 						if(am == AccessModifier.PUBLIC || am == AccessModifier.PACKAGE) {
-							String name = argsToTypeAndGen.getE();
+							String name = argsToTypeAndGen.name;
 							AUTO_IMPORTS.put(name, mod + "." + name);
 						}
 					}

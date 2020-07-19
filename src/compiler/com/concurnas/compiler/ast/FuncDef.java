@@ -263,7 +263,7 @@ public class FuncDef extends FuncDefI implements HasAnnotations, Comparable<Func
 		
 		if(this.extFunOn != null){
 			ret.extFuncOn = true;
-			iinputs.add(0, this.getExtFuncOn());
+			iinputs.add(0, this.getExtFuncOn().getTaggedType());
 		}
 		
 		

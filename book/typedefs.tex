@@ -40,4 +40,18 @@ item = MyList<MyHashMap<int, String>>()
 \end{lstlisting}
 
 
+\section{Default typedefs}
+A typedef may be qualified with a default type. This default type overrides the typedef's type when it's used in order to create a new instance object (e.g. via the \lstinline{new} keyword). This is a useful feature for instances where one wishes to make use of a typedef to create concrete instances objects, but also use the typedef in order to encompass a more broad array of types than the default type, say an abstract class, trait or interface (e.g. \lstinline{List<X>} vs \lstinline{ArrayList<X>}). Consider the following:
+\begin{lstlisting}
+from java.util import List, ArrayList
+
+typedef li<X> = List<X> default ArrayList<X>
+\end{lstlisting}
+
+Above, the \lstinline{li<X>} typedef is qualified with a default type of \lstinline{ArrayList<X>}. Hence, new instance objects created which refer to the \lstinline{li<X>} typedef will be created as instances of \lstinline{ArrayList<X>}, e.g.:
+\begin{lstlisting}
+inst li<X> = new li<String>()
+\end{lstlisting}
+
+Now, \lstinline{inst} is a \lstinline{ArrayList<String>} instance object which itself is compatible with the type of \lstinline{inst} - the \lstinline{li<X>} typedef since this resolves to \lstinline{List<String>} which is a superclass of \lstinline{ArrayList<String>}.
 \end{document}

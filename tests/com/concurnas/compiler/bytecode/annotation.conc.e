@@ -259,7 +259,7 @@ cool
 
 ~~~~~
 //##59. annotations are exposable at module level
-[@MyAnnot($ConcurnasMetaVersion$ = Concurnas, getGlobalDependancies$ = []) @Typedefs(typedefs = [@Typedef(args = [X], name = mylistQ, type = Ljava/util/ArrayList<Ljava/lang/String;>;)])]
+[@MyAnnot($ConcurnasMetaVersion$ = Concurnas, getGlobalDependancies$ = []) @Typedefs(typedefs = [@Typedef(accessModifier = public, args = [X], location = x59annotationsareexposableatmodulelevel, name = mylistQ, type = Ljava/util/ArrayList<Ljava/lang/String;>;)])]
 
 ~~~~~
 //##60. trust me override is annotatted as such

@@ -2276,7 +2276,22 @@ public class NestedFuncRepoint extends AbstractErrorRaiseVisitor {
 
 		//super.visit(asyncBodyBlock);
 		currAsycnBodBlock.push(asyncBodyBlock);
+		
+		
+		InAsyncBlockInOutWrapper inoutWrapper = null;
+		if(!inFunction) {
+			inoutWrapper = new InAsyncBlockInOutWrapper();
+			inoutWrapper.enter();
+			//nestedLevel--;
+		}
+
 		asyncBodyBlock.funcParams = processHasExtraCaps(asyncBodyBlock, asyncBodyBlock.getLine(), asyncBodyBlock.getColumn(), true, null);
+		
+		if(null != inoutWrapper) {
+			inoutWrapper.exit();
+			//nestedLevel++;
+		}
+		
 		//currAsycnBodBlock.pop();
 		//add the init and apply methods to owner class
 		

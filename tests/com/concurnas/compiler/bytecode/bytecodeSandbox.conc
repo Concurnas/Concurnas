@@ -1,186 +1,135 @@
+class MyHolder(public a int){
+	override toString() => "MyHolder({a})"
+}
 
 
-def int|double|long|String plus10times(a int) => this + (a*10)
+shared shar = [456]
+top1 = 123
+top2 = Integer 123
+holder = MyHolder(66)
+myThings int: = 93//implicitly shared
+
 
 def doings(){
-	"" + [ "" + (2.01 plus10times 10), "" + (2 plus10times 10), "" + ("2" plus10times 10)]
+	v1 = { (++top1, ++top2, ++holder.a, ++shar[0], ++myThings) }!
+	await(v1)
+	v2 = { (top1, top2, holder.a, shar[0], myThings)  }!
+	await(v2)
+
+
+	"ok" + (v1, v2)
 }
+
+
 
 
 
 /*
-typedef numerical = int|long|short|float|double|char|byte
-typedef aString = String
-def thing(ab numerical) => ab
+tally1 int: = 6969
 
-def doings(){
-	a aString? = null
-	"" + thing(2)
-}
-//should be ok, not overriding as private
-*/
-
-/*private enum AsyncComponentStatus{
-	NOT_STARTED, RUNNING, TERMINATING, TERMINATED, STARTFAIL;
-}
-
-
-client String:? = null
-runState AsyncComponentStatus = AsyncComponentStatus.RUNNING
-
-def doSend(){
-	while(runState == AsyncComponentStatus.RUNNING){
-		client = null
+finalCount := async{
+	pre{
+		count  = 0
 	}
-	
-}
-
-def doings() => "ok"
-*/
-
-
-
-
-/*
-
-class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
-	public this(type Class<?>[]){
-		this(type, 0)
+	every(tally1){
+		count += tally1
 	}
-
-}
-
-class NoZeroARgOne<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type)
-
-
-def ok(a Object) Object:GPURef? {
-	null//no cannot do this
-}
-
-def fail(a Object) Object:NoZeroARgOne? {
-	null//no cannot do this
-}
-
-def doings(){
-	what1 = try{ok("fail"); 'ok'}catch(e){'fail' + e}
-	what2 = try{fail("fail"); 'fail' }catch(e){e.getMessage()}
-	"" + [what1, what2] 
-}
-*/
-
-/*
-class GPURef<X>(type Class<?>[], ~event int) < com.concurnas.runtime.ref.Local<X>(type){
-}
-
-
-def ok<Typex>(a Typex) Typex:? {
-	null
-}
-
-def fail<Typex>(a Typex) Typex:GPURef? {
-	null//no cannot do this
-}
-
-def doings(){
-	ok("hi")
-	msg = try{
-		fail("hi"); 'fail'
-	}catch(e) { e getMessage }
-	"fine " + msg 
-}
-*/
-
-
-/*
-
-def doings(){
-	aa1 java.lang.Integer:? = null//ok
-
-	""+ aa1
-}
-//wait forever
-*/
-
-
-
-
-
-
-
-
-
-/*
-typedef li = List default ArrayList
-typedef li<X> = List<X> default ArrayList<X>
-
-
-def doings(){
-	my li<String> = new li<String>(); 
-	"" + my
-}
-*/
-
-
-/*
-def forEach<X, Y>(items X[], apply (X) Y) list<Y>{
-	sz = items.length
-	if(sz == 0){
-		throw IllegalArgumentException("Input array is empty")
+	post{
+		count//return this value
 	}
-	apply(item) for item in items
+}
+
+def doings(){
+	tally1:close()
+	"" + finalCount
 }
 */
 
-//build, run tests and do:
 
 
-//+ add to release notes
-
-
-//document default for typedef
-//add default for typedef to release notes
-
-
-
-
-
-//defaults for typedefs
-//typedef list<X> = List<X> default ArrayList<X>
-
-
-//fix below @ module level and in docs
-
-/*
-tally1 = 2:
+/*tally1 = 2:
 tally2 = 2:
 
 finalCount = async{
-pre{
-count = 0
-}
-
-every(tally1){
-count += tally1
-}		
-
-onchange(tally2){
-count += tally2		
-}
-
-post{
-count//return this value
-}
+	pre{
+		count = 0
+	}
+	
+	every(tally1){
+		count += tally1
+	}		
+	
+	onchange(tally2){
+		count += tally2		
+	}
+	
+	post{
+		count//return this value
+	}
 
 }
 
 tally1 = 9; tally1 = 10; tally1 = 10
 tally2 = 45; tally2 = 3; tally2 = 53
 
-tally1:close(); tally2:close()
 
-await(finalCount)
 //finalCount == 132
+
+def doings(){
+	print("got here1")
+	tally1:close(); tally2:close()
+	print("got here2")
+	await(finalCount)
+	print("got here3")
+	"" + finalCount
+}
 */
+
+
+
+/*Support this:
+
+new String[10]//defaults to null, complain about this!
+
+
+new String?[10](null)
+
+
+x String? = null
+new String?[10, 2](x)
+new String?[10, 2](null)
+*/
+
+
+
+//map iterator should be on entry set, not key set
+
+
+/*
+//fix this...
+
+$ conc -cp "joda-time-2.9.4.jar"
+Welcome to Concurnas 1.14.020 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_251).
+Currently running in REPL mode. For help type: /help
+
+conc> import org.joda.time.DateTime
+|  ERROR 1:0 Imported name: org.joda.time.DateTime cannot be resolved to a type
+
+conc> from org.joda.time import DateTime
+|  ERROR 1:0 Imported name: org.joda.time.DateTime cannot be resolved to a type
+
+conc>
+
+
+*/
+
+
+
+
+
+//support repl comments
+
+
 
 
 //fix recording of nullable support on here
@@ -216,20 +165,12 @@ def doings(){
 
 
 
-
-/*Support this:
-
-new String?[10](null)
+//fix michael work/tmp
+//fix other classloader related bug
 
 
-x String? = null
-new String?[10, 2](x)
-new String?[10, 2](null)
-*/
+//nasty bug setting thing to null on if branch
 
-
-
-//dist is still broken
 
 
 
@@ -251,7 +192,8 @@ new String?[10, 2](null)
 
 
 //improve error message on no method found
-//fix michael work/tmp
+
+
 //prevent run in vanilla java
 //permit spawn from java
 
@@ -259,8 +201,6 @@ new String?[10, 2](null)
 //add * and ? for classpath entries
 
 //add conc repo to sublime pkg
-//jypter
-//default types for ifaces and typedefs
 
 
 /*
@@ -273,36 +213,13 @@ x[0], x[1] = x[1], x[0]
 
 operator overloading on bigdecimal etc
 a * (x * x) + b * x + c;
-
 */
 
 
-
-
-/*
-//fix this...
-
-$ conc -cp "joda-time-2.9.4.jar"
-Welcome to Concurnas 1.14.020 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_251).
-Currently running in REPL mode. For help type: /help
-
-conc> import org.joda.time.DateTime
-|  ERROR 1:0 Imported name: org.joda.time.DateTime cannot be resolved to a type
-
-conc> from org.joda.time import DateTime
-|  ERROR 1:0 Imported name: org.joda.time.DateTime cannot be resolved to a type
-
-conc>
-
-
-*/
+//jypter
 
 
 
-
-
-
-//support repl comments
 //fix the ctrl+c problem
 
 //call conc from java, java from conc
@@ -418,11 +335,14 @@ System.out.println("countdown from: {counter.n} == {countDownStr}")
 
 
 
-//default for arraylist for typedefs, so we can do new List()...
-
 /*
 //expr list doesn't like this:
 def thing<X>(apply (X, X) X, a X, b X) X{
 	apply a b
 }
+//on lambda?
+
+//also a problem:
+print "got here"
+
 */

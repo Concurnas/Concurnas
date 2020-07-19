@@ -1,6 +1,5 @@
 package com.concurnas.compiler.ast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
@@ -10,15 +9,17 @@ import com.concurnas.compiler.visitors.Visitor;
 public class TypedefStatement extends Statement implements REPLTopLevelComponent{
 	public String name;
 	public Type type;
+	public Type defaultType;
 	public AccessModifier accessModifier;
 	public List<String> typedefargs;
 
-	public TypedefStatement(int line, int column, AccessModifier accessModifier, String name, Type type, List<String> typedefargs) {
+	public TypedefStatement(int line, int column, AccessModifier accessModifier, String name, Type type, List<String> typedefargs, Type defaultType) {
 		super(line, column);
 		this.accessModifier = accessModifier;
 		this.name = name;
 		this.type = type;
 		this.typedefargs = typedefargs;
+		this.defaultType = defaultType;
 	}
 
 	@Override
@@ -40,7 +41,7 @@ public class TypedefStatement extends Statement implements REPLTopLevelComponent
 
 	@Override
 	public Node copyTypeSpecific() {
-		return this;//?
+		return this;//immutable
 	}
 
 	private boolean canSkipIterativeCompilation=false;
