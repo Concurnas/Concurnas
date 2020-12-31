@@ -9,3 +9,5 @@ if(num mod 2 == 0){
 } else {
   System.out.println("It is an odd number")
 }
+
+//Prints "It is an odd number"
