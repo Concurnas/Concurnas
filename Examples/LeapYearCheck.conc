@@ -1,7 +1,5 @@
 //Program to check whether the given year is a leap year or not
 
-import java.lang.*
-
 val year = 1900
 var leap = true
 
@@ -15,7 +13,7 @@ if(year mod 4 == 0){
 }
 else { leap = false }
 
-if ( leap == true ){ System.out.println( year + " is a leap year.") } 
-else { System.out.println( year + " is not a leap year") }
+if ( leap == true ){ System out println year + " is a leap year." } 
+else { System out println year + " is not a leap year" }
 
 // Prints "1900 is not a leap year"
