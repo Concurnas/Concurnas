@@ -1,0 +1,22 @@
+//Program that checks whether a given integer is a Palindrome or not
+
+var num = 121
+var reversed_integer = 0
+var remainder int
+val original_integer int
+
+original_integer = num
+
+while (num != 0){
+  remainder = num mod 10
+  reversed_integer = reversed_integer * 10 + remainder
+  num /= 10
+}
+
+if(original_integer == reversed_integer){
+  System out println num + " is an integer palindrome."
+} else {
+  System out println num + " is not an integer palindrome."
+}
+
+//Prints "121 is an integer palindrome."

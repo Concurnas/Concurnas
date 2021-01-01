@@ -1,0 +1,15 @@
+//Program that shows all the factors for a given number
+
+var num = 6
+i int
+
+for(i = 0; i <= num; i++){
+  if (num mod i == 0){
+    System out println i
+  }
+}
+
+//Prints "1
+          2
+          3
+          6"
