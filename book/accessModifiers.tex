@@ -15,7 +15,7 @@ public mypow(a int) = a ** raiser
 //at the class level...
 class MyClass{
 	private age int = 20
-	public isOldEnough(test int) = test >== age
+	public def isRightAge(test int) => test >== age
 }
 \end{lstlisting}
 
@@ -42,11 +42,11 @@ All of the aforementioned accessibility modifiable elements have a default acces
 \begin{lstlisting}
 class MyClass{
 	age int = 20
-	isOldEnough(test int) = test >== age
+	def isRightAge(test int) => test >== age
 }
 \end{lstlisting}
 
-The \lstinline{age} field has a default accessibility applied of private and the \lstinline{isOldEnough} method has a default accessibility applied of public. A table showing the default accessibility for each of the items, contingent on their defined context is as follows:
+The \lstinline{age} field has a default accessibility applied of \lstinline{protected} and the \lstinline{isRightAge} method has a default accessibility applied of \lstinline{public}. A table showing the default accessibility for each of the items, contingent on their defined context is as follows:
 
 \begin{table}[H]
 	\centering

@@ -43,12 +43,11 @@ import sun.misc.Unsafe;
 @Uninterruptible
 public final class Cloner {
 
-	private final static Set<Class<?>>								ignored				= new HashSet<Class<?>>();
-	private final static Set<Class<?>>								ignoredInstanceOf	= new HashSet<Class<?>>();
-	private final static Map<Class<?>, IFastCloner>					fastCloners			= new HashMap<Class<?>, IFastCloner>();
-	private final Map<Object, Boolean>						    ignoredInstances	 = Collections.synchronizedMap(new IdentityHashMap<Object, Boolean>());
-	
-	private final ConcurrentHashMap<Class<?>, List<Field>>			fieldsCache			= new ConcurrentHashMap<Class<?>, List<Field>>();
+	@Shared	private final static Set<Class<?>>								ignored				= new HashSet<Class<?>>();
+	@Shared private final static Set<Class<?>>								ignoredInstanceOf	= new HashSet<Class<?>>();
+	@Shared private final static Map<Class<?>, IFastCloner>					fastCloners			= new HashMap<Class<?>, IFastCloner>();
+	@Shared private final Map<Object, Boolean>						    ignoredInstances	 = Collections.synchronizedMap(new IdentityHashMap<Object, Boolean>());
+	@Shared	private final ConcurrentHashMap<Class<?>, List<Field>>			fieldsCache			= new ConcurrentHashMap<Class<?>, List<Field>>();
 
 	
 	static {
@@ -68,7 +67,7 @@ public final class Cloner {
 		this();
 	}
 	
-	public final static Cloner cloner = new Cloner();
+	@Shared public final static Cloner cloner = new Cloner();
 	
 
 	/**
@@ -215,7 +214,7 @@ public final class Cloner {
 	 * @throws InstantiationException 
 	 */
 	
-	private static Unsafe unsafe;
+	@Shared private static Unsafe unsafe;
 	static{
 		try {
 			Field f = Unsafe.class.getDeclaredField("theUnsafe");
@@ -310,14 +309,23 @@ public final class Cloner {
 	}
 	
 
-	@SuppressWarnings("unchecked")
 	public <T> T clone(final T obj){
 		CopyTracker tracker = new CopyTracker();
-		return clone(tracker, obj, null);
+		return clone(tracker, obj, null, false);
+	}
+	
+	public <T> T cloneRepointTransient(final T obj){
+		CopyTracker tracker = new CopyTracker();
+		return clone(tracker, obj, null, true);
+	}
+	
+
+	public <T> T clone(final CopyTracker tracker, final T obj, CopyDefinition def){
+		return clone(tracker, obj, def, false);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T clone(final CopyTracker tracker, final T obj, CopyDefinition def){
+	private <T> T clone(final CopyTracker tracker, final T obj, CopyDefinition def, boolean repointTransient){
 		try{
 			if (obj == null) return null;
 			if (obj == this) return (T)this;
@@ -348,7 +356,12 @@ public final class Cloner {
 			
 			if(null == def) {
 				if (hazImmutableAnnotation(clz)) return obj;
-				if (hazTransientAnnotation(clz)) return null;
+				if (hazTransientAnnotation(clz)) {
+					if(repointTransient) {
+						return obj;
+					}
+					return null;
+				}
 				if (hazSharedAnnotation(clz)) return obj;
 			}
 			
@@ -424,9 +437,13 @@ public final class Cloner {
 							String fname = field.getName();
 							if(def.shouldCopyField(fname)) {
 								if (Modifier.isTransient(modifiers)){//trans to null
-									final Class<?> type = field.getType();
-									if (!type.isPrimitive()){
-										field.set(newInstance, null);
+									if(repointTransient) {
+										field.set(newInstance, def.getOverride(fname, field.get(obj)));
+									}else {
+										final Class<?> type = field.getType();
+										if (!type.isPrimitive()){
+											field.set(newInstance, null);
+										}
 									}
 								} else{
 									final Object fieldObject = def.getOverride(fname, field.get(obj));
@@ -446,7 +463,7 @@ public final class Cloner {
 					
 					if(null == supCD) {//add rest of fields to instance...
 						final List<Field> supfields = allFields(clz.getSuperclass());
-						addfieldsToInstance(supfields, obj, clones, tracker, newInstance);
+						addfieldsToInstance(supfields, obj, clones, tracker, newInstance, repointTransient);
 						def = null;
 					}else {
 						clz = (Class<T>) clz.getSuperclass();
@@ -466,7 +483,7 @@ public final class Cloner {
 			}
 			else {
 				final List<Field> fields = allFields(clz);
-				addfieldsToInstance(fields, obj, clones, tracker, newInstance);
+				addfieldsToInstance(fields, obj, clones, tracker, newInstance, repointTransient);
 			}
 			
 
@@ -479,18 +496,21 @@ public final class Cloner {
 		}
 	}
 	
-	private <T> void addfieldsToInstance(final List<Field> fields, Object obj, Map<Object, Object> clones, final CopyTracker tracker, T newInstance) throws IllegalArgumentException, IllegalAccessException{
+	private <T> void addfieldsToInstance(final List<Field> fields, Object obj, Map<Object, Object> clones, final CopyTracker tracker, T newInstance, boolean repointTransient) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException{
 		for (final Field field : fields){
 			final int modifiers = field.getModifiers();
 			if (!Modifier.isStatic(modifiers)){
 				if (Modifier.isTransient(modifiers)){//trans to null
-					final Class<?> type = field.getType();
-					if (!type.isPrimitive()){
-						field.set(newInstance, null);
+					if(repointTransient) {
+						field.set(newInstance, field.get(obj));
+					}else {
+						final Class<?> type = field.getType();
+						if (!type.isPrimitive()){
+							field.set(newInstance, null);
+						}
 					}
 				} else{
 					final Object fieldObject = field.get(obj);
-					
 					boolean isShared = false;
 					for(Annotation annot : field.getAnnotations()) {
 						if (annot.annotationType() == Shared.class){
@@ -503,8 +523,12 @@ public final class Cloner {
 					if(!isShared) {
 						fieldObjectClone = clones != null ? clone(tracker, fieldObject, null) : fieldObject;
 					}
-					 
-					field.set(newInstance, fieldObjectClone);
+					
+					if((field.getModifiers() & Modifier.FINAL) == Modifier.FINAL) {
+				        unsafe.putObject( obj, unsafe.objectFieldOffset( field ), fieldObjectClone );
+					}else {
+						field.set(newInstance, fieldObjectClone);
+					}
 				}
 			}
 		}

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 
 import com.concurnas.conc.ConcUtis;
@@ -127,7 +128,15 @@ public class ClassloaderUtils {
 			synchronized(strToURI.computeIfAbsent(jarUri, (URI a) -> a)) {
 				try (FileSystem zipfs = FileSystems.newFileSystem(jarUri, env)) {
 					Path root = zipfs.getPath("/");
-					Files.walk(root).filter(a -> !Files.isDirectory(a) && a.toString().endsWith(".class")).forEach( a -> addToClsP(a.toString(), clsToClasspath) );
+					//Files.walk(root).filter(a -> !Files.isDirectory(a) && a.toString().endsWith(".class")).forEach( a -> addToClsP(a.toString(), clsToClasspath) );
+					
+					for(Path a : Files.walk(root).collect(Collectors.toList())) {
+						if(!Files.isDirectory(a) && a.toString().endsWith(".class")) {
+							addToClsP(a.toString(), clsToClasspath);
+						}
+					}
+					
+					//Files.walk(root).filter(a -> !Files.isDirectory(a) && a.toString().endsWith(".class")).forEach( a -> addToClsP(a.toString(), clsToClasspath) );
 		        } catch (IOException e) {
 					e.printStackTrace();
 				} 

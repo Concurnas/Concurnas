@@ -4220,8 +4220,8 @@ def doings(){
 		x={ mc.hey() }!
 		'ok' + x
 	}catch(npe NullPointerException){
-		npe.printStackTrace()
-		'its null' + npe
+		//npe.printStackTrace()
+		'its null as expected'// + npe
 	}
 	
 
@@ -4310,7 +4310,7 @@ def doings(){
 	xx = try{
 		""+res1
 	}catch(npe ){
-		'its nullx ' + npe
+		'its nullx ' + (npe getClass())
 	}
 
 	"result: "  + xx
@@ -4665,4 +4665,28 @@ finalCount := async{
 def doings(){
 	tally1:close()
 	"" + finalCount
+}
+
+~~~~~
+//##255. top level shared code
+class MyHolder(public a int){
+	override toString() => "MyHolder({a})"
+}
+
+
+shared shar = [456]
+top1 = 123
+top2 = Integer 123
+holder = MyHolder(66)
+myThings int: = 93//implicitly shared
+
+
+def doings(){
+	v1 = { (++top1, ++top2, ++holder.a, ++shar[0], ++myThings) }!
+	await(v1)
+	v2 = { (top1, top2, holder.a, shar[0], myThings)  }!
+	await(v2)
+
+
+	"ok" + (v1, v2)
 }

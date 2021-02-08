@@ -59,11 +59,11 @@ ok[199 [23: 23:]]
 
 ~~~~~
 //##16. shared module level var always set
-ok[111 [111: 111:]]
+ok[111 [23: 23:]]
 
 ~~~~~
 //##17. shared gotcha
-ok[500: 26:]
+ok[500: 500:]
 
 ~~~~~
 //##18. shared class
@@ -75,15 +75,15 @@ ok[100: 23: 23: 23:]
 
 ~~~~~
 //##20. shared class gotcha
-[new Value: old value:]
+[new Value: new Value:]
 
 ~~~~~
 //##21. shared multi assignment
-ok[ok: ok: resset:]
+ok[ok: ok: ok:]
 
 ~~~~~
 //##22. shared ref pointless
-ok[ok: resset:]
+ok[ok: ok:]
 
 ~~~~~
 //##23. shared class def level variable

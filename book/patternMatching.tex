@@ -104,21 +104,21 @@ matcher(4) // -> returns "got value 4"
 \end{lstlisting}
 
 \section{Pattern case on types}
-We can pattern match against types. The match value is cast to the type it is matched against for the bounds of the attached case block. This is analogous to an \lstinline{isas} type check
+We can pattern match against types. The match value is cast to the type it is matched against for the bounds of the attached case block. This is analogous to an \lstinline{is as} type check:
 
 \begin{lstlisting}
 def matcher(obj Object){
 	result  = match(obj){
-		String    =>   "a String of length: {a.length();}" 
-		int 	    =>"an int" 
-		Object    => "something else: {obj}" //a catch all
+		String => "a String of length: {a.length();}" 
+		int    => "an int" 
+		Object => "something else: {obj}" //a catch all
 	}
 	result
 }
 
-matcher(1) 	    // -> returns "an int"
+matcher(1) 	      // -> returns "an int"
 matcher("string") // -> returns "a String of length: 6"
-matcher(23.34f)  // -> returns "something else: 23.34f"
+matcher(23.34f)   // -> returns "something else: 23.34f"
 \end{lstlisting}
 
 We can match against multiple types:
@@ -132,9 +132,9 @@ def matcher(obj Object){
 	result
 }
 
-matcher(1)	     // -> returns "a String or int"
+matcher(1)	       // -> returns "a String or int"
 matcher("string")  // -> returns "a String or int"
-matcher(23.34f)   // -> returns "something else: 23.34f"
+matcher(23.34f)    // -> returns "something else: 23.34f"
 \end{lstlisting}
 
 Note that within the case block for the individual match instances, the value will automatically be cast to the type of interest, making this sort of code easy to write:
@@ -225,7 +225,7 @@ We can apply expressions resulting in boolean results in order to attach conditi
 \begin{lstlisting}
 def matcher(n int){
 	match(n){
-		<10 =>    "less than 10" 
+		<10  => "less than 10" 
 		else => "more than or equal to 10" 
 	}
 }
@@ -239,9 +239,9 @@ matcher(99)  // -> returns "more than or equal to 10"
 \begin{lstlisting}
 def matcher(n int){
 	match(n){
-		>5 and <10 =>    "greater than 5 but less than 10" 
-		<10 =>    "less than 10" 
-		else => "more than or equal to 10" 
+		>5 and <10 => "greater than 5 but less than 10" 
+		<10        => "less than 10" 
+		else       => "more than or equal to 10" 
 	}
 }
 
@@ -261,36 +261,36 @@ def resolvesTrue() = true
 def matcher(n int){
 	x=4
 	match(n){
-		x =>"special value "  //implicit equality comparison, equivalent to /n==x/
-		>5 and <10=>    "greater than 5 but less than 10" 
-		<10 =>    "less than 10" 
-		else => "more than or equal to 10" 
+		x          => "special value "  //implicit equality comparison, equivalent to /n==x/
+		>5 and <10 => "greater than 5 but less than 10" 
+		<10        => "less than 10" 
+		else       => "more than or equal to 10" 
 	}
 }
 
-matcher(4) // -> returns "less than 10"
-matcher(2) // -> returns "special value"
-matcher(8) // -> returns "greater than 5 but less than 10"
+matcher(4)   // -> returns "less than 10"
+matcher(2)   // -> returns "special value"
+matcher(8)   // -> returns "greater than 5 but less than 10"
 matcher(99)  // -> returns "more than or equal to 10"
 \end{lstlisting}
 
-Note that any normal expression element is appropriate for a case pattern, all will be checked for equality
+Note that any normal expression element is appropriate for a case pattern, provided they are nested within parenthesis, \lstinline{()}, all will be checked for equality:
 
 \begin{lstlisting}
-def resolvesTrue() = true
+def resolvesTrue() => true
 def matcher(n int){
 	x=4
 	y=100
 	match(n){
-		x if resolvesTrue() else y => "special value "  //implicit equality comparison, equivalent to /n==(x if resolvesTrue() else y)/
-		>5 and <10 =>    "greater than 5 but less than 10" 
-		<10 =>    "less than 10" 
-		else => "more than or equal to 10" 
+		(x if resolvesTrue() else y) => "special value"  //implicit equality comparison, equivalent to /n==(x if resolvesTrue() else y)/
+		>5 and <10                   => "greater than 5 but less than 10" 
+		<10                          => "less than 10" 
+		else                         => "more than or equal to 10" 
 	}
 }
 
-matcher(4) // -> returns "less than 10"
-matcher(2) // -> returns "special value"
+matcher(4) // -> returns "special value"
+matcher(2) // -> returns "less than 10"
 matcher(8) // -> returns "greater than 5 but less than 10"
 matcher(99)  // -> returns "more than or equal to 10"
 \end{lstlisting}
@@ -300,28 +300,14 @@ Case patterns are checked in a serial manner. Thus one can expect the following 
 \begin{lstlisting}
 def matcher(n int){
 	match(n){
-		<10 =>    "less than 10" }
-		>5 and <10 =>    "greater than 5 but less than 10" }//will never be returned
-		else => "more than or equal to 10"
+		<10        => "less than 10" }
+		>5 and <10 => "greater than 5 but less than 10" }//will never be returned
+		else       => "more than or equal to 10"
 	}
 }
 
 matcher(2) // -> returns "less than 10"
 matcher(8) // -> returns "less than 10"
-matcher(99)  // -> returns "more than or equal to 10"
-\end{lstlisting}
-
-We can also make use of normal expressions for our case condition:
-
-\begin{lstlisting}
-def matcher(n int){
-	match(n){
-		n<10 =>    "less than 10" 
-		else => "more than or equal to 10" 
-	}
-}
-
-matcher(2) // -> returns "less than 10"
 matcher(99)  // -> returns "more than or equal to 10"
 \end{lstlisting}
 
@@ -331,11 +317,11 @@ We can apply pattern case conditions to values which have first been type checke
 def matcher(a Object) {
 	match(a){
 		int; ==1 or ==2 => "first case"
-		else => "other case"
+		else            => "other case"
 	}
 }
 
-matcher(1) // -> returns "first case"
+matcher(1)  // -> returns "first case"
 matcher(2)  // -> returns "first case"
 matcher(3)  // -> returns "other case"
 \end{lstlisting}
@@ -347,11 +333,11 @@ As above if we perform an assignment in addition to a case type check then we ca
 def matcher(a Object) {
 	match(a){
 		n int; n==1 or n==2 => "first case"
-		else => "other case"
+		else                => "other case"
 	}
 }
 
-matcher(1) // -> returns "first case"
+matcher(1)  // -> returns "first case"
 matcher(2)  // -> returns "first case"
 matcher(3)  // -> returns "other case"
 \end{lstlisting}
@@ -408,7 +394,7 @@ def isPalendrome(a String){
 def matcher(inp String){
 	match(inp){
 		also isPalendrome(inp) =>  "is" 
-		else => "is not" 
+		else                   => "is not" 
 	} + " a Palindrome"
 }
 
@@ -425,7 +411,7 @@ def reverse(a String) = new StringBuffer(string).reverse().toString()
 def matcher(str String){
 	result  = match(rev = reverse(str)){
 		rev.length() > 3 =>   result = "input string: '{str}' reversed string: '{rev}'" 
-		else =>  result = "too short to be reversed!: '{str}'" //a catch all
+		else             =>  result = "too short to be reversed!: '{str}'" //a catch all
 	}
 	result
 }
@@ -444,10 +430,10 @@ enum MyEnum{ CASE1, CASE2, CASE3, CASE4, CASE5 }
 
 def matcher(a MyEnum) {
 	match(a){
-		MyEnum.CASE1 => "case 1"//use the full name of the enum element
-		CASE2 => "case 2"//use the short name of the enum element
+		MyEnum.CASE1          => "case 1"//use the full name of the enum element
+		CASE2                 => "case 2"//use the short name of the enum element
 		CASE3 or MyEnum.CASE4 => "case 3 or 4"//use both the short and long names
-		else => "another case: {a} " 
+		else                  => "another case: {a} " 
 	}
 }
 
@@ -480,12 +466,12 @@ If we know the type being matched against is a tuple, then the syntax is more su
 \begin{lstlisting}
 def matcher(n (int, int)){
 	match(n){
-		(0, 0) => 'both zero'//test against both elements
-		(0, )  => 'first zero'//test only one element
-		(, >2) => 'second above 2'//perform a test against second tuple element
-		(a, 1) => 'second is 1, first is: {a}'//extract an element
+		(0, 0)      => 'both zero'//test against both elements
+		(0, )       => 'first zero'//test only one element
+		(, >2)      => 'second above 2'//perform a test against second tuple element
+		(a, 1)      => 'second is 1, first is: {a}'//extract an element
 		(a, b); a>b => '{a} > {b}'//extract both elements and perform a test on them
-		(a, b) => 'all others: {a}, {b}'
+		(a, b)      => 'all others: {a}, {b}'
 	}
 }
 \end{lstlisting}

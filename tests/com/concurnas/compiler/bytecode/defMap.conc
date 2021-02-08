@@ -211,8 +211,8 @@ def doings(){
 			counter[x ]++ 
 		}
 		"" + counter
-	}catch(e){
-		"" + e
+	}catch(e ){
+		"" + (e getClass)
 	}
 }
 

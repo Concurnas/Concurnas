@@ -8779,7 +8779,11 @@ def doings(){
 
 	rawActor = iner()
 	
-	"" + rawActor.fromOuter()
+	"" + try{
+		rawActor.fromOuter()
+	}catch(e){
+		null
+	}
 }//now its just noisy and uncaught
 
 ~~~~~

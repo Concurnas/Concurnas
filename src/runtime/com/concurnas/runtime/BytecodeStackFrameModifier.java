@@ -538,7 +538,7 @@ public class BytecodeStackFrameModifier {
 			
 			// canThrowException = true;
 			frame.popn(TypeDesc.getNumArgumentTypes(desc));
-			if (opcode != INVOKESTATIC && opcode != INVOKEDYNAMIC) {
+			if (opcode != INVOKESTATIC /*&& opcode != INVOKEDYNAMIC*/) {
 				v = frame.pop(); // "this" ref
 				// assert checkReceiverType(v, min) : "Method " + flow.name +
 				// " calls " + min.name +

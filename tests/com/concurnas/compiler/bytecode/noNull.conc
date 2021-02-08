@@ -131,7 +131,7 @@ def doings(){
 }
 
 ~~~~~
-//##9.null check on unknown type where known expected
+//##9. null check on unknown type where known expected
 def takesString(aString String){
 	
 }
@@ -152,21 +152,21 @@ def doings(){
 		itsnull = mylist.get(1)//checks for null - throw exception
 		error
 	}catch(e){
-		"ok: " + e
+		"ok: " + (e getClass)
 	}
 	
 	err2 = try{
 		itsnull String = mylist.get(1)//checks for null - throw exception
 		error
 	}catch(e){
-		"ok: " + e
+		"ok: " + (e getClass)
 	}
 	
 	err3 = try{
 		takesString(mylist.get(1))//checks for null - throw exception
 		error
 	}catch(e){
-		"ok: " + e
+		"ok: " + (e getClass)
 	}
 	
 	err4 = try{
@@ -174,14 +174,14 @@ def doings(){
 		xx()
 		error
 	}catch(e){
-		"ok: " + e
+		"ok: " + (e getClass)
 	}
 	 
 	err5 = try{
 		mylist.add(mylist.get(1))//checks for null - throw exception
 		'ok: no check needed'
 	}catch(e){
-		"err didnt expect exception: " + e
+		"err didnt expect exception: " + (e getClass)
 	}
 	
 	//add: no null check for cases where method call takes unknwon or nullable and being passed unknown
@@ -230,13 +230,16 @@ def doings(){
 from com.concurnas.lang.precompiled import HasNoNullItems
 
 def doings(){
-	alist list<String> = ['','']
-	
-	gotNull2 = HasNoNullItems.addToListLGNULL<String>(alist, //ok
-			''//ok
-	)
-	
-	"fine"
+	try{
+		alist list<String> = ['','']
+		
+		gotNull2 = HasNoNullItems.addToListLGNULL<String>(alist, //ok
+				''//ok
+		)
+		"fine"
+	}catch(e){
+		"" + (e getClass)
+	}
 } 
 
 ~~~~~
@@ -441,7 +444,7 @@ def doings(){
 		f=thing3^??
 		'err'
 	}catch(e){
-		"{e}"
+		"{e getClass}"
 	}
 	
 	"ok" + [thing1 thing2 err]

@@ -87,8 +87,8 @@ result = {'uh oh' if null == mc else mc.foo() }!
 
 Note above that normally the \lstinline{null == mc} test would resolve to a compilation error as we've already inferred that \lstinline{mc} cannot be null, but because this comparison occurs within an isolate, on a variable of transient class type, this inference is no longer valid.
 
-\subsubsection{Module level state}
-Variables defined outside of a function/class/actor (termed module level state) are copied in a special manner when it comes to usage within isolates. The rule is that state defined within the module spawning the isolate will be copied, but module level state defined in modules other than that spawning the isolate will be reinitialized (which means running all of the associated top level code to initialize them) within the isolate - i.e. the current state not copied.
+\subsubsection{Top level state}
+Variables defined outside of a function, class or actor (termed top level state) are copied in a special manner when the are referenced within the context of isolates. All state defined at the top level of a file specifying an isolate and any dependant state defined at top level of dependant file referenced by that isolate is copied into it. Note that top level code is only ever initialized once and the state copied to that isolate is the initial post initialization state.
 
 For example:
 
@@ -99,6 +99,7 @@ def initFromLit(){
 	100
 }
 fromLib = initFromLit()
+
 
 //code in seperate module defined in: com.mycompany.myApplication:
 m = 100
@@ -112,7 +113,7 @@ res = { "fromLib={com.mycompany.library.fromLib}, m={m}" } !
 //res == "fromLib=100, m=101":
 \end{lstlisting}
 
-Above we see that \lstinline{fromLib} has 'reverted' to it's initial state of \lstinline{100}, whereas \lstinline{m} is captured as \lstinline{101}. Furthermore, \lstinline{initFromLit()} will be executed twice (once on the initial use of fromLib and secondly on the copying into the spawned isolate) - so \lstinline{'initlaize fromLib'} will be output to the console twice.
+Above we see that \lstinline{fromLib} has 'reverted' to it's initial state of \lstinline{100}, whereas \lstinline{m} is captured as \lstinline{101}. Furthermore, \lstinline{initFromLit()} will be executed only once - so \lstinline{'initlaize fromLib'} will be output to the console once.
 
 \subsection{Values returned from isolates}
 Isolates return refs (discussed in detail in the \hyperref[sec:refs]{Refs} section) which hold values of the type returned from the code within the isolate. For example:

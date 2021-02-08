@@ -48,28 +48,63 @@ public class Cpsifier {
 		return false;
 	}
 
-	public static HashMap<String, byte[]> doCPSTransform(ConcClassUtil clloader, String className, byte[] inputClassBytes, boolean assumeNoPrimordials, boolean verbose, boolean inRuntimeMode) {
+
+	private ConcClassUtil clloader;
+	private HashSet<String> staticLambdaClasses;
+
+	public void setConcurnasClassLoader(ConcClassUtil clloader) {
+		this.clloader = clloader;
+	}
+	
+	public Cpsifier(ConcClassUtil clloader, HashSet<String> findStaticLambdas) {
+		this.clloader = clloader;
+		this.staticLambdaClasses = findStaticLambdas;
+	}
+	
+	public Cpsifier(ConcClassUtil clloader) {
+		this(clloader, clloader.getStaticLambdaClasses());
+	}
+	
+	public Cpsifier(HashSet<String> findStaticLambdas) {
+		this.staticLambdaClasses = findStaticLambdas;
+	}
+
+	public Cpsifier() {
+		
+	}
+	
+	public HashMap<String, byte[]> doCPSTransform(String className, byte[] inputClassBytes, boolean assumeNoPrimordials, boolean verbose, boolean opOnBootstrap) {
 		// TODO: remove assumeNoPrimordials once augmentation of rt.jar is
 		// complete
 		try {
 			HashMap<String, byte[]> ret = new HashMap<String, byte[]>();
 
+			if(opOnBootstrap && className.equals("sun/misc/Unsafe")) {
+				//if Unsafe, redirect calls to Class.isHidden to POP; FALSE 
+				inputClassBytes = UsafeIsHiddenRemapper.transform(inputClassBytes, clloader);
+			}
+			//System.err.println("proc: " + className);
+			
 			if (!skip.contains(className)) {
 
+				//if (className.contains("NumberFormatProviderImpl") ) {
+				//	System.out.println("prior weaving names: " + className);
+				//	BytecodePrettyPrinter.print(inputClassBytes, true);
+				//}
+				
 				HashMap<String, byte[]> globalizerClasses = null;
 				if (assumeNoPrimordials || Globalizer.NoGlobalizationException(className) || isTrait(clloader, className)) {
 					globalizerClasses = new HashMap<String, byte[]>();
 					// we 'upgrade' the code to the latest spec... (which
 					// includes stackframes etc)
 					// some jdk code for whatever reason is in version 1.5
-					if (assumeNoPrimordials && inRuntimeMode) {
-						HashSet<String> staticLambdaClasses = clloader.getStaticLambdaClasses();
+					if (assumeNoPrimordials && opOnBootstrap) {
 						if (staticLambdaClasses != null) {
 							// globalizerClasses.putAll(StaticLambdaHandler.redirectAndConvert(staticLambdaClasses,
 							// code));
 
 							MaxLocalFinderCache mlf = new MaxLocalFinderCache();
-							Globalizer globalizer = new Globalizer(inputClassBytes, mlf, staticLambdaClasses);
+							Globalizer globalizer = new Globalizer(inputClassBytes, mlf, staticLambdaClasses, opOnBootstrap);
 							globalizerClasses = globalizer.transform(className, clloader);
 
 						} else {
@@ -80,7 +115,7 @@ public class Cpsifier {
 					}
 				} else {
 					MaxLocalFinderCache mlf = new MaxLocalFinderCache();
-					Globalizer globalizer = new Globalizer(inputClassBytes, mlf, null);
+					Globalizer globalizer = new Globalizer(inputClassBytes, mlf, null, opOnBootstrap);
 					globalizerClasses = globalizer.transform(className, clloader);
 				}
 
@@ -93,10 +128,16 @@ public class Cpsifier {
 				for (String namea : globalizerClasses.keySet()) {
 					byte[] code = globalizerClasses.get(namea);
 					
+					if (namea.contains("JustAnEnum")) {
+						System.out.println("post global: " + namea);
+						BytecodePrettyPrinter.print(code, true);
+					}
+					
+					
 					boolean isCObj = namea.equals("com/concurnas/bootstrap/runtime/cps/CObject");
 
 					if (!isCObj) {
-						ObjectInterceptor oic = new ObjectInterceptor(code, clloader, inRuntimeMode);
+						ObjectInterceptor oic = new ObjectInterceptor(code, clloader, opOnBootstrap);
 						code = oic.transform();
 					}
 
@@ -107,14 +148,8 @@ public class Cpsifier {
 
 					// ObjectMethodAdder oma = new ObjectMethodAdder(code, clloader);
 					// code = oma.transform();//TODO: should this be added to globalizers?
-
-					/*
-					 * if (namea.contains("bytecodeSandbox$Globals$")) {
-					 * System.out.println("prior weaving names: " + namea); }
-					 */
-
 					
-					InitConverter2 ic = new InitConverter2(code, bcp, namea, assumeNoPrimordials, inRuntimeMode);// isGlob =>globals already have init
+					InitConverter2 ic = new InitConverter2(code, bcp, namea, assumeNoPrimordials, opOnBootstrap);// isGlob =>globals already have init
 					code = ic.transform();
 
 					// if code is a child of IsoTask, gennerate methods: setup,
@@ -124,9 +159,18 @@ public class Cpsifier {
 					if (!assumeNoPrimordials) {// disable from rt.jar augmentation (because there isnt any!)
 						code = itgma.transform();
 					}
-
+					
 					// add getGlobalDependancies$
 					code = GetDependanciesMethodAdder.transform(code, clloader);
+					
+					
+					/*
+					 * if (namea.contains("java/lang/ProcessHandleImpl") ) {
+					 * System.out.println("prior weaving names: " + namea);
+					 * BytecodePrettyPrinter.print(code, true); }
+					 */
+					
+					
 					
 					
 					Fiberizer cw = new Fiberizer(code, clloader, assumeNoPrimordials, verbose);// , nonPasuableMethods.contains(className));
@@ -135,8 +179,8 @@ public class Cpsifier {
 					try {
 						code = cw.weave();
 					} catch (Exception e) {
-						String err = BytecodePrettyPrinter.print(code, false);
-						System.err.println(String.format("Failure during concurnas runtime transformation in cps-ification of: %s as: %s\nCode:\n%s", namea, e.getMessage(), err));
+						//String err = BytecodePrettyPrinter.print(code, false);
+						//System.err.println(String.format("Failure during concurnas runtime transformation in cps-ification of: %s as: %s\nCode:\n%s", namea, e.getMessage(), err));
 						throw e;
 					}
 										
@@ -144,9 +188,9 @@ public class Cpsifier {
 					code = AddDefaultMethodsToInterfaceForFiber.transform(code, clloader);
 
 					/*
-					 * if (namea.equals("bytecodeSandbox$MyEnum")) {
-					 * System.out.println("post weaving names: " + namea);
-					 * BytecodePrettyPrinter.print(code, true); }
+					  if (namea.contains("bytecodeSandbox")) {
+					  System.out.println("post weaving names: " + namea);
+					  BytecodePrettyPrinter.print(code, true); }
 					 */
 
 					/*
@@ -155,10 +199,10 @@ public class Cpsifier {
 					 * BytecodePrettyPrinter.print(code, true); }
 					 */
 
-					if (namea.contains("bytecodeSandbox")) {
+					/*if (namea.contains("JustAnEnum")) {
 						System.out.println("post weaving names: " + namea);
 						BytecodePrettyPrinter.print(code, true);
-					}
+					}*/
 
 					ret.put(namea, code);
 				}
@@ -168,11 +212,12 @@ public class Cpsifier {
 
 			return ret;
 		} catch (Throwable thr) {
-			thr.printStackTrace();
+			//thr.printStackTrace();
 			throw new RuntimeException(String.format("Error during concurrnas runtime bytecode transformation of '%s' - %s", className, thr.getMessage()), thr);
 		}
 	}
 
 
 	public static int errcnt = 0;
+
 }

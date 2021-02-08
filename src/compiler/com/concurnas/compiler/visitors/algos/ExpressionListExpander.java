@@ -597,7 +597,9 @@ public class ExpressionListExpander {
 				HashSet<TypeAndLocation> items = this.satc.currentScopeFrame.getFuncDef(null, nameWanted);
 				if(null != items && !items.isEmpty()){
 					res.addAll(items);
-				}else{//see if tfunction refers to a constructor
+				}
+				
+				{//see if tfunction refers to a constructor
 					NamedType nt = new NamedType(0,0,nameWanted);
 					
 					this.satc.maskErrors(false);
@@ -605,7 +607,9 @@ public class ExpressionListExpander {
 					if(!this.satc.maskedErrors()){
 						//consFromNamedType((NamedType)got);
 						ret.addAll(consFromNamedType(nt));
-					}else{
+					}
+					
+					{
 						//see if its a variable pointing to a namedtype having overriden the invoke method
 						RefName asrn = new RefName(nameWanted);
 						this.satc.maskErrors(false);
@@ -614,25 +618,29 @@ public class ExpressionListExpander {
 							got = TypeCheckUtils.getRefTypeToLocked(got);
 							if(got instanceof NamedType){
 								res.addAll(((NamedType)got).getFuncDef(0, 0, "invoke", null, null, null));
+							}else {
+								got = null;
 							}
+						}else {
+							got = null;
 						}
-						else {
+						
+						if(got == null){
 							//see if gloabl imported function
-							
-							
-							
 							if(satc.hasImportBeenRegistered(nameWanted))
 							{//and finnaly search top level imports for the name
 								String nameolaz = satc.getImportBeenRegistered(nameWanted);
 								if(!nameolaz.equals(nameWanted)){
-									String[] parts = nameolaz.split("\\.");
-									//nameRedirect = parts[parts.length-1];
 									nameWanted = nameolaz;
 								}
 							}
 							HashSet<TypeAndLocation> gotz = satc.mainLoop.getFunctionFromPath(nameWanted, satc.mc, false);
 							if(gotz != null) {
-								res.addAll(gotz);
+								for(TypeAndLocation tal : gotz) {
+									if(!res.contains(tal)) {//dont override existing definitions
+										res.add(tal);
+									}
+								}
 							}
 							
 						}

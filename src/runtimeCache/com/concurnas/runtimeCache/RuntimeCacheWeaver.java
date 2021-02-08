@@ -6,12 +6,14 @@ import java.util.HashSet;
 import org.objectweb.asm.Opcodes;
 import com.concurnas.runtime.Cpsifier;
 
-public class Weaver implements Opcodes {
+public class RuntimeCacheWeaver implements Opcodes {
 
 	public BootstrapLoader rTJarEtcLoader;
+	public Cpsifier cpsifier;
 
-	public Weaver(BootstrapLoader rTJarEtcLoader){
+	public RuntimeCacheWeaver(BootstrapLoader rTJarEtcLoader, HashSet<String> findStaticLambdas){
 		this.rTJarEtcLoader = rTJarEtcLoader;
+		this.cpsifier = new Cpsifier(rTJarEtcLoader, findStaticLambdas);
 	}
 	
 	private static HashSet<String> addToBooleanMethod = new HashSet<String>();
@@ -38,7 +40,7 @@ public class Weaver implements Opcodes {
 				code = ToBoolean.addToBoolean(name, code, rTJarEtcLoader);
 			}
 			
-			ret = Cpsifier.doCPSTransform(rTJarEtcLoader, name, code, assumeNoPrimordials, log, true);//included global classes for module fields
+			ret = this.cpsifier.doCPSTransform(name, code, assumeNoPrimordials, log, true);//included global classes for module fields
 		}
 		
 		return ret;

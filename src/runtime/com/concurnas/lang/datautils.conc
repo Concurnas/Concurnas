@@ -459,6 +459,16 @@ def String iterator() Iterator<Character> {
 */
 def print(toOutput Object) => System.out.println(com.concurnas.bootstrap.lang.Stringifier.stringify(toOutput))
 
+/**First argument is a format String, which will be passed a beautified version of each of the subsequent vararg input items to the first argument
+ * print("%s -> %s", 'something', [1, 2, 3])
+*/
+def print(formatString String, items Object...){
+	from com.concurnas.bootstrap.lang.Stringifier import stringify
+	toPrint = String.format(formatString, stringify(items^))
+	System.out.println(toPrint)
+}
+
+
 /**Will print a beautified version of the inputed object to console - stderr
  * error("help!")
 */

@@ -121,7 +121,6 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 		ret.isDefinedAtClassLevelOrModuleLevel = isDefinedAtClassLevelOrModuleLevel;
 		ret.vectorizedRedirect = vectorizedRedirect==null?null: (Block)vectorizedRedirect.copy();
 		ret.isInjected = isInjected;
-		ret.createModuleLevelRef = createModuleLevelRef;
 		//ret.isMapSetter=isMapSetter==null?null:isMapSetter.copyTypeSpecific(); 
 		return ret;
 	}
@@ -225,7 +224,6 @@ public class AssignExisting extends Assign implements CanBeInternallyVectorized,
 	
 	private boolean supressErrors = false;
 	public boolean isDefinedAtClassLevelOrModuleLevel=false;
-	public boolean createModuleLevelRef=false;
 	@Override
 	public void setSupressErrors(boolean supressErrors) {
 		this.supressErrors = supressErrors;

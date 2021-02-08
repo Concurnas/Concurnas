@@ -1059,6 +1059,12 @@ public class BytecodeTests extends TestCase implements Opcodes {
 			Label l2 = new Label();
 			mv.visitTryCatchBlock(l0, l1, l2, "java/lang/Throwable");
 			mv.visitLabel(l0);
+			//call globalizer get instance and pop
+			
+			//String globOwner = classBeingTested + "$Globals$";
+			//mv.visitMethodInsn(INVOKESTATIC, globOwner, "getInstance?", "()L" + globOwner + ";", false);
+			//mv.visitInsn(POP);
+			
 			mv.visitMethodInsn(INVOKESTATIC, classBeingTested, "doings", "()Ljava/lang/String;", false);
 			mv.visitVarInsn(ASTORE, 1);
 			Label l3 = new Label();

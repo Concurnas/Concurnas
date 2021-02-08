@@ -31,7 +31,6 @@ java {
 
 assert org.gradle.api.JavaVersion.current().isJava9Compatible()//Concurnas must be built on Java 9+
 
-targetCompatibility = 9
 sourceCompatibility = 1.8
 
 repositories {
@@ -46,7 +45,7 @@ configurations {
 
 
 dependencies {
-    testImplementation 'com.google.jimfs:jimfs:1.1'
+    api 'com.google.jimfs:jimfs:1.1'
     testImplementation 'junit:junit:4.12'
     libsForRuntime "org.antlr:antlr4:4.7.2"
     libsForRuntime 'org.jline:jline:3.13.3'
@@ -109,7 +108,7 @@ runVersionSplicer.finalizedBy runCacheCreator
 runCacheCreator.finalizedBy runLibCompile
 
 test.enabled = false
-task test(type: JavaExec, overwrite: true) {
+task allTests(type: JavaExec) {
   description 'Runs all junit tests'
   group 'Verification'
   classpath = sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
@@ -118,6 +117,7 @@ task test(type: JavaExec, overwrite: true) {
   jvmArgs = getJVMArgs()
 }
 
+test.finalizedBy allTests
 
 task runTestsCompile(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath

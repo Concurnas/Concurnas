@@ -15,7 +15,7 @@ null
 
 ~~~~~
 //##4. null unsafe used as operator
-npe: java.lang.NullPointerException
+npe: java.lang.NullPointerException 
 
 ~~~~~
 //##5. elvis operator
@@ -34,7 +34,7 @@ ok
 ok
 
 ~~~~~
-//##9.null check on unknown type where known expected
+//##9. null check on unknown type where known expected
 ok[ok: java.lang.NullPointerException, ok: java.lang.NullPointerException, ok: java.lang.NullPointerException, ok: java.lang.NullPointerException, ok: no check needed]
 
 ~~~~~

@@ -15,7 +15,7 @@ In short they a mechanism by which data in the form of state expressed via field
 Object orientation helps reduce the gap between the way machines operate and humans think by allowing us to think about data/state manipulation using everyday concepts, or at least concepts which more closely map to our problem domain than the abstract terminology of a computers machine code. Consider the following two representations of data:
 
 \begin{lstlisting}
-peopleA Object[2] = [ ["dave" 45] ["freddy" 16] ["monica" 33]]
+peopleA Object[2] = [ ["dave" 45]; ["freddy" 16]; ["monica" 33]]
 
 class Person(name String, age int){
 	def incAge() => age++;;
@@ -29,7 +29,7 @@ The case for classes is further strengthened when we consider manipulation of th
 
 \begin{lstlisting}
 for(person Object[] in peopleA){//approach 1
-	person[1]++
+	person[1] = (person[1] as int) + 1
 }
 
 for(person Person in peopleB){//approach 2
@@ -37,7 +37,9 @@ for(person Person in peopleB){//approach 2
 }
 \end{lstlisting}
 
-For 'approach 1', manipulating the internal state of people held in the \lstinline{peopleA} matrix is quite an abstract process. It's not clear from looking at the code alone that we are incrementing the age of each person. Also, a more major hidden problem is that in the future if we wish to capture more information about a person, we need to change the structure of the data in the matrix - this would have a knock on negative impact on all instance of the code seen above, would the element in slot '1' of the array be the age still? With 'approach 2' these problems are mitigated; we're able to see that we are calling a method which increments the age of a person \lstinline{incAge} by just looking at the code. Also, we're free to change the internal structure of the person state without fear of breaking dependant code like this.
+For 'approach 1', manipulating the internal state of people held in the \lstinline{peopleA} matrix is quite an abstract process. It's not clear from looking at the code alone that we are incrementing the age of each person. Also, a more major hidden problem is that in the future if we wish to capture more information about a person, we need to change the structure of the data in the matrix - this would have a knock on negative impact on all instance of the code seen above, would the element in slot '1' of the array be the age still?
+
+With 'approach 2' these problems are mitigated; we're able to see that we are calling a method which increments the age of a person \lstinline{incAge} by just looking at the code. Also, we're free to change the internal structure of the person state without fear of breaking dependant code like this.
 
 Object orientation does have some disadvantages. One major one being that it can be a very verbose process to write object oriented code (for legitimate reasons as we shall see here). Concurnas offers many useful syntactic and semantic tools for reducing this verbosity, which are described in detail later on. These include:
 \begin{itemize}
@@ -79,7 +81,7 @@ ar3 = java.util.ArrayList<String>()
 All three of the above are equivalent. Note that we use generics when creating the above ArrayList instance objects, this is covered in more detail later.
 
 \section{Creating Classes}
-Classes are declared by use of the /class/ keyword followed by the name of the class. Usually one begins the name of a class with an Uppercase letter but this is not obligatory. The class may or may not have a block attached to it. For example:
+Classes are declared by use of the \lstinline{class} keyword followed by the name of the class. Usually one begins the name of a class with an Uppercase letter but this is not obligatory. The class may or may not have a block attached to it. For example:
 
 \begin{lstlisting}
 class MyClass1//class with no block
@@ -266,7 +268,7 @@ Just as calling getters and setters can feel redundant/verbose, so to can writin
 	\centering
 	\begin{tabular}{lll}
 		\hline
-		Prefix&Generated Getter&Generates Setter\\
+		Prefix&Generates Getter&Generates Setter\\
 		\hline
 		\lstinline!~!&Y&Y\\
 		\lstinline!-!&Y&\\
@@ -334,7 +336,7 @@ obj1 = new Person("dave", 23)
 obj2 = new Person(56)
 \end{lstlisting}
 
-If a constructor calls another constructor this call must be the first entry in the constructor. This arrangement of constructor calling another constructor is known as a constructor chain. The top level (of which there may be more than one) being the constructor which calls a super constructor (via the \lstinline{super} keyword seen later) or has no /this/ constructor call at all.
+If a constructor calls another constructor this call must be the first entry in the constructor. This arrangement of constructor calling another constructor is known as a constructor chain. The top level (of which there may be more than one) being the constructor which calls a super constructor (via the \lstinline{super} keyword seen later) or has no \lstinline{this} constructor call at all.
 
 All classes must have at least one constructor. This constructor does not have to be publicly accessible. If at least one constructor is not provided then a publicly accessible zero argument constructor will be generated for the class automatically - if this were not the case then it would render the class uninstantiable in any situation, which is not ever useful.
 
@@ -345,7 +347,7 @@ Often, particularly for data oriented classes with simple state and requiring on
 class Person(forename String, surname String, age int)
 \end{lstlisting}
 
-The above declaration of /Person/ is equivalent to the more long winded version as follows:
+The above declaration of \lstinline{Person} is equivalent to the more long winded version as follows:
 \begin{lstlisting}
 class Person2{
 	forename String
@@ -467,7 +469,6 @@ open class SuperClass{
 
 class ChildClass < SuperClass{
 	def anotherMethod(a int) => aMethod(a)
-	override aMethod(a int) => super.aMethod(a)+1 //we cannot omit super here as this would result in an infinite stack call loop to 'aMethod'
 }
 \end{lstlisting}
 
@@ -761,7 +762,7 @@ def makeLocalClass() SuperClass {
 We cannot make use of \lstinline{MyClass} directly (i.e. instantiate an instance of it via the \lstinline{new} operator) outside the scope of the method in which it is defined, hence the type returned in the above example has to be either a superclass or trait which it implements.
 
 \section{Anonymous Classes}
-Anonymous classes provides a means by which classes can be both defined and instance objects derived from the in one relatively compact step. They are useful for implementing SAM types see here and when working with traits see here. 
+Anonymous classes provides a means by which classes can be both defined and instance objects derived from the in one relatively compact step. They are useful for implementing \hyperref[ss:samTypes]{SAM types} and when working with \hyperref[ch:traits]{traits}.
 
 Anonymous classes are easy to define, here is an example:
 \begin{lstlisting}

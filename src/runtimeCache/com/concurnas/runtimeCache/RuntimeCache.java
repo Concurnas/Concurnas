@@ -11,6 +11,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +32,7 @@ import com.concurnas.runtime.OffHeapAugmentor;
 
 public abstract class RuntimeCache implements Opcodes {
 	protected ProgressTracker pt;
-	protected Weaver weaver;
+	protected RuntimeCacheWeaver weaver;
 	protected final String toDirectory;
 	protected final boolean log;
 	protected String[] classpath;
@@ -52,21 +54,40 @@ public abstract class RuntimeCache implements Opcodes {
 
 		HashSet<String> findStaticLambdas = new HashSet<String>();
 		ExecutorService executorService = Executors.newFixedThreadPool((int) (cores * 1.5));
+		Queue<AugErrorAndException> errorsInAug = new ConcurrentLinkedQueue<AugErrorAndException>();
+		
 		try {
-			this.count = doAug(executorService, findStaticLambdas);
+			this.count = doAug(executorService, findStaticLambdas, errorsInAug);
 		} catch (Throwable e) {
-			System.err.println("Error in cache genneration: " + e.getMessage());
-			e.printStackTrace();
-			System.exit(1);
+			errorsInAug.add(new AugErrorAndException("General Cache genneration", e));
 		} finally {
 			executorService.shutdown();
 			executorService.awaitTermination(1, TimeUnit.HOURS);
 		}
 
-		this.createConcCoreGo(modules, findStaticLambdas);
+		try {
+			this.createConcCoreGo(modules, findStaticLambdas);
+		} catch (Throwable e) {
+			errorsInAug.add(new AugErrorAndException("ConcurnasCore", e));
+		}
+		
+		if(!errorsInAug.isEmpty()) {
+			System.err.println(String.format("\nFailure in cache genneration. %s errors detected...", errorsInAug.size()));
+			for(AugErrorAndException inst : errorsInAug) {
+				if(inst.className != null) {
+					System.err.println(String.format("Error in cache genneration for %s: %s" , inst.module, inst.className));
+				}else {
+					System.err.println(String.format("General error in cache genneration for %s" , inst.module));
+				}
+				inst.err.printStackTrace();
+			}
+
+			System.err.println(String.format("Failure in cache genneration. %s errors detected... Aborting", errorsInAug.size()));
+			System.exit(1);
+		}
 	}
 
-	protected abstract int doAug(ExecutorService executorService, HashSet<String> findStaticLambdas) throws Exception;
+	protected abstract int doAug(ExecutorService executorService, HashSet<String> findStaticLambdas, Queue<AugErrorAndException> errorsInAug) throws Exception;
 
 	protected void assignProgressTracker(int cnt) {
 		this.pt = new ProgressTracker(cnt + 1);
@@ -260,15 +281,15 @@ public abstract class RuntimeCache implements Opcodes {
 				if (!Files.exists(pp.getParent())) {
 					Files.createDirectories(pp.getParent());
 				}
-
+				
 				Files.write(pp, code);
 			}
-			// System.err.println("" +
-			// collectedPackages.stream().sorted().collect(Collectors.toList()));
-
-			// if (!findStaticLambdas.isEmpty()) {
-			addStaticLambdaClasses(zf, findStaticLambdas, ConcurnasClassLoader.staticLambdaClassesCls);
-			// }
+			 //System.err.println("" + collectedPackages.stream().sorted().collect(Collectors.toList()));
+			
+			 if (!findStaticLambdas.isEmpty()) {
+				 //System.err.println("" + String.join("\n", findStaticLambdas.stream().sorted().collect(Collectors.toList())));
+				 addStaticLambdaClasses(zf, findStaticLambdas, ConcurnasClassLoader.staticLambdaClassesCls);
+			 }
 
 			// if(modules) {
 			// add module-info.class
@@ -278,6 +299,10 @@ public abstract class RuntimeCache implements Opcodes {
 		}
 	}
 
+	public static interface Thing{
+		default int sdf() { return 12; }
+	}
+	
 	private void addStaticLambdaClasses(FileSystem zf, HashSet<String> findStaticLambdas, String className) throws IOException {
 		ClassWriter classWriter = new ClassWriter(0);
 		classWriter.visit(V1_8, ACC_PUBLIC | ACC_SUPER, className, null, "java/lang/Object", null);

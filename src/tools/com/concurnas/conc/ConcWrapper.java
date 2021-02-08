@@ -17,6 +17,8 @@ import java.util.stream.Stream;
 import com.concurnas.runtimeCache.ReleaseInfo;
 import com.concurnas.runtimeCache.RuntimeCacheCreator;
 
+import jdk.internal.org.objectweb.asm.Opcodes;
+
 /**
  * Ensure that Concurnas has cached enviroment before progressing with with
  * concc, conc or repl...
@@ -32,7 +34,6 @@ public class ConcWrapper {
 			List<String> justnames = files.stream().map(a -> a.getFileName().toString()).map(a -> a.substring(0, a.length() - 4)).collect(Collectors.toList());
 
 			StringBuilder sb = new StringBuilder();
-
 			int n = 0;
 			for (String jar : jars) {
 				String justjar = justnames.get(n++);
@@ -50,12 +51,14 @@ public class ConcWrapper {
 			sb.append("--add-exports=java.base/com.concurnas.bootstrap.lang.offheap=ALL-UNNAMED\n");
 			sb.append("--add-exports=java.base/com.concurnas.bootstrap.lang.util=ALL-UNNAMED\n");
 			sb.append("--add-exports=java.base/com.concurnas.bootstrap.runtime=ALL-UNNAMED\n");
+			sb.append("--add-exports=java.base/com.concurnas.runtime.bootstrapCloner=ALL-UNNAMED\n");
 			sb.append("--add-exports=java.base/com.concurnas.bootstrap.runtime.ref=ALL-UNNAMED\n");
 			sb.append("--add-exports=java.base/com.concurnas.bootstrap.runtime.transactions=ALL-UNNAMED\n");
 			sb.append("--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED\n");
 
 			sb.append("--add-opens=java.base/java.nio=ALL-UNNAMED\n");
 			sb.append("--add-opens=java.base/java.time=ALL-UNNAMED\n");
+			sb.append("--add-opens=java.base/com.concurnas.bootstrap.runtime.cps=ALL-UNNAMED\n");
 			sb.append("--add-opens=java.base/com.concurnas.bootstrap.lang=ALL-UNNAMED");
 
 			return sb.toString().trim();
@@ -115,7 +118,7 @@ public class ConcWrapper {
 	}
 	
 	private static PathandVMArgs performCache(Path prefixDir, String rtVersion, boolean modules) throws Exception {
-		System.out.println("Caching runtime enviroment for " + rtVersion + ". This needs to be done only once. This may take a few minutes...");
+		System.out.println("Caching runtime enviroment for " + rtVersion + ".\nThis needs to be done only once. This may take a few minutes...");
 
 		DirAndFile dirAndfile = generateUniqueFileName(prefixDir);
 		Path storeDir = dirAndfile.dir;
@@ -221,7 +224,7 @@ public class ConcWrapper {
 			
 			try {//just show warning on initial cache
 				double versiond = Double.parseDouble(version);
-				if (versiond < 1.8 || versiond > 13 || 11 == (int)Math.floor(versiond)) {
+				if (versiond < 1.8 || versiond > 14 || 11 == (int)Math.floor(versiond)) {
 					System.err.println("WARN: Concurnas has been verified as compatible with Oracle JDK and OpenJDK Java versions 1.8, 9, 10, 12 and 13, version: " + version + " detected. Behaviour is unknown.");
 				}
 			}catch(Exception ohwell) {}

@@ -115,51 +115,45 @@ public class Fiberizer implements Opcodes {
 	}
 
 	public byte[] weave() throws CPSException {
-		try {
-			classFlow.analyze(false);
-			if ( needsWeaving() && classFlow.isPausable() && !isAnnotation()) {
-				boolean computeFrames = (classFlow.version & 0x00FF) >= 50;
-				boolean failed = true;
-				ClassWriter cw=null;
-				byte[] ret = null;
-				while(failed){//if we failed to cps a method then we have another go until we get it right, ill method is marked for non concurnifiation
-					cw = new com.concurnas.runtime.cps.analysis.ConcClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES, classFlow.detector());
-					failed = accept(cw);
+		classFlow.analyze(false);
+		if ( needsWeaving() && classFlow.isPausable() && !isAnnotation()) {
+			boolean failed = true;
+			ClassWriter cw=null;
+			byte[] ret = null;
+			while(failed){//if we failed to cps a method then we have another go until we get it right, ill method is marked for non concurnifiation
+				cw = new com.concurnas.runtime.cps.analysis.ConcClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES, classFlow.detector());
+				failed = accept(cw);
+				
+				try {
+					ret = cw.toByteArray();
+				}catch(MethodTooLargeException mtle){
+					failed=true;
+					String desc = mtle.getDescriptor();
+					forEasyWeaving.add(mtle.getMethodName() + desc);
+					int idxOf = desc.lastIndexOf("Lcom/concurnas/bootstrap/runtime/cps/Fiber;)");
+					desc = desc.substring(0, idxOf) + desc.substring(idxOf+43);
 					
-					try {
-						ret = cw.toByteArray();
-					}catch(MethodTooLargeException mtle){
-						failed=true;
-						String desc = mtle.getDescriptor();
-						forEasyWeaving.add(mtle.getMethodName() + desc);
-						int idxOf = desc.lastIndexOf("Lcom/concurnas/bootstrap/runtime/cps/Fiber;)");
-						desc = desc.substring(0, idxOf) + desc.substring(idxOf+43);
-						
-						forEasyWeaving.add(mtle.getMethodName() + desc);
-					}
+					forEasyWeaving.add(mtle.getMethodName() + desc);
 				}
-				
-				
-				//if above fails then skip ill method
-				
-				if(!this.methodsNeedingInvokeDynamicMapping.isEmpty()){//map invoke dynamic calls with fiber method
-					try {
-						ClassReader cr = new ClassReader(ret);
-						cw = new com.concurnas.runtime.cps.analysis.ConcClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES, classFlow.detector());
-						InvokeDynamicRepointerCV repointer = new InvokeDynamicRepointerCV(cw, this.methodsNeedingInvokeDynamicMapping);
-						cr.accept(repointer, 0);
-						ret = cw.toByteArray();
-					}catch(Throwable thr) {
-						
-					}
-				}
-				
-				addClassInfo(new ClassInfo(classFlow.getClassName(), ret));
-				return ret;
 			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			//
+			
+			
+			//if above fails then skip ill method
+			
+			if(!this.methodsNeedingInvokeDynamicMapping.isEmpty()){//map invoke dynamic calls with fiber method
+				try {
+					ClassReader cr = new ClassReader(ret);
+					cw = new com.concurnas.runtime.cps.analysis.ConcClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES, classFlow.detector());
+					InvokeDynamicRepointerCV repointer = new InvokeDynamicRepointerCV(cw, this.methodsNeedingInvokeDynamicMapping);
+					cr.accept(repointer, 0);
+					ret = cw.toByteArray();
+				}catch(Throwable thr) {
+					
+				}
+			}
+			
+			addClassInfo(new ClassInfo(classFlow.getClassName(), ret));
+			return ret;
 		}
 		
 		return this.origData;

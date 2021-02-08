@@ -1,7 +1,5 @@
 package com.concurnas.lang.precompiled;
 
-import java.util.ArrayList;
-
 public class HoldingAStaticVarWithNonFinal {
 	public static final int CL_INVALID_VALUE  = -30;
 	public static int CL_INVALID_VALUE2  = 100;

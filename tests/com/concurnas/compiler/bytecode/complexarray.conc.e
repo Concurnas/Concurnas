@@ -123,7 +123,7 @@
 
 ~~~~~
 //##32. process null ok
-[null, [1 2 ; null ; 3 4], [[1 2], null, [3 4]]]
+[Cannot read the array length because "<local3>" is null, [1 2 ; null ; 3 4], [[1 2], null, [3 4]]]
 
 ~~~~~
 //##33. process null ok 2d

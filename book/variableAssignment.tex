@@ -3,6 +3,9 @@
 \begin{document}
 	\chapter[Variable Assignment]{Variable Assignment}
 	\label{ch:assignment}
+	
+	\doquote{8cm}{40pt}{8cm}{9cm}{8.2cm}{footnotesize}{We don't need to be related to relate\\We don't need to share genes or a surname\\You are, you are\\My chosen, chosen family}{Chosen Family from Sawayama by Rina Sawayama (2018)}
+	
 Let us first define what is means to declare a variable. A variable declaration consists of a variable name and a type. Variable names can be any combination of standard ASCII alphanumeric characters or non ASCII Unicode characters. Types may be either primitive, tuples, typedefs, Object types (which includes user defined classes) or refs to the aforementioned types. For example:
 \begin{lstlisting}
 anint int //a primative type
@@ -211,19 +214,19 @@ res = makeArray({a=400; 22})
 
 We see in the above example, that the block passed as an argument to the \lstinline{makeArray} function is only evaluated during execution of said function - and not initial invocation of the function.
 
-Behind the scenes, in order to implement lazy variables, we are overloading the unassign operator(see operator overloading). What if we don't want to evaluate the bound expression of a lazy variable when we refer to it, for instance when passing it to a function invocation? In this case we can use the \lstinline{:} operator as follows:
-\begin{lstlisting}
-a = 100
-lazy myvar = {a=400; 22}//assign, with side effect of re-assigning a
+%Behind the scenes, in order to implement lazy variables, we are overloading the unassign operator (see: \hyperref[sec:OperatorOverloading]{operator overloading}). What if we don't want to evaluate the bound expression of a lazy variable when we refer to it, for instance when passing it to a function invocation? In this case we can use the \lstinline{:} operator as follows:
+%\begin{lstlisting}
+%a = 100
+%lazy myvar = {a=400; 22}//assign, with side effect of re-assigning a
+%
+%def makeArray(lazy operate int) => [a operate a]
+%
+%res = makeArray(myvar:)
+%
+%//res == [100 22 400]
+%\end{lstlisting}
 
-def makeArray(lazy operate int) => [a operate a]
-
-res = makeArray(myvar:)
-
-//res == [100 22 400]
-\end{lstlisting}
-
-Here we are preventing unassignment of \lstinline{myvar}, instead this (and therefore execution of the binding of \lstinline{myvar}) is allowed to occur within the \lstinline{makeArray} function.
+%Here we are preventing unassignment of \lstinline{myvar}, instead this (and therefore execution of the binding of \lstinline{myvar}) is allowed to occur within the \lstinline{makeArray} function.
 
 We can make use of lazy variables within function/method references as follows:
 

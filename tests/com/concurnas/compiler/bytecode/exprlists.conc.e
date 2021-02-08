@@ -192,3 +192,11 @@ Buy 1000000 GBP at when
 ~~~~~
 //##49. expr list of nested extension function and nested function
 [10, 11, 12, 13, 14, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126]
+
+~~~~~
+//##50. involve imported function
+ok-0.5328330203333975
+
+~~~~~
+//##51. involve imported module
+ok-0.5328330203333975

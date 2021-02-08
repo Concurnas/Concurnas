@@ -1,25 +1,1388 @@
-class MyHolder(public a int){
-	override toString() => "MyHolder({a})"
+
+/*
+from java.lang.Math import *
+
+coss = Math.cos&
+
+def doings(){
+	xx = coss 23.
+	"ok" + xx
+}
+*/
+
+/*
+from java.lang.Math import *
+
+coss = Math.cos&
+
+def doings(){
+	xx = coss 23.
+	"ok" + xx
+}
+*/
+
+
+/*
+from java.lang.Math import *
+
+coss = cos
+
+def doings(){
+	xx = coss 23.
+	"ok" + xx
+}
+*/
+
+
+/*
+from java.lang.Math import *
+
+def cos(a double, b int) => a**b
+
+def doings(){
+	//xx1 = cos 23. 2
+	xx2 = cos 23.
+	"ok" //+ (xx1 xx2)
+}
+*/
+
+
+
+/*
+
+from java.lang.Math import *
+
+//def cos(a double, b int) => a**b//overrides imported func
+
+def doings(){
+	xx2 = cos(23.)
+	"ok" + xx2
+}
+//we can override imported functions with own definition
+
+
+*/
+
+
+
+
+
+
+/*
+from java.util import UUID
+
+def doings(){
+
+	x = UUID.randomUUID()
+
+	"hi" + x
+}
+*/
+
+
+
+
+//same set of tests but with PI
+
+/*
+from java.lang.Math import *
+
+coss = Math cos 33
+
+def doings(){
+	xx = coss()
+	"ok" + xx
+}
+*/
+
+
+/*
+def thing() => System err println "one time"; 9
+somestat = thing()
+def funto(x int ) int {
+	hh = 9
+	def inner(y int) int {
+		return 7 + y + somestat
+	}
+	return inner(12)
 }
 
+def doings() String {
+g = somestat
+	b = funto(5)
+	f = {somestat}!
+	return "" + (b, g, f)
+}
+*/
 
-shared shar = [456]
-top1 = 123
-top2 = Integer 123
-holder = MyHolder(66)
-myThings int: = 93//implicitly shared
+
+//above fail and need to be fixed for next release
+//also: fix tuples
+
+
+/*
+support:
+(a, b) = 1, 2
+a, b = 1, 2
+*/
+
+
+//also fix - thing with default values for set - hashset etc 
+
+/////////////////////////////////
+//fix current:
+/////////////////////////////////
+
+
+/*
+def sxt1(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		//j=99999
+	}
+	catch(e){
+		x=10
+	}//finally{x=666}
+	(h, x)
+}
+
+def sxt2(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		j=99999
+	}
+	catch(e){
+		x=10
+	}//finally{x=666}
+	(h, x)
+}
+
+def sxt3(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		//j=99999
+	}
+	catch(e){
+		x=10
+	}finally{x=666}
+	(h, x)
+}
+
+def sxt4(){
+	ab=2
+	h = x =0
+	try{
+		while(ab++ < 2){
+			 h=100
+		}
+		j=99999
+	}
+	catch(e){
+		x=10
+	}finally{x=666}
+	(h, x)
+}
+
+def doings() String{
+	"ok: " + [sxt1() sxt2() sxt3() sxt4()]
+}
+//fib called wrong first bug
+*/
+
+
+
+
+
+
+
+
+/*
+gpukernel 1 myFunc(global A int[], global B int[], global ret int[]) void {
+	gid = get_global_id(0)
+	ret[gid] = A[gid] + B[gid];
+}
+
+def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
+	if(not gpuDev){//no gpu return first cpu
+		cpuDev[0]
+	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
+		for(grp in gpuDev){
+			if('Intel' not in grp.platformName){
+				return grp
+			}
+		}
+		gpuDev[0]//intel device then...
+	}
+}
+
+def doings(){
+	gps = gpus.GPU()
+	cpus = gps.getCPUDevices()
+	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
+	device = deviceGrp.devices[0]
+	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
+	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
+	
+	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
+	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
+	
+	inst = myFunc(inGPU1, inGPU2, result)
+	compute := device.exe(inst, [10], c1, c2)//rest param detault
+	//remove null
+	
+	ret = result.readFromBuffer(compute)
+	
+	del inGPU1, inGPU2, result
+	del c1, c2, compute
+	del deviceGrp, device
+	del inst
+	
+	
+	'nice: ' + ret
+}
+*/
+
+
+
+/*
+def doings(){
+	"" + com.concurnas.compiler.ast.GPUVarQualifier.values()
+}
+*/
 
 
 def doings(){
-	v1 = { (++top1, ++top2, ++holder.a, ++shar[0], ++myThings) }!
-	await(v1)
-	v2 = { (top1, top2, holder.a, shar[0], myThings)  }!
-	await(v2)
-
-
-	"ok" + (v1, v2)
+	"" + com.concurnas.lang.precompiled.JustAnEnum.values()
 }
 
+
+//ugly
+
+
+
+
+/*
+
+from com.concurnas.lang.precompiled import MethodPlusHelper
+
+def doings() {
+	mph1 = MethodPlusHelper(b=3, a=2)
+	mph2 = MethodPlusHelper(2,3)
+	mph3 = MethodPlusHelper(b=3,2)
+	mph4 = MethodPlusHelper(3,a=2)
+	"" + [mph1, mph2, mph3, mph4]
+}
+//complains about fiber static lambda calls
+*/
+
+/*
+
+from com.concurnas.lang.offheap.storage import OffHeapMapDisk
+from com.concurnas.runtime import ConcurnasClassLoader
+from java.util import HashMap
+from com.concurnas.lang.precompiled import UseasClassLoader
+
+11_meg = 11*1024*1024
+
+class MyClass(x String, y String){
+	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
+}
+
+class MyClass2(x String, ay String){
+	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
+}
+
+def doings(){
+
+	myObj = MyClass('hi', 'there')
+
+	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.start()
+		engine.setRemoveOnClose(false);
+		engine['one']=myObj
+		engine.getPath()
+	}
+	
+	mycl = UseasClassLoader()
+	mycl.useas(MyClass2.class.name, MyClass.class.name)
+	
+	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
+		engine.setRemoveOnClose(true);
+		engine.Classloader = mycl
+		engine.setPath( path)
+		engine.start()
+		got = engine.get('one'); 
+		
+		""+got
+	}	
+}
+//opcodes?
+*/
+
+/*
+
+from com.concurnas.lang.precompiled import RefHelper
+def tt() => true
+def doings() String{
+	ref3 int:? = RefHelper.getNullRef2(): if tt() else null
+	ref4 int:? = RefHelper.getNullRef2(): if tt() else null
+	
+	z = try{
+	 g=[null &== ref3, ref3 &== null]
+	 false
+	}catch(e NullPointerException){
+		true //we expect a npe
+	}
+	
+	z2 = [null &== ref3:, ref3: &== null]
+	//both value and raw thing are null
+	return "" + [z, z2] //+ [ null == ref3, ref1 == ref3       ]
+}
+//null wtf
+*/
+
+/*
+
+something=true
+
+def doings(){
+	a = new list()
+	b list = a
+	
+	a = list<String>()
+	b.add("ok")
+		
+	"res: " + (a, b)
+} 
+*/
+
+/*
+def doings(){
+	something list//uninitialized
+	something = list()
+	something add 'nice'
+	"res: " + something
+}
+*/
+
+/*
+
+/~/##MODULE com.myorg.langs
+from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
+from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
+from java.util import List, ArrayList
+
+class LocationExplorer  ~ LanguageExtension{
+	source String = ""
+		
+	def initialize(line int, col int, location SourceLocation, source String) Result{
+		this.source =  source
+		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
+	}
+	
+	def iterate(ctx Context) IterationResult{
+		errors = new list<ErrorOrWarning>();
+		ret = "'" + source + "' + '"
+		for( loc in ctx.getNesting() ){
+			
+			if(loc is com.concurnas.lang.LangExt.Class){
+				ret += (loc as com.concurnas.lang.LangExt.Class).name
+			}else if(loc is com.concurnas.lang.LangExt.Method){
+				ret += (loc as com.concurnas.lang.LangExt.Method).name
+			}
+			
+			ret += " "
+			
+		}
+		ret += "'"
+		
+		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
+	}
+}
+
+
+/~/##MODULE
+//from com.concurnas.tests.helpers.langExt using LocationExplorer
+from com.myorg.langs using LocationExplorer
+
+class MyClass{
+	override hashCode() => 1
+	override equals(an Object) => false
+	
+	def myFunc(){
+		def nestfunc() String {
+			return LocationExplorer|| hey ||
+		}
+		
+		nestfunc()
+	}
+	
+}
+
+def doings(){
+	mc = MyClass()
+	"ok: " + mc.myFunc()
+}
+
+
+*/
+
+/*
+from com.concurnas.lang.precompiled import HoldingAStaticVarWithNonFinal
+
+class LeGetter{
+	def getter(){
+		HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2
+	}	
+}
+
+
+def doings(){
+	HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2=900
+	lg = LeGetter()
+	done = {got = lg.getter(); got}!
+	"" + [HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2, done]
+}
+
+//expect: [900, 900]
+*/
+
+/*
+from com.concurnas.lang.precompiled import HasNoNullItems
+
+def doings(){
+	alist list<String> = ['','']
+	
+	gotNull2 = HasNoNullItems.addToListLGNULL<String>(alist, //ok
+			''//ok
+	)
+	
+	"fine"
+} 
+*/
+
+/*
+
+*/
+
+/*
+
+*/
+
+/*
+
+*/
+
+/*
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+//
+//////////////
+//other things to fix:
+
+
+/*
+
+//fails in repl:
+
+abstract class Order{
+  def processAction(title String) boolean
+}
+
+abstract class PhysicalOrder < Order
+
+
+*/
+
+
+/*
+from java.lang.Math import *
+
+coss = Math cos
+
+def doings(){
+	xx = coss 23.
+	"ok" + xx
+}
+*/
+
+/*
+
+//repl doesnt like this:
+
+class TheSuperClass{
+  def operation(a int) int
+}
+
+
+def creator() TheSuperClass{
+  class LocalClass(mul int) < TheSuperClass{
+    def operation(a int) => mul * a
+  }
+  new LocalClass(12)
+}
+
+*/
+
+
+
+
+/*
+private thing = {0 -> 2};
+thing[1] = {System.err.println("asdasd");   77};
+
+def augment(){
+	thing[2] = 8;
+	thing[44] = 69;
+}
+
+augment();
+
+def getId(an Object) => System.identityHashCode(an);
+
+def doings(){
+	thing[448] = 69;
+	another = {thing[100] = 99; "" + [thing, getId thing]}!;
+	"" + [[thing, getId thing], another];
+}
+*/
+
+
+
+//OH NO
+
+
+
+
+
+
+
+
+
+//double swap
+
+
+
+//TODO: ASD: choose to copy state
+
+
+/*
+
+//bug blows up the REPL:
+
+trait Holder<X>(x X)
+
+*/
+
+
+
+/*
+//bug blows up repl:
+
+def getSize(anyItems list) => anyItems.size() //moan
+def getSize(anyItems list<?>) => anyItems.size()
+
+
+*/
+
+/*
+//bug repl:
+
+
+class Information(public age int, public name String){
+  def getSummary() => "{name}: {age}"
+  def incAge() => age++;;
+}
+
+info = new Information(23, "dave")
+
+summary = with(info){
+  name = "Fred"
+  incAge()
+  getSummary()
+}
+
+//why npe at top level...
+
+
+*/
+
+
+/*
+//BUG:
+
+gpukernel 1 twoArrayOp(global in A float[], global in B float[], global out result float[]) {
+    idx = get_global_id(0)
+    result[idx] = A[idx]**2 + B[idx] + 10
+}
+
+def runKernel() {
+    //select a GPU device...
+    device = gpus.GPU().getGPUDevices()[0].devices[0]
+    
+    //create three arrays of size 10 on this GPU, two as input
+    inGPU1 = device.makeOffHeapArrayIn(float[].class, 10)
+    inGPU2 = device.makeOffHeapArrayIn(float[].class, 10)
+    //and one as output
+    result = device.makeOffHeapArrayOut(float[].class, 10)
+    
+    //now write to the arrays on the GPU
+    c1 := inGPU1.writeToBuffer([ 1.f 2 3 4 5 6 7 8 9 10])
+    c2 := inGPU2.writeToBuffer([ 1.f 2 1 2 3 1 2 1 2 1])
+    
+    inst = twoArrayOp(inGPU1, inGPU2, result)
+    compute := device.exe(inst, [10], c1, c2)//run 10 cores to process twoArrayOp
+    ret = result.readFromBuffer(compute)
+    return ret
+}
+
+h := runKernel()
+System.out.println(h)
+
+
+def doings() => "ok"
+
+
+*/
+
+
+
+/*bug check bin rep:
+
+x=0x00000010
+
+
+
+*/
+
+
+/*
+check lossy convertions:
+
+aasd byte = 234234234;//should fail
+something = 9
+asdasd byte = something//should fail
+
+'c' as short //this should be ok
+
+*/
+
+
+/*
+count=0
+for(;;){// same as loop
+  // do some work here
+  if(count++ == 100){
+    break
+  }
+}
+
+//test in REPL - seems to complain about it not returning anything
+
+*/
+
+/*
+npe in repl
+
+items = [1, 3, 4]
+result = for(itm in items; idx){
+  "{idx}: f({itm})=> {itm**2}"
+}
+
+*/
+
+
+/*
+repl bug:
+
+conc> items = [2 3 4 5 2 1 3 4 2 2 1]
+items ==> [2 3 4 5 2 1 3 4 2 2 1]
+
+conc> res1 = for(x in items; idx) { 12}
+res1 ==> [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
+
+conc> res1 = for(x in items; idx) { 12}
+^second definition blows up!
+
+
+*/
+
+/*
+repl:
+conc> def f00p(b int = 10, b int = -10) => a+b
+conc> def f00p(b int = 10, b int = -10) => a+b
+//reports error 4 times!
+
+
+also broken definition persists even after other things have been defined
+
+
+*/
+
+/*
+def fib(n int) long{
+  1 if n in (0, 1) else fib(n-1)+fib(n-2)
+}
+
+//implement contains for tuple
+
+*/
+
+/*
+
+weird error in repl (maybe everywhere)
+x = 7 +  true + false
+
+*/
+
+/*
+repl
+3/0 - blows up constant folding with divide by zero
+
+*/
+
+/*should support this:
+
+'x' in "xyasdsa"
+
+*/
+
+/*
+
+//wtf?
+
+conc> results Object[][] = [ ["Mark" 54] ["fred" 82] ["Dot" 86] ]
+|  ERROR 1:21 in results - Type mismatch: cannot convert from java.lang.Object[] to java.lang.Object[][]
+
+*/
+
+
+/*
+//more repl woes
+
+conc> typedef foot = int
+
+conc> class Tree(asd foot){
+1   >   SDF(12)
+2   > }
+|  ERROR 2:2 in Tree - Unable to find method with matching name: SDF
+|  ERROR 2:2 in Tree - line cannot be present within class definition
+
+conc> enum Tree(asd foot){
+1   >   SDF(12)
+2   > }
+|  ERROR 0:0
+
+Bug Report: Internal compiler error on compilation of: D:\repl$.conc due to java.lang.NullPointerException: null
+----------------------------------------------------------------------------------------------------------------
+File name: D:\repl$.conc
+
+Compiler build number: 1.14.020
+Exception in phase: BytecodeGennerator
+Exception at line: 2
+Exception: java.lang.NullPointerException
+Exception message: null
+Exception stacktrace:
+java.lang.NullPointerException
+        at com.concurnas.compiler.bytecode.BytecodeGennerator.visit(BytecodeGennerator.java:10216)
+        at com.concurnas.compiler.ast.New.accept(New.java:52)
+        at com.concurnas.compiler.bytecode.BytecodeGennerator.visit(BytecodeGennerator.java:12577)
+        at com.concurnas.compiler.ast.EnumDef.accept(EnumDef.java:36)
+        at com.concurnas.compiler.bytecode.BytecodeGennerator.acceptLines(BytecodeGennerator.java:1727)
+        at com.concurnas.compiler.bytecode.BytecodeGennerator.visit(BytecodeGennerator.java:524)
+        at com.concurnas.compiler.ModuleCompiler.tryToProgressCompilation(ModuleCompiler.java:630)
+        at com.concurnas.compiler.ModuleCompiler.progressCompilationREPL(ModuleCompiler.java:309)
+        at com.concurnas.repl.REPL.processInput(REPL.java:585)
+        at com.concurnas.repl.REPLShell.replLoop(REPLShell.java:169)
+        at com.concurnas.conc.Conc.doMainLoop(Conc.java:240)
+        at com.concurnas.conc.Conc.doit(Conc.java:180)
+        at com.concurnas.conc.Conc.main(Conc.java:72)
+
+|  ERROR 2:2 in Tree - Unable to resolve reference to constructor for: 'repl$.Tree'(int)
+
+
+
+
+*/
+
+
+/*
+
+this does not work at all... fix in book as well
+
+
+def myFunction(a int, b int, c int) => a+b*c
+
+fref (int, int) int = myFunction&(, 45, )
+
+//above should be ok
+
+call = fref(1, 3)//equvilent to calling: myFunction(1, 45, 3)
+
+
+
+*/
+
+/*
+
+a repl bug:
+> 0 & 0
+
+
+*/
+
+
+/*
+many lines of error, align them? w respect to colunms and line numbers
+better error formatting?!
+*/
+
+
+/*
+
+check this section of the book is correctly written:
+
+Module level state
+
+
+*/
+
+/*
+
+repl should not immediatly evaluate theVariable (even without terminating ;)
+
+sideEffect = 0
+lazy theVariable = {sideEffect = 1; 20}
+
+assert sideEffect == 0
+assert theVariable == 20
+assert sideEffect == 1
+
+
+*/
+
+
+/*
+
+type check lazy variable:
+
+lazy sss = 12
+
+sss: is lazy int
+
+*/
+
+/*
+
+//generic lambdas done seem to work very well:
+
+class Applicator<X>{
+  def apply(item X){
+    
+  }
+}
+
+applyTwice = def <Y>(applyto Applicator<Y>, what Y){ applyto.apply(what); applyto.apply(what) }
+
+
+app = Applicator<int>()
+
+applyTwice(app, 6)
+
+
+
+
+*/
+
+
+/*
+repl at least doesnt like differed defintion of lambda:
+
+
+def doubler<X>(x X) => [x x]
+
+qualified = doubler<int>&
+differed = doubler&
+
+res1 = qualified(12)
+res2 = differed('hi') //blows up
+
+
+
+*/
+
+/*
+
+this should be ok:
+
+adder (int, int) int = def (a int, b int) int { return a + b }
+
+adder 1 2
+
+*/
+
+
+/*
+
+should be flagged as a compile time error:
+
+def foo(arg (int) int) => arg(22)
+def foo(arg (float) int) => arg(22.f)
+
+//info is erased
+
+*/
+
+/*
+repl doesnt like this
+
+
+def pairMaker(){
+  class PairHolder(-p1 int, -p2 int){
+    this(one int){
+  	  this(one, -one)
+    }
+  }
+  return PairHolder&
+}
+
+pairHmarker = pairMaker()
+
+istObj = pairHmarker(12)
+
+*/
+
+
+
+
+/*
+
+//repl bug:
+
+
+class BeanCounter(-beans int = 0){
+  def inc() => beans++;;
+}
+
+beanCounter = BeanCounter()
+// instance object
+
+beanCounter inc
+
+
+//should return void, i.e. call beanCounter.inc() NOT beanCounter..inc()
+
+*/
+
+/*
+
+def oddeven(n int){
+  match(n){
+    mod 2 == 0 => "even"
+    else => "odd" 
+  }
+}
+
+oddeven(2) 
+oddeven(99) 
+
+//mod doesnt work on match above
+
+*/
+
+/*
+pattern case conditions to operate on method ref or otherwise thing with missing argument
+matching the type being passed
+*/
+
+/*
+//expression lists should be able to deal with this:
+
+def matcher(n (int, int)) => n
+
+
+matcher 2 3 //it's a tuple!
+*/
+
+
+/*
+
+class WidgetOperator{
+  class Adjustor(opon int){
+    def specialIncrement() => opon += 9
+    def specialMul() => opon *= 8
+  }
+
+  def foo(instructions String, what int){
+    adj = Adjustor(what)
+    for(inst in instructions){
+      match(inst){
+        'i' => adj.specialIncrement()
+        'm' => adj.specialMul()
+        // ignore other instructions
+      }
+    }
+    adj.opon
+  }
+}
+
+res = WidgetOperator().foo('iim', 12)
+
+//doesnt recognised adj = Adjustor(what)
+//but does recognise: adj = new Adjustor(what)
+
+//should return int not double
+
+*/
+
+
+/*
+
+repl reflection
+
+conc> @Deprecated asasd = 66
+asasd ==> 66
+
+conc> annotation MyThing(count = 2)
+
+conc> @MyThing class MyClass
+
+conc> MyClass.class.getAnnotations()
+
+*/
+
+
+//bug: 33 as short
+
+
+//FIX: WARNING: An illegal reflective access operation has occurred
+
+/*
+//BUG check in concc:
+
+import java.security.MessageDigest
+from java.math import BigInteger
+
+def calculate(toHash String){
+	md = MessageDigest.getInstance("MD5")
+	md.update(toHash.getBytes())
+	java.math.BigInteger(1,md.digest()).toString(16)
+}
+
+message = "Hello world!"
+
+for(i in 0 to 5){
+	toHash = message + i
+	System.out.println("{toHash}: {calculate(toHash)}")!
+}
+
+/*
+String format "abc: %s" 34
+String.format("abc: %s", 34)
+
+*/
+
+\\BUG REPL: \in being mapped to \contains ??
+
+
+
+
+/*
+allow main () something
+to be called as follows:
+
+
+import java.security.MessageDigest
+from java.math import BigInteger
+
+def calculate(toHash String){
+	md = MessageDigest.getInstance("MD5")
+	md.update(toHash.getBytes())
+	java.math.BigInteger(1,md.digest()).toString(16)
+}
+
+message = "Hello world!"
+
+
+
+def main()  {
+
+	for(i in 0 to 5){
+		toHash = message + i
+		System.out.println("{toHash}: {calculate(toHash)}")!
+	}
+	
+}
+
+*/
+
+
+/*
+BUG:
+
+lista=java.util.List.\of(1, 2, 3, 4, 5, 4, 3, 2, 3, 4);
+
+//this should also be fine:
+
+lista.stream().map(n=>Math.pow(n,2)+3).forEach(System.out.println&);
+*/
+
+
+/*
+gpukernel 1 twoArrayOp(global in A float[], global in B float[], global out result float[]) {
+    idx = get_global_id(0)
+    result[idx] = A[idx]**2 + B[idx] + 10
+}
+
+def runKernel() {
+    //select a GPU device...
+    device = gpus.GPU().getGPUDevices()[0].devices[0]
+    
+    //create three arrays of size 10 on this GPU, two as input
+    inGPU1 = device.makeOffHeapArrayIn(float[].class, 10)
+    inGPU2 = device.makeOffHeapArrayIn(float[].class, 10)
+    //and one as output
+    result = device.makeOffHeapArrayOut(float[].class, 10)
+    
+    //now write to the arrays on the GPU
+    c1 := inGPU1.writeToBuffer([ 1.f 2 3 4 5 6 7 8 9 10])
+    c2 := inGPU2.writeToBuffer([ 1.f 2 1 2 3 1 2 1 2 1])
+    
+    inst = twoArrayOp(inGPU1, inGPU2, result)
+    compute := device.exe(inst, [10], c1, c2)//run 10 cores to process twoArrayOp
+    ret = result.readFromBuffer(compute)
+    return ret
+}
+
+h := runKernel()
+System.out.println(h)
+
+
+def doings() => "ok"
+
+//pass on default params
+
+*/
+
+
+
+
+
+
+
+
+/*
+
+one = "mate"
+
+def funcola2() => "there " + one
+
+def funcola() => "hi " + funcola2()
+
+res = "nice" 
+
+res3 = funcola()
+
+//all the above are turned into Globals.getIntance().res [etc] form
+
+def doings() => "" + [res, funcola(), res3]
+
+*/
+
+
+/*
+def plusTen(a int|char|double) int|double => a + 10
+def plusTen(a int|char|double, b int|char) => a + 10
+
+def doings(){
+	"" 
+}
+
+.conc line 3:0 method: plusTen uses multitype arguments, these must all be of the same count of: 3. Return type has count: 2
+.conc line 4:0 method: plusTen uses multitype arguments, these must all be of the same count of: 3. Input argument 2 has count: 2
+*/
+
+
+
+
+/*
+
+finNestPlus1 = 0; def finNplus1() { finNestPlus1++ }
+
+catchCalll2a  = 0
+catchCalll2b  = 0
+catchCalll1a  = 0
+catchCalll1b  = 0
+f1=0; f2=0;
+
+def catchCall2a() {	catchCalll2a++}
+def catchCall2b() {	catchCalll2b++}
+def catchCall1a() {	catchCalll1a++}
+def catchCall1b() {	catchCalll1b++}
+
+def fincall1() {	f1++}
+def fincall2() {	f2++}
+
+open class Excep1 extends Exception{override equals(o Object) boolean { return true;}}
+open class Excep2 extends Excep1{override equals(o Object) boolean { return true;}}
+
+def mycall(fail boolean, ff int) int {
+	if(fail){ 
+		if(ff == 1){ throw new Excep1(); }	
+		if(ff == 2){ throw new Excep2(); }	
+	}
+	return 888; 
+}
+
+fail = true; theOne =1;  throwa =true
+
+ab = 0; r=-30;
+
+while(ab++ < 2){ if(ab==2){ break;} finNplus1() 
+	try{
+		try{ 
+			mycall(fail, theOne)
+			r =  9; continue 
+		}
+		catch(he Excep2){
+			catchCall2a();
+			if(throwa){ throw he; } 
+		}
+		catch(he Excep1){
+			catchCall1a();
+			if(throwa){ throw he; } 
+		}
+		finally{  
+			fincall1(); 
+		}
+	}
+	catch(e Excep2){
+		catchCall2b();
+	}
+	catch(e Excep1){
+		catchCall1b();
+	}
+	finally{  
+		fincall2(); 
+	  }
+	r =  77 ; continue }
+
+def doings() String{
+	return "" + r + ": " + [ f1, f2 ] + " :: " + finNestPlus1
+}
+//should be 1's
+*/
+
+/*
+class MyClas(x int, y int){}
+
+open class SupCls(z int){}
+
+class Child(x int, y int, zz int) extends SupCls(zz+2){}
+
+def doings() String{
+	a = new MyClas(1,2)
+	b = new MyClas(1,2)
+	c = new MyClas(1,23)
+	
+	c1 = new Child(1,2,3)
+	c2 = new Child(1,2,32)
+	c3 = new Child(1,4,3)
+	c4 = new Child(1,4,3)
+	
+	//t,t, t, f, f, f	
+	simple = ""+ [[a&==a, a==a], [a==b, a&==b], [a==c, a&==c], ]
+
+	//only first and last is true...		
+	simpleSup = ""+ [[c1&==c1, c1==c1, c2&==c2, c2==c2, c3&==c3, c3==c3,], [c1==c2, c1==c3, c1==c4], [c2==c3, c2==c4], [c3==c4]]
+	
+	//false
+	ovios = "" + [a == new Object(),] 
+	
+	return "" + simple + "\n" + simpleSup+"\n"+ovios
+}
+*/
+
+
+
+/*
+
+something=true
+
+def doings(){
+	a = new list()
+	b list = a
+	
+	a = list<String>()
+	b.add("ok")
+		
+	"res: " + (a, b)
+} */
+
+
+
+
+/*
+//check
+
+from com.concurnas.lang.precompiled import HoldingAStaticVarWithNonFinal
+
+class LeGetter{
+	def getter(){
+		HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2
+	}	
+}
+
+
+def doings(){
+	HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2=900
+	lg = LeGetter()
+	done = {got = lg.getter(); got}!
+	"" + [HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2, done]
+}
+*/
+
+
+//fix: from Math import *
+
+
+
+
+
+
+//tidy up
 
 
 
@@ -86,6 +1449,12 @@ def doings(){
 */
 
 
+//run global setup
+//run all tests
+
+
+
+
 
 /*Support this:
 
@@ -101,8 +1470,55 @@ new String?[10, 2](null)
 */
 
 
+/*
+oops = new Object[10]//since -> null without init
 
-//map iterator should be on entry set, not key set
+better = new Object?[9]
+
+intersting1 = new MyClass[10](new MyClass()) //all same
+intersting2 = new MyClass[10](() => new MyClass()) //different
+*/
+
+
+
+
+
+
+//add delay function which blocks isolate but not underyling thread
+//def repeat(times int) -> Unit {//code }
+//inline fun repeat(times: Int, action: (Int) -> Unit)
+/*
+
+// greets three times
+repeat(3) {
+    println("Hello")
+}
+
+repeat(0) {
+    error("We should not get here!")
+}
+
+*/
+
+
+/*
+//type safe builders
+
+class HTML {
+    fun body() { ... }
+}
+
+fun html(init: HTML.() -> Unit): HTML {
+    val html = HTML()  // create the receiver object
+    html.init()        // pass the receiver object to the lambda
+    return html
+}
+
+html {       // lambda with receiver begins here
+    body()   // calling a method on the receiver object
+}
+*/
+
 
 
 /*
@@ -124,6 +1540,19 @@ conc>
 */
 
 
+/*
+fix this:
+
+conc> from Math import *
+|  ERROR 1:0 Imported name: Math.floorMod cannot be resolved to a type
+
+conc> from Math import  cos, pow
+|  ERROR 1:0 Imported name: Math.cos cannot be resolved to a type
+
+
+website: update supports Corretto
+
+*/
 
 
 
@@ -169,11 +1598,18 @@ def doings(){
 //fix other classloader related bug
 
 
+//https://concurnas.com/docs/classes.html#automatically-generated-equals-and-hashcode-methods – Note: I will add a paragraph defining the behavior of the cycle tracker).
+
 //nasty bug setting thing to null on if branch
 
 
 
-
+/*
+def thing(what Object??[]){
+	//works for Object[] and Object?[]
+}
+//same for generics
+*/
 
 
 ////////////////
@@ -182,7 +1618,6 @@ def doings(){
 
 
 //todo: add homebrew to build
-//upgrade gradle
 //targetCompatibility=9-check on java 8
 
 
@@ -346,3 +1781,53 @@ def thing<X>(apply (X, X) X, a X, b X) X{
 print "got here"
 
 */
+
+
+/*
+higher order functions:
+
+10.times{
+...
+}
+
+also kotlin style unit application, a block of code
+
+
+*/
+
+
+//repl: one ctrl-c clear line, another kill repl
+
+//api to call concurnas from within concurnas
+
+
+
+
+/*
+//vectorization bug:
+
+
+def ok(formatString String, items Object...){
+	from com.concurnas.bootstrap.lang.Stringifier import stringify
+	return String.format(formatString, stringify(items^))
+}
+
+//ugh fails
+def printx(formatString String, items Object...){
+	return String.format(formatString, com.concurnas.bootstrap.lang.Stringifier.stringify(items^))
+}
+
+def doings(){
+	"ok " + printx("something %s %s", "another", "another")
+}
+
+
+*/
+
+
+
+//read, write () API?
+
+//python -m SimpleHTTPServer
+
+//@time factorial(big(170)) 

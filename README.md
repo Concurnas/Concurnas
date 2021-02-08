@@ -105,6 +105,8 @@ The first time setup of Concurnas for eclipse is quite involved.
    
 	or import the project into eclipse as a gradle project.
 2. You may need to force the ANTLR plugin (configured as above) to detect the .g files under src\main\antlr\com\concurnas for the first time by opening them and re-saving them (this will clear up any errors about missing Visitors etc).
+3. You may also need to refresh the gradle build in order to include the ./src_derived directory as a directory containing source code for the build. (right click on build.gradle -> Gradle -> Refresh Gradle Project)
+4. Finally, you may also need to replace the JRE System Library in the project JavaBuild Path. (Java Build Path -> Libraries -> JRE System Library - Remove 1.8 and replace via the "Add Library..." button).
 
 #### Generating remaining Concurnas Code:
 Run the following code in eclipse (after each clean build) in order to complete the build:
@@ -130,6 +132,8 @@ Specify the contents of the following file as VM arguments in order to run them 
 If running on Java 1.8: [vmArguments-Java8.txt](https://github.com/Concurnas/Concurnas/blob/master/tools/eclipse/vmArguments-Java8.txt)
 
 If running on Java 9+: [vmArguments-Java9.txt](https://github.com/Concurnas/Concurnas/blob/master/tools/eclipse/vmArguments-Java9.txt)
+
+If running on Java 15+: [vmArguments-Java15.txt](https://github.com/Concurnas/Concurnas/blob/master/tools/eclipse/vmArguments-Java15.txt)
 
 #### The sandbox unit test:
 The sandbox unit test is a nice way of testing Concurnas code end to end, it also provides nice profiling stats on the phases of Concurnas compilation:

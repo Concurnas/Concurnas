@@ -71,7 +71,7 @@ true, true:
 
 ~~~~~
 //##19. bugfix used to not copy objects shared in trees correctly - ensure that implicit globals are caputred correctly 
-[900, 900]
+[900, 100]
 
 ~~~~~
 //##20. delete should be called on refs twice here as called via dot operator

@@ -38,6 +38,8 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 	   
 	private Detector theDetector = new Detector(new CachedClassMirrors(this));
 	private ConcurnasClassLoader parent = null;
+
+	private Cpsifier cpsifier;
 	
 	private static final HashSet<String> dontConc = new HashSet<String>();
 	static {//this may need some tweaking at some point, i.e. when running lang with all runtime classses in a primordial package
@@ -82,13 +84,23 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 		this(null, null, null);
 	}
 	
-	public ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent){
+	private ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent, Cpsifier cpsifier){
 		this.classpath=classpath;//TODO: extend this with more java like functionality? + all your security etc?
 		this.primordialClassPath=primordialClassPath;//TODO: this is a bit of a hack and can be removed from release? - just so that we can figure out what consitutes a primoridal at runtime
 		loadClasses();
 		this.parent  = parent;
+		this.cpsifier = cpsifier;
+		this.cpsifier.setConcurnasClassLoader(this);
 	}
 	
+	public ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent){
+		this(classpath, primordialClassPath, parent, new Cpsifier());
+	}
+	
+
+	public ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent, HashSet<String> findStaticLambdas){
+		this(classpath, primordialClassPath, parent, new Cpsifier(findStaticLambdas));
+	}
 
 	
 	private void loadClasses(){
@@ -238,7 +250,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 			if(concstack.size() == 1){
 				HashMap<String, byte[]> nameToTrans =null;
 				try{//cps transofmration and globalization and thing with constructors etc
-					nameToTrans = Cpsifier.doCPSTransform(this, name, requestedBytecode, false, false, false);//included global classes for module fields 
+					nameToTrans = this.cpsifier.doCPSTransform(name, requestedBytecode, false, false, false);//included global classes for module fields 
 				}
 				catch(Throwable t){
 					//concstack.pop();
@@ -524,6 +536,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 	
 	private StaticLambdaClassHolder staticLambdaClassHolder;
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public HashSet<String> getStaticLambdaClasses() {
 		if(null == staticLambdaClassHolder) {
@@ -533,7 +546,8 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 				Class<?> inst = primordialClassLoader.loadClass(staticLambdaClassesCls.replace('/', '.'));
 				staticLambdaClassHolder.staticLambdaClasss = (HashSet<String>)inst.getMethod("get").invoke(null);
 			}catch(Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				//throw new RuntimeException(e);
 			}
 		}
 		return staticLambdaClassHolder.staticLambdaClasss;

@@ -175,7 +175,8 @@ public final class IsoTaskMethodAdder implements Opcodes {
     			if(!dependancies.isEmpty()) {
 
             		mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/runtime/bootstrapCloner/Cloner$Globals$", "getInstance?", "()Lcom/concurnas/runtime/bootstrapCloner/Cloner$Globals$;", false);
-            		mv.visitFieldInsn(GETFIELD, "com/concurnas/runtime/bootstrapCloner/Cloner$Globals$", "cloner", "Lcom/concurnas/runtime/bootstrapCloner/Cloner;");
+            		mv.visitInsn(POP);
+            		mv.visitFieldInsn(GETSTATIC, "com/concurnas/runtime/bootstrapCloner/Cloner", "cloner", "Lcom/concurnas/runtime/bootstrapCloner/Cloner;");
             		mv.visitVarInsn(ASTORE, 3);
     				
     				for(String fullClassName : dependancies){

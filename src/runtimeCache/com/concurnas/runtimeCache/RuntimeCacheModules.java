@@ -13,10 +13,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import com.concurnas.runtime.ConcurnasClassLoader;
+import com.concurnas.runtime.Cpsifier;
 import com.concurnas.runtime.OffHeapAugmentor;
 
 
@@ -38,7 +40,7 @@ public class RuntimeCacheModules extends RuntimeCache{
 		return false;
 	}
 	
-	private void processInstance(ProgressTracker pt, Path mod, String fname, int idx) throws IOException {
+	private void processInstance(ProgressTracker pt, Path mod, String fname, int idx, Queue<AugErrorAndException> errorsInAug) throws IOException {
 		List<Path> entires = Files.walk(mod).filter(a -> !Files.isDirectory(a)).collect(Collectors.toList());
 		
 		String shortname = mod.getFileName().toString();
@@ -63,6 +65,10 @@ public class RuntimeCacheModules extends RuntimeCache{
 				Path root=zipfs.getPath("/");
 				
 				String tfname = thing.getFileName().toString();
+
+				//if(!thing.toString().equals("/modules/java.net.http/jdk/internal/net/http/websocket/WebSocketImpl.class")) {
+				//	continue;//OH NO
+				//}
 				
 				if( shouldExclude(tfname,  thing.toString()) ) {
 					//skip
@@ -78,8 +84,7 @@ public class RuntimeCacheModules extends RuntimeCache{
 					try {
 						nameToTrans = weaver.weave(code, log, true);
 					}catch(Throwable e) {
-						System.err.println("Error in Processing: " + thing + ": " + e.getMessage());
-						e.printStackTrace();
+						errorsInAug.add(new AugErrorAndException(fname, thing.toString(), e));
 						continue;
 					}
 			    	for(String name: nameToTrans.keySet()){
@@ -128,13 +133,13 @@ public class RuntimeCacheModules extends RuntimeCache{
 	}
 	
 	@Override
-	public int doAug(ExecutorService executorService, HashSet<String> findStaticLambdas) throws IOException {
+	public int doAug(ExecutorService executorService, HashSet<String> findStaticLambdas, Queue<AugErrorAndException> errorsInAug) throws IOException {
 		
 		List<Path> modulePaths = ModuleLayer.boot().modules().stream().map(a-> modStrToURI(a) ).sorted().collect(Collectors.toList());
 		super.assignProgressTracker(modulePaths.size()+1);
 		
 		super.modloader = new BootstrapModuleLoader(classpath, modulePaths);
-		super.weaver = new Weaver(modloader);
+		super.weaver = new RuntimeCacheWeaver(modloader, findStaticLambdas);
 		
 		findStaticLambdas.add("java/util/concurrent/atomic/AtomicBoolean");
 		
@@ -155,14 +160,11 @@ public class RuntimeCacheModules extends RuntimeCache{
 			final int ifxpass = idx;
 			executorService.submit(() -> {
 				try {
-					processInstance(super.pt, mod, fname, ifxpass);
+					processInstance(super.pt, mod, fname, ifxpass, errorsInAug);
 				} catch (Exception e) {
-					e.printStackTrace();
+					errorsInAug.add(new AugErrorAndException(fname, e));
 				}
 			});
-			
-			//processInstance(super.pt, mod, fname, ifxpass);
-			
 		}
 		return modulePaths.size();
 	}

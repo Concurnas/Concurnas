@@ -1149,18 +1149,18 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 									
 				// unless ur dealing with a ref, in which
 									// case u need to create one
-				/*if (isRef) {// but ensure u create the ref shell
+				if (isRef) {// but ensure u create the ref shell
 					createNewLocalVar(name, true, type, true, true, true, -1);
 					rhsType = type;
 				} else {
 					return null;
-				}*/
+				}
 				
-				if (isRef) {// but ensure u create the ref shell
+				/*if (isRef) {// but ensure u create the ref shell
 					int h = 9;
 				}
 				
-				return null;
+				return null;*/
 				
 			}
 		}
@@ -1420,12 +1420,6 @@ public class BytecodeGennerator implements Visitor, Opcodes, Unskippable {
 			} else {
 				if(loc != null && loc instanceof LocationStaticField && firstDotOpElementIsRefThis && popIfActingOnstatic) {
 					bcoutputter.visitInsn(POP);//clean up stack as statuc call therefore we dont need whats on the lhs
-				}
-				
-				if(assignExisting.createModuleLevelRef) {
-					Type tt = assignExisting.getTaggedType();
-					createNewLocalVar(name, true, tt, true, true, true, -1);
-					bcoutputter.visitFieldInsn( PUTSTATIC, getFullModuleAndClassName(), name, tt.getBytecodeType());
 				}
 				
 				if (eqStyle.isEquals()) {

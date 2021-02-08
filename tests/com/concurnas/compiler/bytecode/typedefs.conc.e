@@ -107,7 +107,7 @@ null
 
 ~~~~~
 //##28. annotations at module level
-[@Typedefs(typedefs = [@Typedef(accessModifier = public, args = [x], location = x28annotationsatmodulelevel, name = mylistQ, type = Ljava/util/ArrayList<Lx;>;) @Typedef(accessModifier = public, args = [], location = x28annotationsatmodulelevel, name = myfuncdef2, type = Lcom/concurnas/bootstrap/lang/Lambda$Function2<Ljava/lang/Integer;Ljava/lang/Integer;+Ljava/lang/Integer;>;)]) @ConcImmutable]
+[@Typedefs(typedefs = [@Typedef(accessModifier = public, args = [x], defaultType = , location = x28annotationsatmodulelevel, name = mylistQ, type = Ljava/util/ArrayList<Lx;>;) @Typedef(accessModifier = public, args = [], defaultType = , location = x28annotationsatmodulelevel, name = myfuncdef2, type = Lcom/concurnas/bootstrap/lang/Lambda$Function2<Ljava/lang/Integer;Ljava/lang/Integer;+Ljava/lang/Integer;>;)]) @ConcImmutable]
 
 ~~~~~
 //##29. annotations at module level to disable warnings

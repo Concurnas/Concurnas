@@ -50,7 +50,7 @@ typedef li<X> = List<X> default ArrayList<X>
 
 Above, the \lstinline{li<X>} typedef is qualified with a default type of \lstinline{ArrayList<X>}. Hence, new instance objects created which refer to the \lstinline{li<X>} typedef will be created as instances of \lstinline{ArrayList<X>}, e.g.:
 \begin{lstlisting}
-inst li<X> = new li<String>()
+inst li<String> = new li<String>()
 \end{lstlisting}
 
 Now, \lstinline{inst} is a \lstinline{ArrayList<String>} instance object which itself is compatible with the type of \lstinline{inst} - the \lstinline{li<X>} typedef since this resolves to \lstinline{List<String>} which is a superclass of \lstinline{ArrayList<String>}.

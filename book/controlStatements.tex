@@ -1,7 +1,7 @@
 \documentclass[conc-doc]{subfiles}
 
 \begin{document}
-	
+		
 	\chapter[Control Statements]{Control Statements}
 Crucial to imperative programming is the concept of control flow within a function or method. To this end a number of branching statements are provided within Concurnas. These are: \lstinline{if elif else}, the \lstinline{if else} expression, \lstinline{while}, \lstinline{loop}, \lstinline{for}, \lstinline{parfor}, \lstinline{match} and \lstinline{with}. First, lets examine the blocks which these control statements are composed of.
 
@@ -124,7 +124,7 @@ res = {
 \end{lstlisting}
 
 \section{If elif else}
-If, else, if else is a branching control statement. It is composed of a if test and block, optionally any number of elif  (or else if) test and blocks and may optionally include an else block for when all the if test and any defined elif tests resolve to false. For example:
+If, else, else if is a branching control statement. It is composed of a if test and block, optionally any number of elif  (or else if) test and blocks and may optionally include an else block for when all the if test and any defined elif tests resolve to false. For example:
 
 \begin{lstlisting}
 def fullif(an int) String {
@@ -419,8 +419,8 @@ with(det){
 }
 
 det.getSummary()
-/
-=> "david: 24"
+
+// "david: 24"
 \end{lstlisting}
 
 With statements, as with all block based code in Concurnas can return values:

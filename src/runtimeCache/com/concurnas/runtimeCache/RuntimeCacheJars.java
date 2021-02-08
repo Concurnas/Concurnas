@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -44,7 +45,7 @@ public class RuntimeCacheJars extends RuntimeCache{
 		this.foundJars = JarFinder.findJars(this.fromDirectory);
 		super.modloader = new BootstrapJarLoader(this.foundJars, classpath);
 
-		super.weaver = new Weaver(modloader);
+		super.weaver = new RuntimeCacheWeaver(modloader, null);
 		super.assignProgressTracker(foundJars.size());
 	}
 
@@ -123,7 +124,7 @@ public class RuntimeCacheJars extends RuntimeCache{
 	}
 
 
-	protected int doAug(ExecutorService executorService, HashSet<String> findStaticLambdas) throws Exception{
+	protected int doAug(ExecutorService executorService, HashSet<String> findStaticLambdas, Queue<AugErrorAndException> errorsInAug) throws Exception{
 		//ignore findStaticLambdas because there arn't any pre java 1.9
 		int idx = -1;
 		for(File found : foundJars){//thread to execute each
@@ -144,8 +145,8 @@ public class RuntimeCacheJars extends RuntimeCache{
 				try {
 					processInstance(super.pt, found, fname, ifxpass);
 				} catch (Exception e) {
+					errorsInAug.add(new AugErrorAndException(toCreate, null, e));
 					e.printStackTrace();
-					System.exit(2);
 				} 
 			});
 			

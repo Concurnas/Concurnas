@@ -26,7 +26,6 @@ import com.concurnas.compiler.ast.ClassDefJava;
 import com.concurnas.compiler.bytecode.BytecodeGennerator;
 import com.concurnas.compiler.bytecode.FinallyBlockCodeCopier;
 import com.concurnas.compiler.bytecode.LabelAllocator;
-import com.concurnas.compiler.bytecode.ModuleLevelSharedVariableFuncGennerator;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.BytecodePrettyPrinter;
 import com.concurnas.compiler.utils.CompiledCodeClassLoader;
@@ -492,7 +491,6 @@ public class ModuleCompiler implements Comparable{
 							|| nestedFuncRepoint.hadMadeRepoints() 
 							|| returnVisitor.hadMadeRepoints() 
 							|| vectorizedRedirector.hadMadeRepoints()
-							|| scopeTypeChecker.hasSharedModuleLevelVars
 							|| scopeTypeChecker.attemptGenTypeInference
 							|| defaultActorCreator.changeMade
 							|| nullableInference.hadMadeRepoints();
@@ -590,19 +588,6 @@ public class ModuleCompiler implements Comparable{
 								|| returnVisitor.hadMadeRepoints() 
 								|| vectorizedRedirector.hadMadeRepoints()
 								|| nullableInference.hadMadeRepoints();
-						
-						if(!anychagnes) {
-							if(scopeTypeChecker.hasSharedModuleLevelVars && !visitedModLevelSharevVarGen) {
-								visitedModLevelSharevVarGen = true;
-								ModuleLevelSharedVariableFuncGennerator mlsvfg = new ModuleLevelSharedVariableFuncGennerator();
-								prepareAndSetLastVisitor(mlsvfg);
-								if(this.profiler != null) { profiler.mark("Next ModuleLevelSharedVariableFuncGennerator"); }
-								mlsvfg.visit(lexedAndParsedAST);
-								anychagnes=true;
-							}
-						}
-						
-						//System.out.println(String.join("\n ", stcErrs.stream().map(a -> a.toString()).collect(Collectors.toList())) + "\n\n");
 						
 						if(isREPL && !anychagnes) {//see if what we have added to the repl will result in changes to other areas of the graph...
 							//output true if there are things needing recalculation

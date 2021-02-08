@@ -918,7 +918,7 @@ res: null
 
 ~~~~~
 //##228. refs used to return wrapper
-its nulljava.lang.NullPointerException
+its null as expected
 
 ~~~~~
 //##229. expression list thought it needed to return
@@ -934,7 +934,7 @@ ok there
 
 ~~~~~
 //##232. transient in iso is null
-result: its nullx java.lang.NullPointerException
+result: its nullx class java.lang.NullPointerException
 
 ~~~~~
 //##233. bug in eq impl
@@ -1023,3 +1023,7 @@ ok [true, 2790, 2790, true, 100, 100, true, 2324, 2324]
 ~~~~~
 //##254. simple module level async
 1264
+
+~~~~~
+//##255. top level shared code
+ok((124, 124, 67, 457, 94), (123, 123, 66, 457, 94))

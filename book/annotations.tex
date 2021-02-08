@@ -12,7 +12,7 @@ Concurnas has support for annotations. They are a handy mechanism by which metad
 \section{Using Annotations}
 Let's look at a simple example of a built in annotation for reference during and pre compilation and for documentation generation, \lstinline{@Deprecated}:
 
-This particular annotation is used to denote when a method of a class is deprecated and support for which is likely to be removed in future versions of said class. The annotation may be attached to a method by referencing it before the def keyword as follows. Note that \lstinline{@Deprecated} it is an auto imported type.
+This particular annotation is used to denote when a method of a class is deprecated and support for which is likely to be removed in future versions of said class. The annotation may be attached to a method by referencing it before the \lstinline{def} keyword as follows. Note that \lstinline{@Deprecated} it is an auto imported type.
 
 \begin{lstlisting}
 class MyClass{
@@ -144,6 +144,7 @@ By default, a declared annotation can be used at any annotate-able location (cla
 Target's can be specified as follows:
 
 \begin{lstlisting}
+from java.lang.\annotation import ElementType, Target
 @Target(ElementType.ANNOTATION_TYPE)
 annotation ForAnAnnotation
 

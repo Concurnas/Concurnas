@@ -653,3 +653,22 @@ def myfunction(toA int){
 }
 
 def doings() => "" + myfunction(10)
+
+~~~~~
+//##50. involve imported function
+from java.lang.Math import *
+
+def doings(){
+	xx = cos 23.
+	"ok" + xx
+}
+
+~~~~~
+//##51. involve imported module
+from java.lang import Math
+
+def doings(){
+	xx = Math cos 23.
+	"ok" + xx
+}
+

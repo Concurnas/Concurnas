@@ -64,15 +64,15 @@ ref = bounce(? MyClass)//directed call to first version of function
 
 If we hadn't used the \lstinline{?} above then the variable \lstinline{MyClass} would have attempted to have been passed to the function reference.
 
-Another neat approach we can take when defining method references (particularly for overloaded method definitions differing only in the number of arguments they have) is to simply use a comma to indicate that we wish a parameter to remain unbounded:
+%Another neat approach we can take when defining method references (particularly for overloaded method definitions differing only in the number of arguments they have) is to simply use a comma to indicate that we wish a parameter to remain unbounded:
 
-\begin{lstlisting}
-def myFunction(a int, b int, c int) => a+b*c
+%\begin{lstlisting}
+%def myFunction(a int, b int, c int) => a+b*c
 
-fref (int, int) int = myFunction&(, 45, )
+%fref (int, int) int = myFunction&(, 45, )
 
-call = fref(1, 3)//equvilent to calling: myFunction(1, 45, 3)
-\end{lstlisting}
+%call = fref(1, 3)//equvilent to calling: myFunction(1, 45, 3)
+%\end{lstlisting}
 
 \section{Method references for instance objects}
 Things become slightly more complex when we are dealing with method references on instance objects. We must decide if we wish to bind the method reference to a specific instance object at the point of definition of the method reference or not. We call these two forms, bounded and unbounded method references. The key difference is that only bounded method references may be invoked. Say we have the following class:
@@ -93,7 +93,7 @@ boundedMethodRef = instObj.incMany&
 \end{lstlisting}
 
 \begin{sloppypar}
-We can see above that when creating \lstinline{boundedMethodRef} we are referencing an instance object \lstinline{instObj} of \lstinline{MyClass} - as such the method reference held by variable \lstinline{boundedMethodRef} is said to be bound to object \lstinline{instObj}. When we call \lstinline{boundedMethodRef} it is though we are calling \lstinline{incMany} on \lstinline{instObj}.
+We can see above that when creating \lstinline{boundedMethodRef} we are referencing an instance object \lstinline{instObj} of \lstinline{MyClass} - as such the method reference held by variable \lstinline{boundedMethodRef} is said to be bound to object \lstinline{instObj}. When we call \lstinline{boundedMethodRef} it is as though we are calling \lstinline{incMany} on \lstinline{instObj}.
 \end{sloppypar}
 	
 We can create an unbounded method reference in the following way:
@@ -259,6 +259,7 @@ mul = a => a.operation(5, "n")
 \end{lstlisting}
 
 \subsection{SAM types}
+\label{ss:samTypes}
 SAM types, or Single Abstract Method types are abstract classes, traits or interfaces (if referencing Java code) that define only one single abstract method. Concurnas performs a neat trick where we can map a lambda we have created, in compact form, to an instance of a SAM type. Some alternative methods to using a lambda are to implement our solution as either an instance object, or an anonymous class, but as you will see, the lambda is the preferred approach for its compactness.
 
 \begin{lstlisting}

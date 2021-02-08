@@ -262,7 +262,7 @@ amatch = aregex.matcher("abbbba").matches()
 This syntax produces an object of type \lstinline{java.util.regex.Pattern}. More details of this can be found \href{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/util/regex/Pattern.html}{here}. For more details on the variant of regex supported by Concurnas, see \href{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/util/regex/Pattern.html}{here}. Note that it's relatively expensive to construct regex objects since they are compiled at runtime upon definition so its recommended that they be created as top level variables or cached and/or otherwise reused.
 
 \section{Object Types}
-Objects and Classes are covered in more detail \hyperref[ch:classes]{in the classes section}. This is a brief introduction:
+Objects and Classes are covered in more detail \hyperref[ss:samTypes]{in the classes section}. This is a brief introduction:
 
 \begin{lstlisting}
 open class MyClass(public an int)

@@ -214,7 +214,7 @@ Classes having non-nullable generic types may still define nullable instances of
 
 \begin{lstlisting}
 class TakesGeneric1<X>{
-~x X?
+	~x X?
 }
 inst = TakesGeneric1<String>()
 inst.x = null //this is ok

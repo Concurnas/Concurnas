@@ -13,7 +13,9 @@ import com.concurnas.compiler.bytecode.BytecodeGennerator;
 public class ConcTaskMaker extends TaskMaker implements Opcodes{
 
 	private Method meth;
-
+	public boolean hasExitCode = false;
+	public static final String ExitCodeField = "exitCode";
+	
 	public ConcTaskMaker(String invokerclassName, String classBeingTested, Method meth) {
 		super(invokerclassName, classBeingTested, null, true);
 		this.meth = meth;
@@ -32,18 +34,44 @@ public class ConcTaskMaker extends TaskMaker implements Opcodes{
 			
 			mv.visitLabel(start);
 			
+			
+			
 			if(meth == null) {
 				mv.visitMethodInsn(INVOKESTATIC, classBeingTested, BytecodeGennerator.metaMethodName, "()Ljava/lang/String;", false);
 				mv.visitInsn(POP);
+			}else {
+				String retType = "";
+				String signature;
+				if(meth.getParameterCount()==1) {//consume cmd line params
+					mv.visitVarInsn(ALOAD, 0);
+					mv.visitFieldInsn(GETFIELD, invokerclassName, TaskMaker.CMDLineParamsStr, "[Ljava/lang/String;");
+					retType = this.meth.getReturnType().descriptorString();
+					signature = "([Ljava/lang/String;)"+retType;
+					
+				}else {//no params
+					retType = this.meth.getReturnType().descriptorString();
+					signature = "()"+retType;
+				}
+				
+				if(!retType.equals("V")) {
+					
+					if(retType.equals("I")) {
+						mv.visitMethodInsn(INVOKESTATIC, classBeingTested, "main", signature, false);
+						mv.visitVarInsn(ALOAD, 0);
+						mv.visitInsn(SWAP);
+						mv.visitFieldInsn(PUTFIELD, invokerclassName, ExitCodeField, "I");
+						this.hasExitCode = true;
+					}else {
+						mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+						mv.visitMethodInsn(INVOKESTATIC, classBeingTested, "main", signature, false);
+						mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/lang/Stringifier", "stringify", "(Ljava/lang/Object;)Ljava/lang/String;", false);
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+					}
+				}else {
+					mv.visitMethodInsn(INVOKESTATIC, classBeingTested, "main", signature, false);
+				}
 			}
-			else if(meth.getParameterCount()==1) {//consume cmd line params
-				mv.visitVarInsn(ALOAD, 0);
-				mv.visitFieldInsn(GETFIELD, invokerclassName, TaskMaker.CMDLineParamsStr, "[Ljava/lang/String;");
-				mv.visitMethodInsn(INVOKESTATIC, classBeingTested, "main", "([Ljava/lang/String;)V", false);
-			}else {//no params
-				mv.visitMethodInsn(INVOKESTATIC, classBeingTested, "main", "()V", false);
-			}
-			Method mm = this.meth;
+			
 			
 			mv.visitLabel(end);
 			Label toRet = new Label();
@@ -62,6 +90,11 @@ public class ConcTaskMaker extends TaskMaker implements Opcodes{
 			mv.visitInsn(ARETURN);
 			mv.visitEnd();
 		
+		}
+		
+		if(this.hasExitCode){
+			FieldVisitor fv = cw.visitField(ACC_PUBLIC, ExitCodeField, "I", null, null);
+			fv.visitEnd();
 		}
 		
 		{

@@ -6,7 +6,7 @@
 	
 Functions are a major part of procedural programming. They allows us to split up our programs into subroutines of logic designed to perform specific tasks. They are an incredibly useful abstraction which is used at all levels of the computational process of transforming a human readable description of how to perform a task, right down to the level machine code that our computer CPUs can understand.
 
-Broadly speaking, a function takes a set of inputs variables and returns an output (or outputs if one takes advantage of Concurnas' ability for functions to return tuples) having executed code specified in a block of code associated with the function. The function has a name in order to make it possible for other functions to call it. The input variables have their specified types as does the return value. The input variables and return type constitute the signature of the function and along with the name (and package path) must be unique.
+Broadly speaking, a function takes a set of input variables and returns an output (or outputs if one takes advantage of Concurnas' ability for functions to return tuples) having executed code specified in a block of code associated with the function. The function has a name in order to make it possible for other functions to call it. The input variables have their specified types as does the return value. The input variables and return type constitute the signature of the function and along with the name (and package path) must be unique.
 
 Here is a function, the \lstinline{def} keyword on its own is used to indicate that we are creating a function, followed by the name of the function, and any comma separated input parameters surrounded by a pair of parentheses \lstinline{( )} and a (optional) return type:
 
@@ -16,7 +16,7 @@ def addTogether(a int, b int) int {
 }
 \end{lstlisting}
 
-The /return/ keyword is used within a function in order to cease further execution and literally return the value on the right hand side of it from the function (or the innermost nested function if they are nested).
+The \lstinline{return} keyword is used within a function in order to cease further execution and literally return the value on the right hand side of it from the function (or the innermost nested function if they are nested).
 
 Now, the above is a perfectly acceptable way to define a function and although it is very verbose, is often the preferred method when writing complex code, or code for which the intended audience may require the extra verbosity in order to aid in their understanding of what is happening.
 

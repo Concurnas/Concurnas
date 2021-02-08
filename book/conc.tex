@@ -47,14 +47,18 @@ A full list of optional options for \lstinline[language=None]{conc} is found und
 In order to run a program with Concurnas via the \lstinline[language=None]{conc} tool we must pass an entry-point class or jar file reference. For a jar file to be used in this manner it requires a class within it to be nominated as its entry point. This entry point reference is then examined and one of the following is executed in order of precedence:
 
 \begin{enumerate}
-	\item \lstinline!def main(args String[]) void!
-	\item \lstinline!def main() void!
+	\item \lstinline!def main(args String[]) ANY_TYPE!
+	\item \lstinline!def main() ANY_TYPE!
 	\item Top level code
 \end{enumerate}
 
-We see above that specifying a \lstinline{main} method within our entry-point class is not a requirement, and if one is not defined then this will result in any top level code of the class file being invoked upon execution instead. However, using a \lstinline{main} method is recommended in cases where we wish to use a referenced piece of code as both a library and program. This is because, where the code within the .class file is used like a library, upon first execution of something imported from that library class, all the top level code will be executed, including our code we wish to execute as a program - something which is rarely desirable. An explicit \lstinline{main} method on the other hand must be explicitly invoked, thus avoiding this problem.
+We see above that specifying a \lstinline{main} method within our entry-point class is not a requirement, and if one is not defined then this will result in any top level code of the class file being invoked upon execution instead. However, using a \lstinline{main} method is recommended in cases where we wish to use a referenced piece of code as both a library and program. This is because, where the code within the \lstinline{.class} file is used like a library, upon first execution of something imported from that library class, all the top level code will be executed, including our code we wish to execute as a program - something which is rarely desirable. An explicit \lstinline{main} method on the other hand must be explicitly invoked, thus avoiding this problem.
 
-The \lstinline{main} method declaration will receive any command line parameters passed to the program upon execution if its signature is declared as: \lstinline{def main(args String[]) void}.
+The \lstinline{main} method declaration may return a value of any type. The \lstinline{.toString()} method will be called on the returned value and will be output to stdout (the console). If \lstinline{null} is returned then '\lstinline{null}' will be output.
+
+If the \lstinline{main} method declaration returns an \lstinline{int} this will not be output but will rather be used as the exit code of the program itself. Note that the expectation on POSIX systems is that an exit code of \lstinline{0} indicates successful execution, with any number from \lstinline{1} to \lstinline{255} indicating a specific failure case.
+
+The \lstinline{main} method declaration will receive any command line parameters passed to the program upon execution if its signature is declared as: \lstinline{def main(args String[]) ANY_TYPE}.
 
 \section{Command line options}
 \label{sec:cmdlineparams}

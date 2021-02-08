@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.annotation.Retention;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -68,15 +69,16 @@ public class Conc {
 		String inputString = String.join(" ", args);
 		Conc inst = new Conc(inputString);
 		String result = inst.doit();
-		
-		System.out.println(result);
+		if(null != result && !result.isEmpty()) {
+			System.out.println(result);
+		}
 		
 		System.exit(inst.returnCode);
 	}
 
 	private FileLoader fileLoader;
 	private String inputString;
-	private int returnCode = 0;
+	public int returnCode = 0;
 
 	private ClassLoaderProvider clp;
 	public static class DefaultClassLoaderProvider implements ClassLoaderProvider{
@@ -245,20 +247,19 @@ public class Conc {
 				Method main = null;
 				main = getMethod(entryClass, "main", String[].class);// = entryClass.getMethod("main", String[].class);
 				
-				if(main == null || main.getReturnType() != void.class) {
+				if(main == null) {
 					consumeCmdLineParams=false;
 					
 					main = getMethod(entryClass, "main");
-					//main = entryClass.getMethod("main", new Class<?>[] {});
-					
-					if(null == main || main.getReturnType() != void.class) {//run top level code
-						main = null;
-					}
 				}
-				byte[] executor =  new ConcTaskMaker(concEXEName, entryClass.getName().replace('.', '/'), main).gennerate();
+				ConcTaskMaker ctm = new ConcTaskMaker(concEXEName, entryClass.getName().replace('.', '/'), main);
+				byte[] executor =  ctm.gennerate();
 				//BytecodePrettyPrinter.print(executor, true);
 				concClassLoader.defineClass(concEXEName, executor);
 
+				
+				//main.getReturnType() != void.class
+				
 				SchedulerRunner sch = new SchedulerRunner(concClassLoader, "Concurnas");
 				
 				Class<?> executorTasCls = concClassLoader.loadClass(concEXEName);
@@ -286,6 +287,11 @@ public class Conc {
 							this.wait();
 						}
 					}
+				}
+				
+				if(ctm.hasExitCode) {
+					Field exitCode = executorTasCls.getField(ConcTaskMaker.ExitCodeField);
+					this.returnCode = exitCode.getInt(exeTaObject);
 				}
 				
 				sch.stop();

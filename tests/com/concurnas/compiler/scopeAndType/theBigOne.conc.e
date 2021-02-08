@@ -4447,8 +4447,8 @@ x602validateonchangeeveryoptions.conc line 11:41 invalid options specified: only
 
 ~~~~~
 //##603. in qualification cannot be used as output param
-x603inqualificationcannotbeusedasoutputparam.conc line 7:11 Cannot find get function on java.util.ArrayList<in java.lang.String> with arguments: [int]
-
+x603inqualificationcannotbeusedasoutputparam.conc line 7:11 Cannot find get function on java.util.List<in java.lang.String> with arguments: [int]
+ 
 ~~~~~
 //##604. smart casts respect this.me vs thing.me vs me
 x604smartcastsrespectthismevsthingmevsme.conc line 12:11 Unable to find method with matching name: hi
@@ -4537,8 +4537,9 @@ x619incorrectlymatchedtoupperboundofarraytypepreviously.conc line 11:1 Unable to
 
 ~~~~~
 //##620. typedef defualt must be subtype
-bytecodeSandbox.conc line 3:0 typedef li with default type: java.lang.String must be a subtype of: java.util.List
-
+x620typedefdefualtmustbesubtype.conc line 5:0 typedef li with default type: java.lang.String is expected to be a subtype of: java.util.List
+ 
 ~~~~~
 //##621. typedef with params used on rhs
-bytecodeSandbox.conc WARN line 3:0 typedef qualifier is unused in right hand side definition: X
+x621typedefwithparamsusedonrhs.conc WARN line 5:0 typedef qualifier is unused in right hand side definition: X
+ 

@@ -116,8 +116,6 @@ import com.concurnas.repl.REPLState.REPLTopLevelImports;
 import com.concurnas.runtime.Pair;
 import com.concurnas.runtime.ref.Local;
 
-import jdk.nashorn.internal.ir.LexicalContextNode.Acceptor;
-
 public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 	private final String fullPathFileName;
@@ -151,8 +149,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 	private int tempVarCnt = 0;
 
-	public boolean hasSharedModuleLevelVars;
-	
 	protected int lastLineVisited = -1;
 
 	private boolean prevRunHadErrors = true;
@@ -3431,7 +3427,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		
 		if(isClinitsharedVariable(assignNew.isShared, retType)) {
 			//shared, ref, actor or sharedclass
-			this.hasSharedModuleLevelVars = assignNew.expr != null;
 			assignNew.isModuleLevelShared = true;
 			assignNew.isShared=true;
 		}
@@ -4215,7 +4210,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 
 				if(isClinitsharedVariable(assignExisting.isReallyNew && assignExisting.isShared, rhs)) {
 					//shared, ref, actor or sharedclass
-					this.hasSharedModuleLevelVars = assignExisting.expr != null;
 					assignExisting.isModuleLevelShared = true;
 					assignExisting.isShared=true;
 				}
@@ -8769,6 +8763,8 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 	
 	private Pair<HashSet<TypeAndLocation>,Boolean> getMatchingFuncNamesNonRHSDotOperator(FuncInvoke funcInvoke, ErrorRaiseable er, String nameola,  int line, int col, boolean raiseErrors, boolean ignoreLambdas, List<Type> argsWanted, ArrayList<Pair<String, Type>> namessMap, Type wantExtensionFunction, boolean checkExtensionFunc){
 		//not in a dot operator,  e.g. a = 99
+		//start at top level then we add declarations as we go down the scope levels
+		
 		//check locl scpes, but stop when u get to the class level, then check the class leve, then check the level above the class..
 		//nested classes
 		TheScopeFrame search = this.currentScopeFrame;
@@ -8785,9 +8781,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			findExtFunc=false;
 		}
 		
-		if(nameola.equals("bar")) {
-			int h=9;
-		}
 		
 		//if call made in with statement
 		if(!this.currentlyInWithStatement.isEmpty()) {
@@ -9127,8 +9120,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			}
 		}
 		
-		
-		
 		EvaluatedConstructor constructorHit=null;
 		if(null == finalret) {
 			constructorHit = funcInvokeIsReallyConstructor(nameola, funcInvoke, argsWanted, namessMap);
@@ -9141,29 +9132,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 		}
 		
 		if(nameRedirect != null && finalret != null){//map name on origfuncdef
-			/*HashSet<TypeAndLocation> finalretnew =new HashSet<TypeAndLocation>();
-			for(TypeAndLocation tal : finalret){
-				Type tt = tal.getType();
-				Location loc = tal.getLocation();
-				if(tt instanceof FuncType && loc instanceof LocationStaticField){
-					FuncType asFuncType = (FuncType)tt;
-					if(asFuncType.origonatingFuncDef != null){
-						FuncDef directname = (FuncDef)asFuncType.origonatingFuncDef.copy();
-						directname.funcName = nameRedirect;
-						asFuncType = asFuncType.copyTypeSpecific();
-						asFuncType.origonatingFuncDef = directname;
-						LocationStaticField sloc = (LocationStaticField)loc.copy();
-						sloc.type = asFuncType;
-						tal = new TypeAndLocation(asFuncType, sloc);
-						//find a better way
-						
-						//splice it onto tal
-					}
-				}
-				
-				finalretnew.add(tal);
-			}
-			finalret = finalretnew;*/
 			for(TypeAndLocation tal : finalret){
 				Type tt = tal.getType();
 				if(tt instanceof FuncType){
@@ -26710,7 +26678,6 @@ public class ScopeAndTypeChecker implements Visitor, ErrorRaiseable {
 			if(!ok) {
 				return null;
 			}
-			
 			langExt.langExtCompiler = loader;
 		}
 		
