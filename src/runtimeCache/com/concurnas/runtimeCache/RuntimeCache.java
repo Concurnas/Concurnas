@@ -177,6 +177,7 @@ public abstract class RuntimeCache implements Opcodes {
 																																	// things
 			addEntry(collectedPackages, zf, clsToClasspath, "com/concurnas/bootstrap/runtime/ref/Ref", true, false, false);
 			addEntry(collectedPackages, zf, clsToClasspath, "com/concurnas/bootstrap/runtime/ReifiedType", true, false, false);
+			addEntry(collectedPackages, zf, clsToClasspath, "com/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder", true, false, false);
 			addEntry(collectedPackages, zf, clsToClasspath, "com/concurnas/bootstrap/runtime/ref/DefaultRef", true, false, false);
 			addEntry(collectedPackages, zf, clsToClasspath, "com/concurnas/bootstrap/runtime/ref/DirectlyAssignable", true, false, false);
 			addEntry(collectedPackages, zf, clsToClasspath, "com/concurnas/bootstrap/runtime/ref/DirectlyGettable", true, false, false);

@@ -4690,3 +4690,10 @@ def doings(){
 
 	"ok" + (v1, v2)
 }
+
+~~~~~
+//##256. clinit on interfaces
+def doings(){
+	//iterfaces require special treatment where they declar static fields
+	"" + (org.objectweb.asm.Opcodes.TOP, com.concurnas.lang.precompiled.IfaceToGlobalize.SOMEVAR)
+}

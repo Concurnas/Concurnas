@@ -87,7 +87,6 @@ public final class Fiber {
 	 * e.g. specifically during global initalization
 	 * */
 	 
-	
 	static {
 		PAUSE_STATE.pc = 1;
 	}

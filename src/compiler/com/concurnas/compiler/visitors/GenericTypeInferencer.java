@@ -45,6 +45,7 @@ import com.concurnas.compiler.ast.interfaces.Expression;
 import com.concurnas.compiler.ast.util.NullableArrayElementss;
 import com.concurnas.compiler.typeAndLocation.TypeAndLocation;
 import com.concurnas.compiler.utils.GenericTypeUtils;
+import com.concurnas.compiler.visitors.lca.ClassDefTree;
 import com.concurnas.runtime.Pair;
 
 public class GenericTypeInferencer extends AbstractVisitor {
@@ -468,7 +469,7 @@ public class GenericTypeInferencer extends AbstractVisitor {
 	}
 	
 	public ArrayList<Type> runQualificationAlgo(UnqualifiedGenericType unquali, HashSet<Type> qualifers, Map<Type, Set<Type>> partialBindings){
-		 NamedType toQuali = unquali.type;
+		NamedType toQuali = unquali.type;
 		//find most generic of the qualifiers
 		//find match to generic type
 		//color in the generics
@@ -503,13 +504,25 @@ public class GenericTypeInferencer extends AbstractVisitor {
 						if(potCD.equals(classWanted)) {
 							matchingOnClass.add(potentialNT);
 						}else {//check parents...
-							List<NamedType> potsups = potCD.getAllSuperClassesInterfaces();
+							/*List<NamedType> potsups = potCD.getAllSuperClassesInterfaces();
+							
 							for(NamedType tryit : potsups) {
 								if(classWanted.equals(tryit.getSetClassDef())) {
 									matchingOnClass.add(tryit);
 									break;
 								}
+							}*/
+							
+							//parents need to bind where they can
+							for(NamedType superclassorIface : potCD.getAllSuperClassesInterfaces()){
+								if(classWanted.equals(superclassorIface.getSetClassDef())) {
+									HashMap<GenericType, Type> superGenTypes = potentialNT.getFromClassGenericToQualifiedType();
+									superclassorIface = (NamedType) GenericTypeUtils.filterOutGenericTypes(superclassorIface, superGenTypes);
+									matchingOnClass.add(superclassorIface);
+									break;
+								}
 							}
+							
 						}
 					}
 				}

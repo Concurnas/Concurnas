@@ -92,6 +92,12 @@ public class Cpsifier {
 				//	BytecodePrettyPrinter.print(inputClassBytes, true);
 				//}
 				
+				//if (className.endsWith("Opcodes")) {
+				//	System.out.println("pre global: " + className);
+				//	BytecodePrettyPrinter.print(inputClassBytes, true);
+				//}
+				
+				
 				HashMap<String, byte[]> globalizerClasses = null;
 				if (assumeNoPrimordials || Globalizer.NoGlobalizationException(className) || isTrait(clloader, className)) {
 					globalizerClasses = new HashMap<String, byte[]>();
@@ -128,11 +134,10 @@ public class Cpsifier {
 				for (String namea : globalizerClasses.keySet()) {
 					byte[] code = globalizerClasses.get(namea);
 					
-					if (namea.contains("JustAnEnum")) {
+					if (namea.contains("IfaceToGlobalize")) {
 						System.out.println("post global: " + namea);
 						BytecodePrettyPrinter.print(code, true);
 					}
-					
 					
 					boolean isCObj = namea.equals("com/concurnas/bootstrap/runtime/cps/CObject");
 

@@ -112,7 +112,9 @@ public final class IsoTaskMethodAdder implements Opcodes {
 				String depNoGlob = dep.substring(0, dep.length() - 9);//preglobal version since we've not transformed that code yet
 				depNoGlob = depNoGlob.replaceAll("/", ".");
 				byte[] derpdata = clsll.getBytecode(depNoGlob);
-				got.addAll(obtainGlobalDependancies(dep, new ClassReader(derpdata)));
+				if(null != derpdata) {
+					got.addAll(obtainGlobalDependancies(dep, new ClassReader(derpdata)));
+				}
 			}
 		}
 		return got;

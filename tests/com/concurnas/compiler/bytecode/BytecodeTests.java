@@ -29,6 +29,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.concurnas.bootstrap.runtime.cps.Fiber;
 import com.concurnas.bootstrap.runtime.cps.Iso;
 import com.concurnas.compiler.ErrorHolder;
 import com.concurnas.compiler.FileLoader;
@@ -1393,7 +1394,7 @@ public class BytecodeTests extends TestCase implements Opcodes {
 				
 				//TODO: convert to multi input version
 				
-				
+				Fiber.currentFiber.remove();
 				ArrayList<ErrorHolder> errs = mainLoop.compileFiles(mockLoader.getAllFiles()).messages;
 				comTime = (System.currentTimeMillis() - comTimeStart)/1000.;
 				output = assertNoPreBytecodeErrors(errs, false, code.contains("//#Ignore WARN"));

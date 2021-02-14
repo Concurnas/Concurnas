@@ -3,7 +3,6 @@ package com.concurnas.compiler.ast;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import com.concurnas.compiler.visitors.ScopeAndTypeChecker;
 import com.concurnas.compiler.visitors.Visitor;
 
 public class MultiType  extends AbstractType   {
@@ -186,4 +185,16 @@ public class MultiType  extends AbstractType   {
 	public Type copyIgnoreReturnType() {
 		return (Type)copyTypeSpecific();
 	}
+	
+
+	@Override
+	public String getBytecodeType( ) {
+		if(this.astOverride != null) {
+			return this.astOverride.getBytecodeType();
+		}else {
+			return super.getBytecodeType();
+		}
+	}
+	
+	
 }

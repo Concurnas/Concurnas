@@ -1361,3 +1361,33 @@ def doings(){
 	
 	"" + enumerate(mylist)
 }
+
+~~~~~
+//##82. simple via superclass
+def doings(){//gen type inference
+	a java.util.List = new java.util.ArrayList()
+	a.add("ok")
+		
+	"res: " + a
+}
+
+~~~~~
+//##83. simple via superclass typedef generics
+def doings(){
+	a list = new list()
+	a.add("ok")
+		
+	"res: " + a
+}
+
+~~~~~
+//##84. simple via superclass typedef generics 2
+def doings(){
+	a = new list()
+	b list = a
+	
+	a = list<String>()
+	b.add("ok")
+		
+	"res: " + (a, b)
+} 

@@ -121,7 +121,12 @@ public class TypeCheckUtils {
 						break;
 					}
 					
-					input = listNT.getGenericTypeElements().get(0);
+					ArrayList<Type> gens = listNT.getGenericTypeElements();
+					if(gens.isEmpty()) {
+						break;
+					}
+					
+					input = gens.get(0);
 				}
 				
 				input = TypeCheckUtils.getRefTypeToLocked(input);//exract ref

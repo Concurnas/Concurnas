@@ -17,6 +17,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import com.concurnas.bootstrap.runtime.cps.Fiber;
 import com.concurnas.runtime.cps.analysis.ANFTransform;
 import com.concurnas.runtime.cps.analysis.ConcClassWriter;
 import com.concurnas.runtime.cps.mirrors.ClassMirror;
@@ -557,6 +558,7 @@ public class Globalizer implements Opcodes {
 		private HashSet<String> staticLambdaClasses;
 		private List<Pair<String, String>> nonSharedStaticFieldsToCopy;
 		private ArrayList<FieldVisitorHolder> staticFinalVars;
+		private boolean isInterface;
 
 		public TransformMainClass(HashSet<String> staticLambdaClasses, ClassVisitor cv, HashMap<String, Integer> maxLocalSize, ConcClassUtil clloader, 
 				HashSet<OwnerNameDesc> shouldbeForcedPublic, HashSet<OwnerNameDesc> shouldbeForcedPublicField, List<Pair<String, String>> nonSharedStaticFieldsToCopy,
@@ -573,15 +575,16 @@ public class Globalizer implements Opcodes {
 
 		// private Stack<String> className = new Stack<String>();
 		private String className;
-		private boolean isEnumCls = false;
+		//private boolean isEnumCls = false;
 		private String supername;
 		private String[] interfaces;
 
 		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 			className = name;
-			isEnumCls = (access & Opcodes.ACC_ENUM) != 0 && superName.equals("java/lang/Enum");
+			//isEnumCls = (access & Opcodes.ACC_ENUM) != 0 && superName.equals("java/lang/Enum");
 			this.supername = superName;
 			this.interfaces = interfaces;
+			this.isInterface = Modifier.isInterface(access);
 			super.visit(version, access, name, signature, superName, interfaces);
 		}
 
@@ -642,19 +645,20 @@ public class Globalizer implements Opcodes {
 					access += ACC_PUBLIC;
 				}
 
-				if (Modifier.isFinal(access)) {
+				if (Modifier.isFinal(access) && !this.isInterface) {//we keep fields static for interfaces
 					access &= ~ACC_FINAL;
+					value = null;
 				}
 
 				if (!shared) {// but dont skip if shared
 					getGlobName();// may not have a clinit so we call it anyway
 
-					if (isEnumCls) {
+					/*if (isEnumCls) {
 						if (name.equals("ENUM$VALUES")) {
 							access = Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC;
 						}
 						return super.visitField(access, name, desc, signature, value);
-					}
+					}*/
 				}
 			}
 
@@ -671,13 +675,6 @@ public class Globalizer implements Opcodes {
 			return super.visitField(access, name, desc, signature, value);
 		}
 
-		public boolean permittedStatic(String name, String desc) {
-			if (name.equals("metaBinary") && desc.equals("()[Ljava/lang/String;")) {
-				return true;
-			}
-			return false;
-		}
-
 		private int makePublic(int access) {
 			if (!Modifier.isPublic(access)) {
 				if (Modifier.isPrivate(access)) {
@@ -690,48 +687,143 @@ public class Globalizer implements Opcodes {
 			return access;
 		}
 
+		/**
+		 * We use a String Object for clinitOnce$
+		 */
 		private void addClinitOnce() {
-			FieldVisitor fieldVisitor = super.visitField(ACC_PRIVATE | ACC_STATIC, "clinitOnce$", "Ljava/lang/String;", null, null);
+			FieldVisitor fieldVisitor;
+			if(this.isInterface) {
+				//add <clinit> to initialize the holder
+				{
+					MethodVisitor clinit = super.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+					clinit.visitCode();
+					clinit.visitLabel(new Label());
+					clinit.visitTypeInsn(NEW, "com/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder");
+					clinit.visitInsn(DUP);
+					clinit.visitMethodInsn(INVOKESPECIAL, "com/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder", "<init>", "()V", false);
+					clinit.visitFieldInsn(PUTSTATIC, className, "clinitOnce$", "Lcom/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder;");
+					clinit.visitInsn(RETURN);
+					clinit.visitMaxs(2, 0);
+					clinit.visitEnd();
+				}
+				
+				fieldVisitor = super.visitField(ACC_PUBLIC | ACC_STATIC | ACC_FINAL, "clinitOnce$", "Lcom/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder;", null, null);
+			}else {
+				fieldVisitor = super.visitField(ACC_PRIVATE | ACC_STATIC, "clinitOnce$", "Ljava/lang/String;", null, null);
+			}
 			fieldVisitor.visitEnd();
 
 			String globname = "L" + this.getGlobName() + ";";
-
-			MethodVisitor methodVisitor = super.visitMethod(ACC_PUBLIC | ACC_STATIC | ACC_SYNCHRONIZED, "clinitOnce$", String.format("(%s)Z", globname), null, null);
-			methodVisitor.visitCode();
-
-			methodVisitor.visitFieldInsn(GETSTATIC, className, "clinitOnce$", "Ljava/lang/String;");
+			MethodVisitor methodVisitor;
 			Label notnull = new Label();
+			if(this.isInterface) {
+				methodVisitor = super.visitMethod(ACC_PUBLIC | ACC_STATIC, "clinitOnce$", String.format("(%s)Z", globname), null, null);
+				methodVisitor.visitCode();
+				Label label0 = new Label();
+				Label label1 = new Label();
+				Label label2 = new Label();
+				methodVisitor.visitTryCatchBlock(label0, label1, label2, null);
+				Label label3 = new Label();
+				Label label4 = new Label();
+				methodVisitor.visitTryCatchBlock(label3, label4, label2, null);
+				Label label5 = new Label();
+				methodVisitor.visitTryCatchBlock(label2, label5, label2, null);
+				methodVisitor.visitLabel(new Label());
+				methodVisitor.visitFieldInsn(GETSTATIC, className, "clinitOnce$", "Lcom/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder;");
+				methodVisitor.visitInsn(DUP);
+				methodVisitor.visitVarInsn(ASTORE, 1);
+				methodVisitor.visitInsn(MONITORENTER);
+				methodVisitor.visitLabel(label0);
+				methodVisitor.visitFieldInsn(GETSTATIC, className, "clinitOnce$", "Lcom/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder;");
+				methodVisitor.visitFieldInsn(GETFIELD, "com/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder", "initOnce", "Z");
+				methodVisitor.visitJumpInsn(IFNE, label3);
+				methodVisitor.visitLabel(new Label());
+				
+				addClinitOnceCommon(methodVisitor, globname);
+				
+				if (null == staticLambdaClasses || !staticLambdaClasses.contains(className)) {// TODO: running clinit for every isolate may be inefficient for these classes
+					// but we need to do this such that top level lambdas with invoke dynamic have
+					// fiberizers when they are initalized in
+					// non fiberized code (i.e. at bootstrap)
+					methodVisitor.visitLabel(new Label());
+					methodVisitor.visitFieldInsn(GETSTATIC, className, "clinitOnce$", "Lcom/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder;");
+					methodVisitor.visitInsn(ICONST_1);
+					methodVisitor.visitFieldInsn(PUTFIELD, "com/concurnas/bootstrap/runtime/ClinitOnceIfaceHolder", "initOnce", "Z");
+				}
+				
+				methodVisitor.visitLabel(new Label());
+				methodVisitor.visitVarInsn(ALOAD, 1);
+				methodVisitor.visitInsn(MONITOREXIT);
+				methodVisitor.visitLabel(label1);
+				methodVisitor.visitInsn(ICONST_1);
+				methodVisitor.visitInsn(IRETURN);
+				methodVisitor.visitLabel(label3);
+				methodVisitor.visitVarInsn(ALOAD, 1);
+				methodVisitor.visitInsn(MONITOREXIT);
+				methodVisitor.visitLabel(label4);
+				Label label10 = new Label();
+				methodVisitor.visitJumpInsn(GOTO, label10);
+				methodVisitor.visitLabel(label2);
+				methodVisitor.visitVarInsn(ALOAD, 1);
+				methodVisitor.visitInsn(MONITOREXIT);
+				methodVisitor.visitLabel(label5);
+				methodVisitor.visitInsn(ATHROW);
+				methodVisitor.visitLabel(label10);
+				methodVisitor.visitInsn(ICONST_0);
+				methodVisitor.visitInsn(IRETURN);
+				Label label11 = new Label();
+				methodVisitor.visitLabel(label11);
+				methodVisitor.visitMaxs(2, 3);
+				methodVisitor.visitEnd();
+			}else {
+				methodVisitor = super.visitMethod(ACC_PUBLIC | ACC_STATIC | ACC_SYNCHRONIZED, "clinitOnce$", String.format("(%s)Z", globname), null, null);
+				methodVisitor.visitCode();
 
-			methodVisitor.visitJumpInsn(IFNONNULL, notnull);
+				methodVisitor.visitFieldInsn(GETSTATIC, className, "clinitOnce$", "Ljava/lang/String;");
+
+				methodVisitor.visitJumpInsn(IFNONNULL, notnull);
+				addClinitOnceCommon(methodVisitor, globname);
+				
+				if (null == staticLambdaClasses || !staticLambdaClasses.contains(className)) {// TODO: running clinit for every isolate may be inefficient for these classes
+					// but we need to do this such that top level lambdas with invoke dynamic have
+					// fiberizers when they are initalized in
+					// non fiberized code (i.e. at bootstrap)
+					methodVisitor.visitLdcInsn("initialized");
+					methodVisitor.visitFieldInsn(PUTSTATIC, className, "clinitOnce$", "Ljava/lang/String;");
+				}
+				
+				methodVisitor.visitInsn(ICONST_1);// true created and set state in global
+
+				Label lastLab = new Label();
+				methodVisitor.visitJumpInsn(GOTO, lastLab);
+
+				methodVisitor.visitLabel(notnull);
+				methodVisitor.visitInsn(ICONST_0);// false, no creation
+
+				methodVisitor.visitLabel(lastLab);
+				methodVisitor.visitInsn(IRETURN);
+
+				methodVisitor.visitMaxs(1, 0);
+				methodVisitor.visitEnd();
+			}
+		}
+		
+		private void addClinitOnceCommon(MethodVisitor methodVisitor, String globname) {
 			methodVisitor.visitLabel(new Label());
 			methodVisitor.visitVarInsn(ALOAD, 0);
-			methodVisitor.visitMethodInsn(INVOKESTATIC, className, "clinit$", String.format("(%s)V", globname), false);
+			/*if(isBootstrapClass) {
+				//call with fake fiber:
+				methodVisitor.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/runtime/cps/Fiber", "getCurrentFiberWithCreate", "()Lcom/concurnas/bootstrap/runtime/cps/Fiber;", false);
+				methodVisitor.visitMethodInsn(INVOKESTATIC, className, "clinit$", String.format("(%sLcom/concurnas/bootstrap/runtime/cps/Fiber;)V", globname), this.isInterface);
+			}
+			else {*/
+				methodVisitor.visitMethodInsn(INVOKESTATIC, className, "clinit$", String.format("(%s)V", globname), this.isInterface);
+			//}
 
 			// copy state from global instance to localized.
 			if (!isBootstrapClass) {
 				copyFieldsFromTo(methodVisitor, nonSharedStaticFieldsToCopy, this.getGlobName(), className, false);
 			}
-
-			if (null == staticLambdaClasses || !staticLambdaClasses.contains(className)) {// TODO: running clinit for every isolate may be inefficient for these classes
-				// but we need to do this such that top level lambdas with invoke dynamic have
-				// fiberizers when they are initalized in
-				// non fiberized code (i.e. at bootstrap)
-				methodVisitor.visitLdcInsn("initialized");
-				methodVisitor.visitFieldInsn(PUTSTATIC, className, "clinitOnce$", "Ljava/lang/String;");
-			}
-
-			methodVisitor.visitInsn(ICONST_1);// true created and set state in global
-
-			Label lastLab = new Label();
-			methodVisitor.visitJumpInsn(GOTO, lastLab);
-
-			methodVisitor.visitLabel(notnull);
-			methodVisitor.visitInsn(ICONST_0);// false, no creation
-
-			methodVisitor.visitLabel(lastLab);
-			methodVisitor.visitInsn(IRETURN);
-			methodVisitor.visitMaxs(1, 0);
-			methodVisitor.visitEnd();
 		}
 
 		public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
@@ -761,24 +853,8 @@ public class Globalizer implements Opcodes {
 				}
 
 				MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-
-				// if(name.endsWith("$sharedInit")) {
-				// return mv;
-				// return new StaticAccessMethodRepoint(this.staticLambdaClasses, mv,
-				// maxLocalSize.get(name + desc), clloader, locallyDefinedFields,
-				// maxLocalSize.keySet(), supername, interfaces, className);
-				// }
-
-				if (isEnumCls || permittedStatic(name, desc)/* || ismetaBinary */) {
-					if (isEnumCls && name.equals("values")) {
-						return new EnumValuesFieldRepointer(mv);// + $Globals$
-					} else {
-						return mv;
-					}
-				} else {
-					redirectStaticMethodProxytoGlobal(mv, name, desc);
-					return mv;
-				}
+				redirectStaticMethodProxytoGlobal(mv, name, desc);
+				return mv;
 			} else {
 				OwnerNameDesc me = new OwnerNameDesc(className, name, desc);
 				if (this.shouldbeForcedPublic.contains(me)) {
@@ -829,7 +905,7 @@ public class Globalizer implements Opcodes {
 	 * StaticMethodProxytoGlobal(MethodVisitor mv) { super(ASM7, mv); } }
 	 */
 
-	private static class EnumValuesFieldRepointer extends MethodVisitor {
+	/*private static class EnumValuesFieldRepointer extends MethodVisitor {
 		public EnumValuesFieldRepointer(MethodVisitor mv) {
 			super(ASM7, mv);
 		}
@@ -848,13 +924,13 @@ public class Globalizer implements Opcodes {
 
 			super.visitFieldInsn(opcode, owner, name, desc);
 		}
-	}
+	}*/
 
 	private class GlobalClassGennerator extends ClassVisitor {
 
 		private final String fromName;
 		private final String globName;
-		private boolean isEnumCls;
+		//private boolean isEnumCls;
 		private final ConcClassUtil clloader;
 		private final HashMap<String, Integer> maxLocalSize;
 		private final HashSet<OwnerNameDesc> methodsWhichWereForcedPublic;
@@ -863,8 +939,13 @@ public class Globalizer implements Opcodes {
 		private String[] ifaces;
 		private String superClass;
 		private List<Pair<String, String>> nonSharedStaticFieldsToCopy;
+		private boolean isActingOnInterface;
 
-		public GlobalClassGennerator(HashSet<String> staticLambdaClasses, ClassVisitor cv, String fromName, String globName, HashMap<String, Integer> maxLocalSize, ConcClassUtil clloader, HashSet<OwnerNameDesc> methodsWhichWereForcedPublic, ArrayList<FieldVisitorHolder> staticFinalVars, List<Pair<String, String>> nonSharedStaticFieldsToCopy) {
+		public GlobalClassGennerator(HashSet<String> staticLambdaClasses, 
+				ClassVisitor cv, String fromName, String globName, 
+				HashMap<String, Integer> maxLocalSize, ConcClassUtil clloader, HashSet<OwnerNameDesc> methodsWhichWereForcedPublic, 
+				ArrayList<FieldVisitorHolder> staticFinalVars, 
+				List<Pair<String, String>> nonSharedStaticFieldsToCopy, boolean isActingOnInterface) {
 			super(ASM7, cv);
 			this.fromName = fromName;
 			this.globName = globName;
@@ -874,10 +955,11 @@ public class Globalizer implements Opcodes {
 			this.staticFinalVars = staticFinalVars;
 			this.staticLambdaClasses = staticLambdaClasses;
 			this.nonSharedStaticFieldsToCopy = nonSharedStaticFieldsToCopy;
+			this.isActingOnInterface = isActingOnInterface;
 		}
 
 		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-			isEnumCls = (access & Opcodes.ACC_ENUM) != 0 && superName.equals("java/lang/Enum");
+			//isEnumCls = (access & Opcodes.ACC_ENUM) != 0 && superName.equals("java/lang/Enum");
 
 			if (fromName.equals(name)) {// TODO: remove this check
 				super.visit(version, ACC_PUBLIC + ACC_SUPER + ACC_STATIC, globName, null, "com/concurnas/bootstrap/runtime/cps/CObject", null);
@@ -1053,7 +1135,7 @@ public class Globalizer implements Opcodes {
 			}
 
 		}
-
+		/*
 		private void createInializerAndSupportMethodsEnum() {
 			// only visitInit - true: when there is something to actually init
 
@@ -1128,7 +1210,7 @@ public class Globalizer implements Opcodes {
 				mv.visitEnd();
 			}
 
-		}
+		}*/
 
 		private boolean visitedClinit = false;
 
@@ -1155,7 +1237,18 @@ public class Globalizer implements Opcodes {
 			mv.visitCode();
 
 			mv.visitVarInsn(ALOAD, 0);
-			mv.visitMethodInsn(INVOKESTATIC, fromName, "clinitOnce$", String.format("(L%s;)Z", globName), false);
+			
+			
+			/*if(isBootstrapClass && staticLambdaClasses != null && staticLambdaClasses.contains(fromName) && fromName.contains("FindOps")) {
+				//call with fake fiber:
+				mv.visitMethodInsn(INVOKESTATIC, "com/concurnas/bootstrap/runtime/cps/Fiber", "getCurrentFiberWithCreate", "()Lcom/concurnas/bootstrap/runtime/cps/Fiber;", false);
+				mv.visitMethodInsn(INVOKESTATIC, fromName, "clinitOnce$", String.format("(L%s;Lcom/concurnas/bootstrap/runtime/cps/Fiber;)Z", globName), this.isActingOnInterface);
+			}
+			else {*/
+				mv.visitMethodInsn(INVOKESTATIC, fromName, "clinitOnce$", String.format("(L%s;)Z", globName), this.isActingOnInterface);
+			//}
+			
+			
 
 			if (!isBootstrapClass) {
 				Label firstCall = new Label();
@@ -1179,11 +1272,11 @@ public class Globalizer implements Opcodes {
 			if (name.equals("<clinit>")) {
 				visitedClinit = true;
 				// steal the contents! - use this in the init method
-				if (isEnumCls) {
-					createInializerAndSupportMethodsEnum();
-				} else {
+				//if (isEnumCls) {
+				//	createInializerAndSupportMethodsEnum();
+				//} else {
 					createInializerAndSupportMethods(true);
-				}
+				//}
 				addEmptyInit();
 
 				addSyncInitMethod();
@@ -1470,7 +1563,7 @@ public class Globalizer implements Opcodes {
 
 					ClassWriter gcw = new ConcClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, clloader.getDetector());// TODO: turn off compute frames?
 
-					GlobalClassGennerator gcg = new GlobalClassGennerator(this.staticLambdaClasses, gcw, clsName, globName, maxlocalMap, clloader, methodsWhichWereForcedPublic, staticFinalVars, staticFieldFinder.nonSharedStaticFieldsToCopy);
+					GlobalClassGennerator gcg = new GlobalClassGennerator(this.staticLambdaClasses, gcw, clsName, globName, maxlocalMap, clloader, methodsWhichWereForcedPublic, staticFinalVars, staticFieldFinder.nonSharedStaticFieldsToCopy, mainTransformation.isInterface);
 
 					cr.accept(gcg, 0);
 					globalizerClasses.put(globName, gcw.toByteArray());

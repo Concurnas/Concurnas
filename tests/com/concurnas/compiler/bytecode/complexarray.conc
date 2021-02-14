@@ -305,7 +305,7 @@ def doings(){
 f int[]? = null
 
 def doings(){
-	one1 = try{[[1 2]  f  ]}catch(e){e.message}
+	one1 = try{[[1 2]  f  ]}catch(e NullPointerException){null}
 	one2 = try{[[1 2] ; f ;  ]}catch(e){e.message}
 	one3 = try{[[1 2] , f, ]}catch(e){e.message}
 

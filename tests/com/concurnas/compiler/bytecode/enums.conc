@@ -763,3 +763,12 @@ def doings(){
 		
 	"" + [one, two, three, one.a, one.b]
 }
+
+~~~~~
+//##35. basic enum should be ok
+def doings(){
+	v = "" + com.concurnas.lang.precompiled.JustAnEnum.values()
+	v2 = {"" + com.concurnas.lang.precompiled.JustAnEnum.values()}!
+	"" + [v, v2]
+}
+

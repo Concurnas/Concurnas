@@ -1,4 +1,3 @@
-
 /*
 from java.lang.Math import *
 
@@ -134,7 +133,6 @@ a, b = 1, 2
 /////////////////////////////////
 
 
-/*
 def sxt1(){
 	ab=2
 	h = x =0
@@ -199,83 +197,16 @@ def doings() String{
 	"ok: " + [sxt1() sxt2() sxt3() sxt4()]
 }
 //fib called wrong first bug
-*/
 
 
 
 
-
-
-
-
-/*
-gpukernel 1 myFunc(global A int[], global B int[], global ret int[]) void {
-	gid = get_global_id(0)
-	ret[gid] = A[gid] + B[gid];
-}
-
-def chooseGPUDeviceGroup(gpuDev gpus.DeviceGroup[], cpuDev gpus.DeviceGroup[]) {
-	if(not gpuDev){//no gpu return first cpu
-		cpuDev[0]
-	}else{//intel hd graphics not as good as nvidea dedicated gpu or ati so deprioritize
-		for(grp in gpuDev){
-			if('Intel' not in grp.platformName){
-				return grp
-			}
-		}
-		gpuDev[0]//intel device then...
-	}
-}
-
-def doings(){
-	gps = gpus.GPU()
-	cpus = gps.getCPUDevices()
-	deviceGrp = chooseGPUDeviceGroup(gps.getGPUDevices(), cpus)
-	device = deviceGrp.devices[0]
-	inGPU1 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
-	inGPU2 = device.makeOffHeapArrayIn<int[]>(int[].class, 10)
-	result = device.makeOffHeapArrayOut<int[]>(int[].class, 10)
-	
-	c1 := inGPU1.writeToBuffer([1 2 3 4 5 6 7 8 9 10])
-	c2 := inGPU2.writeToBuffer([100 200 300 400 500 600 700 800 900 1000])
-	
-	inst = myFunc(inGPU1, inGPU2, result)
-	compute := device.exe(inst, [10], c1, c2)//rest param detault
-	//remove null
-	
-	ret = result.readFromBuffer(compute)
-	
-	del inGPU1, inGPU2, result
-	del c1, c2, compute
-	del deviceGrp, device
-	del inst
-	
-	
-	'nice: ' + ret
-}
-*/
-
-
-
-/*
-def doings(){
-	"" + com.concurnas.compiler.ast.GPUVarQualifier.values()
-}
-*/
-
-
-def doings(){
-	"" + com.concurnas.lang.precompiled.JustAnEnum.values()
-}
-
-
-//ugly
+//where is Fiberizer version needed
 
 
 
 
 /*
-
 from com.concurnas.lang.precompiled import MethodPlusHelper
 
 def doings() {
@@ -288,52 +219,12 @@ def doings() {
 //complains about fiber static lambda calls
 */
 
-/*
 
-from com.concurnas.lang.offheap.storage import OffHeapMapDisk
-from com.concurnas.runtime import ConcurnasClassLoader
-from java.util import HashMap
-from com.concurnas.lang.precompiled import UseasClassLoader
 
-11_meg = 11*1024*1024
 
-class MyClass(x String, y String){
-	override toString() => "MyClass " + super.getClass().name + ' '  + [x,y]
-}
 
-class MyClass2(x String, ay String){
-	override toString() => "MyClass2 " + super.getClass().name + ' '  + [x,ay]
-}
-
-def doings(){
-
-	myObj = MyClass('hi', 'there')
-
-	path = try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
-		engine.start()
-		engine.setRemoveOnClose(false);
-		engine['one']=myObj
-		engine.getPath()
-	}
-	
-	mycl = UseasClassLoader()
-	mycl.useas(MyClass2.class.name, MyClass.class.name)
-	
-	try(engine = new OffHeapMapDisk<String, Object>(11_meg)){
-		engine.setRemoveOnClose(true);
-		engine.Classloader = mycl
-		engine.setPath( path)
-		engine.start()
-		got = engine.get('one'); 
-		
-		""+got
-	}	
-}
-//opcodes?
-*/
 
 /*
-
 from com.concurnas.lang.precompiled import RefHelper
 def tt() => true
 def doings() String{
@@ -352,127 +243,25 @@ def doings() String{
 	return "" + [z, z2] //+ [ null == ref3, ref1 == ref3       ]
 }
 //null wtf
-*/
-
-/*
-
-something=true
-
-def doings(){
-	a = new list()
-	b list = a
-	
-	a = list<String>()
-	b.add("ok")
-		
-	"res: " + (a, b)
-} 
-*/
-
-/*
-def doings(){
-	something list//uninitialized
-	something = list()
-	something add 'nice'
-	"res: " + something
-}
-*/
-
-/*
-
-/~/##MODULE com.myorg.langs
-from com.concurnas.lang.LangExt import LanguageExtension, Context, SourceLocation
-from com.concurnas.lang.LangExt import Result, IterationResult, ErrorOrWarning, Class, Method
-from java.util import List, ArrayList
-
-class LocationExplorer  ~ LanguageExtension{
-	source String = ""
-		
-	def initialize(line int, col int, location SourceLocation, source String) Result{
-		this.source =  source
-		new Result(new list<ErrorOrWarning>(), new list<ErrorOrWarning>())
-	}
-	
-	def iterate(ctx Context) IterationResult{
-		errors = new list<ErrorOrWarning>();
-		ret = "'" + source + "' + '"
-		for( loc in ctx.getNesting() ){
-			
-			if(loc is com.concurnas.lang.LangExt.Class){
-				ret += (loc as com.concurnas.lang.LangExt.Class).name
-			}else if(loc is com.concurnas.lang.LangExt.Method){
-				ret += (loc as com.concurnas.lang.LangExt.Method).name
-			}
-			
-			ret += " "
-			
-		}
-		ret += "'"
-		
-		new IterationResult(errors, new list<ErrorOrWarning>(), ret)
-	}
-}
-
-
-/~/##MODULE
-//from com.concurnas.tests.helpers.langExt using LocationExplorer
-from com.myorg.langs using LocationExplorer
-
-class MyClass{
-	override hashCode() => 1
-	override equals(an Object) => false
-	
-	def myFunc(){
-		def nestfunc() String {
-			return LocationExplorer|| hey ||
-		}
-		
-		nestfunc()
-	}
-	
-}
-
-def doings(){
-	mc = MyClass()
-	"ok: " + mc.myFunc()
-}
-
 
 */
 
-/*
-from com.concurnas.lang.precompiled import HoldingAStaticVarWithNonFinal
-
-class LeGetter{
-	def getter(){
-		HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2
-	}	
-}
 
 
-def doings(){
-	HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2=900
-	lg = LeGetter()
-	done = {got = lg.getter(); got}!
-	"" + [HoldingAStaticVarWithNonFinal.CL_INVALID_VALUE2, done]
-}
+//MORE things here
 
-//expect: [900, 900]
-*/
 
-/*
-from com.concurnas.lang.precompiled import HasNoNullItems
 
-def doings(){
-	alist list<String> = ['','']
-	
-	gotNull2 = HasNoNullItems.addToListLGNULL<String>(alist, //ok
-			''//ok
-	)
-	
-	"fine"
-} 
-*/
+
+
+
+
+
+
+
+
+
+
 
 /*
 
@@ -1831,3 +1620,5 @@ def doings(){
 //python -m SimpleHTTPServer
 
 //@time factorial(big(170)) 
+
+//todo remove arraylength mutator

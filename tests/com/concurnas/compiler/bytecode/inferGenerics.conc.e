@@ -320,3 +320,15 @@ Holder(100)
 ~~~~~
 //##81. data utils enumerate
 [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]
+
+~~~~~
+//##82. simple via superclass
+res: [ok]
+
+~~~~~
+//##83. simple via superclass typedef generics
+res: [ok]
+
+~~~~~
+//##84. simple via superclass typedef generics 2
+res: ([], [ok])

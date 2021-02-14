@@ -83,7 +83,7 @@ ok
 
 ~~~~~
 //##22. null gotcha
-java.lang.NullPointerException
+class java.lang.NullPointerException
 
 ~~~~~
 //##23. this is fine

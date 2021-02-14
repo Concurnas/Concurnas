@@ -75,7 +75,7 @@ k 64, 64.0
 
 ~~~~~
 //##20. annotation was having some reflection bother
-[copy:[]~[ ;  ; ], copy:[]~[ ;  ; ], fromBinary:[@Uninterruptible]~[ ; ], init:[]~[ ;  ;  ;  ; ], leFunxc:[]~[@AnnotOneArg(name = hi) ; ], metaBinary:[@Uninterruptible]~[], toBinary:[@Uninterruptible]~[ ; ]]
+[copy:[]~[ ;  ; ], copy:[]~[ ;  ; ], fromBinary:[@Uninterruptible]~[ ; ], getGlobalDependancies$:[]~[], init:[]~[ ;  ;  ;  ; ], leFunxc:[]~[@AnnotOneArg(name = hi) ; ], metaBinary:[@Uninterruptible]~[], toBinary:[@Uninterruptible]~[ ; ]]
 
 ~~~~~
 //##21. annotation applied to method parameters

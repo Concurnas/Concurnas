@@ -1406,6 +1406,10 @@ public class NamedType  extends AbstractType {
 	@Override
 	public final String getBytecodeType()
 	{
+		if(this.astredirect != null) {
+			return this.astredirect.getBytecodeType();
+		}
+		
 		String xxx =  getBytecodeType(true);
 		return xxx;
 	}
@@ -1426,7 +1430,6 @@ public class NamedType  extends AbstractType {
 		/*if(unresolveableLocalType){
 			return this.namedType;
 		}*/
-		
 		StringBuilder sb = new StringBuilder();
 		
 		NamedType upperBound = getOrigonalGenericTypeUpperBoundRaw();

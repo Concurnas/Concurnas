@@ -1,3 +1,11 @@
+//##0. check enum works
+[[global local constant private], [global local constant private]]
+
+~~~~~
+//##00. check enum works
+[[global local constant private], [global local constant private]]
+
+~~~~~
 //##1. find gpu devices
 true
 

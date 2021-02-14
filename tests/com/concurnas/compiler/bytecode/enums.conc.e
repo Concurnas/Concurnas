@@ -136,3 +136,7 @@ ONE(12, 13)
 ~~~~~
 //##34. as above so below 
 [ONE(12, 13), TWO(22, 33), THREE(11, 12), 12, 13]
+
+~~~~~
+//##35. basic enum should be ok
+[[global local constant private], [global local constant private]]

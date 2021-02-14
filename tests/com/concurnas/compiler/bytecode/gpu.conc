@@ -1,3 +1,19 @@
+//##0. check enum works
+def doings(){
+	v = "" + com.concurnas.lang.precompiled.JustAnEnum.values()
+	v2 = {"" + com.concurnas.lang.precompiled.JustAnEnum.values()}!
+	"" + [v, v2]
+}
+
+~~~~~
+//##00. check enum works
+def doings(){
+	v = "" + com.concurnas.lang.precompiled.JustAnEnum.values()
+	v2 = {"" + com.concurnas.lang.precompiled.JustAnEnum.values()}!
+	"" + [v, v2]
+}
+
+~~~~~
 //##1. find gpu devices
 def doings(){
 	gps = gpus.GPU()
