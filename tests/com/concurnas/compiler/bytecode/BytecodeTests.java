@@ -47,6 +47,7 @@ import com.concurnas.compiler.visitors.PrintSourceVisitor;
 import com.concurnas.compiler.visitors.Utils;
 import com.concurnas.runtime.ClassPathUtils;
 import com.concurnas.runtime.ConcurnasClassLoader;
+import com.concurnas.runtime.Cpsifier;
 import com.concurnas.runtime.MockFileWriter;
 import com.concurnas.runtime.Pair;
 
@@ -928,7 +929,8 @@ public class BytecodeTests extends TestCase implements Opcodes {
 
 	public static class SharedConcClassLoader extends ConcurnasClassLoader{
 		public SharedConcClassLoader(){
-			super(ClassPathUtils.getSystemClassPathAsPaths(), ClassPathUtils.getInstallationPath());
+			super(ClassPathUtils.getSystemClassPathAsPaths(), ClassPathUtils.getInstallationPath(), null, new Cpsifier());
+			this.cpsifier.staticLambdaClasses = this.getStaticLambdaClasses();
 		}
 	}
 	

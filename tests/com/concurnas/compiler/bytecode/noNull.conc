@@ -61,8 +61,8 @@ def doings(){
 	try{
 		g = a??
 		'error'
-	}catch(e){
-		'npe: ' + e
+	}catch(e NullPointerException){
+		'npe: java.lang.NullPointerException '
 	}
 }
 
@@ -131,7 +131,7 @@ def doings(){
 }
 
 ~~~~~
-//##9. null check on unknown type where known expected
+//##9. null check on unknown type where known expected 
 def takesString(aString String){
 	
 }

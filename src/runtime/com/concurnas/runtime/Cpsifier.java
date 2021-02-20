@@ -50,7 +50,7 @@ public class Cpsifier {
 
 
 	private ConcClassUtil clloader;
-	private HashSet<String> staticLambdaClasses;
+	public HashSet<String> staticLambdaClasses;
 
 	public void setConcurnasClassLoader(ConcClassUtil clloader) {
 		this.clloader = clloader;
@@ -61,13 +61,13 @@ public class Cpsifier {
 		this.staticLambdaClasses = findStaticLambdas;
 	}
 	
-	public Cpsifier(ConcClassUtil clloader) {
+	/*public Cpsifier(ConcClassUtil clloader) {
 		this(clloader, clloader.getStaticLambdaClasses());
-	}
+	}*/
 	
-	public Cpsifier(HashSet<String> findStaticLambdas) {
+	/*public Cpsifier(HashSet<String> findStaticLambdas) {
 		this.staticLambdaClasses = findStaticLambdas;
-	}
+	}*/
 
 	public Cpsifier() {
 		
@@ -191,6 +191,7 @@ public class Cpsifier {
 										
 					//post fiber...
 					code = AddDefaultMethodsToInterfaceForFiber.transform(code, clloader);
+					code = SLCFiberFieldRepointer.transform(code, clloader, staticLambdaClasses, opOnBootstrap);
 
 					/*
 					  if (namea.contains("bytecodeSandbox")) {

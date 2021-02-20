@@ -35,7 +35,7 @@ ok
 
 ~~~~~
 //##9. null check on unknown type where known expected
-ok[ok: java.lang.NullPointerException, ok: java.lang.NullPointerException, ok: java.lang.NullPointerException, ok: java.lang.NullPointerException, ok: no check needed]
+ok[ok: class java.lang.NullPointerException, ok: class java.lang.NullPointerException, ok: class java.lang.NullPointerException, ok: class java.lang.NullPointerException, ok: no check needed]
 
 ~~~~~
 //##10.null check on unknown type field
@@ -91,7 +91,7 @@ ok[1 3 2]
 
 ~~~~~
 //##23. vectorized non null assertion operator
-ok[[1, 4, 2] 1 4 2 java.lang.NullPointerException]
+ok[[1, 4, 2] 1 4 2 class java.lang.NullPointerException]
 
 ~~~~~
 //##24. null safe calls for list elements

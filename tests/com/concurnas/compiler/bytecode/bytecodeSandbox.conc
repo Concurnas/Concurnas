@@ -133,91 +133,24 @@ a, b = 1, 2
 /////////////////////////////////
 
 
-def sxt1(){
-	ab=2
-	h = x =0
-	try{
-		while(ab++ < 2){
-			 h=100
-		}
-		//j=99999
-	}
-	catch(e){
-		x=10
-	}//finally{x=666}
-	(h, x)
+def addsToList(inst list<String>){
+	inst.add("hey there")
 }
 
-def sxt2(){
-	ab=2
-	h = x =0
-	try{
-		while(ab++ < 2){
-			 h=100
-		}
-		j=99999
-	}
-	catch(e){
-		x=10
-	}//finally{x=666}
-	(h, x)
+def doings(){
+	//myset = list()
+	mylist = new list()
+	
+	addsToList(mylist)
+		
+	"res: " + mylist
 }
 
-def sxt3(){
-	ab=2
-	h = x =0
-	try{
-		while(ab++ < 2){
-			 h=100
-		}
-		//j=99999
-	}
-	catch(e){
-		x=10
-	}finally{x=666}
-	(h, x)
-}
-
-def sxt4(){
-	ab=2
-	h = x =0
-	try{
-		while(ab++ < 2){
-			 h=100
-		}
-		j=99999
-	}
-	catch(e){
-		x=10
-	}finally{x=666}
-	(h, x)
-}
-
-def doings() String{
-	"ok: " + [sxt1() sxt2() sxt3() sxt4()]
-}
-//fib called wrong first bug
 
 
 
 
-//where is Fiberizer version needed
 
-
-
-
-/*
-from com.concurnas.lang.precompiled import MethodPlusHelper
-
-def doings() {
-	mph1 = MethodPlusHelper(b=3, a=2)
-	mph2 = MethodPlusHelper(2,3)
-	mph3 = MethodPlusHelper(b=3,2)
-	mph4 = MethodPlusHelper(3,a=2)
-	"" + [mph1, mph2, mph3, mph4]
-}
-//complains about fiber static lambda calls
-*/
 
 
 
@@ -251,17 +184,89 @@ def doings() String{
 //MORE things here
 
 
+/*
+from com.concurnas.lang.dist import RemoteServer
+from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
 
 
+def doings(){
+	clientLogs = LogCapture()
+	serverLogs = LogCapture()
+	
+	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
+	
+	rm = Remote('localhost', loggerprov = clientLogs)
+	
+	try{
+		remServer.startServer()
+		ans = {1+1234}!(rm.onfailRetry())
+		"" + [ans, 'Sent: sREQUESTDEPENDENCY' in serverLogs]
+	}finally{
+		rm.close()
+		remServer.close()
+	}
+}
+//logger?
+*/
 
 
+/*
+def doings(){
+	wtf1 = [Integer(1) Integer(2); [null]]
+	wtf2 = [Integer(1) Integer(2); null]
+	"" +[wtf1, wtf2]//+ [wtf, wtf2]
+}
+*/
 
+/*
+class HasOne{
+	public instance list<String>?
+	override equals(an Object) => false
+	override hashCode() => 1
+}
 
+def doings(){
+	ho = new HasOne()
+	xyz = new list()
+	ho.instance = xyz
+	
+	"res: " + try{
+		ho.instance?.iterator()?.next()//add("hey there")
+		'err'
+	}catch(e){
+		e
+	}
+}
+*/
 
+/*
+from com.concurnas.lang.precompiled import RefHelper
+def tt() => true
+def doings() String{
+	ref3 int:? = RefHelper.getNullRef2(): if tt() else null
+	ref4 int:? = RefHelper.getNullRef2(): if tt() else null
+	
+	z = try{
+	 g=[null &== ref3, ref3 &== null]
+	 false
+	}catch(e NullPointerException){
+		true //we expect a npe
+	}
+	
+	z2 = [null &== ref3:, ref3: &== null]
+	//both value and raw thing are null
+	return "" + [z, z2] //+ [ null == ref3, ref1 == ref3       ]
+}
+*/
 
+/*
+from com.concurnas.tests.helpers.distHelpers import EverythingToParentButClassLoader
 
-
-
+def doings(){
+	ebcl = EverythingToParentButClassLoader()
+	"ok"
+}
+*/
 
 /*
 
@@ -1621,4 +1626,4 @@ def doings(){
 
 //@time factorial(big(170)) 
 
-//todo remove arraylength mutator
+//todo remove hasArrayLevels mutator

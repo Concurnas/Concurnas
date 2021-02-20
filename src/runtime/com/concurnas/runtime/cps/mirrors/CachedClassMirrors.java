@@ -653,24 +653,6 @@ class SimpleClassDefProperties extends ClassVisitor implements ClassMirror {
 	        if (fv != null) {
 	            fv.visitEnd();
 	        }
-	        
-	       /* if(!this.isShared) {
-	        	if(this.desc.startsWith("L")) {
-	        		String className = this.desc.substring(1,  this.desc.length()-1).replace("/", ".");
-	        		try {
-						for(String x : ccm.classForName(className).getAnnotations()) {
-							if(x.equals("com/concurnas/lang/Shared")) {
-								this.isShared=true;
-								break;
-							}
-						}
-					} catch (Throwable e) {
-					}
-	        		
-	        	}
-	        	
-	        }*/
-	        
 	        fields.add(new Thruple<String, String, Boolean>(this.name, this.desc, this.isShared));
 	    }
 		

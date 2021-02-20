@@ -39,7 +39,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 	private Detector theDetector = new Detector(new CachedClassMirrors(this));
 	private ConcurnasClassLoader parent = null;
 
-	private Cpsifier cpsifier;
+	protected Cpsifier cpsifier;
 	
 	private static final HashSet<String> dontConc = new HashSet<String>();
 	static {//this may need some tweaking at some point, i.e. when running lang with all runtime classses in a primordial package
@@ -84,7 +84,7 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 		this(null, null, null);
 	}
 	
-	private ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent, Cpsifier cpsifier){
+	protected ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent, Cpsifier cpsifier){
 		this.classpath=classpath;//TODO: extend this with more java like functionality? + all your security etc?
 		this.primordialClassPath=primordialClassPath;//TODO: this is a bit of a hack and can be removed from release? - just so that we can figure out what consitutes a primoridal at runtime
 		loadClasses();
@@ -95,12 +95,13 @@ public class ConcurnasClassLoader  extends ClassLoader implements ConcClassUtil 
 	
 	public ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent){
 		this(classpath, primordialClassPath, parent, new Cpsifier());
+		this.cpsifier.staticLambdaClasses = this.getStaticLambdaClasses();
 	}
 	
 
-	public ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent, HashSet<String> findStaticLambdas){
+	/*public ConcurnasClassLoader(Path[] classpath, Path[] primordialClassPath, ConcurnasClassLoader parent, HashSet<String> findStaticLambdas){
 		this(classpath, primordialClassPath, parent, new Cpsifier(findStaticLambdas));
-	}
+	}*/
 
 	
 	private void loadClasses(){
