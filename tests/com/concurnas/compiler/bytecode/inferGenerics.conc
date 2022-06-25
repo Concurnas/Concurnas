@@ -404,7 +404,7 @@ def doings(){
 def doings(){
 	xyz = new list()
 	
-	zz list<list<String>> = [xyz, xyz]
+	zz list<java.util.ArrayList<String>> = [xyz, xyz]
 	
 	zz[0].add("hey there")
 		
@@ -419,7 +419,7 @@ def doings(){
 def doings(){
 	xyz = new list()
 	
-	zz list<list<String>> = [xyz,]
+	zz list<java.util.ArrayList<String>> = [xyz,]
 	
 	zz[0].add("hey there")
 		

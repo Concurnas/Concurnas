@@ -675,7 +675,7 @@ All refs are subtypes of the class: \lstinline{com.concurnas.bootstrap.runtime.r
 	\item \lstinline{def close() void} - close a ref, no further values may be assigned.
 	\item \lstinline{def isClosed() boolean} - returns true if a ref has been closed (non blocking method).
 	\item \lstinline{def setException(e Throwable) boolean} - set an exception on a ref.
-	\item \lstinline{def hasException() boolean} - returns true if a ref has been closed (non blocking method).
+	\item \lstinline{def hasException() boolean} - returns true if a ref has an exception set on it (non blocking method).
 \end{itemize}
 
 \begin{sloppypar}
@@ -714,17 +714,17 @@ The ref variables themselves may be reassigned by ensuring that the assignment o
 \begin{lstlisting}
 aref int: = 100
 bref int: = 200
-assert aref <> bref  //values not equal
-assert aref: <> bref://refs not equal
+assert aref <> bref  // value s not equal
+assert aref: <> bref: // refs not equal
 
-aref = bref //assign the value of bref to aref
-assert aref == bref  //values equal!
-assert aref: <> bref://refs not equal
+aref = bref // assign the value of bref to aref
+assert aref == bref  // values equal!
+assert aref: &<> bref: // refs not equal
 
 
-aref := bref //assign the ref itself: bref to aref
-assert aref == bref  //values equal!
-assert aref: == bref://refs equal!
+aref := bref // assign the ref itself: bref to aref
+assert aref == bref  // values equal!
+assert aref: &== bref: // refs equal!
 \end{lstlisting}
 
 \subsection{Refs are reified types}
@@ -849,8 +849,8 @@ xx int:RefArray = [Integer(1) 2 3 4]
 xx[0] := 99
 elm = xx[3]
 	
-//xx == [99 2 3 4]
-//elm == 4
+// xx == [99 2 3 4]
+// elm == 4
 \end{lstlisting}
 
 An alternative to RefArrays are arrays of refs.
@@ -860,13 +860,13 @@ An alternative to RefArrays are arrays of refs.
 The Concurnas ref syntax supports nesting, i.e. refs of refs. Though this feature is of limited usability there are occasions where it can be incredibly useful. The principles are straightforward. Let's look at some examples:
 
 \begin{lstlisting}
-aref1 int:: //declare a ref of a ref
-aref2 int:: = 53 //declare and assign a value to the ref of a ref
-aref3 = 53:: //infer type as ref of ref: int::
+aref1 int:: // declare a ref of a ref
+aref2 int:: = 53 // declare and assign a value to the ref of a ref
+aref3 = 53:: // infer type as ref of ref: int::
 
-anint1 int = aref2 //extract value helf by ref of ref
-anint2 int = aref2::get() //extract value helf by ref of ref
-nestedref int: = aref2:get()//extract ref held by ref
+anint1 int = aref2 // extract value helf by ref of ref
+anint2 int = aref2::get() // extract value helf by ref of ref
+nestedref int: = aref2:get() // extract ref held by ref
 \end{lstlisting}
 
 Above we can see that when we declare nested refs we need only append the ref operator to the element we are nesting. In the case of a type this is: \lstinline{int::} and when calling methods on nested refs: \lstinline{aref2:get()}. Concurnas will automatically ref/unref a value to the appropriate level of nesting in cases where possible:
@@ -875,14 +875,14 @@ Above we can see that when we declare nested refs we need only append the ref op
 def expectsRefOfRef(arefofref int::) => arefofref
 
 aref1 = 12:
-expectsRefOfRef(aref1)//equvilent to: aref1: (which is of type int::)
+expectsRefOfRef(aref1) // equvilent to: aref1: (which is of type int::)
 \end{lstlisting}
 
 Refs of custom refs, and vice verse may be created and used in a similar manner:
 \begin{lstlisting}
 class CustomRef<X>(type Class<?>[], ~extraArg int) < com.concurnas.runtime.ref.Local<X>(type)
 
-custRefOfRef int::CustomRef = 16//CustomRef holding a ref of type int
+custRefOfRef int::CustomRef = 16 // CustomRef holding a ref of type int:
 \end{lstlisting}
 
 

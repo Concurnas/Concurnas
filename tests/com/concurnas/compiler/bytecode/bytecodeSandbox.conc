@@ -1,4 +1,119 @@
 /*
+def sayhi() void {
+	System.out.println("hi")
+}
+
+saidhi = sayhi()!;
+
+await(saidhi)
+
+//above is inf loop in repl
+
+*/
+
+/*
+
+try this in repl:
+
+{12/0}! - bug in constant folding
+
+*/
+
+/*
+
+
+//freeze in repl:
+
+pool = new concurrent.DedicatedThreadWorkerPool();
+added = {3434*454}!(pool);
+// ... other work ...
+pool.terminate(); // finished with the pool of workers
+
+
+
+*/
+
+
+/*
+
+repl doesnt like this:
+
+class CustomRef<X>(type Class<?>[], ~extraArg int) < com.concurnas.runtime.ref.Local<X>(type)
+
+inst1 = int:CustomRef(12);
+inst1 = 9
+g = inst1:extraArg
+//why npe?
+
+*/
+
+/*
+
+import com.concurnas.runtime.ref.RefArray 
+
+xx int:RefArray = [Integer(1) 2 3 4]
+xx[0] := 99
+elm = xx[3]
+	
+assert xx == [Integer(99) 2 3 4]
+assert elm == 4
+//should be ok
+
+*/
+
+/*
+
+repl blows up label allocator:
+
+def factorial(n){
+    fact = 1
+    for(num in 2 to n+1){
+        fact *= num
+    }
+    fact
+}
+
+
+//still continues to complain even after function is overrriden with beter version
+
+*/
+
+/*
+
+different behavour when executing:
+
+
+
+def maybeDivByZero(a int, b int) => a/b
+
+res = maybeDivByZero(45, 0)!;
+
+try{
+	deref = res;
+} catch(e){
+	System.out.println("divide by zero attempted!");
+}
+
+on one go
+
+As opposed to:
+
+def maybeDivByZero(a int, b int) => a/b
+
+res = maybeDivByZero(45, 0)!;
+// then:
+try{
+	deref = res;
+} catch(e){
+	System.out.println("divide by zero attempted!");
+}
+
+ in the repl
+*/
+
+
+
+/*
 from java.lang.Math import *
 
 coss = Math.cos&
@@ -133,29 +248,175 @@ a, b = 1, 2
 /////////////////////////////////
 
 
-def addsToList(inst list<String>){
-	inst.add("hey there")
+
+/*
+
+//requires two passes, can it be done in one?
+class TakesList<X>(~takes list<X>){
+	override equals(an Object) => false
+	override hashCode() => 1
+	override toString() => "nice: " + takes
 }
 
 def doings(){
-	//myset = list()
-	mylist = new list()
+	mylist = list()
+	has TakesList<String> =  \
+		new TakesList(mylist)
+	has.takes.add("nice")
+	"ok: " + has
+}
+
+*/
+
+def doings() => "ok"
+
+
+
+
+//missing qualifiers
+
+
+/*
+def doings(){
+	xyz = new list()
 	
-	addsToList(mylist)
+	zz list<list<String>> = [xyz,]
+	
+	zz[0].add("hey there")
 		
-	"res: " + mylist
+	"res: " + zz
+} 
+*/
+
+/*
+def mything(ma list){
+	ma.add("lovely")
+}
+
+def doings(){
+	something = list()
+	dw = mything(something)
+	"res: " + something
+}
+*/
+
+
+/*
+def doings(){
+	something = list()
+	def mything(ma list){
+		ma.add("lovely")
+	}
+	dw = mything(something)
+	"res: " + something
+}
+*/
+
+
+
+
+//repl exception bugs are easy to fix...
+
+//run repl tests
+
+
+/*
+//reflective access bug
+
+startmdt = new java.util.Date();
+System.out.println(startmdt);
+
+myaa=int[10]
+myaa2=int[100]
+myaa3=int[100000]
+assignedmdt = new java.util.Date();
+System.out.println(assignedmdt);
+
+def gcd(x int){
+  y = 3
+  while(y){
+    (x, y) = (y, x mod y)
+  }
+  x
+}
+
+sync{
+  for(x in 101 to 105){
+    System.out.println("hello world {x} => {gcd(x)}")!
+  }
+}
+
+finishedmdt = new java.util.Date();
+System.out.println(finishedmdt);
+
+*/
+
+
+/*
+//shoudl be ok:
+
+def summe(a list<int>){
+      a * a
+    }
+
+summe [1, 2, 3, 4, 5]
+
+
+*/
+
+/*
+//cannot find vect?
+
+def summer(a list<int>){
+	def products(some list<int>){
+		running =1
+		for(s in some){
+			running *= s
+			continue running
+		}
+	}
+	left = list(a)
+	left.add(0,1)
+	products(left) * products(list(reversed(left)))
+
 }
 
 
+System.out.println(summer([1,2,3,4,5]))
+
+*/
+
+/*
+def summer(a list<int>){
+	def products(some list<int>){
+		running =1
+		for(s in some){
+			running *= s
+			continue running
+		}
+	}
+	left = list(a)
+	left.add(0,1)
+	left.remove(a.size()-1)
+	left = products(left)
 
 
+	left
+
+}
 
 
+System.out.println(summer([1,2,3,4,5]))
+//list complain?
+*/
 
+//problem with loading gpu twice...
+/*
+java.lang.UnsatisfiedLinkError: no JOCL_2_0_1-windows-x86_64 in java.library.path: C:\Program Files\Java\jdk-15.0.1\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:/Program Files/Java/jdk1.8.0_221/bin/../jre/bin/server;C:/Program Files/Java/jdk1.8.0_221/bin/../jre/bin;C:/Program Files/Java/jdk1.8.0_221/bin/../jre/lib/amd64;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.2\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.2\libnvvp;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\libnvvp;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\MiKTeX 2.9\miktex\bin\x64\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Java\jdk-14\bin;C:\Users\jason\AppData\Local\Programs\Python\Python38;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Calibre2\;C:\Program Files (x86)\scala\bin;C:\Program Files\PuTTY\;C:\Program Files (x86)\Gpg4win\..\GnuPG\bin;C:\Program Files\nodejs\;C:\Users\jason\AppData\Local\Programs\Python\Python38\Scripts;C:\Program Files\NVIDIA Corporation\Nsight Compute 2019.5.0\;C:\Program Files\Concurnas\bin;C:\include\gradle-6.5\bin;C:\mingw-w64\i686-8.1.0-posix-dwarf-rt_v6-rev0\mingw32\bin;C:\Program Files (x86)\IVI Foundation\VISA\WinNT\Bin;C:\Program Files\leJOS EV3\bin;C:\Program Files\apache-maven-3.6.3\bin;C:\Program Files\Git\cmd;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\jason\AppData\Local\Microsoft\WindowsApps;C:\Users\jason\AppData\Local\GitHubDesktop\bin;C:\Users\jason\AppData\Local\Microsoft\WindowsApps;C:\Users\jason\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\jason\AppData\Local\atom\bin;C:\Users\jason\AppData\Roaming\npm;C:\Users\jason\eclipse\rcp-2019-09\eclipse;;.
+	
+*/
 
-
-
-
+//MORE things here
 
 /*
 from com.concurnas.lang.precompiled import RefHelper
@@ -176,68 +437,32 @@ def doings() String{
 	return "" + [z, z2] //+ [ null == ref3, ref1 == ref3       ]
 }
 //null wtf
-
 */
 
 
 
-//MORE things here
+
 
 
 /*
-from com.concurnas.lang.dist import RemoteServer
-from com.concurnas.tests.helpers.distHelpers import LogCapture, EverythingToParentButClassLoader
+def tt() => true
 
+s1 String:? = "ok" if tt() else null //ref itself is nullable
+s2 := "ok" if tt() else null //contents is nullable
+s3 String?: = "ok" if tt() else null //contents is nullable
+
+s2 := null//cannot set this to null as ref itself is not nullable
+s3 := null//cannot set this to null as ref itself is not nullable
 
 def doings(){
-	clientLogs = LogCapture()
-	serverLogs = LogCapture()
-	
-	remServer = RemoteServer(loggerprov = serverLogs, classLoader = EverythingToParentButClassLoader())
-	
-	rm = Remote('localhost', loggerprov = clientLogs)
-	
-	try{
-		remServer.startServer()
-		ans = {1+1234}!(rm.onfailRetry())
-		"" + [ans, 'Sent: sREQUESTDEPENDENCY' in serverLogs]
-	}finally{
-		rm.close()
-		remServer.close()
-	}
+	"" + [s1?.length(), 
+	s2?.length(),
+	s3?.length()]
 }
-//logger?
+//this does not compile
 */
 
 
-/*
-def doings(){
-	wtf1 = [Integer(1) Integer(2); [null]]
-	wtf2 = [Integer(1) Integer(2); null]
-	"" +[wtf1, wtf2]//+ [wtf, wtf2]
-}
-*/
-
-/*
-class HasOne{
-	public instance list<String>?
-	override equals(an Object) => false
-	override hashCode() => 1
-}
-
-def doings(){
-	ho = new HasOne()
-	xyz = new list()
-	ho.instance = xyz
-	
-	"res: " + try{
-		ho.instance?.iterator()?.next()//add("hey there")
-		'err'
-	}catch(e){
-		e
-	}
-}
-*/
 
 /*
 from com.concurnas.lang.precompiled import RefHelper
@@ -259,14 +484,38 @@ def doings() String{
 }
 */
 
+
+
 /*
-from com.concurnas.tests.helpers.distHelpers import EverythingToParentButClassLoader
+from com.concurnas.lang.pulsar import *
+from java.time import Duration
+from java.util.concurrent import TimeUnit
 
 def doings(){
-	ebcl = EverythingToParentButClassLoader()
-	"ok"
+	pp Pulsar = new RealtimePulsar()
+	
+	beenCalled1 boolean:
+		
+	waite := pp.after(Duration.ofSeconds(2))
+	
+	waite.close()
+	TimeUnit.SECONDS.sleep(2)
+	waite2 := pp.after(Duration.ofSeconds(2))
+	TimeUnit.SECONDS.sleep(2)
+	waite2.close()
+	
+	
+	waite3 := pp.after(Duration.ofSeconds(2))
+	every(waite3){
+		beenCalled1 = true
+	}
+	
+	"called: " + [beenCalled1, waite3:isClosed()]
 }
+//null root?
 */
+
+
 
 /*
 
@@ -276,13 +525,26 @@ def doings(){
 
 */
 
-/*
-
-*/
 
 /*
 
 */
+
+
+/*
+
+*/
+
+
+/*
+
+*/
+
+
+/*
+
+*/
+
 
 
 
@@ -669,6 +931,28 @@ better error formatting?!
 check this section of the book is correctly written:
 
 Module level state
+
+
+*/
+
+
+/*
+conc> System err println "hi there"
+hi there
+$6 ==> java.io.PrintStream@3cdf399a
+
+//repl in the above case should not return a PrintStream
+
+*/
+
+
+/*
+//blows up the repl:
+
+a int:;
+a = {12 + 23}!;
+await(a)
+//oom!
 
 
 */
@@ -1614,6 +1898,17 @@ def printx(formatString String, items Object...){
 def doings(){
 	"ok " + printx("something %s %s", "another", "another")
 }
+
+
+*/
+
+/*
+//repl bug:, this should be just one error...?
+
+conc> a + 3
+|  ERROR 1:0 Expression cannot appear on its own line
+|  ERROR 1:0 a cannot be resolved to a variable
+
 
 
 */

@@ -131,17 +131,17 @@ x23elvischecksandvoidnotapproperiate.conc line 13:8 unexpected type: void for no
 
 ~~~~~
 //##24. HasNoNullItems - test @NoNull annoation
-x24HasNoNullItemstest@NoNullannoation.conc line 8:32 Argument 1 passed to method (of addToList) can be null (java.util.ArrayList<java.lang.String>?), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 8:32 Argument 1 passed to method (of addToList) can be null (java.util.List<java.lang.String>?), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 9:3 Argument 2 passed to method (of addToList) can be null (null), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 11:1 Assignment can be null, but assignment type is not nullable
-x24HasNoNullItemstest@NoNullannoation.conc line 13:35 Argument 1 passed to method (of addToListLG) can be null (java.util.ArrayList<java.lang.String>?), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
+x24HasNoNullItemstest@NoNullannoation.conc line 13:35 Argument 1 passed to method (of addToListLG) can be null (java.util.List<java.lang.String>?), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 14:3 Argument 2 passed to method (of addToListLG) can be null (null), but method argument type([java.util.List<java.lang.String>, java.lang.String]) is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 16:1 Assignment can be null, but assignment type is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 35:1 Assignment can be null, but assignment type is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 41:1 Assignment can be null, but assignment type is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 48:1 Assignment can be null, but assignment type is not nullable
 x24HasNoNullItemstest@NoNullannoation.conc line 53:1 Assignment can be null, but assignment type is not nullable
- 
+  
 ~~~~~
 //##25. HasNoNullItems - test @NoNull annoation fields
 x25HasNoNullItemstest@NoNullannoationfields.conc line 8:2 Assignment can be null, but assignment type is not nullable

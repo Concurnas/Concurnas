@@ -131,7 +131,7 @@ def doings(){
 }
 
 ~~~~~
-//##9. null check on unknown type where known expected 
+//##9. null check on unknown type where known expected
 def takesString(aString String){
 	
 }

@@ -513,16 +513,32 @@ public class GenericTypeInferencer extends AbstractVisitor {
 								}
 							}*/
 							
+							boolean foundMatch = false;
 							//parents need to bind where they can
-							for(NamedType superclassorIface : potCD.getAllSuperClassesInterfaces()){
+							for(NamedType superclassorIface : potCD.getAllSuperClassesInterfaces()){ // (List < ArrayList)
 								if(classWanted.equals(superclassorIface.getSetClassDef())) {
 									HashMap<GenericType, Type> superGenTypes = potentialNT.getFromClassGenericToQualifiedType();
 									superclassorIface = (NamedType) GenericTypeUtils.filterOutGenericTypes(superclassorIface, superGenTypes);
 									matchingOnClass.add(superclassorIface);
+									foundMatch=true;
 									break;
 								}
 							}
 							
+							if(!foundMatch) {
+								//see if thing being qualified is subclass of qualifier type (e.g. ArrayList < List)
+								for(NamedType superclassorIface : classWanted.getAllSuperClassesInterfaces()){ // (List < ArrayList)
+									ClassDef supCls = superclassorIface.getSetClassDef();
+									if(supCls.equals(potCD)) {
+										HashMap<GenericType, Type> superGenTypes = potentialNT.getFromClassGenericToQualifiedType();
+										superclassorIface = (NamedType) GenericTypeUtils.filterOutGenericTypes(superclassorIface, superGenTypes);
+										matchingOnClass.add(superclassorIface);
+										foundMatch=true;
+										break;
+									}
+								}
+								
+							}
 						}
 					}
 				}
