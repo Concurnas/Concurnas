@@ -3,24 +3,24 @@
 # The Concurnas programming Language
 Concurnas is an open source programming language designed for building reliable, scalable, high performance concurrent, distributed and parallel systems
 
-* **The main website** (including documentation) for Concurnas can be found at: [https://concurnas.com](http://concurnas.com)
+* **The main website** (including documentation) for Concurnas can be found at: [https://concurnas.co.uk](http://concurnas.co.uk)
 
-* **Download page** (including prerequisites) for Concurnas can be found at: [https://concurnas.com/download.html](https://concurnas.com/download.html)
+* **Download page** (including prerequisites) for Concurnas can be found at: [https://concurnas.co.uk/download.html](https://concurnas.co.uk/download.html)
 
 * **Discord:** [discord.gg/jFHfsqR](https://discord.gg/jFHfsqR)
 
 * **Reddit:**  [r/Concurnas/](https://www.reddit.com/r/Concurnas/)
 
 ## Authors and major contributors
-* [Jason Tatton](http://concurnas.com/concurnasltd/leadership.html), [jason.tatton@concurnas.com](jason.tatton@concurnas.com) - Founder of Concurnas
+* [Jason Tatton](http://concurnas.co.uk/concurnasltd/leadership.html), [jason.tatton@concurnas.co.uk](jason.tatton@concurnas.co.uk) - Founder of Concurnas
 
 ## Found a bug?
  1. Check the [existing issues](https://github.com/Concurnas/Concurnas/issues)
- 2. Talk to us at [Concurnas Ltd](https://concurnas.com/concurnasltd/contact.html)
+ 2. Talk to us at [Concurnas Ltd](https://concurnas.co.uk/concurnasltd/contact.html)
  3. Raise an [issue](https://github.com/Concurnas/Concurnas/issues)
 
 ### Reporting Security Issues
-Please do not report security issues to the public issue tracker. Please send security issues to  [security@concurnas.com](mailto:security@concurnas.com).
+Please do not report security issues to the public issue tracker. Please send security issues to  [security@concurnas.co.uk](mailto:security@concurnas.co.uk).
 
 ## Want to contribute?
 Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can save both you and us a lot of time. For any non-trivial change, we'll ask you to create a short design document explaining:
@@ -30,7 +30,7 @@ Before starting to work on a feature or a fix, please open an issue to discuss t
 -   What test cases should it have? What could go wrong?
 -   How will it roughly be implemented? (We'll happily provide code pointers to save you time)
 
-This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with [us](http://concurnas.com/concurnasltd/contact.html).
+This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with [us](http://concurnas.co.uk/concurnasltd/contact.html).
 
 
 ### Contributing
@@ -48,7 +48,7 @@ To contribute:
 All code contributions should contain the following:
 * Appropriate Unit Tests (or modifications of existing tests if they are erroneous)
 * All new and existing unit tests must pass.
-* *If appropriate*: Updates to the reference manual (we will republish the ebook and update the [Concurnas website](http://concurnas.com/docs/manual.html))
+* *If appropriate*: Updates to the reference manual (we will republish the ebook and update the [Concurnas website](http://concurnas.co.uk/docs/manual.html))
 
 Your code needs to run on all supported Java versions (at least 1.8) and operating systems (Windows and Linux). We will verify this, but here are some pointers that will avoid surprises:
 
