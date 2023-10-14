@@ -1,0 +1,13 @@
+var num = 12
+
+for (i = 0; i <= 10; ++i){
+   var result = num * i 
+   System out println num + " * " + i + " = " + result 
+}
+
+/*
+Prints multiplication table of 12
+eg.
+12 * 1 = 12 ...
+*/
+

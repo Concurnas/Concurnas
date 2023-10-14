@@ -1,0 +1,14 @@
+//Program to reverse the digits of a number
+
+var num = 1234
+var reversed = 0
+
+while (num != 0){
+  val digit = num mod 10
+  reversed = reversed * 10 + digit
+  num /= 10
+}
+
+System out println "Reversed: " + reversed
+
+//Prints 4321

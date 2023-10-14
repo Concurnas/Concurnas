@@ -1,0 +1,19 @@
+//Program to check whether the given year is a leap year or not
+
+val year = 1900
+var leap = true
+
+if(year mod 4 == 0){
+  if(year mod 100 == 0){
+    if(year mod 400 == 0){
+      leap = true // if the year is divisible by 4 and is a century year, if it is divisible by 400 then it is a leap year
+    }
+  }
+  else { leap = true }
+}
+else { leap = false }
+
+if ( leap == true ){ System out println year + " is a leap year." } 
+else { System out println year + " is not a leap year" }
+
+// Prints "1900 is not a leap year"

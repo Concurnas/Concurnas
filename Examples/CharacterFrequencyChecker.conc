@@ -1,0 +1,15 @@
+//Program to count the number of times a character appears in a string
+
+import java.lang.String.length()
+
+var str = "This is a string"
+var ch = "s"
+var frequency = 0
+
+for (var i = 1; i <= str.length(); i++ ){
+  if (ch == str[i]){
+    ++frequency
+  }
+}
+
+System out println "Frequency of " + ch + " in " + str + " = " + frequency

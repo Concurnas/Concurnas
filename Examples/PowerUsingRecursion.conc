@@ -1,0 +1,22 @@
+//Program that mimics the pow() function
+
+var base = 10
+var power_raised = 2
+
+def power(base int, power_raised int){
+  if(power_raised != 0){
+    return base * power(base, power_raised - 1)
+  } else {
+    return 1
+  }
+  
+  if(power_raised == 1){
+    return base
+  }
+}
+
+result = power(base, power_raised)
+
+System out println result
+
+//Prints 100
